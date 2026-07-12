@@ -23,8 +23,8 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.BLUEHOST_FTP_SERVER }}
-          username: ${{ secrets.BLUEHOST_PROD_FTP_USERNAME }}
-          password: ${{ secrets.BLUEHOST_PROD_FTP_PASSWORD }}
+          username: ${{ secrets.BLUEHOST_FTP_USERNAME }}
+          password: ${{ secrets.BLUEHOST_FTP_PASSWORD }}
           local-dir: ./pwa-website/
           server-dir: ${{ secrets.BLUEHOST_PROD_DIR }}
           exclude: |

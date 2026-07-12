@@ -40,14 +40,6 @@ Required for test deployment:
   - Example: `/public_html/test/`
   - The exact value depends on the Bluehost domain/subdomain configuration.
 
-Required for production deployment:
-
-- `BLUEHOST_PROD_FTP_USERNAME`
-  - FTP username for the production site folder.
-
-- `BLUEHOST_PROD_FTP_PASSWORD`
-  - FTP password for the production site folder.
-
 - `BLUEHOST_PROD_DIR`
   - FTP destination folder for production site.
   - Example: `/public_html/`
