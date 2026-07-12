@@ -24,7 +24,7 @@ Add these in GitHub:
 
 `Settings -> Secrets and variables -> Actions -> New repository secret`
 
-Required:
+Required for test deployment:
 
 - `BLUEHOST_FTP_SERVER`
   - Example: `ftp.fortressofmuslim.org`
@@ -39,6 +39,17 @@ Required:
   - FTP destination folder for test site.
   - Example: `/public_html/test/`
   - The exact value depends on the Bluehost domain/subdomain configuration.
+
+Required for production deployment:
+
+- `BLUEHOST_PROD_FTP_SERVER`
+  - Example: `ftp.fortressofmuslim.org`
+
+- `BLUEHOST_PROD_FTP_USERNAME`
+  - FTP username for the production site folder.
+
+- `BLUEHOST_PROD_FTP_PASSWORD`
+  - FTP password for the production site folder.
 
 - `BLUEHOST_PROD_DIR`
   - FTP destination folder for production site.
