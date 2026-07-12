@@ -19,6 +19,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Stamp PWA version
+        run: python pwa-website/tools/stamp_version.py
+
       - name: Deploy pwa-website to Bluehost test folder
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -35,4 +38,3 @@ jobs:
             **/tools/**
             **/visualize.html
             **/visualize.css
-

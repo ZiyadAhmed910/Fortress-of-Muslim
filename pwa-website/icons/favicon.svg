@@ -1,8 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Fortress of Muslim">
-  <rect width="64" height="64" rx="14" fill="#f3f3f0"/>
-  <path d="M16 12h22c5.5 0 10 4.5 10 10v30H24c-4.4 0-8-3.6-8-8V12z" fill="#ffffff" stroke="#b9afa0" stroke-width="2.3"/>
-  <path d="M24 12h24v40H24c-4.4 0-8-3.6-8-8V20c0-4.4 3.6-8 8-8z" fill="#f8f8f4" stroke="#7f776b" stroke-width="2.3"/>
-  <path d="M24 12v40" fill="none" stroke="#0d7abf" stroke-width="3.2" stroke-linecap="round"/>
-  <path d="M31 23h10M31 31h12M31 39h9" fill="none" stroke="#c9c2b7" stroke-width="2.2" stroke-linecap="round"/>
-  <path d="M20 18c-2.2 1.4-3.7 3.8-3.7 6.6V44c0 4.4 3.6 8 8 8" fill="none" stroke="#d8d3ca" stroke-width="1.6" stroke-linecap="round"/>
+  <rect width="64" height="64" rx="16" fill="#f3f3f0"/>
+  <circle cx="32" cy="32" r="23" fill="#1b6f78"/>
+  <path d="M42 18a15.5 15.5 0 1 0 0 28 19 19 0 1 1 0-28Z" fill="#f6ead3"/>
+  <path d="M42.5 19.5 45 25l6 .55-4.55 3.95 1.35 5.9-5.3-3.08-5.3 3.08 1.35-5.9L34 25.55l6-.55 2.5-5.5Z" fill="#d4a646"/>
+  <path d="M18 46h28" stroke="#d4a646" stroke-width="3" stroke-linecap="round"/>
 </svg>

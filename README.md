@@ -155,36 +155,44 @@ Before submitting work:
 
 ## Versioning
 
-The visible app version is stored in:
+The visible app version is stamped from Git history during deployment:
 
 ```text
-pwa-website/js/constants.js
+pwa-website/tools/stamp_version.py
 ```
 
 Current approach:
 
-- bug fixes: `1.01`, `1.02`, etc.
-- feature improvements: `1.10`, `1.11`, etc.
+- releases use a sequential three-digit patch style: `1.001`, `1.002`, `1.013`, etc.
+- the sequence is derived from the Git commit count.
 - major redesign or breaking data changes: `2.0`
 
-The service worker build/cache version is separate and should be bumped whenever deployed assets change.
+The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
 
-### 1.12
+### 1.013
 
 - Fixed simple-home category pills so they open the same category/list flow as advanced cards.
+- Fixed old UI category pills so filtered content actually changes.
+- Simplified Settings backup actions back to compact buttons.
+- Replaced Moods and Ruqyah placeholder cards with generated bitmap cards.
+- Replaced the app icon/favicon with a cleaner moon-and-star mark.
+- Added automatic deployment version stamping.
+
+### 1.012
+
 - Improved Settings backup layout with separate Export and Import rows.
 - Added this open-source README.
 
-### 1.11
+### 1.011
 
 - Restored Morning and Evening to the advanced bottom navigation.
 - Added Moods and Ruqyah as additional bottom navigation items.
 - Replaced text placeholders with SVG icons.
 - Added Moods and Ruqyah cards to the advanced home.
 
-### 1.10
+### 1.010
 
 - Added runtime category, mood, tag, and ruqyah filtering.
 - Added smarter search across text and metadata.

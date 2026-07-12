@@ -1,4 +1,4 @@
-const APP_VERSION = '2026-07-12-v6';
+const APP_VERSION = 'build-dev';
 const CACHE_NAME = `fortress-of-muslim-${APP_VERSION}`;
 const ASSETS = [
   './',
@@ -37,6 +37,8 @@ const ASSETS = [
   './assets/cards/salah.webp',
   './assets/cards/travel.webp',
   './assets/cards/favourites.webp',
+  './assets/cards/moods.webp',
+  './assets/cards/ruqyah.webp',
 ];
 
 self.addEventListener('install', (event) => {

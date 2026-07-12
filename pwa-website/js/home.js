@@ -75,6 +75,10 @@ export function renderFilterControls() {
 }
 
 export function setQuickFilter(filter) {
+  if (filter === 'all') {
+    showAdvancedDashboard();
+    return;
+  }
   openAdvancedFilter(filter);
 }
 
@@ -132,7 +136,7 @@ export function applyAdvancedTitle() {
 }
 
 function activeGroup() {
-  return state.advancedUi && state.advancedListMode ? state.advancedFilter : state.activeQuickFilter;
+  return state.advancedListMode ? state.advancedFilter : state.activeQuickFilter;
 }
 
 function filterButton(key, label) {

@@ -7,7 +7,7 @@ export function shouldUseFavouriteFilter() {
 }
 
 export function advancedCategoryPass(entry) {
-  const activeGroup = state.advancedUi && state.advancedListMode ? state.advancedFilter : state.activeQuickFilter;
+  const activeGroup = state.advancedListMode ? state.advancedFilter : state.activeQuickFilter;
   const groupPass = filterEntryByGroup(entry, activeGroup);
   const moodPass = activeGroup === 'moods' ? filterEntryByMood(entry, state.activeMood) : true;
   return groupPass && moodPass;

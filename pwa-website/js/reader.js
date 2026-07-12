@@ -14,7 +14,7 @@ export function openEntry(index) {
 export function showHome() {
   if (els.app.classList.contains('is-reader')) {
     els.app.classList.remove('is-reader');
-    if (state.advancedUi && state.advancedListMode) {
+    if (state.advancedListMode) {
       applyAdvancedTitle();
     } else {
       els.screenTitle.textContent = 'Fortress of Muslim';
@@ -23,7 +23,7 @@ export function showHome() {
     return;
   }
 
-  if (state.advancedUi && state.advancedListMode) {
+  if (state.advancedListMode) {
     showAdvancedDashboard();
     filterList();
     return;

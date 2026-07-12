@@ -7,7 +7,7 @@
     <title>Fortress of Muslim</title>
     <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="styles.css?v=2026-07-12-v6">
+    <link rel="stylesheet" href="styles.css?v=build-dev">
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -52,17 +52,11 @@
               <button class="advanced-card" data-advanced-filter="favourites" aria-label="Open favourite duas">
                 <img src="assets/cards/favourites.webp" alt="" loading="lazy" decoding="async">
               </button>
-              <button class="advanced-card advanced-icon-card mood-card" data-advanced-filter="moods" aria-label="Open duas by mood">
-                <span class="card-icon" aria-hidden="true">
-                  <svg viewBox="0 0 48 48"><path d="M11 26c0-9 6-15 13-15s13 6 13 15c0 7-5 12-13 12s-13-5-13-12Z"/><path d="M18 24c2 2 4 3 6 3s4-1 6-3"/><path d="M18 20h.01M30 20h.01"/></svg>
-                </span>
-                <span class="card-label">Moods</span>
+              <button class="advanced-card" data-advanced-filter="moods" aria-label="Open duas by mood">
+                <img src="assets/cards/moods.webp" alt="" loading="lazy" decoding="async">
               </button>
-              <button class="advanced-card advanced-icon-card ruqyah-card" data-advanced-filter="ruqyah" aria-label="Open ruqyah duas">
-                <span class="card-icon" aria-hidden="true">
-                  <svg viewBox="0 0 48 48"><path d="M24 7 37 12v10c0 9-5 15-13 19-8-4-13-10-13-19V12l13-5Z"/><path d="M18 25h12M24 19v12"/></svg>
-                </span>
-                <span class="card-label">Ruqyah</span>
+              <button class="advanced-card" data-advanced-filter="ruqyah" aria-label="Open ruqyah duas">
+                <img src="assets/cards/ruqyah.webp" alt="" loading="lazy" decoding="async">
               </button>
             </div>
 
@@ -205,18 +199,12 @@
               <small>Export or restore favourites and settings.</small>
             </span>
             <span class="backup-actions">
-              <button class="backup-action-button" id="exportDataButton" type="button">
-                <strong>Export backup</strong>
-                <small>Save favourites and settings to a JSON file.</small>
-              </button>
-              <button class="backup-action-button" id="importDataButton" type="button">
-                <strong>Import backup</strong>
-                <small>Restore from a previously exported JSON file.</small>
-              </button>
+              <button class="small-action-button" id="exportDataButton" type="button">Export backup</button>
+              <button class="small-action-button secondary" id="importDataButton" type="button">Import backup</button>
               <input id="importDataInput" type="file" accept="application/json,.json" hidden>
             </span>
           </div>
-          <div class="settings-version" id="appVersion" aria-label="App version">Version 1.12</div>
+          <div class="settings-version" id="appVersion" aria-label="App version">Version 1.013</div>
         </form>
       </dialog>
 
@@ -228,6 +216,6 @@
       </div>
     </div>
 
-    <script type="module" src="js/app.js?v=2026-07-12-v6"></script>
+    <script type="module" src="js/app.js?v=build-dev"></script>
   </body>
 </html>
