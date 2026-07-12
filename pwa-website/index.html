@@ -7,7 +7,7 @@
     <title>Fortress of Muslim</title>
     <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="styles.css?v=2026-07-12-v4">
+    <link rel="stylesheet" href="styles.css?v=2026-07-12-v5">
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -52,6 +52,18 @@
               <button class="advanced-card" data-advanced-filter="favourites" aria-label="Open favourite duas">
                 <img src="assets/cards/favourites.webp" alt="" loading="lazy" decoding="async">
               </button>
+              <button class="advanced-card advanced-icon-card mood-card" data-advanced-filter="moods" aria-label="Open duas by mood">
+                <span class="card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 48 48"><path d="M11 26c0-9 6-15 13-15s13 6 13 15c0 7-5 12-13 12s-13-5-13-12Z"/><path d="M18 24c2 2 4 3 6 3s4-1 6-3"/><path d="M18 20h.01M30 20h.01"/></svg>
+                </span>
+                <span class="card-label">Moods</span>
+              </button>
+              <button class="advanced-card advanced-icon-card ruqyah-card" data-advanced-filter="ruqyah" aria-label="Open ruqyah duas">
+                <span class="card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 48 48"><path d="M24 7 37 12v10c0 9-5 15-13 19-8-4-13-10-13-19V12l13-5Z"/><path d="M18 25h12M24 19v12"/></svg>
+                </span>
+                <span class="card-label">Ruqyah</span>
+              </button>
             </div>
 
           </section>
@@ -83,15 +95,33 @@
               <strong>Home</strong>
             </button>
             <button data-advanced-filter="favourites" type="button">
-              <span aria-hidden="true">♡</span>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M20.8 8.6c0 5.4-8.8 10.2-8.8 10.2S3.2 14 3.2 8.6A4.6 4.6 0 0 1 12 6.7a4.6 4.6 0 0 1 8.8 1.9Z"/></svg>
+              </span>
               <strong>Favourites</strong>
             </button>
+            <button data-advanced-filter="morning" type="button">
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 18h16"/><path d="M7 15a5 5 0 0 1 10 0"/><path d="M12 3v3M5.6 8.6 7.8 10.8M18.4 8.6 16.2 10.8"/></svg>
+              </span>
+              <strong>Morning</strong>
+            </button>
+            <button data-advanced-filter="evening" type="button">
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M18 15.4A7 7 0 0 1 8.6 6a7.6 7.6 0 1 0 9.4 9.4Z"/><path d="M4 20h16"/></svg>
+              </span>
+              <strong>Evening</strong>
+            </button>
             <button data-advanced-filter="moods" type="button">
-              <span aria-hidden="true">M</span>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M5 13c0-5 3-8 7-8s7 3 7 8c0 4-3 7-7 7s-7-3-7-7Z"/><path d="M9 12c1 1 2 1.5 3 1.5s2-.5 3-1.5"/><path d="M9 9h.01M15 9h.01"/></svg>
+              </span>
               <strong>Moods</strong>
             </button>
             <button data-advanced-filter="ruqyah" type="button">
-              <span aria-hidden="true">R</span>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3 19 6v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3Z"/><path d="M9 12h6M12 9v6"/></svg>
+              </span>
               <strong>Ruqyah</strong>
             </button>
           </nav>
@@ -180,7 +210,7 @@
               <input id="importDataInput" type="file" accept="application/json,.json" hidden>
             </span>
           </div>
-          <div class="settings-version" id="appVersion" aria-label="App version">Version 1.10</div>
+          <div class="settings-version" id="appVersion" aria-label="App version">Version 1.11</div>
         </form>
       </dialog>
 
@@ -192,6 +222,6 @@
       </div>
     </div>
 
-    <script type="module" src="js/app.js?v=2026-07-12-v4"></script>
+    <script type="module" src="js/app.js?v=2026-07-12-v5"></script>
   </body>
 </html>

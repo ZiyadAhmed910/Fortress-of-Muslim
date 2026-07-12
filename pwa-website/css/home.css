@@ -56,6 +56,73 @@
   object-position: center;
 }
 
+.advanced-icon-card {
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  color: white;
+}
+
+.advanced-icon-card::before,
+.advanced-icon-card::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.advanced-icon-card::before {
+  inset: 0;
+  z-index: -2;
+}
+
+.advanced-icon-card::after {
+  right: -18%;
+  bottom: -30%;
+  z-index: -1;
+  width: 74%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.mood-card::before {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.22), transparent 32%),
+    linear-gradient(135deg, #23816f, #5fa7d6 58%, #6f77c8);
+}
+
+.ruqyah-card::before {
+  background:
+    radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.22), transparent 28%),
+    linear-gradient(135deg, #145f78, #248b7c 58%, #d1a44d);
+}
+
+.card-icon {
+  display: grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.card-icon svg {
+  width: 2.15rem;
+  height: 2.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card-label {
+  margin-top: 0.35rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
 .advanced-featured {
   grid-column: 1 / -1;
   aspect-ratio: 2.32 / 1;
@@ -71,7 +138,7 @@
   bottom: max(0.65rem, env(safe-area-inset-bottom));
   z-index: 26;
   display: none;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   width: min(100% - 1rem, 31rem);
   border: 1px solid var(--line);
   border-radius: 1.1rem;
@@ -96,14 +163,28 @@
 }
 
 .advanced-bottom-nav span {
-  font-size: 1.35rem;
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  font-size: 1.25rem;
   line-height: 1;
+}
+
+.advanced-bottom-nav svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .advanced-bottom-nav strong {
   overflow: hidden;
   width: 100%;
-  font-size: 0.74rem;
+  font-size: 0.64rem;
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -1,4 +1,4 @@
-const APP_VERSION = '2026-07-12-v4';
+const APP_VERSION = '2026-07-12-v5';
 const CACHE_NAME = `fortress-of-muslim-${APP_VERSION}`;
 const ASSETS = [
   './',
