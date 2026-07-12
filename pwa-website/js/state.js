@@ -1,0 +1,17 @@
+export const state = {
+  entries: [],
+  filtered: [],
+  currentIndex: 0,
+  currentPart: 0,
+  showFavouritesOnly: false,
+  favourites: new Set(JSON.parse(localStorage.getItem('favourites') || '[]')),
+  fontScale: Number(localStorage.getItem('fontScale') || '1'),
+  darkMode: localStorage.getItem('darkMode') === 'true',
+  largeArabic: localStorage.getItem('largeArabic') === 'true',
+  advancedUi: localStorage.getItem('advancedUi') === 'true',
+  advancedListMode: false,
+  advancedFilter: 'all',
+  deferredInstallPrompt: null,
+  waitingWorker: null,
+  refreshing: false,
+};

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fortress UI Visualization</title>
+    <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="visualize.css">
+  </head>
+  <body>
+    <main class="stage">
+      <section class="phone">
+        <header class="app-top">
+          <button aria-label="Menu">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h12M4 17h16"/></svg>
+          </button>
+          <div class="brand">
+            <img src="icons/favicon.svg" alt="">
+            <h1>Fortress of Muslim</h1>
+          </div>
+          <button aria-label="Settings">
+            <svg viewBox="0 0 24 24"><path d="M12 8.2a3.8 3.8 0 1 1 0 7.6 3.8 3.8 0 0 1 0-7.6Z"/><path d="m19.4 15 .9 1.7-2 2-1.7-.9c-.5.3-1 .5-1.6.7l-.6 1.8h-2.8l-.6-1.8c-.6-.2-1.1-.4-1.6-.7l-1.7.9-2-2 .9-1.7c-.3-.5-.5-1-.7-1.6L3 12.8V10l1.8-.6c.2-.6.4-1.1.7-1.6l-.9-1.7 2-2 1.7.9c.5-.3 1-.5 1.6-.7l.6-1.8h2.8l.6 1.8c.6.2 1.1.4 1.6.7l1.7-.9 2 2-.9 1.7c.3.5.5 1 .7 1.6l1.8.6v2.8l-1.8.6c-.2.6-.4 1.1-.7 1.6Z"/></svg>
+          </button>
+        </header>
+
+        <section class="settings-card">
+          <div>
+            <strong>Advanced UI</strong>
+            <span>Graphic category home enabled</span>
+          </div>
+          <div class="toggle" aria-hidden="true"><span></span></div>
+        </section>
+
+        <section class="hero-card card-mosque">
+          <div>
+            <span>Featured</span>
+            <h2>Du'as for the Ummah</h2>
+            <p>All supplications in one offline collection.</p>
+          </div>
+          <svg viewBox="0 0 520 170" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="heroSky" x1="0" x2="1" y1="0" y2="1">
+                <stop stop-color="#d94d39"/>
+                <stop offset=".48" stop-color="#f19a58"/>
+                <stop offset="1" stop-color="#f7d885"/>
+              </linearGradient>
+              <linearGradient id="heroHill" x1="0" x2="1">
+                <stop stop-color="#c74738"/>
+                <stop offset="1" stop-color="#d8a04d"/>
+              </linearGradient>
+            </defs>
+            <rect width="520" height="170" fill="url(#heroSky)"/>
+            <path d="M-12 57c72-31 151-26 229 3 75 28 146 27 313-14v135H-12z" fill="#e86449" opacity=".46"/>
+            <path d="M-6 123c90-42 153-31 223-48 103-25 177-61 314-26v121H-6z" fill="url(#heroHill)" opacity=".74"/>
+            <path d="M237 127c81-35 171-37 301-14v57H237z" fill="#9b7139" opacity=".44"/>
+            <path d="M394 52c12-20 52-18 59 5 25-11 53 1 58 19h-128c1-10 4-18 11-24Z" fill="#ffe9bd" opacity=".78"/>
+            <path d="M449 43c9-11 30-9 35 5 15-5 30 1 34 12h-83c1-8 6-14 14-17Z" fill="#fff1cd" opacity=".72"/>
+            <path d="M301 79h128v59H301z" fill="#f7d894"/>
+            <path d="M309 79c8-24 48-24 56 0z" fill="#143552"/>
+            <path d="M335 61h5v-8h4v8h5v18h-14z" fill="#143552"/>
+            <path d="M429 86h59v52h-59z" fill="#ffd789"/>
+            <path d="M453 138v-35c0-25 28-25 28 0v35M318 138v-31c0-17 15-17 15 0v31M350 138v-31c0-17 15-17 15 0v31M382 138v-31c0-17 15-17 15 0v31" fill="none" stroke="#12283b" stroke-width="6"/>
+            <path d="M286 139h218" stroke="#85622e" stroke-width="5" opacity=".35"/>
+            <path d="M248 125h36v15h-36zM218 137h25v11h-25zM197 126h17v10h-17z" fill="#f2c76d" opacity=".75"/>
+            <path d="M260 128V90m0 0c-23 17-23 39 0 48 20-8 20-30 0-48Zm-28 41V103m0 0c-19 14-19 31 0 38 16-7 16-24 0-38Z" fill="#11665d" stroke="#0a4745" stroke-width="3"/>
+            <path d="M282 47c10-8 22-8 32 0m16 9c9-7 20-7 29 0m-65 14c7-5 16-5 23 0" fill="none" stroke="#142134" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </section>
+
+        <section class="tabs">
+          <button class="active">Main</button>
+          <button>Favourites</button>
+        </section>
+
+        <section class="card-grid">
+          <article class="category wide morning">
+            <div>
+              <span>27 duas</span>
+              <h3>Morning</h3>
+            </div>
+            <svg viewBox="0 0 520 150" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="morningSky" x1="0" x2="1">
+                  <stop stop-color="#3da6db"/>
+                  <stop offset=".55" stop-color="#81d3f2"/>
+                  <stop offset="1" stop-color="#c8f0ff"/>
+                </linearGradient>
+              </defs>
+              <rect width="520" height="150" fill="url(#morningSky)"/>
+              <path d="M-30 54c96-37 173-20 246 8 84 31 178 30 332-30v118H-30z" fill="#69c4ea" opacity=".34"/>
+              <circle cx="313" cy="47" r="18" fill="#f7bd45"/>
+              <path d="M313 17v14M313 63v15M283 47h14M329 47h14M292 26l10 10M334 26l-10 10M292 68l10-10M334 68l-10-10" stroke="#f7bd45" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+              <path d="M389 48h88c-8-25-43-21-45-4-14-14-36-11-43 4ZM257 80h49c-5-14-24-12-25-2-8-8-20-6-24 2Z" fill="#fff" opacity=".9"/>
+              <path d="M176 132c85-61 136-75 228-49 45 13 74 8 124-5v72H176z" fill="#57b6b2"/>
+              <path d="M290 134c66-45 142-52 238-34v50H290z" fill="#0e8377"/>
+              <path d="M374 131V67m0 0c-34 23-39 57-2 67 33-11 34-44 2-67Z" fill="#0f6d63" stroke="#073d3d" stroke-width="4"/>
+              <path d="M430 92h49v35h-49z" fill="#4ab8d2" stroke="#083348" stroke-width="3"/>
+              <path d="M421 92l34-27 34 27z" fill="#e84754" stroke="#083348" stroke-width="3"/>
+              <path d="M452 127V110h11v17M437 103h9M465 103h9" stroke="#083348" stroke-width="3"/>
+            </svg>
+          </article>
+
+          <article class="category wide evening">
+            <div>
+              <span>28 duas</span>
+              <h3>Evening</h3>
+            </div>
+            <svg viewBox="0 0 520 150" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="eveningSky" x1="0" x2="1">
+                  <stop stop-color="#d64a36"/>
+                  <stop offset=".5" stop-color="#f19369"/>
+                  <stop offset="1" stop-color="#ffd991"/>
+                </linearGradient>
+              </defs>
+              <rect width="520" height="150" fill="url(#eveningSky)"/>
+              <path d="M-20 57c95-29 161-14 238 11 83 27 167 20 322-29v111H-20z" fill="#ef7158" opacity=".34"/>
+              <path d="M378 72c13-18 47-16 54 4 19-8 43 2 48 18h-115c0-9 5-17 13-22Z" fill="#ffbd8b" opacity=".6"/>
+              <path d="M168 132c95-58 151-74 239-48 49 14 84 8 128-3v69H168z" fill="#5fb4a7"/>
+              <path d="M285 134c70-47 145-54 250-35v51H285z" fill="#0e766d"/>
+              <path d="M376 131V76m0 0c-32 23-36 50-1 59 29-10 31-37 1-59Z" fill="#0e655d" stroke="#073b38" stroke-width="4"/>
+              <path d="M425 93h51v34h-51zM416 93l35-27 35 27z" fill="#e94c61" stroke="#083348" stroke-width="3"/>
+              <path d="M273 43c9-7 20-7 29 0m19 11c8-6 18-6 26 0m-60 14c6-5 14-5 20 0" fill="none" stroke="#fff4de" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+          </article>
+
+          <article class="category sleep">
+            <div>
+              <span>19 parts</span>
+              <h3>Before Sleep</h3>
+            </div>
+            <svg viewBox="0 0 250 150" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="sleepSky" x1="0" x2="1" y1="0" y2="1">
+                  <stop stop-color="#127fbe"/>
+                  <stop offset=".55" stop-color="#17458f"/>
+                  <stop offset="1" stop-color="#101c69"/>
+                </linearGradient>
+              </defs>
+              <rect width="250" height="150" fill="url(#sleepSky)"/>
+              <path d="M-20 66c52-28 96-28 143-7 48 21 84 19 143-5v96H-20z" fill="#2368bb" opacity=".38"/>
+              <path d="M54 27c-18 12-8 39 14 39-13 13-40 4-43-16-3-20 12-37 29-23Z" fill="#ffd36b"/>
+              <path d="M87 29l23-8M107 19l-4-5M109 21l7 1M183 43h35c-4-10-18-9-20-1-6-6-13-4-15 1Z" fill="#2fc1cb"/>
+              <path d="M-4 128c52-43 99-52 176-23 26 10 53 11 88 4v41H-4z" fill="#102278"/>
+              <path d="M110 88h61v39h-61zM101 88l39-31 41 31z" fill="#e94a52" stroke="#102236" stroke-width="3"/>
+              <path d="M136 127v-17h13v17M160 101h9M121 101h9" stroke="#102236" stroke-width="3"/>
+              <circle cx="36" cy="90" r="2" fill="#fff"/><circle cx="72" cy="20" r="2" fill="#fff"/><circle cx="91" cy="44" r="1.5" fill="#fff"/>
+            </svg>
+          </article>
+
+          <article class="category prayer">
+            <div>
+              <span>Prayer</span>
+              <h3>Salah</h3>
+            </div>
+            <svg viewBox="0 0 250 150" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="prayerRoom" x1="0" x2="1">
+                  <stop stop-color="#6a7ce5"/>
+                  <stop offset="1" stop-color="#5265cb"/>
+                </linearGradient>
+              </defs>
+              <rect width="250" height="150" fill="url(#prayerRoom)"/>
+              <path d="M-22 54c42-32 88-34 135-16 58 22 91 20 157-2v114H-22z" fill="#8192f0" opacity=".24"/>
+              <path d="M143 26h55v76h-55z" fill="#15276f" stroke="#14233c" stroke-width="5"/>
+              <path d="M151 93V55c0-25 39-25 39 0v38" fill="#1f2f83"/>
+              <path d="M169 54c-11 8-5 25 8 25-8 8-25 3-27-10-2-13 8-23 19-15Z" fill="#ffd36b"/>
+              <path d="M91 127h119l-38-40H52z" fill="#f25b62" stroke="#102236" stroke-width="3"/>
+              <path d="M110 122h76l-24-25H84z" fill="#ff8b78" opacity=".65"/>
+              <path d="M213 103c17-18 22-40 14-60 24 16 25 49 5 72" fill="#0e765c"/>
+              <path d="M226 114c15-11 20-28 16-47 16 13 17 38 2 51" fill="#169a72"/>
+            </svg>
+          </article>
+        </section>
+
+        <nav class="bottom-nav">
+          <a class="active"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z"/></svg><span>Home</span></a>
+          <a><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9-9.1C1.5 7.1 4 4 7.5 4c2 0 3.5 1 4.5 2.6C13 5 14.5 4 16.5 4 20 4 22.5 7.1 21 10.9 19 15.6 12 20 12 20Z"/></svg><span>Favourites</span></a>
+          <a><svg viewBox="0 0 24 24"><path d="M7 4h8l4 4v12H7zM15 4v5h4M10 13h6M10 16h5"/></svg><span>All Duas</span></a>
+        </nav>
+      </section>
+    </main>
+  </body>
+</html>

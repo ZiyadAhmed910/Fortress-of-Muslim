@@ -1,0 +1,73 @@
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 5rem;
+  z-index: 40;
+  max-width: min(90vw, 24rem);
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  color: white;
+  background: rgba(25, 28, 30, 0.92);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 0.8rem);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.update-banner {
+  position: fixed;
+  left: 50%;
+  bottom: max(4.4rem, calc(env(safe-area-inset-bottom) + 4.4rem));
+  z-index: 45;
+  display: none;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.65rem;
+  align-items: center;
+  width: min(92vw, 30rem);
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.75rem 0.7rem 0.95rem;
+  color: var(--ink);
+  background: var(--paper-strong);
+  box-shadow: var(--shadow);
+  transform: translateX(-50%);
+}
+
+.update-banner.visible {
+  display: grid;
+}
+
+.update-banner button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--accent-strong);
+  background: transparent;
+  font-weight: 800;
+}
+
+.update-banner #updateButton {
+  padding: 0.48rem 0.75rem;
+  color: white;
+  background: var(--accent-strong);
+}
+
+.update-banner #dismissUpdateButton {
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.empty-state {
+  border: 1px dashed var(--line);
+  border-radius: 0.9rem;
+  padding: 2.2rem 1rem;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--paper) 76%, transparent);
+  text-align: center;
+}

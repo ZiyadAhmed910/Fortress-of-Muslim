@@ -1,0 +1,281 @@
+:root {
+  --navy: #082235;
+  --navy-2: #0f4166;
+  --teal: #75cec9;
+  --text: #f8fbff;
+  --muted: rgba(248, 251, 255, 0.72);
+  --card-radius: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #08141f;
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+.stage {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 18px;
+}
+
+.phone {
+  position: relative;
+  overflow: hidden;
+  width: min(100%, 390px);
+  min-height: 844px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(30, 113, 160, 0.35), transparent 210px),
+    linear-gradient(180deg, #0c314d 0 84px, var(--navy) 84px 100%);
+  box-shadow: 0 22px 80px rgba(0, 0, 0, 0.45);
+}
+
+.app-top {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  height: 86px;
+  padding: 22px 18px 10px;
+  background: var(--navy-2);
+}
+
+.app-top button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  color: white;
+  background: transparent;
+}
+
+.app-top svg,
+.bottom-nav svg {
+  width: 27px;
+  height: 27px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.brand img {
+  width: 31px;
+  height: 31px;
+  border-radius: 8px;
+}
+
+.brand h1 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 16px 16px;
+  border: 1px solid rgba(130, 206, 220, 0.22);
+  border-radius: 22px;
+  padding: 13px 14px 13px 16px;
+  background: rgba(9, 42, 64, 0.9);
+}
+
+.settings-card strong,
+.settings-card span {
+  display: block;
+}
+
+.settings-card strong {
+  font-size: 17px;
+}
+
+.settings-card span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.toggle {
+  width: 58px;
+  height: 32px;
+  border-radius: 99px;
+  padding: 4px;
+  background: var(--teal);
+}
+
+.toggle span {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+  transform: translateX(26px);
+}
+
+.hero-card,
+.category {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 26px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+}
+
+.hero-card {
+  height: 148px;
+  margin: 0 16px 16px;
+  background: #d85a43;
+}
+
+.hero-card > div,
+.category > div {
+  position: relative;
+  z-index: 2;
+  padding: 24px 18px;
+}
+
+.hero-card span,
+.category span {
+  display: block;
+  margin-bottom: 7px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hero-card h2,
+.category h3 {
+  margin: 0;
+  max-width: 170px;
+  font-size: 24px;
+  line-height: 1.22;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.hero-card p {
+  width: 155px;
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.hero-card svg,
+.category svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0 58px 18px;
+  border-radius: 999px;
+  padding: 5px;
+  background: #0f4166;
+}
+
+.tabs button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  background: transparent;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.tabs .active {
+  color: white;
+  background: var(--teal);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 0 16px 100px;
+}
+
+.category {
+  min-height: 156px;
+  background: #277fb2;
+}
+
+.category.wide {
+  grid-column: 1 / -1;
+  min-height: 138px;
+}
+
+.category h3 {
+  font-size: 24px;
+}
+
+.bottom-nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  height: 84px;
+  padding: 9px 10px 12px;
+  background: var(--navy-2);
+}
+
+.bottom-nav a {
+  display: grid;
+  gap: 4px;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.bottom-nav .active {
+  color: #19c6c2;
+}
+
+@media (max-width: 430px) {
+  .stage {
+    padding: 0;
+  }
+
+  .phone {
+    width: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+}

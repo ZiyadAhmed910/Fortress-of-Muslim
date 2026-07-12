@@ -1,0 +1,38 @@
+name: Deploy main to Bluehost production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy PWA to production site
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy pwa-website to Bluehost production folder
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.BLUEHOST_FTP_SERVER }}
+          username: ${{ secrets.BLUEHOST_FTP_USERNAME }}
+          password: ${{ secrets.BLUEHOST_FTP_PASSWORD }}
+          local-dir: ./pwa-website/
+          server-dir: ${{ secrets.BLUEHOST_PROD_DIR }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/README.md
+            **/serve.py
+            **/tools/**
+            **/visualize.html
+            **/visualize.css
+

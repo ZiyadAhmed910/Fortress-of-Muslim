@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reset Fortress of Muslim Preview</title>
+    <style>
+      body {
+        display: grid;
+        min-height: 100vh;
+        margin: 0;
+        place-items: center;
+        color: #1f211f;
+        background: #f3f3f0;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      main {
+        width: min(90vw, 28rem);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Resetting preview...</h1>
+      <p>Clearing the old local PWA cache and reopening the app.</p>
+    </main>
+    <script>
+      Promise.all([
+        'serviceWorker' in navigator
+          ? navigator.serviceWorker.getRegistrations().then(function (items) {
+              return Promise.all(items.map(function (item) { return item.unregister(); }));
+            })
+          : Promise.resolve(),
+        'caches' in window
+          ? caches.keys().then(function (keys) {
+              return Promise.all(keys.map(function (key) { return caches.delete(key); }));
+            })
+          : Promise.resolve()
+      ]).finally(function () {
+        location.replace('index.html?v=4');
+      });
+    </script>
+  </body>
+</html>

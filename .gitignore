@@ -1,0 +1,12 @@
+# Local/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local preview/runtime noise
+*.log
+
+# Generated local test screenshots
+pwa-website/advanced-*.png
+

@@ -1,0 +1,205 @@
+.settings-dialog {
+  background: var(--paper-strong);
+}
+
+:root.dark .reader-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 12rem),
+    var(--paper);
+}
+
+:root.dark .topbar {
+  background: rgba(8, 11, 13, 0.92);
+}
+
+:root.dark .segment.translation {
+  color: #eee7dc;
+}
+
+:root.dark .segment.comment {
+  color: #d0c8ba;
+}
+
+.reader-heading {
+  display: grid;
+  grid-template-columns: 1fr 2.55rem;
+  gap: 0.7rem;
+  align-items: start;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.65rem;
+}
+
+.reader-heading h2 {
+  margin: 0;
+  font-size: calc(1.18rem * var(--font-scale));
+  line-height: 1.28;
+  text-align: center;
+}
+
+.star-button {
+  width: 2.45rem;
+  height: 2.45rem;
+  font-size: 1.45rem;
+}
+
+.part-count {
+  margin: 0.65rem 0 1.2rem;
+  color: var(--muted);
+  font-size: calc(0.98rem * var(--font-scale));
+  text-align: center;
+}
+
+.dua-content {
+  display: grid;
+  gap: 1.25rem;
+  font-size: calc(1.18rem * var(--font-scale));
+  line-height: 1.48;
+}
+
+.segment {
+  margin: 0;
+}
+
+.segment.arabic {
+  direction: rtl;
+  font-family: "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", serif;
+  font-size: calc(1.55rem * var(--font-scale) * var(--arabic-scale));
+  line-height: 1.9;
+  text-align: right;
+}
+
+.segment.transliteration {
+  font-weight: 600;
+}
+
+.segment.comment {
+  border-left: 3px solid var(--accent);
+  padding-left: 0.85rem;
+  color: var(--muted);
+  font-size: calc(1.03rem * var(--font-scale));
+  font-style: italic;
+}
+
+.segment.translation {
+  color: color-mix(in srgb, var(--ink) 88%, var(--muted));
+}
+
+.reader-controls {
+  position: fixed;
+  left: 50%;
+  bottom: max(0.7rem, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(6, 2.65rem);
+  gap: 0.42rem;
+  justify-content: center;
+  width: min(100% - 1rem, 28rem);
+  padding: 0.42rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-strong) 90%, transparent);
+  box-shadow: var(--shadow);
+  transform: translateX(-50%);
+}
+
+.tool-button {
+  width: 2.45rem;
+  height: 2.45rem;
+  font-weight: 800;
+}
+
+.tool-button svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tool-button svg path:first-child:last-child,
+.tool-button svg path:first-child {
+  fill: none;
+}
+
+#shareButton svg path:first-child {
+  fill: currentColor;
+  stroke: none;
+}
+
+.tool-button:disabled {
+  opacity: 0.42;
+}
+
+.settings-dialog {
+  width: min(92vw, 27rem);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 0;
+  color: var(--ink);
+  background: var(--paper-strong);
+  box-shadow: var(--shadow);
+}
+
+.settings-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.settings-dialog form {
+  padding: 1rem;
+}
+
+.dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.dialog-head h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--line);
+  padding: 1rem 0;
+}
+
+.setting-row strong,
+.setting-row small {
+  display: block;
+}
+
+.setting-row small {
+  margin-top: 0.2rem;
+  color: var(--muted);
+}
+
+.setting-row input {
+  width: 1.35rem;
+  height: 1.35rem;
+  accent-color: var(--accent-strong);
+}
+
+.install-row {
+  display: none;
+}
+
+.install-row.available {
+  display: flex;
+}
+
+.small-action-button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  color: white;
+  background: var(--accent-strong);
+  font-weight: 700;
+}

@@ -1,0 +1,59 @@
+name: Feature branch to dev
+
+on:
+  push:
+    branches:
+      - "feature/**"
+      - "Feature/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-and-merge-pr:
+    name: Create PR and merge into dev
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create or find PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          existing_pr="$(gh pr list \
+            --head "$BRANCH_NAME" \
+            --base dev \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [ -z "$existing_pr" ]; then
+            pr_url="$(gh pr create \
+              --base dev \
+              --head "$BRANCH_NAME" \
+              --title "Auto: ${BRANCH_NAME}" \
+              --body "Automatically created from \`${BRANCH_NAME}\` for deployment to dev/test.")"
+            pr_number="${pr_url##*/}"
+          else
+            pr_number="$existing_pr"
+          fi
+
+          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Merge PR into dev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh pr merge "${{ steps.pr.outputs.number }}" \
+            --squash \
+            --delete-branch \
+            --subject "Auto merge ${{ github.ref_name }}" \
+            --body "Merged automatically into dev."

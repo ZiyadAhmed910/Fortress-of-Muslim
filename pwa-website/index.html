@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f3f3f0">
+    <title>Fortress of Muslim</title>
+    <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css?v=2026-07-12-v1">
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <header class="topbar">
+        <button class="icon-button back-button" id="backButton" aria-label="Back">
+          <span aria-hidden="true">‹</span>
+        </button>
+        <div class="title-stack">
+          <div class="brand-title">
+            <img src="icons/favicon.svg" alt="" aria-hidden="true">
+            <h1 id="screenTitle">Fortress of Muslim</h1>
+          </div>
+          <p id="screenSubtitle">Supplications and remembrances</p>
+        </div>
+        <button class="icon-button" id="settingsButton" aria-label="Settings">
+          <span aria-hidden="true">⚙</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="home-view" id="homeView">
+          <section class="advanced-home" id="advancedHome" aria-label="Advanced home">
+            <div class="advanced-card-list">
+              <button class="advanced-card advanced-featured" data-advanced-filter="all" aria-label="Open all duas">
+                <img src="assets/cards/all-duas.webp" alt="">
+              </button>
+              <button class="advanced-card" data-advanced-filter="morning" aria-label="Open morning duas">
+                <img src="assets/cards/morning.webp" alt="">
+              </button>
+              <button class="advanced-card" data-advanced-filter="evening" aria-label="Open evening duas">
+                <img src="assets/cards/evening.webp" alt="">
+              </button>
+              <button class="advanced-card" data-advanced-filter="sleep" aria-label="Open before sleep duas">
+                <img src="assets/cards/before-sleep.webp" alt="">
+              </button>
+              <button class="advanced-card" data-advanced-filter="salah" aria-label="Open salah duas">
+                <img src="assets/cards/salah.webp" alt="">
+              </button>
+              <button class="advanced-card" data-advanced-filter="travel" aria-label="Open travel duas">
+                <img src="assets/cards/travel.webp" alt="">
+              </button>
+              <button class="advanced-card" data-advanced-filter="favourites" aria-label="Open favourite duas">
+                <img src="assets/cards/favourites.webp" alt="">
+              </button>
+            </div>
+
+          </section>
+
+          <div class="simple-home" id="simpleHome">
+            <div class="search-wrap">
+              <span aria-hidden="true">⌕</span>
+              <input id="searchInput" type="search" placeholder="Search all duas" autocomplete="off">
+            </div>
+
+            <div class="section-head">
+              <span id="resultCount">Loading...</span>
+              <button class="text-button" id="clearSearchButton">Clear</button>
+            </div>
+
+            <div class="dua-list" id="duaList" aria-live="polite"></div>
+          </div>
+
+          <nav class="advanced-bottom-nav" aria-label="Advanced quick navigation">
+            <button class="active" data-advanced-home type="button">
+              <span aria-hidden="true">⌂</span>
+              <strong>Home</strong>
+            </button>
+            <button data-advanced-filter="favourites" type="button">
+              <span aria-hidden="true">♡</span>
+              <strong>Favourites</strong>
+            </button>
+            <button data-advanced-filter="morning" type="button">
+              <span aria-hidden="true">☼</span>
+              <strong>Morning</strong>
+            </button>
+            <button data-advanced-filter="evening" type="button">
+              <span aria-hidden="true">☾</span>
+              <strong>Evening</strong>
+            </button>
+          </nav>
+
+          <button class="favourites-fab" id="favouritesButton" aria-label="Show favourites">
+            <span aria-hidden="true">★</span>
+            <span>Favourites</span>
+          </button>
+        </section>
+
+        <section class="reader-view" id="readerView" aria-live="polite">
+          <div class="reader-card" id="readerCard">
+            <div class="reader-heading">
+              <h2 id="duaTitle"></h2>
+              <button class="star-button" id="readerFavouriteButton" aria-label="Toggle favourite">☆</button>
+            </div>
+            <div class="part-count" id="partCount"></div>
+            <article class="dua-content" id="duaContent"></article>
+          </div>
+
+          <nav class="reader-controls" aria-label="Reader controls">
+            <button class="tool-button" id="previousButton" aria-label="Previous part">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <button class="tool-button" id="shareButton" aria-label="Share full dua">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a3 3 0 1 0-2.82-4H15a3 3 0 0 0 .28 1.26L8.92 8.8a3 3 0 1 0 0 6.4l6.36 3.54A3 3 0 1 0 16.72 17l-6.36-3.54a3.05 3.05 0 0 0 0-2.92L16.72 7A2.98 2.98 0 0 0 18 8Z"/></svg>
+            </button>
+            <button class="tool-button" id="copyButton" aria-label="Copy full dua">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h10v12H8z"/><path d="M6 16H4V4h12v2"/></svg>
+            </button>
+            <button class="tool-button" id="zoomOutButton" aria-label="Zoom out">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6"/></svg>
+            </button>
+            <button class="tool-button" id="zoomInButton" aria-label="Zoom in">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M10.5 7.5v6M7.5 10.5h6"/></svg>
+            </button>
+            <button class="tool-button" id="nextButton" aria-label="Next part">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </nav>
+        </section>
+      </main>
+
+      <dialog class="settings-dialog" id="settingsDialog">
+        <form method="dialog">
+          <div class="dialog-head">
+            <h2>Settings</h2>
+            <button class="icon-button" value="close" aria-label="Close">×</button>
+          </div>
+          <label class="setting-row">
+            <span>
+              <strong>Dark mode</strong>
+              <small>Use a low-light reading theme.</small>
+            </span>
+            <input id="darkModeToggle" type="checkbox">
+          </label>
+          <label class="setting-row">
+            <span>
+              <strong>Large Arabic</strong>
+              <small>Make Arabic text more prominent.</small>
+            </span>
+            <input id="arabicSizeToggle" type="checkbox">
+          </label>
+          <label class="setting-row">
+            <span>
+              <strong>Advanced UI</strong>
+              <small>Use the graphic category home screen.</small>
+            </span>
+            <input id="advancedUiToggle" type="checkbox">
+          </label>
+          <div class="setting-row install-row" id="installRow">
+            <span>
+              <strong>Install app</strong>
+              <small>Add this PWA to your device home screen.</small>
+            </span>
+            <button class="small-action-button" id="installButton" type="button">Install</button>
+          </div>
+        </form>
+      </dialog>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="update-banner" id="updateBanner" role="status" aria-live="polite">
+        <span>New version available.</span>
+        <button id="updateButton" type="button">Update</button>
+        <button id="dismissUpdateButton" type="button" aria-label="Dismiss update message">×</button>
+      </div>
+    </div>
+
+    <script type="module" src="js/app.js?v=2026-07-12-v2"></script>
+  </body>
+</html>
