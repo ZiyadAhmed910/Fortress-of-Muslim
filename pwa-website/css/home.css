@@ -113,6 +113,100 @@
   color: var(--accent-strong);
 }
 
+.filter-strip,
+.mood-chips {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.1rem 0 0.7rem;
+  scrollbar-width: none;
+}
+
+.filter-strip::-webkit-scrollbar,
+.mood-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chip {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.48rem 0.75rem;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--paper-strong) 88%, transparent);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.filter-chip.active {
+  border-color: color-mix(in srgb, var(--accent-strong) 60%, var(--line));
+  color: white;
+  background: var(--accent-strong);
+}
+
+.mood-panel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.2rem;
+}
+
+.mood-panel[hidden] {
+  display: none;
+}
+
+.mood-panel > span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.row-title mark {
+  border-radius: 0.25rem;
+  padding: 0 0.08rem;
+  color: inherit;
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+.load-more-button {
+  display: block;
+  width: min(100%, 18rem);
+  margin: 1rem auto 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.74rem 1rem;
+  color: var(--accent-strong);
+  background: var(--paper-strong);
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(40, 34, 25, 0.08);
+}
+
+.load-more-button[hidden] {
+  display: none;
+}
+
+.skeleton-row {
+  min-height: 4.2rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent),
+    color-mix(in srgb, var(--paper-strong) 80%, transparent);
+  background-size: 220% 100%, 100% 100%;
+  animation: skeleton-pulse 1.25s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  from {
+    background-position: 120% 0, 0 0;
+  }
+
+  to {
+    background-position: -120% 0, 0 0;
+  }
+}
+
 :root.dark .advanced-card {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }

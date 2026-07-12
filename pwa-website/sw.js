@@ -1,4 +1,4 @@
-const APP_VERSION = '2026-07-12-v3';
+const APP_VERSION = '2026-07-12-v4';
 const CACHE_NAME = `fortress-of-muslim-${APP_VERSION}`;
 const ASSETS = [
   './',
@@ -12,6 +12,7 @@ const ASSETS = [
   `./css/feedback.css?v=${APP_VERSION}`,
   `./css/responsive.css?v=${APP_VERSION}`,
   `./js/app.js?v=${APP_VERSION}`,
+  './js/categories.js',
   './js/constants.js',
   './js/data.js',
   './js/dom.js',
@@ -21,6 +22,7 @@ const ASSETS = [
   './js/reader.js',
   './js/settings.js',
   './js/state.js',
+  './js/userData.js',
   './js/utils.js',
   './manifest.json',
   './data/duas.json',

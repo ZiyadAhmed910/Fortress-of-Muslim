@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { els } from './dom.js';
 import { loadDuas } from './data.js';
 import { applySettings, setFontScale } from './settings.js';
-import { filterList, openAdvancedFilter, setOpenEntryHandler, showAdvancedDashboard, toggleFavourite } from './home.js';
+import { filterList, openAdvancedFilter, setOpenEntryHandler, showAdvancedDashboard, showMoreResults, toggleFavourite } from './home.js';
 import {
   bindSwipe,
   copyCurrentEntry,
@@ -15,6 +15,7 @@ import {
   showHome,
 } from './reader.js';
 import { applyWaitingUpdate, promptInstall, setupInstallPrompt, setupServiceWorker } from './pwa.js';
+import { exportUserData, importUserDataFile } from './userData.js';
 
 init();
 
@@ -22,6 +23,7 @@ async function init() {
   setOpenEntryHandler(openEntry);
   applySettings();
   bindEvents();
+  renderLoadingSkeleton();
 
   try {
     const data = await loadDuas();
@@ -41,10 +43,20 @@ async function init() {
   setupServiceWorker();
 }
 
+function renderLoadingSkeleton() {
+  els.duaList.innerHTML = Array.from({ length: 6 }, () => '<div class="skeleton-row" aria-hidden="true"></div>').join('');
+}
+
 function bindEvents() {
   setupInstallPrompt();
 
   els.installButton.addEventListener('click', promptInstall);
+  els.exportDataButton.addEventListener('click', exportUserData);
+  els.importDataButton.addEventListener('click', () => els.importDataInput.click());
+  els.importDataInput.addEventListener('change', () => {
+    importUserDataFile(els.importDataInput.files[0]);
+    els.importDataInput.value = '';
+  });
   els.updateButton.addEventListener('click', applyWaitingUpdate);
   els.dismissUpdateButton.addEventListener('click', () => {
     els.updateBanner.classList.remove('visible');
@@ -55,6 +67,7 @@ function bindEvents() {
     els.searchInput.value = '';
     filterList();
   });
+  els.loadMoreButton.addEventListener('click', showMoreResults);
 
   els.favouritesButton.addEventListener('click', () => {
     if (state.advancedUi && !state.advancedListMode && !els.app.classList.contains('is-reader')) {
@@ -81,6 +94,8 @@ function bindEvents() {
     state.advancedUi = els.advancedUiToggle.checked;
     state.advancedListMode = false;
     state.advancedFilter = 'all';
+    state.activeQuickFilter = 'all';
+    state.activeMood = '';
     state.showFavouritesOnly = false;
     els.searchInput.value = '';
     localStorage.setItem('advancedUi', String(state.advancedUi));

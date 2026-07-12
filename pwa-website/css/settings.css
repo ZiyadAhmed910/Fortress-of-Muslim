@@ -204,6 +204,18 @@
   font-weight: 700;
 }
 
+.small-action-button.secondary {
+  color: var(--accent-strong);
+  background: transparent;
+}
+
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  justify-content: flex-end;
+}
+
 .settings-version {
   border-top: 1px solid var(--line);
   padding-top: 0.85rem;
