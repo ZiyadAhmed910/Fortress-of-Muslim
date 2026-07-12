@@ -203,3 +203,11 @@
   background: var(--accent-strong);
   font-weight: 700;
 }
+
+.settings-version {
+  border-top: 1px solid var(--line);
+  padding-top: 0.85rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+  text-align: center;
+}

@@ -8,6 +8,7 @@ export const els = {
   settingsDialog: document.getElementById('settingsDialog'),
   installRow: document.getElementById('installRow'),
   installButton: document.getElementById('installButton'),
+  appVersion: document.getElementById('appVersion'),
   darkModeToggle: document.getElementById('darkModeToggle'),
   arabicSizeToggle: document.getElementById('arabicSizeToggle'),
   advancedUiToggle: document.getElementById('advancedUiToggle'),

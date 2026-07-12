@@ -1,7 +1,9 @@
 import { state } from './state.js';
 import { els } from './dom.js';
+import { APP_VERSION } from './constants.js';
 
 export function applySettings() {
+  els.appVersion.textContent = `Version ${APP_VERSION}`;
   document.documentElement.classList.toggle('dark', state.darkMode);
   document.documentElement.classList.toggle('large-arabic', state.largeArabic);
   document.documentElement.classList.toggle('advanced-ui', state.advancedUi);
