@@ -22,7 +22,7 @@ jobs:
       - name: Deploy pwa-website to Bluehost production folder
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.BLUEHOST_PROD_FTP_SERVER }}
+          server: ${{ secrets.BLUEHOST_FTP_SERVER }}
           username: ${{ secrets.BLUEHOST_PROD_FTP_USERNAME }}
           password: ${{ secrets.BLUEHOST_PROD_FTP_PASSWORD }}
           local-dir: ./pwa-website/

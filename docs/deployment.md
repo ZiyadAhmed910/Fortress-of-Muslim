@@ -42,9 +42,6 @@ Required for test deployment:
 
 Required for production deployment:
 
-- `BLUEHOST_PROD_FTP_SERVER`
-  - Example: `ftp.fortressofmuslim.org`
-
 - `BLUEHOST_PROD_FTP_USERNAME`
   - FTP username for the production site folder.
 
