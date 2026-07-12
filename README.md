@@ -1,0 +1,204 @@
+# Fortress of Muslim
+
+Fortress of Muslim is an offline-first dua reader built for fast, accessible reading on mobile and desktop. The project started because a useful existing Android app was no longer available, and the goal here is to preserve a lightweight, no-login, no-ads experience that anyone can open, install as a PWA, and use without friction.
+
+The current focus is the static PWA website. A native Android app folder exists for the future, but the deployable app today lives in `pwa-website/`.
+
+## Why This Exists
+
+Many dua apps are either heavy, unavailable, cluttered, or tied to platform stores. This project aims to be:
+
+- Simple enough to run from static hosting.
+- Fast enough for older phones and slow connections.
+- Offline-friendly after the first load.
+- Accessible without accounts, tracking, or ads.
+- Easy for contributors to improve as the dua data becomes cleaner and richer.
+
+The long-term plan is to support a larger curated library with 300-400 duas, references, ruqyah sections, mood-based discovery, and import/export for personal settings.
+
+## App Features
+
+- Offline-first PWA with manifest and service worker.
+- Responsive mobile-first interface.
+- Simple UI by default.
+- Optional advanced graphical UI.
+- Home list with category pills.
+- Advanced home cards for all duas, morning, evening, sleep, salah, travel, favourites, moods, and ruqyah.
+- Advanced bottom navigation with Home, Favourites, Morning, Evening, Moods, and Ruqyah.
+- Search across titles, dua text, Arabic/transliteration/translation content, derived categories, moods, and tags.
+- Highlighted title matches in search results.
+- Favourites saved locally in the browser.
+- Favourites-only view.
+- Detail reader with part navigation.
+- Swipe support in the reader.
+- Copy and share full dua text.
+- Zoom in/out reading controls.
+- Dark mode.
+- Larger Arabic text option.
+- Settings backup export/import for favourites and settings.
+- Lightweight loading skeleton.
+- Lazy list rendering with Load more.
+- Lazy-loaded advanced card images.
+- Version display in Settings.
+- Install prompt and update banner support.
+
+## Project Structure
+
+```text
+.
+├── android-app/
+│   └── README.md
+├── docs/
+│   └── deployment.md
+├── pwa-website/
+│   ├── assets/
+│   ├── css/
+│   ├── data/
+│   ├── icons/
+│   ├── js/
+│   ├── tools/
+│   ├── index.html
+│   ├── manifest.json
+│   ├── serve.py
+│   ├── styles.css
+│   └── sw.js
+└── Fortress_of_Muslim.docx
+```
+
+## Local Development
+
+Run the PWA from the `pwa-website` folder:
+
+```powershell
+cd pwa-website
+python serve.py
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8080/
+```
+
+Do not rely on opening `index.html` directly for PWA testing. Service workers require HTTPS or localhost.
+
+## Data Model Direction
+
+The current dua data is loaded from:
+
+```text
+pwa-website/data/duas.json
+```
+
+Runtime metadata is currently derived without changing the JSON. This lets the UI support categories, moods, ruqyah filtering, and tag-search now while keeping the door open for cleaner curated data later.
+
+Future data should support:
+
+- stable `uid`
+- title
+- ordered parts
+- Arabic
+- transliteration
+- translation
+- comments
+- references
+- categories
+- moods
+- tags
+- source notes
+
+## Deployment
+
+The repository uses two main branches:
+
+- `dev` deploys to the Bluehost test site.
+- `main` deploys to production.
+
+Feature branches should use:
+
+```text
+feature/name-of-feature
+```
+
+The intended workflow is:
+
+```text
+feature branch -> PR -> merge to dev -> test deploy -> promote to main -> production deploy
+```
+
+Deployment details and required GitHub secrets are documented in:
+
+```text
+docs/deployment.md
+```
+
+## Contributing
+
+Contributions are welcome. Helpful areas include:
+
+- improving UI and accessibility
+- cleaning dua text
+- adding references
+- improving search
+- improving metadata categories/tags/moods
+- reducing memory usage
+- testing PWA install/update behavior on Android and iOS
+- preparing the future Android app
+
+Before submitting work:
+
+1. Create a feature branch from `dev`.
+2. Keep changes focused.
+3. Test locally with `python serve.py`.
+4. Make sure the PWA version/cache is bumped when changing deployed JS/CSS.
+5. Avoid editing generated dua data unless the change is intentional and reviewed.
+
+## Versioning
+
+The visible app version is stored in:
+
+```text
+pwa-website/js/constants.js
+```
+
+Current approach:
+
+- bug fixes: `1.01`, `1.02`, etc.
+- feature improvements: `1.10`, `1.11`, etc.
+- major redesign or breaking data changes: `2.0`
+
+The service worker build/cache version is separate and should be bumped whenever deployed assets change.
+
+## Release Notes
+
+### 1.12
+
+- Fixed simple-home category pills so they open the same category/list flow as advanced cards.
+- Improved Settings backup layout with separate Export and Import rows.
+- Added this open-source README.
+
+### 1.11
+
+- Restored Morning and Evening to the advanced bottom navigation.
+- Added Moods and Ruqyah as additional bottom navigation items.
+- Replaced text placeholders with SVG icons.
+- Added Moods and Ruqyah cards to the advanced home.
+
+### 1.10
+
+- Added runtime category, mood, tag, and ruqyah filtering.
+- Added smarter search across text and metadata.
+- Added title highlighting for search matches.
+- Added settings export/import for favourites and settings.
+- Added loading skeleton rows.
+- Added lazy list rendering with Load more.
+- Lazy-loaded advanced UI images.
+
+### 1.00
+
+- Added visible app version in Settings.
+- Established dev/test and main/production deployment flow.
+
+## License
+
+License is not finalized yet. Before broad public contribution, add a clear open-source license file.

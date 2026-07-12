@@ -75,12 +75,7 @@ export function renderFilterControls() {
 }
 
 export function setQuickFilter(filter) {
-  state.activeQuickFilter = filter;
-  state.activeMood = filter === 'moods' ? (state.activeMood || DEFAULT_MOOD) : '';
-  state.showFavouritesOnly = false;
-  state.advancedListMode = false;
-  applySettings();
-  filterList();
+  openAdvancedFilter(filter);
 }
 
 export function setMoodFilter(mood) {

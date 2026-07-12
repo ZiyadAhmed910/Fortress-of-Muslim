@@ -171,6 +171,11 @@
   padding: 1rem 0;
 }
 
+.setting-row-stack {
+  display: grid;
+  align-items: stretch;
+}
+
 .setting-row strong,
 .setting-row small {
   display: block;
@@ -210,10 +215,30 @@
 }
 
 .backup-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.42rem;
-  justify-content: flex-end;
+  display: grid;
+  gap: 0.55rem;
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+.backup-action-button {
+  display: grid;
+  gap: 0.18rem;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.72rem;
+  padding: 0.78rem 0.85rem;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--paper-strong) 86%, transparent);
+  text-align: left;
+}
+
+.backup-action-button strong {
+  color: var(--accent-strong);
+}
+
+.backup-action-button:active {
+  transform: scale(0.99);
 }
 
 .settings-version {
