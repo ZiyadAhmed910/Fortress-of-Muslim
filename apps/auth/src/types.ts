@@ -2,6 +2,7 @@ export type AuthEnvironment = 'test' | 'production';
 
 export type Bindings = {
   IDENTITY_DB: D1Database;
+  CONTENT_DB: D1Database;
   PLATFORM_ENV: AuthEnvironment;
   AUTH_BASE_URL: string;
   DEVELOPERS_URL: string;
@@ -9,6 +10,13 @@ export type Bindings = {
   API_AUDIENCE: string;
   MCP_AUDIENCE: string;
   BETTER_AUTH_SECRET: string;
+};
+
+export type ServiceState = {
+  serviceKey: string;
+  status: 'active' | 'maintenance' | 'disabled';
+  message: string;
+  enforcement: 'worker' | 'external' | 'none';
 };
 
 export type KeyVerification = {

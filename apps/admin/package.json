@@ -1,9 +1,9 @@
 {
-  "name": "@fortress/developers",
+  "name": "@fortress/admin",
   "version": "0.7.0",
   "private": true,
   "scripts": {
-    "build": "node ../../packages/portal-ui/tools/build-portals.mjs developers",
+    "build": "node ../../packages/portal-ui/tools/build-portals.mjs admin",
     "dev": "npm run build && wrangler dev --env test",
     "deploy:test": "npm run build && wrangler deploy --env test",
     "deploy:production": "npm run build && wrangler deploy --env production",

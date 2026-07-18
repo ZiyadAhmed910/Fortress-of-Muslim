@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 const packageRoot = new URL('../', import.meta.url);
 const repositoryRoot = new URL('../../', packageRoot);
-const supportedPortals = ['developers', 'status'];
+const supportedPortals = ['developers', 'status', 'admin'];
 const requestedPortal = process.argv[2];
 if (requestedPortal && !supportedPortals.includes(requestedPortal)) {
   throw new Error(`Unknown portal: ${requestedPortal}`);

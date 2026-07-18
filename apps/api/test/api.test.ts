@@ -6,6 +6,7 @@ import type { ContentRepository, DatasetSummary } from '../src/repositories/cont
 const env = {
   PLATFORM_ENV: 'test' as const,
   AUTH: {
+    getServiceState: async () => ({ serviceKey: 'api', status: 'active', message: '', enforcement: 'worker' }),
     verifyApiKey: async () => ({ valid: true, key: { id: 'key-test', referenceId: 'user-test' }, error: null }),
     verifyBearerToken: async (token: string) => ({
       valid: token === 'test-token',
@@ -68,7 +69,7 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.6.0');
+    expect(body.version).toBe('0.7.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
@@ -80,6 +81,24 @@ describe('Fortress Platform API', () => {
     expect(body.status).toBe('ok');
     expect(body.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
     expect(body.recordCount).toBe(3);
+  });
+
+  it('keeps health available while protected API routes are in maintenance', async () => {
+    const maintenanceEnv = {
+      ...env,
+      AUTH: {
+        ...env.AUTH,
+        getServiceState: async () => ({ serviceKey: 'api', status: 'maintenance', message: 'Scheduled maintenance.', enforcement: 'worker' }),
+      },
+    } as never;
+    const response = await app.request('/v1/duas?limit=2', authenticated, maintenanceEnv);
+    const health = await app.request('/health', {}, maintenanceEnv);
+    const body = await response.json() as { error: { code: string; message: string } };
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get('Retry-After')).toBe('300');
+    expect(body.error.code).toBe('service_maintenance');
+    expect(health.status).toBe(200);
   });
 
   it('returns a paginated dua summary list', async () => {

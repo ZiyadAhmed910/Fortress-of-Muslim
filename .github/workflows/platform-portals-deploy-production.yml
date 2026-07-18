@@ -6,6 +6,7 @@ on:
     paths:
       - "apps/developers/**"
       - "apps/status/**"
+      - "apps/admin/**"
       - "packages/portal-ui/**"
       - "package.json"
       - "package-lock.json"
@@ -40,6 +41,11 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Deploy Status Portal
         run: npm run deploy:production:ci --workspace @fortress/status
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy Admin Console
+        run: npm run deploy:production:ci --workspace @fortress/admin
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

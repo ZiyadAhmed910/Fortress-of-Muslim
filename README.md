@@ -142,6 +142,14 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.7.0
+
+- Added a dedicated `admin.fortressofmuslim.org` console with server-side administrator roles.
+- Added global search across users, credentials, OAuth clients, devices, MCP registrations, named queries, and content records.
+- Added account suspension, credential/resource state controls, content verification controls, and a privileged audit trail.
+- Added enforceable API maintenance and disabled states while preserving health endpoints for recovery.
+- Added test and production deployment definitions for the Admin Console; production remains protected by the existing GitHub environment gate.
+
 ### 0.6.0
 
 - Separated developer identity and credential management from the API documentation into a dedicated Developer Console.
@@ -218,6 +226,18 @@ Every platform release must:
 - Marked the current Word-derived content as a legacy import pending canonical editorial verification.
 
 ## Local Development
+
+### Admin Console
+
+The Admin Console is a separate static portal backed by authenticated `/v1/admin/*` control-plane routes on the Auth Worker. Administrator authorization is stored in D1 and is never inferred from an email address or browser state.
+
+```bash
+npm run dev:admin
+```
+
+Bootstrap the first administrator only after that person has created a normal developer account. Look up the user's canonical ID, then insert it into `platform_admins` with `super_admin` role using Wrangler. Never hard-code a privileged email or user ID in source. Additional administrators should be granted through an audited admin workflow.
+
+Service Control currently enforces maintenance and disabled states for the Content API. Auth and Admin are recovery services and cannot be disabled from the console. The Bluehost PWA and static portals are displayed as monitoring-only until traffic is moved behind an enforceable Cloudflare Worker gateway.
 
 Run the PWA from the `pwa-website` folder:
 

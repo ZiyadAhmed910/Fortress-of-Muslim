@@ -17,7 +17,10 @@
         "API_AUDIENCE": "https://api-test.fortressofmuslim.org",
         "MCP_AUDIENCE": "https://mcp-test.fortressofmuslim.org"
       },
-      "d1_databases": [{ "binding": "IDENTITY_DB", "database_name": "fortress-identity-test", "database_id": "96c9731b-4fe3-4237-b44e-45a89e0fc3c3", "migrations_dir": "migrations" }]
+      "d1_databases": [
+        { "binding": "IDENTITY_DB", "database_name": "fortress-identity-test", "database_id": "96c9731b-4fe3-4237-b44e-45a89e0fc3c3", "migrations_dir": "migrations" },
+        { "binding": "CONTENT_DB", "database_name": "fortress-platform-test", "database_id": "a5f4b33f-5c6e-4a0c-b506-3e04d263ffb7" }
+      ]
     },
     "production": {
       "name": "fortress-platform-auth-production",
@@ -29,7 +32,10 @@
         "API_AUDIENCE": "https://api.fortressofmuslim.org",
         "MCP_AUDIENCE": "https://mcp.fortressofmuslim.org"
       },
-      "d1_databases": [{ "binding": "IDENTITY_DB", "database_name": "fortress-identity-production", "database_id": "2cc78547-7b49-42dd-acb3-de0984aede1f", "migrations_dir": "migrations" }]
+      "d1_databases": [
+        { "binding": "IDENTITY_DB", "database_name": "fortress-identity-production", "database_id": "2cc78547-7b49-42dd-acb3-de0984aede1f", "migrations_dir": "migrations" },
+        { "binding": "CONTENT_DB", "database_name": "fortress-platform-production", "database_id": "36233189-9e08-47de-b862-1530dcda24a3" }
+      ]
     }
   }
 }

@@ -107,6 +107,22 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     });
   });
 
+  app.use('/v1/*', async (context, next) => {
+    const state = await context.env.AUTH.getServiceState('api');
+    if (state.status !== 'active') {
+      context.header('Retry-After', '300');
+      context.header('Cache-Control', 'no-store');
+      return context.json({
+        error: {
+          code: state.status === 'disabled' ? 'service_disabled' : 'service_maintenance',
+          message: state.message,
+          requestId: context.get('requestId'),
+        },
+      }, 503);
+    }
+    await next();
+  });
+
   app.get('/v1', (context) => context.json({
     name: PLATFORM_NAME,
     version: API_VERSION,

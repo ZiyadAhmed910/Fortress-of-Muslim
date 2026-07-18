@@ -20,6 +20,12 @@ export type Bindings = {
       operation: 'list' | 'search' | 'get_by_id';
       parameters: { query?: string; duaId?: string; limit?: number };
     } | null>;
+    getServiceState(serviceKey: string): Promise<{
+      serviceKey: string;
+      status: 'active' | 'maintenance' | 'disabled';
+      message: string;
+      enforcement: 'worker' | 'external' | 'none';
+    }>;
   };
 };
 

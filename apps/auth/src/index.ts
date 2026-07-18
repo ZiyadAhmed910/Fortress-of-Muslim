@@ -2,7 +2,8 @@ import { WorkerEntrypoint } from 'cloudflare:workers';
 import { oauthProviderResourceClient } from '@better-auth/oauth-provider/resource-client';
 import { createAuthClient } from 'better-auth/client';
 import { createAuth } from './auth';
-import type { Bindings, KeyVerification, NamedQueryDefinition, TokenVerification } from './types';
+import { handleAdminPlane } from './admin-plane';
+import type { Bindings, KeyVerification, NamedQueryDefinition, ServiceState, TokenVerification } from './types';
 
 const allowedMethods = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
 const allowedHeaders = 'Content-Type, Authorization, X-Fortress-API-Key';
@@ -26,23 +27,30 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       return new Response(null, { status: 204, headers: corsHeaders(allowedOrigin) });
     }
 
-    const response = url.pathname.startsWith('/v1/control/')
-      ? await this.handleControlPlane(request, url)
-      : await createAuth(this.env).handler(request);
+    let response: Response;
+    if (url.pathname.startsWith('/v1/admin/') || url.pathname.startsWith('/v1/control/')) {
+      const session = await createAuth(this.env).api.getSession({ headers: request.headers });
+      if (!session?.user) response = json({ error: { code: 'unauthorized', message: 'Sign in is required.' } }, 401);
+      else if (url.pathname.startsWith('/v1/admin/')) response = await handleAdminPlane(request, url, this.env, session.user);
+      else response = await this.handleControlPlane(request, url, session.user);
+    } else if (isDeveloperManagementRoute(url.pathname)) {
+      const session = await createAuth(this.env).api.getSession({ headers: request.headers });
+      if (session?.user && !await this.isUserActive(session.user.id)) response = json({ error: { code: 'account_suspended', message: 'This developer account is not active.' } }, 403);
+      else response = await createAuth(this.env).handler(request);
+    } else response = await createAuth(this.env).handler(request);
     const headers = new Headers(response.headers);
     for (const [name, value] of corsHeaders(allowedOrigin)) headers.set(name, value);
     return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
   }
 
-  private async handleControlPlane(request: Request, url: URL): Promise<Response> {
-    const session = await createAuth(this.env).api.getSession({ headers: request.headers });
-    if (!session?.user) return json({ error: { code: 'unauthorized', message: 'Sign in is required.' } }, 401);
+  private async handleControlPlane(request: Request, url: URL, user: { id: string; name: string; email: string }): Promise<Response> {
+    if (!await this.isUserActive(user.id)) return json({ error: { code: 'account_suspended', message: 'This developer account is not active.' } }, 403);
 
     if (url.pathname === '/v1/control/profile' && request.method === 'GET') {
       const profile = await this.env.IDENTITY_DB.prepare(
         'SELECT plan_code AS planCode, status, created_at AS createdAt FROM developer_profiles WHERE user_id = ?',
-      ).bind(session.user.id).first();
-      return json({ data: { user: session.user, plan: profile ?? { planCode: 'basic', status: 'active' } } });
+      ).bind(user.id).first();
+      return json({ data: { user, plan: profile ?? { planCode: 'basic', status: 'active' } } });
     }
 
     if (url.pathname === '/v1/control/mcp-servers' && request.method === 'GET') {
@@ -51,7 +59,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
                openapi_url AS openapiUrl, server_type AS serverType, source_type AS sourceType,
                named_query_id AS namedQueryId, status, created_at AS createdAt, updated_at AS updatedAt
         FROM mcp_server_registrations WHERE owner_user_id = ? ORDER BY created_at DESC
-      `).bind(session.user.id).all();
+      `).bind(user.id).all();
       return json({ data: result.results });
     }
 
@@ -62,7 +70,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       if (parsed.value.namedQueryId) {
         const ownedQuery = await this.env.IDENTITY_DB.prepare(
           'SELECT 1 FROM named_queries WHERE id = ? AND owner_user_id = ? AND status = \'active\'',
-        ).bind(parsed.value.namedQueryId, session.user.id).first();
+        ).bind(parsed.value.namedQueryId, user.id).first();
         if (!ownedQuery) return json({ error: { code: 'invalid_request', message: 'Choose an active named query owned by this account.' } }, 400);
       }
       const id = `mcp_${crypto.randomUUID()}`;
@@ -71,7 +79,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
         INSERT INTO mcp_server_registrations
           (id, owner_user_id, slug, name, description, upstream_base_url, openapi_url, server_type, source_type, named_query_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, 'custom', ?, ?)
-      `).bind(id, session.user.id, parsed.value.slug, parsed.value.name, parsed.value.description,
+      `).bind(id, user.id, parsed.value.slug, parsed.value.name, parsed.value.description,
         upstreamBaseUrl, parsed.value.openapiUrl, parsed.value.sourceType, parsed.value.namedQueryId).run();
       return json({ data: { id, ...parsed.value, upstreamBaseUrl, status: 'draft' } }, 201);
     }
@@ -82,7 +90,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
                oauth_client_id AS oauthClientId, jwks_uri AS jwksUri, status,
                last_seen_at AS lastSeenAt, created_at AS createdAt
         FROM device_registrations WHERE owner_user_id = ? ORDER BY created_at DESC
-      `).bind(session.user.id).all();
+      `).bind(user.id).all();
       return json({ data: result.results });
     }
 
@@ -92,7 +100,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       const client = await this.env.IDENTITY_DB.prepare(`
         SELECT "tokenEndpointAuthMethod" AS authMethod, "grantTypes" AS grantTypes
         FROM "oauthClient" WHERE "clientId" = ? AND "userId" = ? AND (disabled IS NULL OR disabled = 0)
-      `).bind(parsed.value.oauthClientId, session.user.id).first<{ authMethod: string | null; grantTypes: string | null }>();
+      `).bind(parsed.value.oauthClientId, user.id).first<{ authMethod: string | null; grantTypes: string | null }>();
       if (!client) return json({ error: { code: 'invalid_request', message: 'Choose a connected app owned by this account.' } }, 400);
       if (parsed.value.authMethod === 'private_key_jwt' && client.authMethod !== 'private_key_jwt') {
         return json({ error: { code: 'invalid_request', message: 'Choose a private-key JWT connected app.' } }, 400);
@@ -105,7 +113,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
         INSERT INTO device_registrations
           (id, owner_user_id, name, device_type, auth_method, oauth_client_id, jwks_uri)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).bind(id, session.user.id, parsed.value.name, parsed.value.deviceType, parsed.value.authMethod,
+      `).bind(id, user.id, parsed.value.name, parsed.value.deviceType, parsed.value.authMethod,
         parsed.value.oauthClientId, parsed.value.jwksUri).run();
       return json({ data: { id, ...parsed.value, status: 'active' } }, 201);
     }
@@ -115,7 +123,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       const result = await this.env.IDENTITY_DB.prepare(`
         UPDATE device_registrations SET status = 'revoked', revoked_at = CURRENT_TIMESTAMP
         WHERE id = ? AND owner_user_id = ? AND status = 'active'
-      `).bind(deviceMatch[1], session.user.id).run();
+      `).bind(deviceMatch[1], user.id).run();
       return result.meta.changes ? json({ data: { success: true } }) : json({ error: { code: 'not_found', message: 'Device was not found.' } }, 404);
     }
 
@@ -124,7 +132,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
         SELECT id, slug, name, description, operation, parameters_json AS parametersJson,
                status, created_at AS createdAt, updated_at AS updatedAt
         FROM named_queries WHERE owner_user_id = ? ORDER BY created_at DESC
-      `).bind(session.user.id).all();
+      `).bind(user.id).all();
       return json({ data: result.results.map((row) => ({ ...row, parameters: JSON.parse(String(row.parametersJson)), parametersJson: undefined })) });
     }
 
@@ -135,7 +143,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       await this.env.IDENTITY_DB.prepare(`
         INSERT INTO named_queries (id, owner_user_id, slug, name, description, operation, parameters_json)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).bind(id, session.user.id, parsed.value.slug, parsed.value.name, parsed.value.description,
+      `).bind(id, user.id, parsed.value.slug, parsed.value.name, parsed.value.description,
         parsed.value.operation, JSON.stringify(parsed.value.parameters)).run();
       return json({ data: { id, ...parsed.value, status: 'active' } }, 201);
     }
@@ -147,7 +155,11 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
     const result = await createAuth(this.env).api.verifyApiKey({
       body: { key, permissions },
     });
-    return result as KeyVerification;
+    const verification = result as KeyVerification;
+    if (verification.valid && verification.key && !await this.isUserActive(verification.key.referenceId)) {
+      return { valid: false, key: null, error: { code: 'account_suspended', message: 'The credential owner is not active.' } };
+    }
+    return verification;
   }
 
   async verifyBearerToken(token: string, scopes: string[] = []): Promise<TokenVerification> {
@@ -164,11 +176,18 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
         jwksUrl: `${this.env.AUTH_BASE_URL}/api/auth/jwks`,
         scopes,
       });
+      const subject = typeof payload.sub === 'string' ? payload.sub : undefined;
+      if (subject && !await this.isUserActive(subject)) return { valid: false, error: 'The credential owner is not active.' };
+      const clientId = typeof payload.azp === 'string' ? payload.azp : undefined;
+      if (clientId) {
+        const client = await this.env.IDENTITY_DB.prepare('SELECT "userId" AS userId FROM "oauthClient" WHERE "clientId" = ?').bind(clientId).first<{ userId: string | null }>();
+        if (client?.userId && !await this.isUserActive(client.userId)) return { valid: false, error: 'The credential owner is not active.' };
+      }
       return {
         valid: true,
-        subject: typeof payload.sub === 'string' ? payload.sub : undefined,
+        subject,
         scopes: typeof payload.scope === 'string' ? payload.scope.split(' ') : [],
-        clientId: typeof payload.azp === 'string' ? payload.azp : undefined,
+        clientId,
       };
     } catch (error) {
       return { valid: false, error: error instanceof Error ? error.message : 'Invalid access token.' };
@@ -188,6 +207,17 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       parameters: JSON.parse(String(row.parametersJson)),
     };
   }
+
+  async getServiceState(serviceKey: string): Promise<ServiceState> {
+    const row = await this.env.IDENTITY_DB.prepare(`SELECT service_key AS serviceKey, status,
+      maintenance_message AS message, enforcement FROM platform_services WHERE service_key = ?`).bind(serviceKey).first<ServiceState>();
+    return row ?? { serviceKey, status: 'active', message: '', enforcement: 'none' };
+  }
+
+  private async isUserActive(userId: string) {
+    const profile = await this.env.IDENTITY_DB.prepare('SELECT status FROM developer_profiles WHERE user_id = ?').bind(userId).first<{ status: string }>();
+    return !profile || profile.status === 'active';
+  }
 }
 
 function corsHeaders(origin: string | null) {
@@ -202,6 +232,15 @@ function corsHeaders(origin: string | null) {
     headers.set('Access-Control-Allow-Credentials', 'true');
   }
   return headers;
+}
+
+function isDeveloperManagementRoute(pathname: string) {
+  return pathname.startsWith('/api/auth/api-key/') || [
+    '/api/auth/oauth2/create-client',
+    '/api/auth/oauth2/get-clients',
+    '/api/auth/oauth2/delete-client',
+    '/api/auth/oauth2/update-client',
+  ].includes(pathname);
 }
 
 function json(value: unknown, status = 200) {
