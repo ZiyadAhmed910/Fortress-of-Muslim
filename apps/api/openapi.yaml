@@ -1,0 +1,55 @@
+openapi: 3.0.3
+info:
+  title: Fortress Platform API
+  version: 1.0.0
+  description: Public API for trusted, versioned Islamic knowledge data.
+servers:
+  - url: https://api.fortressofmuslim.org/v1
+    description: Production
+  - url: https://api-test.fortressofmuslim.org/v1
+    description: Test
+paths:
+  /datasets/current:
+    get:
+      operationId: getCurrentDataset
+      summary: Get the active dataset release
+      responses:
+        '200':
+          description: Active dataset metadata
+  /duas:
+    get:
+      operationId: listDuas
+      summary: List dua summaries
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: cursor
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated dua summaries
+        '400':
+          description: Invalid pagination parameters
+  /duas/{id}:
+    get:
+      operationId: getDua
+      summary: Retrieve a complete dua
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          example: dua.hisn.001
+      responses:
+        '200':
+          description: Complete dua record
+        '404':
+          description: Dua not found

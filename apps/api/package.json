@@ -1,0 +1,23 @@
+{
+  "name": "@fortress/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --env test",
+    "deploy:test": "wrangler deploy --env test",
+    "deploy:production": "wrangler deploy --env production",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fortress/contracts": "0.1.0",
+    "hono": "^4.8.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250711.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.24.0"
+  }
+}

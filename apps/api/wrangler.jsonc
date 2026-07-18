@@ -1,0 +1,24 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "fortress-platform-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-18",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  },
+  "env": {
+    "test": {
+      "name": "fortress-platform-api-test",
+      "vars": {
+        "PLATFORM_ENV": "test"
+      }
+    },
+    "production": {
+      "name": "fortress-platform-api-production",
+      "vars": {
+        "PLATFORM_ENV": "production"
+      }
+    }
+  }
+}

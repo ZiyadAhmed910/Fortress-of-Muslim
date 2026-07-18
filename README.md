@@ -1,8 +1,8 @@
-# Fortress of Muslim
+# Fortress Platform
 
-Fortress of Muslim is an offline-first dua reader built for fast, accessible reading on mobile and desktop. The project started because a useful existing Android app was no longer available, and the goal here is to preserve a lightweight, no-login, no-ads experience that anyone can open, install as a PWA, and use without friction.
+Fortress Platform is an open-source Islamic data and agent platform. Fortress of Muslim, its offline-first dua reader, is the first reference application and remains available without login, ads, or tracking requirements.
 
-The current focus is the static PWA website. A native Android app folder exists for the future, but the deployable app today lives in `pwa-website/`.
+The platform is being developed as a monorepo. The existing static PWA continues to deploy from `pwa-website/`, while independently deployable services and shared packages live under `apps/` and `packages/`.
 
 ## Why This Exists
 
@@ -46,10 +46,15 @@ The long-term plan is to support a larger curated library with 300-400 duas, ref
 
 ```text
 .
+├── apps/
+│   └── api/              Cloudflare Worker public API
+├── packages/
+│   └── contracts/        Shared runtime schemas and TypeScript types
 ├── android-app/
 │   └── README.md
 ├── docs/
-│   └── deployment.md
+│   ├── deployment.md
+│   └── platform-architecture.md
 ├── pwa-website/
 │   ├── assets/
 │   ├── css/
@@ -64,6 +69,23 @@ The long-term plan is to support a larger curated library with 300-400 duas, ref
 │   └── sw.js
 └── Fortress_of_Muslim.docx
 ```
+
+## Platform Development
+
+Install dependencies and verify every workspace:
+
+```powershell
+npm install
+npm run check
+```
+
+Run the Cloudflare API locally:
+
+```powershell
+npm run dev:api
+```
+
+The test API uses the `dev` branch and the production API uses `main`. Cloudflare deployment remains disabled until the repository variable `CLOUDFLARE_DEPLOY_ENABLED` is set to `true` and the required account secrets are configured.
 
 ## Local Development
 
