@@ -85,7 +85,27 @@ Run the Cloudflare API locally:
 npm run dev:api
 ```
 
-The test API uses the `dev` branch and the production API uses `main`. Cloudflare deployment remains disabled until the repository variable `CLOUDFLARE_DEPLOY_ENABLED` is set to `true` and the required account secrets are configured.
+The test API uses the `dev` branch and the production API uses `main`. Cloudflare deployment remains disabled until the repository variable `CLOUDFLARE_DEPLOY_ENABLED` is set to `true` and the required account secrets are configured. Setup is documented in `docs/cloudflare-setup.md`.
+
+Every platform release must:
+
+1. Update the platform release notes in this README.
+2. Pass `npm run check` and the Cloudflare Worker bundle check.
+3. Deploy to the test environment from `dev`.
+4. Be verified through its live health and version endpoints.
+5. Deploy to production from `main` only after test verification.
+
+## Platform Releases
+
+### 0.1.0
+
+- Established the Fortress Platform monorepo alongside the existing PWA.
+- Added shared TypeScript and runtime API contracts.
+- Added the first Cloudflare Worker API with health, dataset, paginated dua, and canonical-ID endpoints.
+- Added an OpenAPI 3.0 specification.
+- Added test and production Worker environments.
+- Added automated GitHub CI and Cloudflare deployment workflows.
+- Marked the current Word-derived content as a legacy import pending canonical editorial verification.
 
 ## Local Development
 

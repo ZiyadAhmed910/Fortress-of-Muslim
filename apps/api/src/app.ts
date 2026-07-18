@@ -1,4 +1,4 @@
-import { API_VERSION, PLATFORM_NAME, paginationSchema } from '@fortress/contracts';
+import { API_VERSION, PLATFORM_NAME, PLATFORM_VERSION, paginationSchema } from '@fortress/contracts';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
@@ -24,6 +24,7 @@ app.get('/', (context) => context.json({
   name: PLATFORM_NAME,
   description: 'Open-source Islamic data and agent platform',
   apiVersion: API_VERSION,
+  platformVersion: PLATFORM_VERSION,
   environment: context.env?.PLATFORM_ENV ?? 'local',
   documentation: '/v1',
 }));
@@ -31,6 +32,7 @@ app.get('/', (context) => context.json({
 app.get('/health', (context) => context.json({
   status: 'ok',
   service: 'fortress-platform-api',
+  version: PLATFORM_VERSION,
   environment: context.env?.PLATFORM_ENV ?? 'local',
   timestamp: new Date().toISOString(),
 }));

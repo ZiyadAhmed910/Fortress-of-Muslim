@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const API_VERSION = 'v1' as const;
 export const PLATFORM_NAME = 'Fortress Platform' as const;
+export const PLATFORM_VERSION = '0.1.0' as const;
 
 export const contentSegmentSchema = z.object({
   kind: z.enum(['arabic', 'transliteration', 'translation', 'comment']),

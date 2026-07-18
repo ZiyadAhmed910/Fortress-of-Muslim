@@ -6,11 +6,12 @@ const env = { PLATFORM_ENV: 'test' as const };
 describe('Fortress Platform API', () => {
   it('reports service health', async () => {
     const response = await app.request('/health', {}, env);
-    const body = await response.json() as { status: string; environment: string };
+    const body = await response.json() as { status: string; environment: string; version: string };
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
+    expect(body.version).toBe('0.1.0');
   });
 
   it('returns a paginated dua summary list', async () => {
