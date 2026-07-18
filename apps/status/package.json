@@ -1,0 +1,14 @@
+{
+  "name": "@fortress/status",
+  "version": "0.4.0",
+  "private": true,
+  "scripts": {
+    "build": "node ../../packages/portal-ui/tools/build-portals.mjs status",
+    "dev": "npm run build && wrangler dev --env test",
+    "deploy:test": "npm run build && wrangler deploy --env test",
+    "deploy:production": "npm run build && wrangler deploy --env production"
+  },
+  "devDependencies": {
+    "wrangler": "^4.24.0"
+  }
+}

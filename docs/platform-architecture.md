@@ -25,12 +25,15 @@ The repository is a monorepo so applications share contracts and domain logic wh
 ```text
 apps/
   api/              Cloudflare Worker API
+  developers/       Static developer documentation and live API explorer
+  status/           Static service health dashboard
   admin/            Future administrative control plane
   developers/       Future developer control plane
   help/             Future support portal
   mcp/              Future MCP server
 packages/
   contracts/        Shared API schemas and types
+  portal-ui/        Shared static portal design system and build pipeline
 pwa-website/        Existing static PWA, retained during migration
 ```
 

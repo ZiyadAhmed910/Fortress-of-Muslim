@@ -1,0 +1,45 @@
+name: Deploy Fortress Platform portals to production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/developers/**"
+      - "apps/status/**"
+      - "packages/portal-ui/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/platform-portals-deploy-production.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: platform-portals-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace @fortress/portal-ui
+      - run: npm run test --workspace @fortress/portal-ui
+      - name: Deploy Developer Portal
+        run: npm run deploy:production --workspace @fortress/developers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy Status Portal
+        run: npm run deploy:production --workspace @fortress/status
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

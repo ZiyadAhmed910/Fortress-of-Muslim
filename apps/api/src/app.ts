@@ -26,7 +26,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
   const app = new Hono<{ Bindings: Bindings; Variables: ApiVariables }>();
 
   app.use('*', logger());
-  app.use('/v1/*', cors({ origin: '*', allowMethods: ['GET', 'OPTIONS'] }));
+  app.use('*', cors({ origin: '*', allowMethods: ['GET', 'OPTIONS'] }));
   app.use('*', async (context, next) => {
     const requestId = context.req.header('CF-Ray') ?? crypto.randomUUID();
     context.set('requestId', requestId);

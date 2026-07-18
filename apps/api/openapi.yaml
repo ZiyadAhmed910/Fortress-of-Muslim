@@ -3,7 +3,7 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
-  x-platform-version: 0.3.0
+  x-platform-version: 0.4.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production

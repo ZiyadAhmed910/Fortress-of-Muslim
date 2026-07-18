@@ -13,7 +13,7 @@ const requiredPaths = [
 ];
 
 if (document.openapi !== '3.0.3') throw new Error('OpenAPI version must remain 3.0.3.');
-if (document.info?.['x-platform-version'] !== '0.3.0') {
+if (document.info?.['x-platform-version'] !== '0.4.0') {
   throw new Error('OpenAPI platform version is not synchronized with the release.');
 }
 

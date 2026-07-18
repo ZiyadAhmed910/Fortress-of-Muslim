@@ -48,13 +48,14 @@ const app = createApp(() => repository);
 
 describe('Fortress Platform API', () => {
   it('reports service health', async () => {
-    const response = await app.request('/health', {}, env);
+    const response = await app.request('/health', { headers: { Origin: 'https://status.fortressofmuslim.org' } }, env);
     const body = await response.json() as { status: string; environment: string; version: string };
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.3.0');
+    expect(body.version).toBe('0.4.0');
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
   it('returns a paginated dua summary list', async () => {

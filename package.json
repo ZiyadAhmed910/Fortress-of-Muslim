@@ -1,6 +1,6 @@
 {
   "name": "fortress-platform",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Open-source Islamic data and agent platform",
   "workspaces": [
@@ -9,6 +9,9 @@
   ],
   "scripts": {
     "dev:api": "npm run dev --workspace @fortress/api",
+    "dev:developers": "npm run dev --workspace @fortress/developers",
+    "dev:status": "npm run dev --workspace @fortress/status",
+    "build:portals": "npm run build --workspace @fortress/portal-ui",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "check": "npm run typecheck && npm run test"

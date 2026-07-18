@@ -1,0 +1,10 @@
+{
+  "name": "@fortress/portal-ui",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build-portals.mjs",
+    "test": "npm run build && node tools/verify-portals.mjs"
+  }
+}

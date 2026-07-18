@@ -47,9 +47,12 @@ The long-term plan is to support a larger curated library with 300-400 duas, ref
 ```text
 .
 ├── apps/
-│   └── api/              Cloudflare Worker public API
+│   ├── api/              Cloudflare Worker public API
+│   ├── developers/       Developer documentation and API explorer
+│   └── status/           Live service status dashboard
 ├── packages/
-│   └── contracts/        Shared runtime schemas and TypeScript types
+│   ├── contracts/        Shared runtime schemas and TypeScript types
+│   └── portal-ui/        Shared portal design system and build tooling
 ├── android-app/
 │   └── README.md
 ├── docs/
@@ -83,6 +86,13 @@ Run the Cloudflare API locally:
 
 ```powershell
 npm run dev:api
+```
+
+Run either static platform portal locally:
+
+```powershell
+npm run dev:developers
+npm run dev:status
 ```
 
 Current hosted test API:
@@ -127,6 +137,19 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.4.0
+
+- Added a responsive Developer Portal with Salesforce-style documentation navigation.
+- Documented environments, authentication direction, content concepts, errors, and every public v1 endpoint.
+- Added searchable documentation, language quickstart tabs, copy actions, and downloadable OpenAPI.
+- Added a live API Explorer with environment selection, response timing, and formatted JSON.
+- Added a responsive Status Portal with real API, database, PWA, and developer portal probes.
+- Added measured latency, API version reporting, manual refresh, and local recent-check history.
+- Clearly separated live beta services from production services awaiting promotion.
+- Added a shared lightweight portal design system with accessible light and dark themes.
+- Added independent Cloudflare Worker deployments for test and production portal domains.
+- Added automated portal builds and verification to CI.
 
 ### 0.3.0
 
