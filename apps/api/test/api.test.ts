@@ -3,7 +3,7 @@ import type { Dua, DuaSummary } from '@fortress/contracts';
 import { createApp } from '../src/app';
 import type { ContentRepository, DatasetSummary } from '../src/repositories/content-repository';
 
-const env = {
+const envConfig = {
   PLATFORM_ENV: 'test' as const,
   AUTH: {
     getServiceState: async () => ({ serviceKey: 'api', status: 'active', message: '', enforcement: 'worker' }),
@@ -17,7 +17,8 @@ const env = {
       id, ownerUserId, operation: 'search' as const, parameters: { query: 'waking', limit: 5 },
     }) : null,
   },
-} as never;
+};
+const env = envConfig as never;
 const authenticated = { headers: { Authorization: 'Bearer test-token' } };
 const records: Dua[] = [
   {
@@ -85,9 +86,9 @@ describe('Fortress Platform API', () => {
 
   it('keeps health available while protected API routes are in maintenance', async () => {
     const maintenanceEnv = {
-      ...env,
+      ...envConfig,
       AUTH: {
-        ...env.AUTH,
+        ...envConfig.AUTH,
         getServiceState: async () => ({ serviceKey: 'api', status: 'maintenance', message: 'Scheduled maintenance.', enforcement: 'worker' }),
       },
     } as never;
