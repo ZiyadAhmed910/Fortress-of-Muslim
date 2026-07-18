@@ -11,7 +11,7 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.1.0');
+    expect(body.version).toBe('0.1.1');
   });
 
   it('returns a paginated dua summary list', async () => {

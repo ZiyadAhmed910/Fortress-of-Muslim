@@ -72,11 +72,11 @@ After this succeeds, every relevant push to `dev` deploys the test API automatic
 
 ## 7. Connect Custom Domains Later
 
-After the Cloudflare DNS zone has been prepared safely, connect:
+After the Cloudflare DNS zone has been prepared safely, the Worker environments connect:
 
 ```text
 api-test.fortressofmuslim.org -> fortress-platform-api-test
 api.fortressofmuslim.org      -> fortress-platform-api-production
 ```
 
-The test hostname uses one subdomain level so it works cleanly with standard certificates. Custom domains are configured only after the initial `workers.dev` deployment is healthy.
+The custom domains are declared in `apps/api/wrangler.jsonc`, allowing GitHub deployments to keep routing and Worker versions synchronized. The `workers.dev` hostname remains available for diagnostics.

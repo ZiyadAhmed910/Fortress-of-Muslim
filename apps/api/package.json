@@ -1,6 +1,6 @@
 {
   "name": "@fortress/api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fortress/contracts": "0.1.0",
+    "@fortress/contracts": "0.1.1",
     "hono": "^4.8.0"
   },
   "devDependencies": {

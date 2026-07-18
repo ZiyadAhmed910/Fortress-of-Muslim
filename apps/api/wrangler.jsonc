@@ -10,12 +10,24 @@
   "env": {
     "test": {
       "name": "fortress-platform-api-test",
+      "routes": [
+        {
+          "pattern": "api-test.fortressofmuslim.org",
+          "custom_domain": true
+        }
+      ],
       "vars": {
         "PLATFORM_ENV": "test"
       }
     },
     "production": {
       "name": "fortress-platform-api-production",
+      "routes": [
+        {
+          "pattern": "api.fortressofmuslim.org",
+          "custom_domain": true
+        }
+      ],
       "vars": {
         "PLATFORM_ENV": "production"
       }

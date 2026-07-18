@@ -88,7 +88,7 @@ npm run dev:api
 Current hosted test API:
 
 ```text
-https://fortress-platform-api-test.ziyadahmed910.workers.dev
+https://api-test.fortressofmuslim.org
 ```
 
 Useful verification endpoints:
@@ -111,6 +111,13 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.1.1
+
+- Activated Cloudflare DNS while retaining Bluehost as the PWA, email, FTP, and cPanel origin.
+- Added infrastructure-as-code custom domains for test and production API environments.
+- Connected the test API to `api-test.fortressofmuslim.org`.
+- Retained the `workers.dev` address as a diagnostic origin rather than the public platform hostname.
 
 ### 0.1.0
 
