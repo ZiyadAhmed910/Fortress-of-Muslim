@@ -92,3 +92,5 @@ api.fortressofmuslim.org      -> fortress-platform-api-production
 ```
 
 The custom domains are declared in `apps/api/wrangler.jsonc`, allowing GitHub deployments to keep routing and Worker versions synchronized. The `workers.dev` hostname remains available for diagnostics.
+
+Static portal domains are provisioned once with an authenticated Wrangler session using each portal's `wrangler.jsonc`. Routine GitHub deployments use `wrangler.ci.jsonc`, which updates assets without requesting zone-route permissions. This keeps the repository deployment token limited to Worker uploads after bootstrap.

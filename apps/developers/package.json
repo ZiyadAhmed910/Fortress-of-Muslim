@@ -6,7 +6,9 @@
     "build": "node ../../packages/portal-ui/tools/build-portals.mjs developers",
     "dev": "npm run build && wrangler dev --env test",
     "deploy:test": "npm run build && wrangler deploy --env test",
-    "deploy:production": "npm run build && wrangler deploy --env production"
+    "deploy:production": "npm run build && wrangler deploy --env production",
+    "deploy:test:ci": "npm run build && wrangler deploy --config wrangler.ci.jsonc --env test",
+    "deploy:production:ci": "npm run build && wrangler deploy --config wrangler.ci.jsonc --env production"
   },
   "devDependencies": {
     "wrangler": "^4.24.0"

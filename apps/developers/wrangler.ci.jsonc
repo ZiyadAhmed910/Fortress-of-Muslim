@@ -1,0 +1,10 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "fortress-developers",
+  "compatibility_date": "2026-07-18",
+  "assets": { "directory": "./dist", "not_found_handling": "single-page-application" },
+  "env": {
+    "test": { "name": "fortress-developers-test" },
+    "production": { "name": "fortress-developers-production" }
+  }
+}
