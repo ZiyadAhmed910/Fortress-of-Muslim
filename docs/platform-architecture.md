@@ -25,10 +25,10 @@ The repository is a monorepo so applications share contracts and domain logic wh
 ```text
 apps/
   api/              Cloudflare Worker API
-  developers/       Static developer documentation and live API explorer
+  auth/             Identity, API keys, organizations, OAuth 2.1 and control-plane storage
+  developers/       Developer documentation, credentials and authenticated API explorer
   status/           Static service health dashboard
   admin/            Future administrative control plane
-  developers/       Future developer control plane
   help/             Future support portal
   mcp/              Future MCP server
 packages/
@@ -42,6 +42,12 @@ pwa-website/        Existing static PWA, retained during migration
 The `dev` branch deploys test services. The `main` branch deploys production services. Test and production must use separate databases, buckets, queues, credentials and Worker names.
 
 The API reads published content from separate Cloudflare D1 databases in test and production. A repository boundary keeps route handlers and public contracts independent of the storage implementation. All initial imported records are explicitly marked as pending verification.
+
+Identity and platform ownership use separate `fortress-identity-test` and `fortress-identity-production` D1 databases. Better Auth owns users, sessions, organizations, hashed API keys, OAuth clients, JWKS, consent and tokens. Fortress-owned control tables add plans, approval requests, usage events, audit events and MCP registration drafts. Content and identity stores are intentionally separate.
+
+Content routes require either a scoped Fortress API key or OAuth 2.1 bearer token. The API Worker verifies credentials through a Cloudflare Service Binding to the Auth Worker; identity tables are never queried directly by the public API. Health and discovery endpoints remain public.
+
+API keys are displayed once and stored hashed. Connected apps support public PKCE clients and confidential server clients. OAuth access tokens are audience-bound to the API or MCP resource, and the resource server validates the requested scope.
 
 ## Content Storage
 

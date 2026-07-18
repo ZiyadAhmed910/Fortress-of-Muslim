@@ -26,6 +26,12 @@
           "database_id": "a5f4b33f-5c6e-4a0c-b506-3e04d263ffb7",
           "migrations_dir": "migrations"
         }
+      ],
+      "services": [
+        {
+          "binding": "AUTH",
+          "service": "fortress-platform-auth-test"
+        }
       ]
     },
     "production": {
@@ -45,6 +51,12 @@
           "database_name": "fortress-platform-production",
           "database_id": "36233189-9e08-47de-b862-1530dcda24a3",
           "migrations_dir": "migrations"
+        }
+      ],
+      "services": [
+        {
+          "binding": "AUTH",
+          "service": "fortress-platform-auth-production"
         }
       ]
     }

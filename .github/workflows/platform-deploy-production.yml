@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - "apps/auth/**"
       - "apps/api/**"
       - "packages/contracts/**"
       - "pwa-website/data/duas.json"
@@ -43,6 +44,18 @@ jobs:
 
       - name: Verify platform
         run: npm run check
+
+      - name: Apply D1 identity migrations
+        run: npm run db:migrate:production --workspace @fortress/auth
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy Auth to Cloudflare production
+        run: npm run deploy:production:ci --workspace @fortress/auth
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Apply D1 content migrations
         run: npm run db:migrate:production --workspace @fortress/api

@@ -3,12 +3,16 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
-  x-platform-version: 0.4.0
+  x-platform-version: 0.5.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production
   - url: https://api-test.fortressofmuslim.org/v1
     description: Test
+security:
+  - fortressApiKey: []
+  - fortressOAuth:
+      - content:read
 paths:
   /datasets/current:
     get:
@@ -145,6 +149,29 @@ paths:
         '404':
           description: Dua or part not found
 components:
+  securitySchemes:
+    fortressApiKey:
+      type: apiKey
+      in: header
+      name: X-Fortress-API-Key
+      description: Developer API key created in the Fortress Developer Portal.
+    fortressOAuth:
+      type: oauth2
+      description: OAuth 2.1 access token issued by Fortress Platform.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.fortressofmuslim.org/api/auth/oauth2/authorize
+          tokenUrl: https://auth.fortressofmuslim.org/api/auth/oauth2/token
+          scopes:
+            content:read: Read published dua records.
+            content:search: Search published dua content.
+            dataset:read: Read dataset provenance and publication metadata.
+        clientCredentials:
+          tokenUrl: https://auth.fortressofmuslim.org/api/auth/oauth2/token
+          scopes:
+            content:read: Read published dua records.
+            content:search: Search published dua content.
+            dataset:read: Read dataset provenance and publication metadata.
   parameters:
     DuaId:
       in: path

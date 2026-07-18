@@ -48,6 +48,7 @@ The long-term plan is to support a larger curated library with 300-400 duas, ref
 .
 ├── apps/
 │   ├── api/              Cloudflare Worker public API
+│   ├── auth/             Identity, credentials, OAuth and control plane
 │   ├── developers/       Developer documentation and API explorer
 │   └── status/           Live service status dashboard
 ├── packages/
@@ -117,6 +118,8 @@ Useful verification endpoints:
 
 Canonical IDs and legacy IDs are both accepted by detail and part routes. List and search responses return lightweight summaries; detail and random routes return the complete ordered content record.
 
+Content endpoints require a Fortress API key in `X-Fortress-API-Key` or an OAuth 2.1 bearer token. Create beta credentials in the Developer Portal. The API root, `/health`, and `/v1` discovery route remain public.
+
 The API stores published content in Cloudflare D1. Generate and verify the deterministic migration from the current PWA dataset with:
 
 ```powershell
@@ -137,6 +140,18 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.5.0
+
+- Added a dedicated Cloudflare Auth Worker backed by separate test and production identity D1 databases.
+- Added developer accounts, sessions, organizations, hashed one-time-reveal API keys, and scoped key verification.
+- Added an OAuth 2.1 authorization server with PKCE, client credentials, JWKS, consent, audience binding, and connected-app management.
+- Protected content APIs through an internal Auth Worker service binding while keeping health and discovery public.
+- Added a narrow public database-health probe so the Status Portal can verify D1 without holding a content credential.
+- Added plans, access requests, usage, audit, and user-defined MCP registration foundations to the control-plane schema.
+- Upgraded the Developer Portal with sign-up/sign-in, API-key management, connected apps, MCP drafts, and an authenticated API Explorer.
+- Updated quickstarts and OpenAPI security schemes so documentation examples use the same working authentication contract.
+- Added deployment ordering, migration checks, dependency auditing, and Auth Worker configuration documentation.
 
 ### 0.4.0
 

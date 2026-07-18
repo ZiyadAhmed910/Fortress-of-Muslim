@@ -3,7 +3,18 @@ import type { Dua, DuaSummary } from '@fortress/contracts';
 import { createApp } from '../src/app';
 import type { ContentRepository, DatasetSummary } from '../src/repositories/content-repository';
 
-const env = { PLATFORM_ENV: 'test' as const } as never;
+const env = {
+  PLATFORM_ENV: 'test' as const,
+  AUTH: {
+    verifyApiKey: async () => ({ valid: true, key: { id: 'key-test', referenceId: 'user-test' }, error: null }),
+    verifyBearerToken: async (token: string) => ({
+      valid: token === 'test-token',
+      subject: token === 'test-token' ? 'user-test' : undefined,
+      scopes: ['content:read', 'content:search', 'dataset:read'],
+    }),
+  },
+} as never;
+const authenticated = { headers: { Authorization: 'Bearer test-token' } };
 const records: Dua[] = [
   {
     id: 'dua.hisn.001', legacyId: 'dua-001', sequence: 1, title: 'When waking up',
@@ -54,12 +65,22 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.4.0');
+    expect(body.version).toBe('0.5.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
+  it('reports database health without exposing protected content', async () => {
+    const response = await app.request('/health/database', {}, env);
+    const body = await response.json() as { status: string; datasetId: string; recordCount: number };
+
+    expect(response.status).toBe(200);
+    expect(body.status).toBe('ok');
+    expect(body.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
+    expect(body.recordCount).toBe(3);
+  });
+
   it('returns a paginated dua summary list', async () => {
-    const response = await app.request('/v1/duas?limit=2', {}, env);
+    const response = await app.request('/v1/duas?limit=2', authenticated, env);
     const body = await response.json() as {
       data: Array<{ id: string; parts?: unknown }>;
       pagination: { nextCursor: string | null };
@@ -74,7 +95,7 @@ describe('Fortress Platform API', () => {
   });
 
   it('reports the active dataset provenance', async () => {
-    const response = await app.request('/v1/datasets/current', {}, env);
+    const response = await app.request('/v1/datasets/current', authenticated, env);
     const body = await response.json() as {
       id: string;
       verificationStatus: string;
@@ -90,7 +111,7 @@ describe('Fortress Platform API', () => {
   });
 
   it('retrieves a dua using its canonical ID', async () => {
-    const response = await app.request('/v1/duas/dua.hisn.001', {}, env);
+    const response = await app.request('/v1/duas/dua.hisn.001', authenticated, env);
     const body = await response.json() as {
       data: { legacyId: string; parts: unknown[] };
     };
@@ -101,8 +122,8 @@ describe('Fortress Platform API', () => {
   });
 
   it('searches titles and segment text', async () => {
-    const titleResponse = await app.request('/v1/duas/search?q=waking', {}, env);
-    const textResponse = await app.request('/v1/duas/search?q=Arabic', {}, env);
+    const titleResponse = await app.request('/v1/duas/search?q=waking', authenticated, env);
+    const textResponse = await app.request('/v1/duas/search?q=Arabic', authenticated, env);
     const titleBody = await titleResponse.json() as { data: DuaSummary[]; meta: { total: number } };
     const textBody = await textResponse.json() as { data: DuaSummary[]; meta: { total: number } };
 
@@ -114,7 +135,7 @@ describe('Fortress Platform API', () => {
   });
 
   it('returns a complete random dua without caching', async () => {
-    const response = await app.request('/v1/duas/random', {}, env);
+    const response = await app.request('/v1/duas/random', authenticated, env);
     const body = await response.json() as { data: Dua };
 
     expect(response.status).toBe(200);
@@ -123,8 +144,8 @@ describe('Fortress Platform API', () => {
   });
 
   it('returns ordered part resources', async () => {
-    const listResponse = await app.request('/v1/duas/dua.hisn.001/parts', {}, env);
-    const partResponse = await app.request('/v1/duas/dua-001/parts/1', {}, env);
+    const listResponse = await app.request('/v1/duas/dua.hisn.001/parts', authenticated, env);
+    const partResponse = await app.request('/v1/duas/dua-001/parts/1', authenticated, env);
     const listBody = await listResponse.json() as { data: Array<{ position: number }> };
     const partBody = await partResponse.json() as { data: { duaId: string; position: number; segmentCount: number } };
 
@@ -137,8 +158,8 @@ describe('Fortress Platform API', () => {
   });
 
   it('validates part positions', async () => {
-    const invalidResponse = await app.request('/v1/duas/dua.hisn.001/parts/nope', {}, env);
-    const missingResponse = await app.request('/v1/duas/dua.hisn.001/parts/10', {}, env);
+    const invalidResponse = await app.request('/v1/duas/dua.hisn.001/parts/nope', authenticated, env);
+    const missingResponse = await app.request('/v1/duas/dua.hisn.001/parts/10', authenticated, env);
     const invalidBody = await invalidResponse.json() as { error: { code: string } };
     const missingBody = await missingResponse.json() as { error: { code: string } };
 
@@ -149,7 +170,7 @@ describe('Fortress Platform API', () => {
   });
 
   it('returns a structured error for missing content', async () => {
-    const response = await app.request('/v1/duas/does-not-exist', {}, env);
+    const response = await app.request('/v1/duas/does-not-exist', authenticated, env);
     const body = await response.json() as {
       error: { code: string; requestId: string };
     };
@@ -157,5 +178,14 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(404);
     expect(body.error.code).toBe('not_found');
     expect(body.error.requestId).toBeTruthy();
+  });
+
+  it('rejects protected content requests without credentials', async () => {
+    const response = await app.request('/v1/duas?limit=2', {}, env);
+    const body = await response.json() as { error: { code: string } };
+
+    expect(response.status).toBe(401);
+    expect(body.error.code).toBe('unauthorized');
+    expect(response.headers.get('WWW-Authenticate')).toContain('Bearer');
   });
 });

@@ -26,7 +26,12 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
   const app = new Hono<{ Bindings: Bindings; Variables: ApiVariables }>();
 
   app.use('*', logger());
-  app.use('*', cors({ origin: '*', allowMethods: ['GET', 'OPTIONS'] }));
+  app.use('*', cors({
+    origin: '*',
+    allowMethods: ['GET', 'OPTIONS'],
+    allowHeaders: ['Authorization', 'X-Fortress-API-Key'],
+    exposeHeaders: ['X-Request-ID', 'X-Fortress-Dataset-Version'],
+  }));
   app.use('*', async (context, next) => {
     const requestId = context.req.header('CF-Ray') ?? crypto.randomUUID();
     context.set('requestId', requestId);
@@ -34,6 +39,43 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     context.header('X-Request-ID', requestId);
     context.header('X-Fortress-Dataset-Version', CURRENT_DATASET_ID);
   });
+
+  const authorize = async (context: ApiContext, next: () => Promise<void>) => {
+    const credential = readCredential(context);
+    if (!credential) return unauthorized(context, 'An API key or OAuth access token is required.');
+
+    const scopes = requiredScopes(context.req.path);
+    try {
+      if (credential.startsWith('fom_')) {
+        const permissions: Record<string, string[]> = scopes.includes('content:search')
+          ? { content: ['search'] }
+          : scopes.includes('dataset:read') ? { dataset: ['read'] } : { content: ['read'] };
+        const result = await context.env.AUTH.verifyApiKey(credential, permissions);
+        if (!result.valid || !result.key) return unauthorized(context, result.error?.message ?? 'API key is invalid.');
+        context.set('principalId', result.key.referenceId);
+        context.set('credentialId', result.key.id);
+      } else {
+        const result = await context.env.AUTH.verifyBearerToken(credential, scopes);
+        if (!result.valid || !result.subject) return unauthorized(context, result.error ?? 'Access token is invalid.');
+        context.set('principalId', result.subject);
+        context.set('credentialId', result.clientId ?? result.subject);
+      }
+    } catch (error) {
+      console.error('Credential verification failed.', error);
+      return context.json({
+        error: {
+          code: 'authentication_unavailable',
+          message: 'Credential verification is temporarily unavailable.',
+          requestId: context.get('requestId'),
+        },
+      }, 503);
+    }
+    await next();
+  };
+
+  app.use('/v1/datasets/*', authorize);
+  app.use('/v1/duas', authorize);
+  app.use('/v1/duas/*', authorize);
 
   app.get('/', (context) => context.json({
     name: PLATFORM_NAME,
@@ -51,6 +93,18 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     environment: context.env?.PLATFORM_ENV ?? 'local',
     timestamp: new Date().toISOString(),
   }));
+
+  app.get('/health/database', async (context) => {
+    const dataset = await repositoryFactory(context.env).getCurrentDataset();
+    return context.json({
+      status: 'ok',
+      service: 'fortress-content-database',
+      datasetId: dataset.id,
+      recordCount: dataset.recordCount,
+      environment: context.env?.PLATFORM_ENV ?? 'local',
+      timestamp: new Date().toISOString(),
+    });
+  });
 
   app.get('/v1', (context) => context.json({
     name: PLATFORM_NAME,
@@ -256,4 +310,28 @@ function duaNotFound(requestId: string, context: ApiContext) {
       requestId,
     },
   }, 404);
+}
+
+function readCredential(context: ApiContext) {
+  const apiKey = context.req.header('X-Fortress-API-Key')?.trim();
+  if (apiKey) return apiKey;
+  const authorization = context.req.header('Authorization')?.trim();
+  return authorization?.startsWith('Bearer ') ? authorization.slice(7).trim() : null;
+}
+
+function requiredScopes(path: string) {
+  if (path === '/v1/duas/search') return ['content:search'];
+  if (path.startsWith('/v1/datasets/')) return ['dataset:read'];
+  return ['content:read'];
+}
+
+function unauthorized(context: ApiContext, message: string) {
+  context.header('WWW-Authenticate', 'Bearer realm="Fortress Platform API"');
+  return context.json({
+    error: {
+      code: 'unauthorized',
+      message,
+      requestId: context.get('requestId'),
+    },
+  }, 401);
 }

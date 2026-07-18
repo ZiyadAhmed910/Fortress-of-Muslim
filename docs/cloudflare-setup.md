@@ -68,6 +68,22 @@ fortress-platform-production    main branch
 
 Their non-secret database IDs and `CONTENT_DB` bindings are declared in `apps/api/wrangler.jsonc`. Test data must never be migrated into the production database manually. The appropriate GitHub deployment applies outstanding migrations before releasing each Worker.
 
+Identity and control-plane state uses two additional D1 databases:
+
+```text
+fortress-identity-test           dev branch
+fortress-identity-production     main branch
+```
+
+Before the first deployment of each Auth Worker, create a unique Better Auth secret and store it directly as a Cloudflare Worker secret. Never reuse the test value in production:
+
+```powershell
+npx wrangler secret put BETTER_AUTH_SECRET --env test --config apps/auth/wrangler.jsonc
+npx wrangler secret put BETTER_AUTH_SECRET --env production --config apps/auth/wrangler.jsonc
+```
+
+Routine deployments retain existing Worker secrets. The secret must never be placed in GitHub variables, committed Wrangler configuration, or browser JavaScript.
+
 ## 7. Run the First Test Deployment
 
 Open **Actions > Deploy Fortress Platform API to test > Run workflow** and select `dev`.
@@ -77,7 +93,7 @@ The workflow deploys `fortress-platform-api-test` and prints its `workers.dev` U
 ```text
 https://<worker-host>/health
 https://<worker-host>/v1
-https://<worker-host>/v1/duas?limit=2
+https://<worker-host>/v1/duas?limit=2   # requires an API key or OAuth token
 ```
 
 After this succeeds, every relevant push to `dev` deploys the test API automatically. Relevant pushes to `main` deploy `fortress-platform-api-production`.
@@ -89,6 +105,8 @@ After the Cloudflare DNS zone has been prepared safely, the Worker environments 
 ```text
 api-test.fortressofmuslim.org -> fortress-platform-api-test
 api.fortressofmuslim.org      -> fortress-platform-api-production
+auth-test.fortressofmuslim.org -> fortress-platform-auth-test
+auth.fortressofmuslim.org      -> fortress-platform-auth-production
 ```
 
 The custom domains are declared in `apps/api/wrangler.jsonc`, allowing GitHub deployments to keep routing and Worker versions synchronized. The `workers.dev` hostname remains available for diagnostics.

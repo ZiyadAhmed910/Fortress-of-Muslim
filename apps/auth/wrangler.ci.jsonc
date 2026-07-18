@@ -1,0 +1,35 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "fortress-platform-auth",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-18",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "env": {
+    "test": {
+      "name": "fortress-platform-auth-test",
+      "vars": {
+        "PLATFORM_ENV": "test",
+        "AUTH_BASE_URL": "https://auth-test.fortressofmuslim.org",
+        "DEVELOPERS_URL": "https://developers-test.fortressofmuslim.org",
+        "ADMIN_URL": "https://admin-test.fortressofmuslim.org",
+        "API_AUDIENCE": "https://api-test.fortressofmuslim.org",
+        "MCP_AUDIENCE": "https://mcp-test.fortressofmuslim.org"
+      },
+      "d1_databases": [{ "binding": "IDENTITY_DB", "database_name": "fortress-identity-test", "database_id": "96c9731b-4fe3-4237-b44e-45a89e0fc3c3", "migrations_dir": "migrations" }]
+    },
+    "production": {
+      "name": "fortress-platform-auth-production",
+      "vars": {
+        "PLATFORM_ENV": "production",
+        "AUTH_BASE_URL": "https://auth.fortressofmuslim.org",
+        "DEVELOPERS_URL": "https://developers.fortressofmuslim.org",
+        "ADMIN_URL": "https://admin.fortressofmuslim.org",
+        "API_AUDIENCE": "https://api.fortressofmuslim.org",
+        "MCP_AUDIENCE": "https://mcp.fortressofmuslim.org"
+      },
+      "d1_databases": [{ "binding": "IDENTITY_DB", "database_name": "fortress-identity-production", "database_id": "2cc78547-7b49-42dd-acb3-de0984aede1f", "migrations_dir": "migrations" }]
+    }
+  }
+}

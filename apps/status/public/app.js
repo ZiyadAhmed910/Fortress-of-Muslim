@@ -1,6 +1,6 @@
 const services = {
   api: { url: 'https://api-test.fortressofmuslim.org/health', mode: 'json', critical: true },
-  database: { url: 'https://api-test.fortressofmuslim.org/v1/datasets/current', mode: 'json', critical: true },
+  database: { url: 'https://api-test.fortressofmuslim.org/health/database', mode: 'json', critical: true },
   pwa: { url: 'https://test.fortressofmuslim.org/', mode: 'opaque', critical: false },
   developers: { url: 'https://developers-test.fortressofmuslim.org/', mode: 'opaque', critical: false },
   'production-pwa': { url: 'https://fortressofmuslim.org/', mode: 'opaque', critical: false },
