@@ -10,6 +10,7 @@ on:
       - "pwa-website/data/duas.json"
       - "package.json"
       - "package-lock.json"
+      - "README.md"
       - "tsconfig.base.json"
       - ".github/workflows/platform-deploy-production.yml"
   workflow_dispatch:

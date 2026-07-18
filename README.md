@@ -85,6 +85,21 @@ Run the Cloudflare API locally:
 npm run dev:api
 ```
 
+Current hosted test API:
+
+```text
+https://fortress-platform-api-test.ziyadahmed910.workers.dev
+```
+
+Useful verification endpoints:
+
+```text
+/health
+/v1
+/v1/datasets/current
+/v1/duas?limit=2
+```
+
 The test API uses the `dev` branch and the production API uses `main`. Cloudflare deployment remains disabled until the repository variable `CLOUDFLARE_DEPLOY_ENABLED` is set to `true` and the required account secrets are configured. Setup is documented in `docs/cloudflare-setup.md`.
 
 Every platform release must:
@@ -105,6 +120,7 @@ Every platform release must:
 - Added an OpenAPI 3.0 specification.
 - Added test and production Worker environments.
 - Added automated GitHub CI and Cloudflare deployment workflows.
+- Deployed and verified the first hosted test API on Cloudflare Workers.
 - Marked the current Word-derived content as a legacy import pending canonical editorial verification.
 
 ## Local Development
