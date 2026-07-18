@@ -81,6 +81,58 @@ export class D1ContentRepository implements ContentRepository {
     return result.results.map(toSummary);
   }
 
+  async searchDuas(query: string, offset: number, limit: number): Promise<{ items: DuaSummary[]; total: number }> {
+    const pattern = `%${escapeLike(query)}%`;
+    const predicate = `
+      dataset.publication_status = 'active'
+      AND record.content_type = 'dua'
+      AND (
+        record.title LIKE ? ESCAPE '\\' COLLATE NOCASE
+        OR EXISTS (
+          SELECT 1
+          FROM content_parts search_part
+          JOIN content_segments search_segment ON search_segment.part_id = search_part.id
+          WHERE search_part.record_id = record.id
+            AND search_segment.text LIKE ? ESCAPE '\\' COLLATE NOCASE
+        )
+      )
+    `;
+    const [rows, countRow] = await Promise.all([
+      this.database.prepare(`
+        SELECT record.id, record.legacy_id, record.sequence, record.title,
+               record.verification_status, COUNT(part.id) AS part_count
+        FROM content_records record
+        JOIN dataset_versions dataset ON dataset.id = record.dataset_id
+        LEFT JOIN content_parts part ON part.record_id = record.id
+        WHERE ${predicate}
+        GROUP BY record.id
+        ORDER BY record.sequence
+        LIMIT ? OFFSET ?
+      `).bind(pattern, pattern, limit, offset).all<SummaryRow>(),
+      this.database.prepare(`
+        SELECT COUNT(*) AS count
+        FROM content_records record
+        JOIN dataset_versions dataset ON dataset.id = record.dataset_id
+        WHERE ${predicate}
+      `).bind(pattern, pattern).first<{ count: number }>(),
+    ]);
+
+    return { items: rows.results.map(toSummary), total: countRow?.count ?? 0 };
+  }
+
+  async getRandomDua(): Promise<Dua | undefined> {
+    const row = await this.database.prepare(`
+      SELECT record.id
+      FROM content_records record
+      JOIN dataset_versions dataset ON dataset.id = record.dataset_id
+      WHERE dataset.publication_status = 'active' AND record.content_type = 'dua'
+      ORDER BY RANDOM()
+      LIMIT 1
+    `).first<{ id: string }>();
+
+    return row ? this.getDua(row.id) : undefined;
+  }
+
   async getDua(id: string): Promise<Dua | undefined> {
     const record = await this.database.prepare(`
       SELECT record.id, record.legacy_id, record.sequence, record.title,
@@ -125,4 +177,8 @@ function toSummary(row: SummaryRow): DuaSummary {
     partCount: row.part_count,
     verificationStatus: row.verification_status,
   };
+}
+
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (character) => `\\${character}`);
 }

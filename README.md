@@ -98,7 +98,14 @@ Useful verification endpoints:
 /v1
 /v1/datasets/current
 /v1/duas?limit=2
+/v1/duas/search?q=protection
+/v1/duas/random
+/v1/duas/dua.hisn.001
+/v1/duas/dua.hisn.001/parts
+/v1/duas/dua.hisn.001/parts/1
 ```
+
+Canonical IDs and legacy IDs are both accepted by detail and part routes. List and search responses return lightweight summaries; detail and random routes return the complete ordered content record.
 
 The API stores published content in Cloudflare D1. Generate and verify the deterministic migration from the current PWA dataset with:
 
@@ -120,6 +127,16 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.3.0
+
+- Added full-text-like D1 search across dua titles, Arabic, transliteration, translations, and commentary.
+- Added a random complete-dua endpoint with cache prevention.
+- Added ordered part collection and single-part endpoints for swipe-based readers.
+- Added structured validation and errors for search parameters and part positions.
+- Preserved canonical and legacy ID lookup across all record routes.
+- Expanded automated API coverage from five to nine endpoint tests.
+- Expanded the OpenAPI specification with parameters and reusable response schemas.
 
 ### 0.2.0
 

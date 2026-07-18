@@ -1,5 +1,15 @@
-import { API_VERSION, CURRENT_DATASET_ID, PLATFORM_NAME, PLATFORM_VERSION, paginationSchema } from '@fortress/contracts';
-import { Hono } from 'hono';
+import {
+  API_VERSION,
+  CURRENT_DATASET_ID,
+  PLATFORM_NAME,
+  PLATFORM_VERSION,
+  paginationSchema,
+  partPositionSchema,
+  searchSchema,
+  type Dua,
+  type DuaPart,
+} from '@fortress/contracts';
+import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { decodeCursor, encodeCursor } from './lib/pagination';
@@ -8,6 +18,7 @@ import { D1ContentRepository } from './repositories/d1-content-repository';
 import type { ApiVariables, Bindings } from './types';
 
 type RepositoryFactory = (bindings: Bindings) => ContentRepository;
+type ApiContext = Context<{ Bindings: Bindings; Variables: ApiVariables }>;
 
 const defaultRepositoryFactory: RepositoryFactory = (bindings) => new D1ContentRepository(bindings.CONTENT_DB);
 
@@ -47,6 +58,9 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     resources: {
       dataset: '/v1/datasets/current',
       duas: '/v1/duas',
+      search: '/v1/duas/search?q=waking',
+      randomDua: '/v1/duas/random',
+      duaParts: '/v1/duas/{id}/parts',
     },
   }));
 
@@ -92,16 +106,100 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     });
   });
 
-  app.get('/v1/duas/:id', async (context) => {
-    const dua = await repositoryFactory(context.env).getDua(context.req.param('id'));
+  app.get('/v1/duas/search', async (context) => {
+    const parsed = searchSchema.safeParse(context.req.query());
+    if (!parsed.success) {
+      return context.json({
+        error: {
+          code: 'invalid_request',
+          message: 'Search requires a query between 2 and 200 characters and valid pagination parameters.',
+          requestId: context.get('requestId'),
+        },
+      }, 400);
+    }
+
+    const offset = decodeCursor(parsed.data.cursor);
+    const result = await repositoryFactory(context.env).searchDuas(parsed.data.q, offset, parsed.data.limit);
+    const nextOffset = offset + result.items.length;
+
+    return context.json({
+      data: result.items,
+      pagination: {
+        limit: parsed.data.limit,
+        nextCursor: nextOffset < result.total ? encodeCursor(nextOffset) : null,
+      },
+      meta: {
+        query: parsed.data.q,
+        total: result.total,
+        datasetVersion: CURRENT_DATASET_ID,
+        requestId: context.get('requestId'),
+      },
+    });
+  });
+
+  app.get('/v1/duas/random', async (context) => {
+    const dua = await repositoryFactory(context.env).getRandomDua();
     if (!dua) {
       return context.json({
         error: {
           code: 'not_found',
-          message: 'Dua was not found.',
+          message: 'No published dua is available.',
           requestId: context.get('requestId'),
         },
       }, 404);
+    }
+
+    context.header('Cache-Control', 'no-store');
+    return context.json({ data: dua, meta: responseMeta(context.get('requestId')) });
+  });
+
+  app.get('/v1/duas/:id/parts', async (context) => {
+    const dua = await repositoryFactory(context.env).getDua(context.req.param('id'));
+    if (!dua) return duaNotFound(context.get('requestId'), context);
+
+    return context.json({
+      data: toDuaParts(dua),
+      meta: {
+        duaId: dua.id,
+        partCount: dua.partCount,
+        ...responseMeta(context.get('requestId')),
+      },
+    });
+  });
+
+  app.get('/v1/duas/:id/parts/:position', async (context) => {
+    const parsedPosition = partPositionSchema.safeParse(context.req.param('position'));
+    if (!parsedPosition.success) {
+      return context.json({
+        error: {
+          code: 'invalid_request',
+          message: 'Part position must be a positive integer.',
+          requestId: context.get('requestId'),
+        },
+      }, 400);
+    }
+
+    const dua = await repositoryFactory(context.env).getDua(context.req.param('id'));
+    if (!dua) return duaNotFound(context.get('requestId'), context);
+
+    const part = toDuaParts(dua)[parsedPosition.data - 1];
+    if (!part) {
+      return context.json({
+        error: {
+          code: 'part_not_found',
+          message: 'Dua part was not found.',
+          requestId: context.get('requestId'),
+        },
+      }, 404);
+    }
+
+    return context.json({ data: part, meta: responseMeta(context.get('requestId')) });
+  });
+
+  app.get('/v1/duas/:id', async (context) => {
+    const dua = await repositoryFactory(context.env).getDua(context.req.param('id'));
+    if (!dua) {
+      return duaNotFound(context.get('requestId'), context);
     }
 
     return context.json({
@@ -136,3 +234,26 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
 }
 
 export const app = createApp();
+
+function responseMeta(requestId: string) {
+  return { datasetVersion: CURRENT_DATASET_ID, requestId };
+}
+
+function toDuaParts(dua: Dua): DuaPart[] {
+  return dua.parts.map((segments, index) => ({
+    duaId: dua.id,
+    position: index + 1,
+    segmentCount: segments.length,
+    segments,
+  }));
+}
+
+function duaNotFound(requestId: string, context: ApiContext) {
+  return context.json({
+    error: {
+      code: 'not_found',
+      message: 'Dua was not found.',
+      requestId,
+    },
+  }, 404);
+}

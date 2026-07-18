@@ -1,6 +1,6 @@
 {
   "name": "@fortress/api",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,17 +11,19 @@
     "db:verify": "node tools/verify-migrations.mjs",
     "db:migrate:test": "wrangler d1 migrations apply fortress-platform-test --remote --env test",
     "db:migrate:production": "wrangler d1 migrations apply fortress-platform-production --remote --env production",
-    "test": "vitest run && npm run db:verify",
+    "openapi:verify": "node tools/verify-openapi.mjs",
+    "test": "vitest run && npm run db:verify && npm run openapi:verify",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fortress/contracts": "0.2.0",
+    "@fortress/contracts": "0.3.0",
     "hono": "^4.8.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250711.0",
     "typescript": "^5.8.0",
     "vitest": "^3.2.0",
-    "wrangler": "^4.24.0"
+    "wrangler": "^4.24.0",
+    "yaml": "^2.8.0"
   }
 }

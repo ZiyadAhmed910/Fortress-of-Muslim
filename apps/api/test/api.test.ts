@@ -32,6 +32,16 @@ const repository: ContentRepository = {
   async listDuas(offset, limit): Promise<DuaSummary[]> {
     return records.slice(offset, offset + limit).map(({ parts: _parts, ...summary }) => summary);
   },
+  async searchDuas(query, offset, limit) {
+    const normalized = query.toLocaleLowerCase();
+    const matches = records.filter((record) =>
+      record.title.toLocaleLowerCase().includes(normalized)
+      || record.parts.some((part) => part.some((segment) => segment.text.toLocaleLowerCase().includes(normalized))),
+    );
+    const items = matches.slice(offset, offset + limit).map(({ parts: _parts, ...summary }) => summary);
+    return { items, total: matches.length };
+  },
+  async getRandomDua() { return records[0]; },
   async getDua(id) { return records.find((record) => record.id === id || record.legacyId === id); },
 };
 const app = createApp(() => repository);
@@ -44,7 +54,7 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.2.0');
+    expect(body.version).toBe('0.3.0');
   });
 
   it('returns a paginated dua summary list', async () => {
@@ -87,6 +97,54 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.data.legacyId).toBe('dua-001');
     expect(body.data.parts.length).toBeGreaterThan(0);
+  });
+
+  it('searches titles and segment text', async () => {
+    const titleResponse = await app.request('/v1/duas/search?q=waking', {}, env);
+    const textResponse = await app.request('/v1/duas/search?q=Arabic', {}, env);
+    const titleBody = await titleResponse.json() as { data: DuaSummary[]; meta: { total: number } };
+    const textBody = await textResponse.json() as { data: DuaSummary[]; meta: { total: number } };
+
+    expect(titleResponse.status).toBe(200);
+    expect(titleBody.data[0]?.id).toBe('dua.hisn.001');
+    expect(titleBody.meta.total).toBe(1);
+    expect(textResponse.status).toBe(200);
+    expect(textBody.data[0]?.id).toBe('dua.hisn.001');
+  });
+
+  it('returns a complete random dua without caching', async () => {
+    const response = await app.request('/v1/duas/random', {}, env);
+    const body = await response.json() as { data: Dua };
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(body.data.parts.length).toBeGreaterThan(0);
+  });
+
+  it('returns ordered part resources', async () => {
+    const listResponse = await app.request('/v1/duas/dua.hisn.001/parts', {}, env);
+    const partResponse = await app.request('/v1/duas/dua-001/parts/1', {}, env);
+    const listBody = await listResponse.json() as { data: Array<{ position: number }> };
+    const partBody = await partResponse.json() as { data: { duaId: string; position: number; segmentCount: number } };
+
+    expect(listResponse.status).toBe(200);
+    expect(listBody.data[0]?.position).toBe(1);
+    expect(partResponse.status).toBe(200);
+    expect(partBody.data.duaId).toBe('dua.hisn.001');
+    expect(partBody.data.position).toBe(1);
+    expect(partBody.data.segmentCount).toBe(2);
+  });
+
+  it('validates part positions', async () => {
+    const invalidResponse = await app.request('/v1/duas/dua.hisn.001/parts/nope', {}, env);
+    const missingResponse = await app.request('/v1/duas/dua.hisn.001/parts/10', {}, env);
+    const invalidBody = await invalidResponse.json() as { error: { code: string } };
+    const missingBody = await missingResponse.json() as { error: { code: string } };
+
+    expect(invalidResponse.status).toBe(400);
+    expect(invalidBody.error.code).toBe('invalid_request');
+    expect(missingResponse.status).toBe(404);
+    expect(missingBody.error.code).toBe('part_not_found');
   });
 
   it('returns a structured error for missing content', async () => {

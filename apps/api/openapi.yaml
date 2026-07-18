@@ -3,6 +3,7 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
+  x-platform-version: 0.3.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production
@@ -35,8 +36,48 @@ paths:
       responses:
         '200':
           description: Paginated dua summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaListResponse'
         '400':
           description: Invalid pagination parameters
+  /duas/search:
+    get:
+      operationId: searchDuas
+      summary: Search dua titles and all text segments
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Paginated matching dua summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaListResponse'
+        '400':
+          description: Invalid query or pagination parameters
+  /duas/random:
+    get:
+      operationId: getRandomDua
+      summary: Retrieve one random complete dua
+      responses:
+        '200':
+          description: Complete random dua
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaResponse'
+        '404':
+          description: No published dua is available
   /duas/{id}:
     get:
       operationId: getDua
@@ -51,5 +92,174 @@ paths:
       responses:
         '200':
           description: Complete dua record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaResponse'
         '404':
           description: Dua not found
+  /duas/{id}/parts:
+    get:
+      operationId: listDuaParts
+      summary: Retrieve every ordered part of a dua
+      parameters:
+        - $ref: '#/components/parameters/DuaId'
+      responses:
+        '200':
+          description: Ordered swipe-sized dua parts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DuaPart'
+        '404':
+          description: Dua not found
+  /duas/{id}/parts/{position}:
+    get:
+      operationId: getDuaPart
+      summary: Retrieve one ordered part of a dua
+      parameters:
+        - $ref: '#/components/parameters/DuaId'
+        - in: path
+          name: position
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: One swipe-sized dua part
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DuaPart'
+        '400':
+          description: Invalid part position
+        '404':
+          description: Dua or part not found
+components:
+  parameters:
+    DuaId:
+      in: path
+      name: id
+      required: true
+      description: Canonical or legacy dua ID
+      schema:
+        type: string
+      example: dua.hisn.001
+    Limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Cursor:
+      in: query
+      name: cursor
+      schema:
+        type: string
+  schemas:
+    ContentSegment:
+      type: object
+      required: [kind, text]
+      properties:
+        kind:
+          type: string
+          enum: [arabic, transliteration, translation, comment]
+        text:
+          type: string
+    DuaSummary:
+      type: object
+      required: [id, legacyId, sequence, title, partCount, verificationStatus]
+      properties:
+        id:
+          type: string
+          example: dua.hisn.001
+        legacyId:
+          type: string
+          example: dua-001
+        sequence:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        partCount:
+          type: integer
+          minimum: 0
+        verificationStatus:
+          type: string
+          enum: [pending, verified, rejected, deprecated]
+    Dua:
+      allOf:
+        - $ref: '#/components/schemas/DuaSummary'
+        - type: object
+          required: [parts]
+          properties:
+            parts:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContentSegment'
+    DuaPart:
+      type: object
+      required: [duaId, position, segmentCount, segments]
+      properties:
+        duaId:
+          type: string
+        position:
+          type: integer
+          minimum: 1
+        segmentCount:
+          type: integer
+          minimum: 0
+        segments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentSegment'
+    Pagination:
+      type: object
+      required: [limit, nextCursor]
+      properties:
+        limit:
+          type: integer
+        nextCursor:
+          type: string
+          nullable: true
+    ResponseMeta:
+      type: object
+      required: [datasetVersion, requestId]
+      properties:
+        datasetVersion:
+          type: string
+        requestId:
+          type: string
+    DuaListResponse:
+      type: object
+      required: [data, pagination, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DuaSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    DuaResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: '#/components/schemas/Dua'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
