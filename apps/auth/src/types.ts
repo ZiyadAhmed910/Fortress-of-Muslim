@@ -29,3 +29,10 @@ export type TokenVerification = {
   clientId?: string;
   error?: string;
 };
+
+export type NamedQueryDefinition = {
+  id: string;
+  ownerUserId: string;
+  operation: 'list' | 'search' | 'get_by_id';
+  parameters: { query?: string; duaId?: string; limit?: number };
+};

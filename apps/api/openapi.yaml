@@ -3,7 +3,7 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
-  x-platform-version: 0.5.0
+  x-platform-version: 0.6.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production
@@ -148,6 +148,22 @@ paths:
           description: Invalid part position
         '404':
           description: Dua or part not found
+  /queries/{id}:
+    get:
+      operationId: executeNamedQuery
+      summary: Execute an owner-scoped named query
+      description: Runs a saved, allowlisted read-only operation. Raw SQL is never accepted.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Named query result
+        '404':
+          description: Query not found or not owned by the credential principal
 components:
   securitySchemes:
     fortressApiKey:

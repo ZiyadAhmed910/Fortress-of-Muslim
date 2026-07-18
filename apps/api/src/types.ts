@@ -14,6 +14,12 @@ export type Bindings = {
       scopes?: string[];
       error?: string;
     }>;
+    getNamedQuery(id: string, ownerUserId: string): Promise<{
+      id: string;
+      ownerUserId: string;
+      operation: 'list' | 'search' | 'get_by_id';
+      parameters: { query?: string; duaId?: string; limit?: number };
+    } | null>;
   };
 };
 

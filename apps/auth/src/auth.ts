@@ -1,7 +1,7 @@
 import { apiKey } from '@better-auth/api-key';
 import { oauthProvider } from '@better-auth/oauth-provider';
 import { betterAuth } from 'better-auth';
-import { jwt, openAPI, organization } from 'better-auth/plugins';
+import { deviceAuthorization, jwt, openAPI, organization } from 'better-auth/plugins';
 import type { Bindings } from './types';
 
 export const FORTRESS_SCOPES = [
@@ -63,8 +63,17 @@ export function createAuth(env: Bindings) {
         },
       }),
       jwt(),
+      deviceAuthorization({
+        verificationUri: `${env.DEVELOPERS_URL}/device.html`,
+        validateClient: async (clientId) => {
+          const client = await env.IDENTITY_DB.prepare(
+            'SELECT 1 FROM "oauthClient" WHERE "clientId" = ? AND (disabled IS NULL OR disabled = 0)',
+          ).bind(clientId).first();
+          return Boolean(client);
+        },
+      }),
       oauthProvider({
-        loginPage: `${env.DEVELOPERS_URL}/#account`,
+        loginPage: `${env.DEVELOPERS_URL}/console.html`,
         consentPage: `${env.DEVELOPERS_URL}/#consent`,
         scopes: [...FORTRESS_SCOPES],
         validAudiences: [env.API_AUDIENCE, env.MCP_AUDIENCE],

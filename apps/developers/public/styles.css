@@ -1,7 +1,13 @@
 .doc-search-trigger { flex: 0 1 440px; height: 38px; display: flex; align-items: center; gap: 9px; margin-left: 28px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); background: var(--surface-subtle); cursor: pointer; }
 .doc-search-trigger svg, .search-field svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
 .doc-search-trigger span { flex: 1; text-align: left; }
-.account-button { flex: 0 0 auto; min-height: 36px; padding: 0 13px; }
+.profile-menu { position: relative; }
+.profile-button { width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); background: var(--surface); cursor: pointer; }
+.profile-button.signed-in { color: #fff; background: var(--brand); border-color: var(--brand); font-size: 11px; font-weight: 800; }
+.profile-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; }.profile-button.signed-in svg { display: none; }
+.profile-dropdown { position: absolute; z-index: 90; top: 45px; right: 0; width: 240px; padding: 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); box-shadow: var(--shadow); }.profile-dropdown[hidden] { display: none; }
+.profile-identity { display: grid; padding: 10px; border-bottom: 1px solid var(--line); overflow: hidden; }.profile-identity small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.profile-dropdown a,.profile-dropdown button { width: 100%; display: block; padding: 9px 10px; border: 0; border-radius: 4px; color: var(--ink); background: transparent; text-align: left; text-decoration: none; cursor: pointer; font-size: 13px; }.profile-dropdown a:hover,.profile-dropdown button:hover { background: var(--surface-subtle); }
 kbd { padding: 2px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; color: var(--muted); background: var(--surface); font: 11px ui-monospace, monospace; }
 .docs-layout { min-height: calc(100vh - var(--header-height)); display: grid; grid-template-columns: 260px minmax(0, 1fr); }
 .docs-sidebar { position: sticky; top: var(--header-height); height: calc(100vh - var(--header-height)); overflow: auto; padding: 18px 14px 14px; border-right: 1px solid var(--line); background: var(--surface); }
@@ -113,7 +119,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .path-input span { display: grid; place-items: center; padding: 0 10px; color: var(--good); background: var(--surface-subtle); font: 800 11px ui-monospace, monospace; }
 .path-input input { min-width: 0; flex: 1; padding: 0 10px; border: 0; color: var(--ink); background: var(--surface); font-family: ui-monospace, monospace; }
 .explorer-request .button { grid-column: 3; align-self: end; }
-.explorer-key { grid-column: 1 / -1; grid-row: 4; font-family: ui-monospace, monospace; }
+#explorer-credential { grid-column: 1; grid-row: 4; }.explorer-key { font-family: ui-monospace, monospace; }#explorer-key { grid-column: 2 / -1; grid-row: 4; }
 .response-head { height: 44px; display: flex; align-items: center; gap: 12px; padding: 0 8px 0 16px; color: #9bada8; background: #192421; font-size: 12px; }
 .response-state { margin-left: auto; color: #e8b84b; }
 .response-state.ok { color: #64d398; }
@@ -133,7 +139,6 @@ tbody tr:last-child td { border-bottom: 0; }
 
 @media (max-width: 1100px) { .docs-main { grid-template-columns: minmax(0, 820px); padding-inline: 36px; } .page-outline { display: none; } }
 @media (max-width: 760px) {
-  .account-button { display: none; }
   .doc-search-trigger { flex: 1; margin-left: 0; justify-content: center; background: transparent; }
   .doc-search-trigger span, .doc-search-trigger kbd { display: none; }
   .docs-layout { display: block; }
@@ -154,7 +159,7 @@ tbody tr:last-child td { border-bottom: 0; }
   .parameter-list > div { grid-template-columns: 1fr 1fr; }
   .parameter-list > div span:last-child { grid-column: 1 / -1; }
   .explorer-request { grid-template-columns: 1fr; }
-  .explorer-request label, .explorer-request label:nth-of-type(2), .explorer-request label:nth-of-type(3), .explorer-request select, .path-input, .explorer-request .button, .explorer-key { grid-column: 1; grid-row: auto; }
+  .explorer-request label, .explorer-request label:nth-of-type(2), .explorer-request label:nth-of-type(3), .explorer-request select, .path-input, .explorer-request .button, .explorer-key, #explorer-key, #explorer-credential { grid-column: 1; grid-row: auto; }
   .explorer-response pre { min-height: 220px; }
   .account-summary { grid-template-columns: 1fr; }
   .resource-row { grid-template-columns: 1fr; gap: 5px; }

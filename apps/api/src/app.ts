@@ -76,6 +76,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
   app.use('/v1/datasets/*', authorize);
   app.use('/v1/duas', authorize);
   app.use('/v1/duas/*', authorize);
+  app.use('/v1/queries/*', authorize);
 
   app.get('/', (context) => context.json({
     name: PLATFORM_NAME,
@@ -115,6 +116,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       search: '/v1/duas/search?q=waking',
       randomDua: '/v1/duas/random',
       duaParts: '/v1/duas/{id}/parts',
+      namedQuery: '/v1/queries/{id}',
     },
   }));
 
@@ -265,6 +267,26 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     });
   });
 
+  app.get('/v1/queries/:id', async (context) => {
+    const definition = await context.env.AUTH.getNamedQuery(context.req.param('id'), context.get('principalId'));
+    if (!definition) {
+      return context.json({ error: { code: 'not_found', message: 'Named query was not found.', requestId: context.get('requestId') } }, 404);
+    }
+    const repository = repositoryFactory(context.env);
+    if (definition.operation === 'get_by_id') {
+      const dua = await repository.getDua(definition.parameters.duaId ?? '');
+      if (!dua) return duaNotFound(context.get('requestId'), context);
+      return context.json({ data: dua, meta: { namedQueryId: definition.id, ...responseMeta(context.get('requestId')) } });
+    }
+    const limit = Math.min(100, Math.max(1, definition.parameters.limit ?? 20));
+    if (definition.operation === 'search') {
+      const result = await repository.searchDuas(definition.parameters.query ?? '', 0, limit);
+      return context.json({ data: result.items, meta: { namedQueryId: definition.id, total: result.total, ...responseMeta(context.get('requestId')) } });
+    }
+    const [items, total] = await Promise.all([repository.listDuas(0, limit), repository.countDuas()]);
+    return context.json({ data: items, meta: { namedQueryId: definition.id, total, ...responseMeta(context.get('requestId')) } });
+  });
+
   app.notFound((context) => context.json({
     error: {
       code: 'not_found',
@@ -320,6 +342,7 @@ function readCredential(context: ApiContext) {
 }
 
 function requiredScopes(path: string) {
+  if (path.startsWith('/v1/queries/')) return ['content:read'];
   if (path === '/v1/duas/search') return ['content:search'];
   if (path.startsWith('/v1/datasets/')) return ['dataset:read'];
   return ['content:read'];

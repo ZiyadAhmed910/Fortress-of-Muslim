@@ -12,6 +12,9 @@ const env = {
       subject: token === 'test-token' ? 'user-test' : undefined,
       scopes: ['content:read', 'content:search', 'dataset:read'],
     }),
+    getNamedQuery: async (id: string, ownerUserId: string) => id === 'qry-test' && ownerUserId === 'user-test' ? ({
+      id, ownerUserId, operation: 'search' as const, parameters: { query: 'waking', limit: 5 },
+    }) : null,
   },
 } as never;
 const authenticated = { headers: { Authorization: 'Bearer test-token' } };
@@ -65,7 +68,7 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.5.0');
+    expect(body.version).toBe('0.6.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
@@ -141,6 +144,15 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
     expect(body.data.parts.length).toBeGreaterThan(0);
+  });
+
+  it('executes an owner-scoped named query definition', async () => {
+    const response = await app.request('/v1/queries/qry-test', authenticated, env);
+    const body = await response.json() as { data: DuaSummary[]; meta: { namedQueryId: string; total: number } };
+    expect(response.status).toBe(200);
+    expect(body.data[0]?.id).toBe('dua.hisn.001');
+    expect(body.meta.namedQueryId).toBe('qry-test');
+    expect(body.meta.total).toBe(1);
   });
 
   it('returns ordered part resources', async () => {

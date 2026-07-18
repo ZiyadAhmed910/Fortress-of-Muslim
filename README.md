@@ -114,6 +114,7 @@ Useful verification endpoints:
 /v1/duas/dua.hisn.001
 /v1/duas/dua.hisn.001/parts
 /v1/duas/dua.hisn.001/parts/1
+/v1/queries/{named-query-id}
 ```
 
 Canonical IDs and legacy IDs are both accepted by detail and part routes. List and search responses return lightweight summaries; detail and random routes return the complete ordered content record.
@@ -140,6 +141,17 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.6.0
+
+- Separated developer identity and credential management from the API documentation into a dedicated Developer Console.
+- Added a profile icon and account dropdown with direct access to API keys, connected apps, and MCP management.
+- Added multiple API keys with optional expiration, one-time secret display, browser-session Explorer selection, and owner-checked revocation.
+- Expanded connected apps with multiple callback URLs, public PKCE, confidential, client credentials, and private-key JWT client profiles.
+- Added OAuth 2.0 Device Authorization for limited-input devices plus a device inventory for IoT, CLI, gateway, and service identities.
+- Distinguished the official Fortress-managed MCP server from custom OpenAPI-backed and named-query-backed MCP drafts.
+- Added safe named queries that compile allowlisted list, search, and record operations into owner-scoped API endpoints without accepting raw SQL.
+- Added an executable `/v1/queries/{id}` route, API Explorer handoff, OpenAPI documentation, schema checks, and API contract coverage.
 
 ### 0.5.0
 

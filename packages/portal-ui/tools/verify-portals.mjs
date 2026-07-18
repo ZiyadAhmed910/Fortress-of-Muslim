@@ -8,5 +8,8 @@ for (const portal of ['developers', 'status']) {
   }
   const html = await readFile(new URL('index.html', output), 'utf8');
   if (!html.includes('Fortress Platform')) throw new Error(`${portal} is missing the platform brand.`);
+  if (portal === 'developers') {
+    for (const path of ['console.html', 'console.js', 'console.css', 'device.html', 'device.js']) await access(new URL(path, output));
+  }
 }
 console.log('Verified developer and status portal builds.');
