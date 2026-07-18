@@ -100,6 +100,15 @@ Useful verification endpoints:
 /v1/duas?limit=2
 ```
 
+The API stores published content in Cloudflare D1. Generate and verify the deterministic migration from the current PWA dataset with:
+
+```powershell
+npm run db:generate --workspace @fortress/api
+npm run db:verify --workspace @fortress/api
+```
+
+The generated migration preserves the source text exactly and must not be edited manually. Editorial corrections belong in the source dataset or the future Admin publishing workflow.
+
 The test API uses the `dev` branch and the production API uses `main`. Cloudflare deployment remains disabled until the repository variable `CLOUDFLARE_DEPLOY_ENABLED` is set to `true` and the required account secrets are configured. Setup is documented in `docs/cloudflare-setup.md`.
 
 Every platform release must:
@@ -111,6 +120,17 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.2.0
+
+- Added separate Cloudflare D1 content stores for test and production.
+- Added a normalized, versioned schema for datasets, content records, ordered parts, and typed text segments.
+- Assigned stable canonical IDs such as `dua.hisn.001` while retaining legacy IDs for compatibility.
+- Added a deterministic JSON-to-D1 migration generator with SHA-256 source provenance.
+- Imported 135 duas as 320 parts and 1,105 Arabic, transliteration, translation, and commentary segments.
+- Added migration integrity checks for record counts, relationships, and canonical identity.
+- Replaced the API's bundled JSON access with a D1 repository without changing the public dua response format.
+- Added automatic D1 migrations before Worker deployment.
 
 ### 0.1.1
 
@@ -149,13 +169,21 @@ Do not rely on opening `index.html` directly for PWA testing. Service workers re
 
 ## Data Model Direction
 
-The current dua data is loaded from:
+The PWA currently loads its static source from:
 
 ```text
 pwa-website/data/duas.json
 ```
 
-Runtime metadata is currently derived without changing the JSON. This lets the UI support categories, moods, ruqyah filtering, and tag-search now while keeping the door open for cleaner curated data later.
+The public API imports that source into Cloudflare D1 as a versioned dataset. Each dua receives a canonical ID, ordered parts, and ordered typed segments. The original `uid` remains available as `legacyId`. All initial records are marked `pending` until canonical editorial review.
+
+Current API storage:
+
+```text
+dataset_versions -> content_records -> content_parts -> content_segments
+```
+
+This normalized structure supports precise updates, references, categories, moods, tags, and additional content types without placing every dua into Worker memory.
 
 Future data should support:
 

@@ -18,13 +18,14 @@ The Account ID is an identifier, but it should still be stored in GitHub rather 
 
 Open **My Profile > API Tokens > Create Token > Custom token**.
 
-For the first Worker deployment, grant:
+For Worker and database deployment, grant:
 
 ```text
 Account > Workers Scripts > Edit
+Account > D1 > Edit
 ```
 
-Limit the token to the Fortress Platform Cloudflare account. D1, R2, Queues, Analytics and DNS permissions will be added only when those resources are introduced.
+Limit the token to the Fortress Platform Cloudflare account. R2, Queues, Analytics and DNS permissions should be added only when those resources are introduced.
 
 Copy the token immediately. Cloudflare will not display it again.
 
@@ -56,7 +57,18 @@ Value: true
 
 The variable is an intentional safety switch. CI runs without it, but deployment jobs are skipped.
 
-## 6. Run the First Test Deployment
+## 6. D1 Environments
+
+The API uses two independent databases:
+
+```text
+fortress-platform-test          dev branch
+fortress-platform-production    main branch
+```
+
+Their non-secret database IDs and `CONTENT_DB` bindings are declared in `apps/api/wrangler.jsonc`. Test data must never be migrated into the production database manually. The appropriate GitHub deployment applies outstanding migrations before releasing each Worker.
+
+## 7. Run the First Test Deployment
 
 Open **Actions > Deploy Fortress Platform API to test > Run workflow** and select `dev`.
 
@@ -70,7 +82,7 @@ https://<worker-host>/v1/duas?limit=2
 
 After this succeeds, every relevant push to `dev` deploys the test API automatically. Relevant pushes to `main` deploy `fortress-platform-api-production`.
 
-## 7. Connect Custom Domains Later
+## 8. Connect Custom Domains
 
 After the Cloudflare DNS zone has been prepared safely, the Worker environments connect:
 

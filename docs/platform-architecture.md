@@ -38,7 +38,24 @@ pwa-website/        Existing static PWA, retained during migration
 
 The `dev` branch deploys test services. The `main` branch deploys production services. Test and production must use separate databases, buckets, queues, credentials and Worker names.
 
-The initial API reads the existing PWA dataset through a repository adapter. All imported records are explicitly marked as pending verification. The adapter will later be replaced by the canonical publishing pipeline and D1 without changing route handlers or public contracts.
+The API reads published content from separate Cloudflare D1 databases in test and production. A repository boundary keeps route handlers and public contracts independent of the storage implementation. All initial imported records are explicitly marked as pending verification.
+
+## Content Storage
+
+The normalized D1 model has four levels:
+
+| Table | Purpose |
+| --- | --- |
+| `dataset_versions` | Immutable publication metadata, provenance hash, and verification state |
+| `content_records` | Stable dua or hadith identity, ordering, title, and lifecycle state |
+| `content_parts` | Ordered reading/swipe units within a record |
+| `content_segments` | Ordered Arabic, transliteration, translation, and commentary text |
+
+Canonical IDs are stable and readable, for example `dua.hisn.001`. Part and segment IDs extend that identity deterministically. Legacy IDs remain queryable for backward compatibility.
+
+The current JSON is a publishing input, not a runtime API database. The migration generator hashes the complete source and produces repeatable SQL. Database migrations run before each Worker deployment, so a Worker is never released against a missing schema.
+
+Future Admin publishing should create a new dataset version, validate it, and atomically activate it. Religious content must retain source provenance and verification status throughout that process.
 
 ## Architectural Rules
 
