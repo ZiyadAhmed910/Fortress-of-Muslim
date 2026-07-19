@@ -36,7 +36,7 @@ export async function handleAdminPlane(request: Request, url: URL, env: Bindings
     return updateService(context, serviceMatch[1]!, await readJson(request));
   }
 
-  const actionMatch = url.pathname.match(/^\/v1\/admin\/(api-keys|oauth-clients|devices|mcp-servers|named-queries)\/([^/]+)\/status$/);
+  const actionMatch = url.pathname.match(/^\/v1\/admin\/(api-keys|oauth-clients|devices|mcp-servers|mcp-tools|named-queries)\/([^/]+)\/status$/);
   if (actionMatch && request.method === 'POST') {
     if (!canWrite(grant.role)) return forbidden();
     return updateResourceStatus(context, actionMatch[1]!, decodeURIComponent(actionMatch[2]!), await readJson(request));
@@ -64,7 +64,7 @@ async function overview({ env }: AdminContext) {
     count(env.IDENTITY_DB, "SELECT COUNT(*) AS count FROM apikey WHERE enabled = 1 AND (expiresAt IS NULL OR expiresAt > datetime('now'))"),
     count(env.IDENTITY_DB, 'SELECT COUNT(*) AS count FROM "oauthClient" WHERE disabled IS NULL OR disabled = 0'),
     count(env.IDENTITY_DB, "SELECT COUNT(*) AS count FROM device_registrations WHERE status = 'active'"),
-    count(env.IDENTITY_DB, "SELECT COUNT(*) AS count FROM mcp_server_registrations WHERE status NOT IN ('disabled', 'rejected')"),
+    count(env.IDENTITY_DB, "SELECT COUNT(*) AS count FROM mcp_toolsets WHERE status = 'active'"),
     count(env.IDENTITY_DB, "SELECT COUNT(*) AS count FROM access_requests WHERE status = 'pending'"),
   ];
   const [[users, apiKeys, oauthClients, devices, mcpServers, pendingRequests], content, services, audit] = await Promise.all([
@@ -85,7 +85,7 @@ async function globalSearch({ env }: AdminContext, url: URL) {
     env.IDENTITY_DB.prepare('SELECT id, COALESCE(name, start, id) AS label, start AS detail FROM apikey WHERE name LIKE ? OR start LIKE ? ORDER BY createdAt DESC LIMIT 8').bind(like, like).all(),
     env.IDENTITY_DB.prepare('SELECT clientId AS id, COALESCE(name, clientId) AS label, clientId AS detail FROM "oauthClient" WHERE name LIKE ? OR clientId LIKE ? ORDER BY createdAt DESC LIMIT 8').bind(like, like).all(),
     env.IDENTITY_DB.prepare('SELECT id, name AS label, device_type AS detail FROM device_registrations WHERE name LIKE ? OR id LIKE ? ORDER BY created_at DESC LIMIT 8').bind(like, like).all(),
-    env.IDENTITY_DB.prepare('SELECT id, name AS label, status AS detail FROM mcp_server_registrations WHERE name LIKE ? OR slug LIKE ? ORDER BY created_at DESC LIMIT 8').bind(like, like).all(),
+    env.IDENTITY_DB.prepare('SELECT id, name AS label, status AS detail FROM mcp_toolsets WHERE name LIKE ? OR slug LIKE ? ORDER BY created_at DESC LIMIT 8').bind(like, like).all(),
     env.IDENTITY_DB.prepare('SELECT id, name AS label, operation AS detail FROM named_queries WHERE name LIKE ? OR slug LIKE ? ORDER BY created_at DESC LIMIT 8').bind(like, like).all(),
     env.CONTENT_DB.prepare('SELECT id, title AS label, verification_status AS detail FROM content_records WHERE title LIKE ? OR id LIKE ? OR legacy_id LIKE ? ORDER BY sequence LIMIT 12').bind(like, like, like).all(),
   ]);
@@ -123,7 +123,7 @@ async function getUser({ env }: AdminContext, id: string) {
     env.IDENTITY_DB.prepare('SELECT id, name, start, enabled, expiresAt, requestCount, createdAt FROM apikey WHERE referenceId = ? ORDER BY createdAt DESC LIMIT 25').bind(id).all(),
     env.IDENTITY_DB.prepare('SELECT clientId, name, disabled, grantTypes, createdAt FROM "oauthClient" WHERE userId = ? ORDER BY createdAt DESC LIMIT 25').bind(id).all(),
     env.IDENTITY_DB.prepare('SELECT id, name, device_type AS deviceType, status, created_at AS createdAt FROM device_registrations WHERE owner_user_id = ? ORDER BY created_at DESC LIMIT 25').bind(id).all(),
-    env.IDENTITY_DB.prepare('SELECT id, name, status, created_at AS createdAt FROM mcp_server_registrations WHERE owner_user_id = ? ORDER BY created_at DESC LIMIT 25').bind(id).all(),
+    env.IDENTITY_DB.prepare('SELECT id, name, status, created_at AS createdAt FROM mcp_toolsets WHERE owner_user_id = ? ORDER BY created_at DESC LIMIT 25').bind(id).all(),
     env.IDENTITY_DB.prepare('SELECT id, name, operation, status, created_at AS createdAt FROM named_queries WHERE owner_user_id = ? ORDER BY created_at DESC LIMIT 25').bind(id).all(),
   ]);
   if (!user) return json({ error: { code: 'not_found', message: 'User was not found.' } }, 404);
@@ -149,7 +149,8 @@ async function listResources({ env }: AdminContext, url: URL) {
     'api-keys': 'SELECT k.id, k.name, k.start, k.enabled AS status, k.expiresAt, k.requestCount, k.createdAt, u.name AS ownerName, u.email AS ownerEmail FROM apikey k LEFT JOIN "user" u ON u.id = k.referenceId ORDER BY k.createdAt DESC LIMIT 100',
     'oauth-clients': 'SELECT c.clientId AS id, c.name, c.disabled AS status, c.grantTypes, c.createdAt, u.name AS ownerName, u.email AS ownerEmail FROM "oauthClient" c LEFT JOIN "user" u ON u.id = c.userId ORDER BY c.createdAt DESC LIMIT 100',
     devices: 'SELECT d.id, d.name, d.device_type AS detail, d.status, d.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail FROM device_registrations d LEFT JOIN "user" u ON u.id = d.owner_user_id ORDER BY d.created_at DESC LIMIT 100',
-    'mcp-servers': 'SELECT m.id, m.name, m.server_type AS detail, m.status, m.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail FROM mcp_server_registrations m LEFT JOIN "user" u ON u.id = m.owner_user_id ORDER BY m.created_at DESC LIMIT 100',
+    'mcp-servers': 'SELECT m.id, m.name, m.slug AS detail, m.status, m.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail FROM mcp_toolsets m LEFT JOIN "user" u ON u.id = m.owner_user_id ORDER BY m.created_at DESC LIMIT 100',
+    'mcp-tools': 'SELECT t.id, t.tool_name AS name, t.external_url AS detail, t.approval_status AS status, t.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail FROM mcp_toolset_tools t JOIN mcp_toolsets s ON s.id = t.toolset_id LEFT JOIN "user" u ON u.id = s.owner_user_id WHERE t.tool_type = \'external_api\' ORDER BY t.created_at DESC LIMIT 100',
     'named-queries': 'SELECT q.id, q.name, q.operation AS detail, q.status, q.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail FROM named_queries q LEFT JOIN "user" u ON u.id = q.owner_user_id ORDER BY q.created_at DESC LIMIT 100',
   };
   if (!type || !definitions[type]) return invalid('Choose a supported resource type.');
@@ -163,7 +164,8 @@ async function updateResourceStatus(context: AdminContext, type: string, id: str
     'api-keys': { sql: 'UPDATE apikey SET enabled = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?', allowed: ['active', 'revoked'] },
     'oauth-clients': { sql: 'UPDATE "oauthClient" SET disabled = ?, updatedAt = CURRENT_TIMESTAMP WHERE clientId = ?', allowed: ['active', 'disabled'] },
     devices: { sql: "UPDATE device_registrations SET status = ?, revoked_at = CASE WHEN ? = 'revoked' THEN CURRENT_TIMESTAMP ELSE NULL END WHERE id = ?", allowed: ['active', 'revoked'] },
-    'mcp-servers': { sql: 'UPDATE mcp_server_registrations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', allowed: ['draft', 'review_pending', 'published', 'rejected', 'disabled'] },
+    'mcp-servers': { sql: 'UPDATE mcp_toolsets SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', allowed: ['active', 'disabled'] },
+    'mcp-tools': { sql: 'UPDATE mcp_toolset_tools SET approval_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', allowed: ['review_pending', 'approved', 'rejected'] },
     'named-queries': { sql: 'UPDATE named_queries SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', allowed: ['active', 'disabled'] },
   };
   const item = config[type];

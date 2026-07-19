@@ -70,7 +70,7 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.7.0');
+    expect(body.version).toBe('0.8.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 

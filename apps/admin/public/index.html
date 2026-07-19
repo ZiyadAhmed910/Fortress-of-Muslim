@@ -32,9 +32,9 @@
     <aside class="sidebar"><nav>
       <a href="#overview" data-nav>▦ <span>Overview</span></a><a href="#search" data-nav>⌕ <span>Global search</span></a>
       <p>IDENTITY</p><a href="#users" data-nav>♙ <span>Users</span></a><a href="#api-keys" data-nav>⚿ <span>API keys</span></a><a href="#oauth-clients" data-nav>▣ <span>Connected apps</span></a><a href="#devices" data-nav>▯ <span>Devices</span></a>
-      <p>PLATFORM</p><a href="#mcp-servers" data-nav>⌘ <span>MCP servers</span></a><a href="#named-queries" data-nav>▤ <span>Named queries</span></a><a href="#content" data-nav>☷ <span>Content records</span></a>
+      <p>PLATFORM</p><a href="#mcp-servers" data-nav>⌘ <span>MCP toolsets</span></a><a href="#mcp-tools" data-nav>✓ <span>External tool review</span></a><a href="#named-queries" data-nav>▤ <span>Named queries</span></a><a href="#content" data-nav>☷ <span>Content records</span></a>
       <p>OPERATIONS</p><a href="#services" data-nav>◉ <span>Service control</span></a><a href="#audit" data-nav>≡ <span>Audit log</span></a>
-    </nav><footer>Fortress Platform <span>0.7.0</span></footer></aside>
+    </nav><footer>Fortress Platform <span>0.8.0</span></footer></aside>
     <div class="scrim" data-scrim></div>
     <main class="workspace">
       <div id="toast" class="toast" hidden></div>
@@ -45,6 +45,7 @@
       <section id="oauth-clients" class="view" hidden data-resource="oauth-clients"><resource-header></resource-header><div class="table resource-table"></div></section>
       <section id="devices" class="view" hidden data-resource="devices"><resource-header></resource-header><div class="table resource-table"></div></section>
       <section id="mcp-servers" class="view" hidden data-resource="mcp-servers"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="mcp-tools" class="view" hidden data-resource="mcp-tools"><resource-header></resource-header><div class="table resource-table"></div></section>
       <section id="named-queries" class="view" hidden data-resource="named-queries"><resource-header></resource-header><div class="table resource-table"></div></section>
       <section id="content" class="view" hidden><header><div><span class="kicker">CONTENT GOVERNANCE</span><h1>Content records</h1><p>Find imported records and manage editorial verification state.</p></div></header><form class="filter" data-filter="content"><input name="q" placeholder="Title, canonical ID, or legacy ID"><select name="status"><option value="">All statuses</option><option>pending</option><option>verified</option><option>rejected</option><option>deprecated</option></select><button>Apply</button></form><div id="content-table" class="table"></div></section>
       <section id="services" class="view" hidden><header><div><span class="kicker">OPERATIONS</span><h1>Service control</h1><p>Place Worker-enforced services into maintenance or disabled state.</p></div></header><div class="warning"><strong>Recovery protection</strong><span>Identity and Admin cannot be disabled here. Static portals remain monitoring-only until they are placed behind an enforceable gateway.</span></div><div id="services-grid" class="service-grid"></div></section>

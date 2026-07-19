@@ -142,6 +142,17 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.8.0
+
+- Replaced separate custom MCP server drafts with one managed Fortress MCP runtime and user-owned custom toolsets.
+- Added standard MCP tools for searching, listing, retrieving, and selecting duas plus dataset metadata.
+- Added custom tools backed by standard tools, named-query APIs, or review-gated external HTTPS APIs.
+- Rebuilt named queries as declarative record queries with selected fields, allowlisted filters, endpoint parameters, sorting, and enforced row limits.
+- Connected OAuth client credentials to their owning developer so permissioned apps can execute owner-scoped named queries and MCP toolsets.
+- Made OAuth callbacks conditional on interactive flows and kept PKCE as the default for browser, mobile, and AI clients.
+- Added optional browser persistence for one-time API-key secrets so API Explorer can reuse a key after reopening the portal.
+- Improved account-creation validation and simplified the Developer Console language around devices, apps, tools, and credentials.
+
 ### 0.7.0
 
 - Added a dedicated `admin.fortressofmuslim.org` console with server-side administrator roles.

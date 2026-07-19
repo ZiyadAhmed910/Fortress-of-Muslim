@@ -19,6 +19,17 @@ export type ServiceState = {
   enforcement: 'worker' | 'external' | 'none';
 };
 
+export type McpToolDefinition = {
+  name: string;
+  description: string;
+  toolType: 'standard' | 'named_query' | 'external_api';
+  standardToolName?: string;
+  namedQueryId?: string;
+  externalMethod?: 'GET' | 'POST';
+  externalUrl?: string;
+  inputSchema: Record<string, unknown>;
+};
+
 export type KeyVerification = {
   valid: boolean;
   error: { code: string; message: string } | null;
@@ -35,6 +46,7 @@ export type TokenVerification = {
   subject?: string;
   scopes?: string[];
   clientId?: string;
+  ownerUserId?: string;
   error?: string;
 };
 
@@ -43,4 +55,11 @@ export type NamedQueryDefinition = {
   ownerUserId: string;
   operation: 'list' | 'search' | 'get_by_id';
   parameters: { query?: string; duaId?: string; limit?: number };
+  queryKind?: 'legacy' | 'record_query';
+  objectName?: 'duas';
+  selectedFields?: string[];
+  filters?: Array<{ field: string; operator: string; source: 'literal' | 'parameter'; value: string }>;
+  sort?: { field: string; direction: 'asc' | 'desc' };
+  parameterSchema?: Array<{ name: string; type: 'string' | 'number'; required: boolean }>;
+  maxRows?: number;
 };

@@ -1,0 +1,19 @@
+{
+  "name": "@fortress/mcp",
+  "version": "0.8.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --env test",
+    "deploy:test": "wrangler deploy --env test",
+    "deploy:production": "wrangler deploy --env production",
+    "deploy:test:ci": "wrangler deploy --config wrangler.ci.jsonc --env test",
+    "deploy:production:ci": "wrangler deploy --config wrangler.ci.jsonc --env production",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250711.0",
+    "typescript": "^5.8.0",
+    "wrangler": "^4.24.0"
+  }
+}

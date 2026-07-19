@@ -24,10 +24,10 @@ const observer = new IntersectionObserver((entries) => { const visible = entries
 sections.forEach((section) => observer.observe(section)); navLinks.forEach((link) => link.addEventListener('click', () => document.body.classList.remove('nav-open')));
 
 const explorerKey = $('#explorer-key'); const credentialSelect = $('#explorer-credential');
-explorerKey.value = sessionStorage.getItem('fortress-explorer-key') || '';
-explorerKey.addEventListener('input', () => { sessionStorage.setItem('fortress-explorer-key',explorerKey.value.trim()); credentialSelect.value = ''; });
-credentialSelect.addEventListener('change', () => { if (credentialSelect.value) { explorerKey.value = credentialSelect.value; sessionStorage.setItem('fortress-explorer-key',credentialSelect.value); } });
-loadSessionKeys(); const savedPath = sessionStorage.getItem('fortress-explorer-path'); if (savedPath) { $('#api-path').value = savedPath; sessionStorage.removeItem('fortress-explorer-path'); }
+explorerKey.value = localStorage.getItem('fortress-explorer-key') || '';
+explorerKey.addEventListener('input', () => { localStorage.setItem('fortress-explorer-key',explorerKey.value.trim()); credentialSelect.value = ''; });
+credentialSelect.addEventListener('change', () => { if (credentialSelect.value) { explorerKey.value = credentialSelect.value; localStorage.setItem('fortress-explorer-key',credentialSelect.value); } });
+loadBrowserKeys(); const savedPath = sessionStorage.getItem('fortress-explorer-path'); if (savedPath) { $('#api-path').value = savedPath; sessionStorage.removeItem('fortress-explorer-path'); }
 $$('[data-explorer-path]').forEach((link) => link.addEventListener('click', () => { $('#api-path').value = link.dataset.explorerPath; }));
 $('#send-request').addEventListener('click', async () => {
   const path = $('#api-path').value.trim(); if (!path.startsWith('/')) return setResponse('Invalid path',{error:{message:'Path must begin with /.'}},true);
@@ -49,7 +49,7 @@ async function refreshProfile(){
   else { button.classList.remove('signed-in'); $('[data-profile-initials]').textContent=''; identity.innerHTML='<strong>Developer account</strong><small>Sign in to manage credentials</small>'; }
 }
 function closeProfile(){ $('[data-profile-menu]').hidden=true; $('[data-profile-toggle]').setAttribute('aria-expanded','false'); }
-function loadSessionKeys(){ let keys=[]; try{ keys=JSON.parse(sessionStorage.getItem('fortress-session-keys')||'[]'); }catch{} credentialSelect.innerHTML='<option value="">Paste a key</option>'+keys.map((item)=>`<option value="${esc(item.key)}">${esc(item.name)} (this session)</option>`).join(''); }
+function loadBrowserKeys(){ let keys=[]; try{ keys=JSON.parse(localStorage.getItem('fortress-browser-keys')||'[]'); }catch{} credentialSelect.innerHTML='<option value="">Paste a key</option>'+keys.map((item)=>`<option value="${esc(item.key)}">${esc(item.name)} (this device)</option>`).join(''); }
 function getInitials(value){ return String(value).split(/\s+/).map((part)=>part[0]).join('').slice(0,2).toUpperCase(); }
 function esc(value){ return String(value??'').replace(/[&<>'"]/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[character]); }
 refreshProfile();

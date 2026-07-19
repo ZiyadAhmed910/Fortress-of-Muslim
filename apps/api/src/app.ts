@@ -13,6 +13,7 @@ import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { decodeCursor, encodeCursor } from './lib/pagination';
+import { executeRecordQuery } from './lib/record-query';
 import type { ContentRepository } from './repositories/content-repository';
 import { D1ContentRepository } from './repositories/d1-content-repository';
 import type { ApiVariables, Bindings } from './types';
@@ -57,7 +58,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       } else {
         const result = await context.env.AUTH.verifyBearerToken(credential, scopes);
         if (!result.valid || !result.subject) return unauthorized(context, result.error ?? 'Access token is invalid.');
-        context.set('principalId', result.subject);
+        context.set('principalId', result.ownerUserId ?? result.subject);
         context.set('credentialId', result.clientId ?? result.subject);
       }
     } catch (error) {
@@ -287,6 +288,14 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     const definition = await context.env.AUTH.getNamedQuery(context.req.param('id'), context.get('principalId'));
     if (!definition) {
       return context.json({ error: { code: 'not_found', message: 'Named query was not found.', requestId: context.get('requestId') } }, 404);
+    }
+    if (definition.queryKind === 'record_query') {
+      try {
+        const data = await executeRecordQuery(context.env.CONTENT_DB, definition, context.req.query());
+        return context.json({ data, meta: { namedQueryId: definition.id, rowCount: data.length, ...responseMeta(context.get('requestId')) } });
+      } catch (error) {
+        return context.json({ error: { code: 'invalid_query_parameters', message: error instanceof Error ? error.message : 'The query could not be executed.', requestId: context.get('requestId') } }, 400);
+      }
     }
     const repository = repositoryFactory(context.env);
     if (definition.operation === 'get_by_id') {
