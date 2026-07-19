@@ -73,8 +73,8 @@ export function createAuth(env: Bindings) {
         },
       }),
       oauthProvider({
-        loginPage: `${env.DEVELOPERS_URL}/console.html`,
-        consentPage: `${env.DEVELOPERS_URL}/#consent`,
+        loginPage: `${env.DEVELOPERS_URL}/oauth.html`,
+        consentPage: `${env.DEVELOPERS_URL}/oauth.html`,
         scopes: [...FORTRESS_SCOPES],
         validAudiences: [env.API_AUDIENCE, env.MCP_AUDIENCE],
         resources: [

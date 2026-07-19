@@ -50,3 +50,16 @@
 .console-scrim { display: none; }
 @media(max-width:900px){.metric-strip{grid-template-columns:1fr 1fr}.metric-strip div:nth-child(2){border-right:0}.metric-strip div:nth-child(-n+2){border-bottom:1px solid var(--line)}.quick-actions{grid-template-columns:1fr}.quick-actions a{border-right:0;border-bottom:1px solid var(--line)}.table-shell{overflow-x:auto}.table-head,.resource-row{min-width:780px}}
 @media(max-width:700px){.console-mobile-menu{display:inline-grid}.docs-link,.environment-badge{display:none}.console-sidebar{top:0;z-index:80;height:100vh;transform:translateX(-102%);transition:transform .2s}.console-layout.nav-open .console-sidebar{transform:none}.console-layout.nav-open .console-scrim{position:fixed;z-index:70;inset:0;display:block;background:rgba(0,0,0,.4)}.console-main{margin-left:0;padding:25px 16px 60px}.view-header{display:grid}.view-header>.button{justify-self:start}.metric-strip{grid-template-columns:1fr 1fr}.info-band{grid-template-columns:1fr}.managed-mcp{grid-template-columns:1fr}.managed-icon{display:none}.checkbox-grid{grid-template-columns:1fr}.profile-dropdown{position:fixed;top:56px;right:8px}.brand-copy span{display:none}}
+.oauth-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--page); }
+.oauth-card { width: min(100%, 440px); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 18px 50px rgba(18, 43, 34, .12); overflow: hidden; }
+.oauth-card-header { padding: 24px 26px 18px; border-bottom: 1px solid var(--line); }
+.oauth-card-header .auth-brand { margin-bottom: 22px; }
+.oauth-card-body { padding: 24px 26px 26px; }
+.oauth-card h1 { margin: 0 0 8px; font-size: 24px; }
+.oauth-card p { margin: 0 0 20px; color: var(--muted); line-height: 1.55; }
+.oauth-scope-list { display: grid; gap: 8px; padding: 0; margin: 18px 0 24px; list-style: none; }
+.oauth-scope-list li { display: flex; gap: 10px; align-items: center; padding: 10px 12px; background: var(--surface-soft); border: 1px solid var(--line); border-radius: 6px; }
+.oauth-scope-list svg { width: 18px; height: 18px; fill: none; stroke: var(--brand); stroke-width: 2; }
+.oauth-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.oauth-client { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.oauth-error { color: var(--danger); min-height: 22px; margin-top: 12px; }

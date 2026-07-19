@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Authorize | Fortress Platform</title>
+  <link rel="icon" href="/assets/fortress-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/console.css">
+</head>
+<body class="oauth-page">
+  <main class="oauth-card">
+    <header class="oauth-card-header">
+      <a class="auth-brand" href="/"><img src="/assets/fortress-mark.svg" alt=""><span><strong>Fortress Platform</strong><small>Secure authorization</small></span></a>
+      <h1 id="oauth-title">Authorize access</h1>
+      <p id="oauth-summary">Review this application's request.</p>
+      <code id="oauth-client" class="oauth-client"></code>
+    </header>
+    <section class="oauth-card-body">
+      <form id="oauth-login" class="console-form" hidden>
+        <label>Email<input name="email" type="email" autocomplete="email" required></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" minlength="12" required></label>
+        <button class="button primary" type="submit">Sign in and continue</button>
+      </form>
+      <section id="oauth-consent" hidden>
+        <strong>This application is requesting:</strong>
+        <ul id="oauth-scopes" class="oauth-scope-list"></ul>
+        <div class="oauth-actions">
+          <button id="oauth-deny" class="button" type="button">Deny</button>
+          <button id="oauth-allow" class="button primary" type="button">Allow access</button>
+        </div>
+      </section>
+      <p id="oauth-message" class="oauth-error" role="alert"></p>
+    </section>
+  </main>
+  <script src="/oauth.js" defer></script>
+</body>
+</html>

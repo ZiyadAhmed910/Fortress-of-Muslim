@@ -142,6 +142,12 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.8.1
+
+- Fixed the interactive OAuth authorization-code flow used by ChatGPT and other MCP clients.
+- Added a dedicated Fortress login and consent screen that preserves and resumes signed OAuth requests.
+- Interactive connected apps now include refresh-token access, and MCP tools advertise read-only safety metadata.
+
 ### 0.8.0
 
 - Replaced separate custom MCP server drafts with one managed Fortress MCP runtime and user-owned custom toolsets.
