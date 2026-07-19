@@ -8,7 +8,8 @@ import type { Bindings, KeyVerification, McpToolDefinition, NamedQueryDefinition
 const allowedMethods = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
 const allowedHeaders = 'Content-Type, Authorization, X-Fortress-API-Key';
 const STANDARD_MCP_TOOLS = [
-  { name: 'search_duas', description: 'Search published duas by Arabic, transliteration, translation, or title.', inputSchema: { type: 'object', properties: { query: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } }, required: ['query'] } },
+  { name: 'find_dua', description: 'Use this first when a user names, describes, or misspells a dua title. Fuzzy-matches titles and returns the complete best dua records in one call; do not list all duas or call get_dua afterward.', inputSchema: { type: 'object', properties: { query: { type: 'string', description: 'Natural-language title or situation, such as "waking up", "entering mosqe", or "travel dua".' }, limit: { type: 'integer', minimum: 1, maximum: 3, default: 1 } }, required: ['query'] } },
+  { name: 'search_duas', description: 'Use for broad searches inside Arabic, transliteration, translation, or commentary text. Returns summaries; for a title or situation lookup, prefer find_dua because it returns complete records in one call.', inputSchema: { type: 'object', properties: { query: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } }, required: ['query'] } },
   { name: 'get_dua', description: 'Retrieve one complete dua by canonical or legacy ID.', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
   { name: 'list_duas', description: 'List published dua summaries in canonical order.', inputSchema: { type: 'object', properties: { limit: { type: 'integer', minimum: 1, maximum: 50 } } } },
   { name: 'random_dua', description: 'Retrieve one random complete published dua.', inputSchema: { type: 'object', properties: {} } },

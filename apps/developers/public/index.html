@@ -71,7 +71,7 @@
         <a href="#explorer">API Explorer</a>
         <a href="/openapi.yaml" download>OpenAPI specification</a>
       </nav>
-      <div class="sidebar-version"><span class="dot"></span> API v1 <small>Platform 0.8.1</small></div>
+      <div class="sidebar-version"><span class="dot"></span> API v1 <small>Platform 0.9.0</small></div>
     </aside>
 
     <main id="content" class="docs-main">
@@ -114,7 +114,7 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=client_credentials&amp;client_id=CLIENT_ID&amp;client_secret=CLIENT_SECRET</code></pre></section>
         <section id="device-authorization" class="doc-section" data-search-title="Device Authorization"><h2>Device Authorization</h2><p>Limited-input devices request a code, show the returned user code, and poll the token endpoint while the user approves at <code>/device.html</code>. This implements the OAuth 2.0 Device Authorization Grant for user sign-in.</p><pre class="plain-code"><code>POST https://auth-test.fortressofmuslim.org/api/auth/device/code
 {"client_id":"YOUR_CLIENT_ID","scope":"openid profile"}</code></pre><div class="callout"><strong>API device profiles</strong><span>Trusted gateways call Fortress APIs with client credentials. Devices holding their own private key use private-key JWT and publish only their JWKS URL.</span></div></section>
-        <section id="mcp" class="doc-section" data-search-title="MCP tools"><h2>One MCP runtime, composable tools</h2><p>Fortress exposes one OAuth-protected MCP endpoint. The root endpoint includes reviewed standard tools. A custom toolset groups renamed standard tools, your named-query APIs, and approved external API tools without creating another server.</p><div class="data-table-wrap"><table><thead><tr><th>Tools</th><th>Endpoint</th></tr></thead><tbody><tr><td>Standard Fortress tools</td><td><code>https://mcp-test.fortressofmuslim.org/mcp</code></td></tr><tr><td>Custom toolset</td><td><code>https://mcp-test.fortressofmuslim.org/mcp?toolset={slug}</code></td></tr></tbody></table></div><pre class="plain-code"><code>Authorization: Bearer OAUTH_ACCESS_TOKEN
+        <section id="mcp" class="doc-section" data-search-title="MCP tools"><h2>One MCP runtime, composable tools</h2><p>Fortress exposes one OAuth-protected MCP endpoint. The root endpoint includes reviewed standard tools. Use <code>find_dua</code> for a title, situation, or misspelling: it fuzzy-matches and returns complete records in one call. Use <code>search_duas</code> for broader searches inside Arabic, transliteration, translation, and commentary. A custom toolset groups renamed standard tools, your named-query APIs, and approved external API tools without creating another server.</p><div class="data-table-wrap"><table><thead><tr><th>Tools</th><th>Endpoint</th></tr></thead><tbody><tr><td>Standard Fortress tools</td><td><code>https://mcp-test.fortressofmuslim.org/mcp</code></td></tr><tr><td>Custom toolset</td><td><code>https://mcp-test.fortressofmuslim.org/mcp?toolset={slug}</code></td></tr></tbody></table></div><pre class="plain-code"><code>Authorization: Bearer OAUTH_ACCESS_TOKEN
 Content-Type: application/json
 
 {"jsonrpc":"2.0","id":1,"method":"tools/list"}</code></pre></section>

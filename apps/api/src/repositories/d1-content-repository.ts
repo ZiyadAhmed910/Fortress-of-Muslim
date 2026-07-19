@@ -1,5 +1,6 @@
 import type { ContentSegment, Dua, DuaSummary } from '@fortress/contracts';
-import type { ContentRepository, DatasetSummary } from './content-repository';
+import { rankDuaTitles } from '../lib/fuzzy-title';
+import type { ContentRepository, DatasetSummary, DuaTitleMatch } from './content-repository';
 
 type DatasetRow = {
   id: string;
@@ -118,6 +119,19 @@ export class D1ContentRepository implements ContentRepository {
     ]);
 
     return { items: rows.results.map(toSummary), total: countRow?.count ?? 0 };
+  }
+
+  async findDuasByTitle(query: string, limit: number): Promise<DuaTitleMatch[]> {
+    const result = await this.database.prepare(`
+      SELECT record.id, record.title, record.sequence
+      FROM content_records record
+      JOIN dataset_versions dataset ON dataset.id = record.dataset_id
+      WHERE dataset.publication_status = 'active' AND record.content_type = 'dua'
+      ORDER BY record.sequence
+    `).all<{ id: string; title: string; sequence: number }>();
+    const ranked = rankDuaTitles(result.results, query, limit);
+    const duas = await Promise.all(ranked.map((match) => this.getDua(match.id)));
+    return duas.flatMap((dua, index) => dua ? [{ ...dua, matchScore: ranked[index]!.score }] : []);
   }
 
   async getRandomDua(): Promise<Dua | undefined> {

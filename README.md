@@ -142,6 +142,12 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.9.0
+
+- Added `find_dua`, a one-call MCP tool that fuzzy-matches natural-language and misspelled titles.
+- Title lookup now returns complete dua records immediately, avoiding the previous search-summary and ID-detail round trip.
+- Added focused ranking tests and MCP instructions that distinguish fast title lookup from broad full-text search.
+
 ### 0.8.1
 
 - Fixed the interactive OAuth authorization-code flow used by ChatGPT and other MCP clients.

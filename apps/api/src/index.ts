@@ -17,6 +17,10 @@ export default class ApiWorker extends WorkerEntrypoint<Bindings> {
     }
     const name = tool.standardToolName;
     if (name === 'get_dua') return repository.getDua(String(args.id ?? ''));
+    if (name === 'find_dua') return {
+      query: String(args.query ?? ''),
+      matches: await repository.findDuasByTitle(String(args.query ?? ''), fuzzyLimit(args.limit)),
+    };
     if (name === 'search_duas') return (await repository.searchDuas(String(args.query ?? ''), 0, limit(args.limit))).items;
     if (name === 'list_duas') return repository.listDuas(0, limit(args.limit));
     if (name === 'random_dua') return repository.getRandomDua();
@@ -26,3 +30,4 @@ export default class ApiWorker extends WorkerEntrypoint<Bindings> {
 }
 
 function limit(value: unknown) { return Math.min(50, Math.max(1, Number(value) || 20)); }
+function fuzzyLimit(value: unknown) { return Math.min(3, Math.max(1, Number(value) || 1)); }

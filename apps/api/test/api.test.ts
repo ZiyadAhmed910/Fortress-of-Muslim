@@ -57,6 +57,11 @@ const repository: ContentRepository = {
     const items = matches.slice(offset, offset + limit).map(({ parts: _parts, ...summary }) => summary);
     return { items, total: matches.length };
   },
+  async findDuasByTitle(query, limit) {
+    const normalized = query.toLocaleLowerCase();
+    return records.filter((record) => record.title.toLocaleLowerCase().includes(normalized))
+      .slice(0, limit).map((record) => ({ ...record, matchScore: 1 }));
+  },
   async getRandomDua() { return records[0]; },
   async getDua(id) { return records.find((record) => record.id === id || record.legacyId === id); },
 };
@@ -70,7 +75,7 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.8.1');
+    expect(body.version).toBe('0.9.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
