@@ -112,7 +112,18 @@ function verifyRemote() {
   const report = JSON.parse(readFileSync(join(outputRoot, 'validation-report.json'), 'utf8'));
   const database = environment === 'test' ? 'fortress-platform-test' : 'fortress-platform-production';
   const query = `SELECT id, record_count AS recordCount, publication_status AS status FROM dataset_versions WHERE id='${report.datasetId}'; SELECT content_type AS type, COUNT(*) AS count FROM content_records WHERE dataset_id='${report.datasetId}' GROUP BY content_type ORDER BY type;`;
-  runWrangler(['d1', 'execute', database, '--remote', '--env', environment, '--command', query, '--json']);
+  const output = runWrangler(['d1', 'execute', database, '--remote', '--env', environment, '--command', query, '--json'], true);
+  const result = JSON.parse(output);
+  const dataset = result[0]?.results?.[0];
+  const typeCounts = Object.fromEntries((result[1]?.results ?? []).map((row) => [row.type, row.count]));
+  const expectedHadith = EXPECTED_COUNTS.bukhari + EXPECTED_COUNTS.muslim + EXPECTED_COUNTS.tirmidhi;
+  if (dataset?.id !== report.datasetId || dataset.status !== 'active' || dataset.recordCount !== report.totalRecords) {
+    throw new Error(`Remote ${environment} D1 does not have the validated dataset active.`);
+  }
+  if (typeCounts.dua !== EXPECTED_COUNTS.hisn || typeCounts.hadith !== expectedHadith) {
+    throw new Error(`Remote ${environment} D1 record counts do not match the validated corpus.`);
+  }
+  console.log(JSON.stringify({ environment, dataset, typeCounts, status: 'verified' }, null, 2));
 }
 
 function loadDomRecords() {
@@ -490,8 +501,13 @@ function resolveProviderRecordIds(slug, source) {
   return [...new Set([derived, source.canonicalId])];
 }
 
-function runWrangler(args) {
-  execFileSync(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['wrangler', ...args], {
-    cwd: join(projectRoot, 'apps', 'api'), stdio: 'inherit', env: process.env,
+function runWrangler(args, capture = false) {
+  const wranglerEntry = join(projectRoot, 'node_modules', 'wrangler', 'bin', 'wrangler.js');
+  if (!existsSync(wranglerEntry)) throw new Error('Wrangler is not installed. Run npm install before importing.');
+  return execFileSync(process.execPath, [wranglerEntry, ...args], {
+    cwd: join(projectRoot, 'apps', 'api'),
+    stdio: capture ? ['ignore', 'pipe', 'inherit'] : 'inherit',
+    encoding: capture ? 'utf8' : undefined,
+    env: process.env,
   });
 }
