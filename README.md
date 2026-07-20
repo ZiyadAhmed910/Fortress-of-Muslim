@@ -371,6 +371,7 @@ docs/deployment.md
 Canonical data decisions and staged work are documented in:
 
 - `docs/canonical-data-roadmap.md`
+- `docs/sunnah-data-ingestion-design.md`
 - `docs/source-acquisition-policy.md`
 - `docs/adr/0001-canonical-knowledge-and-snapshots.md`
 - `docs/adr/0002-public-read-api.md`
