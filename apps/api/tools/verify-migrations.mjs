@@ -1,5 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import { readFile, readdir } from 'node:fs/promises';
+import { withNodeSqliteCompatibility } from './node-sqlite-compat.mjs';
 
 const migrationsUrl = new URL('../migrations/', import.meta.url);
 const migrationFiles = (await readdir(migrationsUrl)).filter((file) => file.endsWith('.sql')).sort();
@@ -7,7 +8,10 @@ const source = JSON.parse(await readFile(new URL('../../../pwa-website/data/duas
 const database = new DatabaseSync(':memory:');
 
 database.exec('PRAGMA foreign_keys = ON;');
-for (const migration of migrationFiles) database.exec(await readFile(new URL(migration, migrationsUrl), 'utf8'));
+for (const migration of migrationFiles) {
+  const sql = await readFile(new URL(migration, migrationsUrl), 'utf8');
+  database.exec(withNodeSqliteCompatibility(sql));
+}
 
 const expectedParts = source.entries.reduce((total, entry) => total + entry.parts.length, 0);
 const expectedSegments = source.entries.reduce(
@@ -28,6 +32,12 @@ assertCount('dua_metadata', source.entries.length);
 assertCount('record_search_metadata', source.entries.length);
 assertCount('publication_history', 2);
 assertCount('verification_records', source.entries.length + 1);
+assertCount('source_acquisitions', 0);
+assertCount('source_artifacts', 0);
+assertCount('import_runs', 0);
+
+const missingLogicalIds = database.prepare('SELECT COUNT(*) AS count FROM content_records WHERE logical_id IS NULL').get().count;
+if (missingLogicalIds !== 0) throw new Error(`content_records: ${missingLogicalIds} logical IDs were not backfilled.`);
 
 const orphanParts = database.prepare(`
   SELECT COUNT(*) AS count

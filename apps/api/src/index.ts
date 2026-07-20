@@ -25,6 +25,10 @@ export default class ApiWorker extends WorkerEntrypoint<Bindings> {
     if (name === 'search_duas') return (await repository.searchDuas(String(args.query ?? ''), 0, limit(args.limit))).items;
     if (name === 'list_duas') return repository.listDuas(0, limit(args.limit));
     if (name === 'random_dua') return repository.getRandomDua();
+    if (name === 'list_collections') return repository.listCollections(contentType(args.type));
+    if (name === 'list_hadith') return repository.listHadith(optionalString(args.collection), 0, limit(args.limit));
+    if (name === 'search_hadith') return (await repository.searchHadith(String(args.query ?? ''), optionalString(args.collection), 0, limit(args.limit))).items;
+    if (name === 'get_hadith') return repository.getHadith(String(args.id ?? ''));
     if (name === 'current_dataset') return repository.getCurrentDataset();
     throw new Error('Tool is not supported by the Fortress API runtime.');
   }
@@ -32,3 +36,5 @@ export default class ApiWorker extends WorkerEntrypoint<Bindings> {
 
 function limit(value: unknown) { return Math.min(50, Math.max(1, Number(value) || 20)); }
 function fuzzyLimit(value: unknown) { return Math.min(3, Math.max(1, Number(value) || 1)); }
+function optionalString(value: unknown) { const result = String(value ?? '').trim(); return result || undefined; }
+function contentType(value: unknown) { const result = optionalString(value); return result === 'dua' || result === 'hadith' ? result : undefined; }

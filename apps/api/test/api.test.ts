@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Dua, DuaSummary } from '@fortress/contracts';
+import type { Dua, DuaSummary, Hadith } from '@fortress/contracts';
 import { createApp } from '../src/app';
 import type { ContentRepository, DatasetSummary } from '../src/repositories/content-repository';
 
@@ -35,6 +35,14 @@ const records: Dua[] = [
     partCount: 1, verificationStatus: 'pending', parts: [[{ kind: 'translation', text: 'Translation' }]],
   },
 ];
+const hadith: Hadith = {
+  id: 'hadith.bukhari.1', sequence: 1, displayNumber: '1', title: 'Sahih al-Bukhari 1',
+  collection: { slug: 'bukhari', title: 'Sahih al-Bukhari' },
+  book: { number: '1', title: 'Revelation' }, chapter: { number: '1', title: 'How revelation began' },
+  narrator: 'Umar bin Al-Khattab', grade: null, verificationStatus: 'pending',
+  segments: [{ kind: 'arabic', text: 'Arabic Hadith' }, { kind: 'translation', text: 'Actions are by intentions.' }],
+  references: [{ type: 'primary', locator: 'Sahih al-Bukhari 1' }],
+};
 
 const repository: ContentRepository = {
   async getCurrentDataset(): Promise<DatasetSummary> {
@@ -43,6 +51,12 @@ const repository: ContentRepository = {
       publicationStatus: 'active', verificationStatus: 'pending', recordCount: records.length,
       contentHash: 'test-hash', importedAt: '2026-07-18T00:00:00.000Z',
     };
+  },
+  async listCollections(contentType) {
+    return [
+      { id: 'collection.hisn', slug: 'hisn', contentType: 'dua' as const, title: 'Hisn al-Muslim', titleArabic: null, recordCount: 3, bookCount: 1, chapterCount: 2, verificationStatus: 'pending' as const },
+      { id: 'collection.bukhari', slug: 'bukhari', contentType: 'hadith' as const, title: 'Sahih al-Bukhari', titleArabic: null, recordCount: 1, bookCount: 1, chapterCount: 1, verificationStatus: 'pending' as const },
+    ].filter((collection) => !contentType || collection.contentType === contentType);
   },
   async countDuas() { return records.length; },
   async listDuas(offset, limit): Promise<DuaSummary[]> {
@@ -76,6 +90,17 @@ const repository: ContentRepository = {
       taxonomy: [], verificationHistory: [], corrections: [],
     };
   },
+  async countHadith(collection) { return !collection || collection === 'bukhari' ? 1 : 0; },
+  async listHadith(collection, offset, limit) {
+    return (!collection || collection === 'bukhari' ? [hadith] : []).slice(offset, offset + limit)
+      .map(({ segments: _segments, references: _references, ...summary }) => summary);
+  },
+  async searchHadith(query, collection, offset, limit) {
+    const text = `${hadith.title} ${hadith.narrator} ${hadith.segments.map((segment) => segment.text).join(' ')}`.toLocaleLowerCase();
+    const matches = (!collection || collection === 'bukhari') && text.includes(query.toLocaleLowerCase()) ? [hadith] : [];
+    return { items: matches.slice(offset, offset + limit).map(({ segments: _segments, references: _references, ...summary }) => summary), total: matches.length };
+  },
+  async getHadith(id) { return id === hadith.id || id === 'bukhari:1' ? hadith : undefined; },
 };
 const app = createApp(() => repository);
 
@@ -87,10 +112,10 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.13.0');
+    expect(body.version).toBe('0.14.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     expect(response.headers.get('X-Request-ID')).toBe('test-request-123');
-    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.13.0');
+    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.14.0');
     expect(response.headers.get('Server-Timing')).toMatch(/^app;dur=\d+\.\d$/);
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
   });
@@ -101,7 +126,7 @@ describe('Fortress Platform API', () => {
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
-    expect(body.version).toBe('0.13.0');
+    expect(body.version).toBe('0.14.0');
     expect(body.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
     expect(body.recordCount).toBe(3);
   });
@@ -260,5 +285,32 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(401);
     expect(body.error.code).toBe('unauthorized');
     expect(response.headers.get('WWW-Authenticate')).toContain('Bearer');
+  });
+
+  it('lists published collections by content type', async () => {
+    const response = await app.request('/v1/collections?type=hadith', {}, env);
+    const body = await response.json() as { data: Array<{ slug: string; contentType: string }> };
+    expect(response.status).toBe(200);
+    expect(body.data).toEqual([expect.objectContaining({ slug: 'bukhari', contentType: 'hadith' })]);
+  });
+
+  it('lists and searches Hadith without returning full text in summaries', async () => {
+    const listResponse = await app.request('/v1/hadith?collection=bukhari&limit=10', {}, env);
+    const searchResponse = await app.request('/v1/hadith/search?q=intentions&collection=bukhari', {}, env);
+    const listBody = await listResponse.json() as { data: Array<{ id: string; segments?: unknown }> };
+    const searchBody = await searchResponse.json() as { data: Array<{ id: string }> };
+    expect(listResponse.status).toBe(200);
+    expect(listBody.data[0]?.id).toBe('hadith.bukhari.1');
+    expect(listBody.data[0]?.segments).toBeUndefined();
+    expect(searchResponse.status).toBe(200);
+    expect(searchBody.data[0]?.id).toBe('hadith.bukhari.1');
+  });
+
+  it('retrieves complete Hadith by provider identity', async () => {
+    const response = await app.request('/v1/hadith/bukhari:1', {}, env);
+    const body = await response.json() as { data: Hadith };
+    expect(response.status).toBe(200);
+    expect(body.data.segments).toHaveLength(2);
+    expect(body.data.references[0]?.locator).toBe('Sahih al-Bukhari 1');
   });
 });

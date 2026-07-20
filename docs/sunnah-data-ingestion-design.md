@@ -1,7 +1,7 @@
 # Sunnah Data Ingestion and Publication Design
 
-- Status: Proposed
-- Publication status: Blocked pending source permission or an approved licensed replacement
+- Status: Accepted for test implementation
+- Publication status: Reuse permission approved; scholarly verification remains pending
 - Scope: `sunnah-data-fast-do-not-deploy/`
 - Last audited: 2026-07-20
 
@@ -12,37 +12,32 @@ traceable, reviewable, versioned content without allowing unverified or
 unlicensed material to leak into D1, the public API, MCP, the PWA, or deployment
 artifacts.
 
-It is an implementation design, not approval to import or publish the current
-files.
+It defines the approved implementation boundary; it does not make source files
+eligible for Git or mark imported religious content as scholarly verified.
 
-## Non-Negotiable Rights Gate
+## Rights and Repository Boundary
 
-The current folder was produced by scraping Sunnah.com. Sunnah.com's published
-terms say that scraping and mass reproduction of complete books or collections
-are not permitted. Its developer page instead directs consumers to its API and
-states that an offline data dump may be requested.
+The project owner has confirmed direct permission for Fortress Platform to use
+the captured records in D1, REST API, MCP, and API-backed PWA experiences.
+Permission evidence is retained privately and represented by an approved
+`source_acquisitions` record. Permission does not imply scholarly verification.
 
 - Terms: https://sunnah.com/about
 - Developer/API route: https://sunnah.com/developers
 
-Until Fortress has explicit written permission, an approved API arrangement,
-an approved offline dump, or an independently licensed replacement source, the
-current corpus is **restricted**.
-
-Restricted means:
+The repository boundary remains strict:
 
 - Do not commit the folder or any text derived from it.
 - Do not upload it to Cloudflare, Bluehost, GitHub Actions, object storage, or a
   backup shared with contributors.
-- Do not import it into development or production D1.
-- Do not return its text through REST, MCP, Admin, search, or generated PWA
-  snapshots.
-- Do not use it to replace the existing PWA data.
-- Do not mark any record as verified or publishable.
+- Import only normalized, validated records through the local D1 importer.
+- REST, MCP, and a future PWA may consume the published D1-backed API.
+- Do not bundle the full corpus into the static PWA.
+- Do not mark any record scholarly verified based on reuse permission alone.
 
-The files may be used locally to test parser behavior and describe defects while
-permission is being resolved. The first implementation change must add the
-folder to `.gitignore` and add an automated forbidden-path deployment check.
+The source and generated SQL remain local. The repository tracks only importer
+code, schemas, tests, and documentation. `.gitignore` and the automated local
+data boundary check enforce this separation.
 
 ## Audited Inventory
 
@@ -124,7 +119,7 @@ States:
 - `restricted`
 - `rejected`
 
-The current Sunnah.com scrape is `restricted`.
+The current acquisition is `approved` for the declared platform uses.
 
 ### 2. Source Artifacts
 
@@ -139,8 +134,8 @@ Immutable byte-for-byte inputs with:
 - importer version
 - local locator
 
-Source artifacts are evidence, not application records. Restricted artifact
-bytes must remain local and outside repository and deployment contexts.
+Source artifacts are evidence, not application records. Artifact bytes must
+remain local and outside repository and deployment contexts.
 
 ### 3. Parsed Source Records
 
@@ -162,7 +157,7 @@ An immutable, validated dataset version activated by one atomic publication
 event. API and MCP read the active version. A compact, versioned PWA snapshot is
 generated from the same version.
 
-Restricted acquisitions can never enter this layer.
+Only rights-approved acquisitions can enter this layer.
 
 ## Identity Model
 
@@ -235,7 +230,7 @@ must not switch the active dataset.
 
 An import is rejected unless all applicable gates pass:
 
-1. Rights status is `approved` for the intended use and distribution channels.
+1. Rights status is `approved` for D1, REST API, MCP, and API-backed PWA use.
 2. Every artifact exists and matches its expected hash.
 3. Every JSONL line satisfies the versioned parser contract.
 4. Manifest, parsed, and candidate counts agree.
@@ -300,13 +295,12 @@ approved acquisition
 
 ## Delivery Phases
 
-### Phase 0: Quarantine and permission
+### Phase 0: Repository boundary and permission
 
 - Ignore the local source folder in Git.
 - Add CI/deployment forbidden-path checks.
-- Register the source as restricted.
-- Request written permission, API access, or an approved offline dump.
-- Identify independently licensed editions as fallback sources.
+- Register the approved permission scope without committing private evidence.
+- Keep source artifacts and generated import SQL local-only.
 
 ### Phase 1: Contracts and audit tooling
 
@@ -324,15 +318,16 @@ approved acquisition
 - Preserve raw grades and references while producing review issues.
 - Prove deterministic output with fixtures and approved artifacts.
 
-Work may proceed locally against synthetic fixtures before rights approval.
-Running it over restricted source material must remain local.
+Importer execution over source artifacts and generated SQL remains local even
+after publication permission is approved.
 
 ### Phase 3: Candidate storage
 
 - Add reviewed schema migrations.
 - Add resumable import runs and issue tracking.
 - Build the Admin import and comparison workflow.
-- Import only after the acquisition rights state is approved.
+- Import into test only after local validation passes; production requires an
+  explicit dataset-ID confirmation and test verification.
 
 ### Phase 4: Editorial verification
 
@@ -369,7 +364,8 @@ This initiative is complete only when:
 
 ## Immediate Decision
 
-Do not import the current corpus. Preserve it locally while requesting an
-approved data channel. The next engineering work should be Phase 0 safeguards
-and Phase 1 contracts using synthetic fixtures; schema and runtime changes wait
-until this design is accepted.
+Proceed with a local-only deterministic build, import the validated normalized
+dataset into test D1, and expose it through versioned API and MCP contracts. Do
+not commit source artifacts or generated SQL, do not bundle the corpus into the
+PWA, and do not mark records scholarly verified merely because reuse permission
+is approved.

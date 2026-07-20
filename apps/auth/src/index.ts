@@ -17,6 +17,10 @@ const STANDARD_MCP_TOOLS = [
   { name: 'get_dua_evidence', description: 'Retrieve source provenance, references, taxonomy, verification history, and correction history for a dua. Use before making authenticity, attribution, or citation claims; report missing or pending evidence honestly.', inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Canonical or legacy dua ID.' } }, required: ['id'] } },
   { name: 'list_duas', description: 'List published dua summaries in canonical order.', inputSchema: { type: 'object', properties: { limit: { type: 'integer', minimum: 1, maximum: 50 } } } },
   { name: 'random_dua', description: 'Retrieve one random complete published dua.', inputSchema: { type: 'object', properties: {} } },
+  { name: 'list_collections', description: 'List published dua and Hadith collections with record, book, and chapter counts.', inputSchema: { type: 'object', properties: { type: { type: 'string', enum: ['dua', 'hadith'] } } } },
+  { name: 'list_hadith', description: 'List Hadith summaries, optionally restricted to a collection such as bukhari, muslim, or tirmidhi.', inputSchema: { type: 'object', properties: { collection: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } } } },
+  { name: 'search_hadith', description: 'Full-text search across published Hadith Arabic, English, narrator, title, book, and chapter fields.', inputSchema: { type: 'object', properties: { query: { type: 'string' }, collection: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } }, required: ['query'] } },
+  { name: 'get_hadith', description: 'Retrieve one complete Hadith by Fortress ID or provider record ID, including hierarchy, grading, text, and references.', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
   { name: 'current_dataset', description: 'Read active dataset provenance and verification metadata.', inputSchema: { type: 'object', properties: {} } },
 ];
 

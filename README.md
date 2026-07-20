@@ -114,6 +114,10 @@ Useful verification endpoints:
 /v1/duas/dua.hisn.001
 /v1/duas/dua.hisn.001/parts
 /v1/duas/dua.hisn.001/parts/1
+/v1/collections?type=hadith
+/v1/hadith?collection=bukhari&limit=2
+/v1/hadith/search?q=intentions&collection=bukhari
+/v1/hadith/bukhari:1
 /v1/queries/{named-query-id}
 ```
 
@@ -130,6 +134,21 @@ npm run db:verify --workspace @fortress/api
 
 The generated migration preserves the source text exactly and must not be edited manually. Editorial corrections belong in the source dataset or the Admin editorial and publishing workflow.
 
+The approved Sunnah corpus is handled through a separate local-only pipeline. Raw artifacts and generated SQL are ignored by Git:
+
+```powershell
+npm run corpus:build --workspace @fortress/api
+npm run corpus:verify:local --workspace @fortress/api
+npm run corpus:import:test --workspace @fortress/api
+npm run corpus:verify:test --workspace @fortress/api
+```
+
+Production import requires the exact validated dataset ID as an explicit confirmation:
+
+```powershell
+npm run corpus:import:production --workspace @fortress/api -- --confirm-production=dataset.sunnah.approved.YYYY-MM-DD-HASH
+```
+
 The test API uses the `dev` branch and the production API uses `main`. Cloudflare deployment remains disabled until the repository variable `CLOUDFLARE_DEPLOY_ENABLED` is set to `true` and the required account secrets are configured. Setup is documented in `docs/cloudflare-setup.md`.
 
 Every platform release must:
@@ -141,6 +160,15 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.14.0
+
+- Added a local-only, deterministic importer for the approved 14,625-record Sunnah corpus; raw artifacts and generated SQL remain excluded from Git and deployments.
+- Added source acquisition, artifact, import-run, issue, source identity, numbering, grading, and FTS5 search storage.
+- Recovered source book/chapter hierarchy, repaired Hisn transliteration/translation boundaries, and retained unresolved source omissions as explicit import warnings.
+- Added collection discovery and paginated Hadith list, full-text search, and detail APIs.
+- Added standard MCP tools for collection discovery and Hadith list, search, and retrieval.
+- Added full local database import rehearsal, corpus boundary checks, API tests, OpenAPI coverage, and controlled test/production import commands.
 
 ### 0.13.0
 

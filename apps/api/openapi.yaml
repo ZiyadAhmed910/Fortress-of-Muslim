@@ -3,7 +3,7 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
-  x-platform-version: 0.13.0
+  x-platform-version: 0.14.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production
@@ -160,6 +160,86 @@ paths:
           description: Invalid part position
         '404':
           description: Dua or part not found
+  /collections:
+    get:
+      operationId: listCollections
+      summary: List published dua and Hadith collections
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [dua, hadith]
+      responses:
+        '200':
+          description: Collection summaries with record and hierarchy counts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CollectionSummary'
+  /hadith:
+    get:
+      operationId: listHadith
+      summary: List published Hadith summaries
+      parameters:
+        - $ref: '#/components/parameters/Collection'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Paginated Hadith summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithListResponse'
+  /hadith/search:
+    get:
+      operationId: searchHadith
+      summary: Full-text search published Hadith
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+        - $ref: '#/components/parameters/Collection'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Ranked Hadith summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithListResponse'
+  /hadith/{id}:
+    get:
+      operationId: getHadith
+      summary: Retrieve one complete Hadith
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Fortress logical ID or provider record ID
+          schema:
+            type: string
+          example: bukhari:1
+      responses:
+        '200':
+          description: Complete Hadith, hierarchy, grading, text, and references
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithResponse'
+        '404':
+          description: Hadith not found
   /queries/{id}:
     get:
       operationId: executeNamedQuery
@@ -241,6 +321,12 @@ components:
     Cursor:
       in: query
       name: cursor
+      schema:
+        type: string
+    Collection:
+      in: query
+      name: collection
+      description: Collection slug such as bukhari, muslim, or tirmidhi
       schema:
         type: string
   schemas:
@@ -374,5 +460,70 @@ components:
               type: array
               items:
                 type: object
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    CollectionSummary:
+      type: object
+      required: [id, slug, contentType, title, recordCount, bookCount, chapterCount, verificationStatus]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        contentType: { type: string, enum: [dua, hadith] }
+        title: { type: string }
+        titleArabic: { type: string, nullable: true }
+        recordCount: { type: integer, minimum: 0 }
+        bookCount: { type: integer, minimum: 0 }
+        chapterCount: { type: integer, minimum: 0 }
+        verificationStatus: { type: string, enum: [pending, verified, rejected, deprecated] }
+    HadithSummary:
+      type: object
+      required: [id, sequence, displayNumber, title, collection, narrator, grade, verificationStatus]
+      properties:
+        id: { type: string, example: hadith.bukhari.1 }
+        sequence: { type: integer, minimum: 1 }
+        displayNumber: { type: string }
+        title: { type: string }
+        collection: { type: object }
+        book: { type: object, nullable: true }
+        chapter: { type: object, nullable: true }
+        narrator: { type: string, nullable: true }
+        grade: { type: object, nullable: true }
+        verificationStatus: { type: string, enum: [pending, verified, rejected, deprecated] }
+    Hadith:
+      allOf:
+        - $ref: '#/components/schemas/HadithSummary'
+        - type: object
+          required: [segments, references]
+          properties:
+            segments:
+              type: array
+              items:
+                $ref: '#/components/schemas/ContentSegment'
+            references:
+              type: array
+              items:
+                type: object
+                required: [type, locator]
+                properties:
+                  type: { type: string }
+                  locator: { type: string }
+    HadithListResponse:
+      type: object
+      required: [data, pagination, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HadithSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    HadithResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: '#/components/schemas/Hadith'
         meta:
           $ref: '#/components/schemas/ResponseMeta'

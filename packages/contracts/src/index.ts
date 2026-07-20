@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const API_VERSION = 'v1' as const;
 export const PLATFORM_NAME = 'Fortress Platform' as const;
-export const PLATFORM_VERSION = '0.13.0' as const;
+export const PLATFORM_VERSION = '0.14.0' as const;
 export const CURRENT_DATASET_ID = 'dataset.hisn.legacy.2026-07-11-v2' as const;
 
 export const contentSegmentSchema = z.object({
@@ -41,8 +41,55 @@ export const searchSchema = paginationSchema.extend({
 
 export const partPositionSchema = z.coerce.number().int().positive();
 
+export const contentTypeSchema = z.enum(['dua', 'hadith']);
+
+export const collectionSummarySchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  contentType: contentTypeSchema,
+  title: z.string(),
+  titleArabic: z.string().nullable(),
+  recordCount: z.number().int().nonnegative(),
+  bookCount: z.number().int().nonnegative(),
+  chapterCount: z.number().int().nonnegative(),
+  verificationStatus: z.enum(['pending', 'verified', 'rejected', 'deprecated']),
+});
+
+export const hadithSummarySchema = z.object({
+  id: z.string(),
+  sequence: z.number().int().positive(),
+  displayNumber: z.string(),
+  title: z.string(),
+  collection: z.object({ slug: z.string(), title: z.string() }),
+  book: z.object({ number: z.string().nullable(), title: z.string() }).nullable(),
+  chapter: z.object({ number: z.string().nullable(), title: z.string() }).nullable(),
+  narrator: z.string().nullable(),
+  grade: z.object({ value: z.string(), authority: z.string().nullable() }).nullable(),
+  verificationStatus: z.enum(['pending', 'verified', 'rejected', 'deprecated']),
+});
+
+export const hadithSchema = hadithSummarySchema.extend({
+  segments: z.array(contentSegmentSchema),
+  references: z.array(z.object({
+    type: z.string(),
+    locator: z.string(),
+  })),
+});
+
+export const hadithListSchema = paginationSchema.extend({
+  collection: z.string().trim().min(1).max(80).optional(),
+});
+
+export const hadithSearchSchema = hadithListSchema.extend({
+  q: z.string().trim().min(2).max(200),
+});
+
 export type ContentSegment = z.infer<typeof contentSegmentSchema>;
 export type DuaSummary = z.infer<typeof duaSummarySchema>;
 export type Dua = z.infer<typeof duaSchema>;
 export type DuaPart = z.infer<typeof duaPartSchema>;
 export type Pagination = z.infer<typeof paginationSchema>;
+export type ContentType = z.infer<typeof contentTypeSchema>;
+export type CollectionSummary = z.infer<typeof collectionSummarySchema>;
+export type HadithSummary = z.infer<typeof hadithSummarySchema>;
+export type Hadith = z.infer<typeof hadithSchema>;

@@ -1,4 +1,4 @@
-import type { Dua, DuaSummary } from '@fortress/contracts';
+import type { CollectionSummary, Dua, DuaSummary, Hadith, HadithSummary } from '@fortress/contracts';
 
 export type DatasetSummary = {
   id: string;
@@ -44,6 +44,7 @@ export type RecordEvidence = {
 
 export interface ContentRepository {
   getCurrentDataset(): Promise<DatasetSummary>;
+  listCollections(contentType?: 'dua' | 'hadith'): Promise<CollectionSummary[]>;
   countDuas(): Promise<number>;
   listDuas(offset: number, limit: number): Promise<DuaSummary[]>;
   searchDuas(query: string, offset: number, limit: number): Promise<{ items: DuaSummary[]; total: number }>;
@@ -51,4 +52,8 @@ export interface ContentRepository {
   getRandomDua(): Promise<Dua | undefined>;
   getDua(id: string): Promise<Dua | undefined>;
   getDuaEvidence(id: string): Promise<RecordEvidence | undefined>;
+  countHadith(collection?: string): Promise<number>;
+  listHadith(collection: string | undefined, offset: number, limit: number): Promise<HadithSummary[]>;
+  searchHadith(query: string, collection: string | undefined, offset: number, limit: number): Promise<{ items: HadithSummary[]; total: number }>;
+  getHadith(id: string): Promise<Hadith | undefined>;
 }

@@ -2,6 +2,9 @@ import {
   API_VERSION,
   PLATFORM_NAME,
   PLATFORM_VERSION,
+  contentTypeSchema,
+  hadithListSchema,
+  hadithSearchSchema,
   paginationSchema,
   partPositionSchema,
   searchSchema,
@@ -147,6 +150,9 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       randomDua: '/v1/duas/random',
       duaParts: '/v1/duas/{id}/parts',
       duaEvidence: '/v1/duas/{id}/evidence',
+      collections: '/v1/collections',
+      hadith: '/v1/hadith',
+      hadithSearch: '/v1/hadith/search?q=intentions',
       namedQuery: '/v1/queries/{id}',
     },
   }));
@@ -155,9 +161,19 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     const dataset = await repositoryFactory(context.env).getCurrentDataset();
     return context.json({
       ...dataset,
-      recordType: 'dua',
-      warning: 'This initial imported dataset is pending canonical editorial verification.',
+      recordTypes: ['dua', 'hadith'],
+      warning: 'Published records may remain pending canonical editorial verification. Inspect record evidence before making authenticity claims.',
     });
+  });
+
+  app.get('/v1/collections', async (context) => {
+    const rawType = context.req.query('type');
+    const parsedType = rawType ? contentTypeSchema.safeParse(rawType) : null;
+    if (parsedType && !parsedType.success) {
+      return context.json({ error: { code: 'invalid_request', message: 'Collection type must be dua or hadith.', requestId: context.get('requestId') } }, 400);
+    }
+    const data = await repositoryFactory(context.env).listCollections(parsedType?.data);
+    return context.json({ data, meta: { total: data.length, ...responseMeta(context) } });
   });
 
   app.get('/v1/duas', async (context) => {
@@ -304,6 +320,47 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     });
   });
 
+  app.get('/v1/hadith', async (context) => {
+    const parsed = hadithListSchema.safeParse(context.req.query());
+    if (!parsed.success) return invalidHadithRequest(context, 'Hadith pagination or collection is invalid.');
+    const offset = decodeCursor(parsed.data.cursor);
+    const repository = repositoryFactory(context.env);
+    const [items, total] = await Promise.all([
+      repository.listHadith(parsed.data.collection, offset, parsed.data.limit),
+      repository.countHadith(parsed.data.collection),
+    ]);
+    const nextOffset = offset + items.length;
+    return context.json({
+      data: items,
+      pagination: { limit: parsed.data.limit, nextCursor: nextOffset < total ? encodeCursor(nextOffset) : null },
+      meta: { total, collection: parsed.data.collection ?? null, ...responseMeta(context) },
+    });
+  });
+
+  app.get('/v1/hadith/search', async (context) => {
+    const parsed = hadithSearchSchema.safeParse(context.req.query());
+    if (!parsed.success) return invalidHadithRequest(context, 'Search requires text between 2 and 200 characters and valid pagination.');
+    const offset = decodeCursor(parsed.data.cursor);
+    try {
+      const result = await repositoryFactory(context.env).searchHadith(parsed.data.q, parsed.data.collection, offset, parsed.data.limit);
+      const nextOffset = offset + result.items.length;
+      return context.json({
+        data: result.items,
+        pagination: { limit: parsed.data.limit, nextCursor: nextOffset < result.total ? encodeCursor(nextOffset) : null },
+        meta: { query: parsed.data.q, total: result.total, collection: parsed.data.collection ?? null, ...responseMeta(context) },
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('letters or numbers')) return invalidHadithRequest(context, error.message);
+      throw error;
+    }
+  });
+
+  app.get('/v1/hadith/:id', async (context) => {
+    const hadith = await repositoryFactory(context.env).getHadith(context.req.param('id'));
+    if (!hadith) return context.json({ error: { code: 'not_found', message: 'Hadith was not found.', requestId: context.get('requestId') } }, 404);
+    return context.json({ data: hadith, meta: responseMeta(context) });
+  });
+
   app.get('/v1/queries/:id', async (context) => {
     const definition = await context.env.AUTH.getNamedQuery(context.req.param('id'), context.get('principalId'));
     if (!definition) {
@@ -415,4 +472,8 @@ function unauthorized(context: ApiContext, message: string) {
       requestId: context.get('requestId'),
     },
   }, 401);
+}
+
+function invalidHadithRequest(context: ApiContext, message: string) {
+  return context.json({ error: { code: 'invalid_request', message, requestId: context.get('requestId') } }, 400);
 }

@@ -1,12 +1,16 @@
 import { DatabaseSync } from 'node:sqlite';
 import { readFile, readdir } from 'node:fs/promises';
+import { withNodeSqliteCompatibility } from './node-sqlite-compat.mjs';
 
 const migrationsUrl = new URL('../migrations/', import.meta.url);
 const migrationFiles = (await readdir(migrationsUrl)).filter((file) => file.endsWith('.sql')).sort();
 const database = new DatabaseSync(':memory:');
 
 database.exec('PRAGMA foreign_keys = ON;');
-for (const migration of migrationFiles) database.exec(await readFile(new URL(migration, migrationsUrl), 'utf8'));
+for (const migration of migrationFiles) {
+  const sql = await readFile(new URL(migration, migrationsUrl), 'utf8');
+  database.exec(withNodeSqliteCompatibility(sql));
+}
 
 const recordId = 'dua.hisn.001';
 const sourceId = 'source.editorial-test';

@@ -25,9 +25,10 @@ Every candidate must record:
 
 ## Candidate Register
 
-The named collections in the product vision are research candidates, not approved sources. Each requires a separate source record and evidence review before ingestion. Do not copy data from Sunnah.com, Quran repositories, publishers, digital libraries, or third-party datasets until their current terms explicitly permit the intended open-source redistribution.
+The named collections in the product vision remain research candidates until each has a source record and evidence review. A corpus may be ingested only when its acquisition record is marked `approved` and the private permission evidence is retained outside Git. Approval for one acquisition does not grant approval for another source, edition, translation, or later snapshot.
+
+The current Sunnah corpus acquisition is approved for Fortress D1 storage and delivery through the API, MCP, and PWA. Its raw artifacts, generated import SQL, and private permission evidence must remain outside Git and public deployment bundles.
 
 ## Import Evidence
 
 Raw downloaded artifacts are immutable. Store their SHA-256 hash, retrieval date, and source URL. Parsers produce a validation report before normalization. A failed or incomplete import never replaces an active dataset.
-

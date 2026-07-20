@@ -16,3 +16,7 @@ dist/
 
 # Generated local test screenshots
 pwa-website/advanced-*.png
+
+# Approved source corpus and generated database import bundles stay local-only
+sunnah-data-fast-do-not-deploy/
+.fortress-import/
