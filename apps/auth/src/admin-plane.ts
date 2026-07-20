@@ -3,14 +3,13 @@ import type { Bindings } from './types';
 type AdminUser = { id: string; name: string; email: string; image?: string | null };
 type AdminGrant = { role: 'super_admin' | 'admin' | 'analyst' };
 
-export async function handleAdminPlane(request: Request, url: URL, env: Bindings, user: AdminUser): Promise<Response> {
+export async function handleAdminPlane(request: Request, url: URL, env: Bindings, user: AdminUser, requestId?: string): Promise<Response> {
   const grant = await env.IDENTITY_DB.prepare(
     "SELECT role FROM platform_admins WHERE user_id = ? AND status = 'active'",
   ).bind(user.id).first<AdminGrant>();
   if (!grant) return json({ error: { code: 'forbidden', message: 'An active platform administrator role is required.' } }, 403);
 
-  const requestId = request.headers.get('CF-Ray') ?? crypto.randomUUID();
-  const context = { env, user, grant, requestId };
+  const context = { env, user, grant, requestId: requestId ?? request.headers.get('CF-Ray') ?? crypto.randomUUID() };
 
   if (url.pathname === '/v1/admin/session' && request.method === 'GET') {
     return json({ data: { user, role: grant.role, environment: env.PLATFORM_ENV } });

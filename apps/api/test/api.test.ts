@@ -81,22 +81,27 @@ const app = createApp(() => repository);
 
 describe('Fortress Platform API', () => {
   it('reports service health', async () => {
-    const response = await app.request('/health', { headers: { Origin: 'https://status.fortressofmuslim.org' } }, env);
+    const response = await app.request('/health', { headers: { Origin: 'https://status.fortressofmuslim.org', 'X-Request-ID': 'test-request-123' } }, env);
     const body = await response.json() as { status: string; environment: string; version: string };
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.11.0');
+    expect(body.version).toBe('0.12.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+    expect(response.headers.get('X-Request-ID')).toBe('test-request-123');
+    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.12.0');
+    expect(response.headers.get('Server-Timing')).toMatch(/^app;dur=\d+\.\d$/);
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
   });
 
   it('reports database health without exposing protected content', async () => {
     const response = await app.request('/health/database', {}, env);
-    const body = await response.json() as { status: string; datasetId: string; recordCount: number };
+    const body = await response.json() as { status: string; version: string; datasetId: string; recordCount: number };
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
+    expect(body.version).toBe('0.12.0');
     expect(body.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
     expect(body.recordCount).toBe(3);
   });

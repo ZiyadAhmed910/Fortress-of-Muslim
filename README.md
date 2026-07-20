@@ -142,6 +142,14 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.12.0
+
+- Standardized request IDs, platform-version headers, server timing, baseline security headers, and privacy-conscious structured request logs across API, Auth, and MCP Workers.
+- Added the shared platform version to Auth health and database health responses.
+- Rebuilt the Status portal to detect test or production automatically and check API, D1 access, Auth, MCP, PWA, Developer Portal, and Admin Console.
+- Added platform-version skew detection and separate browser-local status histories for test and production.
+- Hardened Cloudflare static portals with `_headers` rules and extended CI verification for operational checks and security configuration.
+
 ### 0.11.0
 
 - Added an Admin source registry for editions, publishers, machine formats, licensing, authenticity, URLs, and editorial notes.
@@ -359,6 +367,7 @@ Canonical data decisions and staged work are documented in:
 - `docs/adr/0001-canonical-knowledge-and-snapshots.md`
 - `docs/adr/0002-public-read-api.md`
 - `docs/adr/0003-evidence-gated-verification.md`
+- `docs/adr/0004-operational-response-contract.md`
 
 ## Contributing
 

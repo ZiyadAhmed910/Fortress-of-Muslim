@@ -1,4 +1,5 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
+import { PLATFORM_VERSION } from '@fortress/contracts';
 import { oauthProviderResourceClient } from '@better-auth/oauth-provider/resource-client';
 import { createAuthClient } from 'better-auth/client';
 import { createAuth } from './auth';
@@ -6,7 +7,7 @@ import { handleAdminPlane } from './admin-plane';
 import type { Bindings, KeyVerification, McpToolDefinition, NamedQueryDefinition, ServiceState, TokenVerification } from './types';
 
 const allowedMethods = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
-const allowedHeaders = 'Content-Type, Authorization, X-Fortress-API-Key';
+const allowedHeaders = 'Content-Type, Authorization, X-Fortress-API-Key, X-Request-ID';
 const STANDARD_MCP_TOOLS = [
   { name: 'find_dua', description: 'Use this first when a user names, describes, or misspells a dua title. Fuzzy-matches titles and returns the complete best dua records in one call; do not list all duas or call get_dua afterward.', inputSchema: { type: 'object', properties: { query: { type: 'string', description: 'Natural-language title or situation, such as "waking up", "entering mosqe", or "travel dua".' }, limit: { type: 'integer', minimum: 1, maximum: 3, default: 1 } }, required: ['query'] } },
   { name: 'search_duas', description: 'Use for broad searches inside Arabic, transliteration, translation, or commentary text. Returns summaries; for a title or situation lookup, prefer find_dua because it returns complete records in one call.', inputSchema: { type: 'object', properties: { query: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } }, required: ['query'] } },
@@ -19,12 +20,32 @@ const STANDARD_MCP_TOOLS = [
 
 export default class AuthWorker extends WorkerEntrypoint<Bindings> {
   async fetch(request: Request): Promise<Response> {
+    const startedAt = performance.now();
+    const requestId = requestIdFrom(request);
+    let response: Response;
+    try {
+      response = await this.routeRequest(request, requestId);
+    } catch (error) {
+      console.error(JSON.stringify({ event: 'unhandled_error', service: 'auth', requestId, message: error instanceof Error ? error.message : 'Unknown error' }));
+      response = json({ error: { code: 'internal_error', message: 'An unexpected error occurred.', requestId } }, 500);
+    }
+    const duration = Math.max(0, performance.now() - startedAt);
+    const headers = new Headers(response.headers);
+    applyOperationalHeaders(headers, requestId, duration);
+    if (new URL(request.url).pathname === '/health') headers.set('Access-Control-Allow-Origin', '*');
+    console.log(JSON.stringify({ event: 'http_request', service: 'auth', requestId, method: request.method,
+      path: new URL(request.url).pathname, status: response.status, durationMs: Number(duration.toFixed(1)), environment: this.env.PLATFORM_ENV }));
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  }
+
+  private async routeRequest(request: Request, requestId: string): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === '/health') {
       return json({
         status: 'ok',
         service: 'fortress-platform-auth',
+        version: PLATFORM_VERSION,
         environment: this.env.PLATFORM_ENV,
         timestamp: new Date().toISOString(),
       });
@@ -40,7 +61,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
     if (url.pathname.startsWith('/v1/admin/') || url.pathname.startsWith('/v1/control/')) {
       const session = await createAuth(this.env).api.getSession({ headers: request.headers });
       if (!session?.user) response = json({ error: { code: 'unauthorized', message: 'Sign in is required.' } }, 401);
-      else if (url.pathname.startsWith('/v1/admin/')) response = await handleAdminPlane(request, url, this.env, session.user);
+      else if (url.pathname.startsWith('/v1/admin/')) response = await handleAdminPlane(request, url, this.env, session.user, requestId);
       else response = await this.handleControlPlane(request, url, session.user);
     } else if (isDeveloperManagementRoute(url.pathname)) {
       const session = await createAuth(this.env).api.getSession({ headers: request.headers });
@@ -301,6 +322,7 @@ function corsHeaders(origin: string | null) {
     'Access-Control-Allow-Methods': allowedMethods,
     'Access-Control-Allow-Headers': allowedHeaders,
     'Access-Control-Max-Age': '86400',
+    'Access-Control-Expose-Headers': 'X-Request-ID, X-Fortress-Platform-Version, Server-Timing',
     Vary: 'Origin',
   });
   if (origin) {
@@ -308,6 +330,22 @@ function corsHeaders(origin: string | null) {
     headers.set('Access-Control-Allow-Credentials', 'true');
   }
   return headers;
+}
+
+function requestIdFrom(request: Request) {
+  const supplied = request.headers.get('X-Request-ID');
+  if (supplied && /^[A-Za-z0-9._:-]{8,128}$/.test(supplied)) return supplied;
+  return request.headers.get('CF-Ray') ?? crypto.randomUUID();
+}
+
+function applyOperationalHeaders(headers: Headers, requestId: string, duration: number) {
+  headers.set('X-Request-ID', requestId);
+  headers.set('X-Fortress-Platform-Version', PLATFORM_VERSION);
+  headers.set('Server-Timing', `app;dur=${duration.toFixed(1)}`);
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('Referrer-Policy', 'no-referrer');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 }
 
 function isDeveloperManagementRoute(pathname: string) {

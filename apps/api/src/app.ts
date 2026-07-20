@@ -10,7 +10,6 @@ import {
 } from '@fortress/contracts';
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
 import { decodeCursor, encodeCursor } from './lib/pagination';
 import { executeRecordQuery } from './lib/record-query';
 import type { ContentRepository } from './repositories/content-repository';
@@ -25,18 +24,27 @@ const defaultRepositoryFactory: RepositoryFactory = (bindings) => new D1ContentR
 export function createApp(repositoryFactory: RepositoryFactory = defaultRepositoryFactory) {
   const app = new Hono<{ Bindings: Bindings; Variables: ApiVariables }>();
 
-  app.use('*', logger());
   app.use('*', cors({
     origin: '*',
     allowMethods: ['GET', 'OPTIONS'],
-    allowHeaders: ['Authorization', 'X-Fortress-API-Key'],
-    exposeHeaders: ['X-Request-ID', 'X-Fortress-Dataset-Version'],
+    allowHeaders: ['Authorization', 'X-Fortress-API-Key', 'X-Request-ID'],
+    exposeHeaders: ['X-Request-ID', 'X-Fortress-Dataset-Version', 'X-Fortress-Platform-Version', 'Server-Timing'],
   }));
   app.use('*', async (context, next) => {
-    const requestId = context.req.header('CF-Ray') ?? crypto.randomUUID();
+    const startedAt = performance.now();
+    const requestId = requestIdFrom(context.req.raw);
     context.set('requestId', requestId);
     await next();
+    const duration = Math.max(0, performance.now() - startedAt);
     context.header('X-Request-ID', requestId);
+    context.header('X-Fortress-Platform-Version', PLATFORM_VERSION);
+    context.header('Server-Timing', `app;dur=${duration.toFixed(1)}`);
+    applySecurityHeaders(context.res.headers);
+    console.log(JSON.stringify({
+      event: 'http_request', service: 'api', requestId, method: context.req.method,
+      path: context.req.path, status: context.res.status, durationMs: Number(duration.toFixed(1)),
+      environment: context.env?.PLATFORM_ENV ?? 'local',
+    }));
   });
 
   const authorize = async (context: ApiContext, next: () => Promise<void>) => {
@@ -96,6 +104,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     return context.json({
       status: 'ok',
       service: 'fortress-content-database',
+      version: PLATFORM_VERSION,
       datasetId: dataset.id,
       recordCount: dataset.recordCount,
       environment: context.env?.PLATFORM_ENV ?? 'local',
@@ -343,6 +352,19 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
   });
 
   return app;
+}
+
+function requestIdFrom(request: Request) {
+  const supplied = request.headers.get('X-Request-ID');
+  if (supplied && /^[A-Za-z0-9._:-]{8,128}$/.test(supplied)) return supplied;
+  return request.headers.get('CF-Ray') ?? crypto.randomUUID();
+}
+
+function applySecurityHeaders(headers: Headers) {
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('Referrer-Policy', 'no-referrer');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 }
 
 export const app = createApp();

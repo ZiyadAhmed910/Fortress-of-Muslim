@@ -1,3 +1,5 @@
+import { PLATFORM_VERSION } from '@fortress/contracts';
+
 type Tool = { name: string; description: string; toolType: 'standard' | 'named_query' | 'external_api'; standardToolName?: string; namedQueryId?: string; externalMethod?: 'GET' | 'POST'; externalUrl?: string; inputSchema: Record<string, unknown> };
 type Bindings = {
   PLATFORM_ENV: 'test' | 'production'; AUTH_BASE_URL: string;
@@ -11,8 +13,28 @@ type Bindings = {
 
 export default {
   async fetch(request: Request, env: Bindings): Promise<Response> {
+    const startedAt = performance.now();
+    const requestId = requestIdFrom(request);
+    let response: Response;
+    try {
+      response = await routeRequest(request, env);
+    } catch (error) {
+      console.error(JSON.stringify({ event: 'unhandled_error', service: 'mcp', requestId, message: error instanceof Error ? error.message : 'Unknown error' }));
+      response = Response.json({ error: 'internal_error', message: 'An unexpected error occurred.', requestId }, { status: 500 });
+    }
+    const duration = Math.max(0, performance.now() - startedAt);
+    const headers = new Headers(response.headers);
+    applyOperationalHeaders(headers, requestId, duration);
+    if (new URL(request.url).pathname === '/health') headers.set('Access-Control-Allow-Origin', '*');
+    console.log(JSON.stringify({ event: 'http_request', service: 'mcp', requestId, method: request.method,
+      path: new URL(request.url).pathname, status: response.status, durationMs: Number(duration.toFixed(1)), environment: env.PLATFORM_ENV }));
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  },
+};
+
+async function routeRequest(request: Request, env: Bindings): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname === '/health') return Response.json({ status: 'ok', service: 'fortress-mcp', environment: env.PLATFORM_ENV, version: '0.11.0', timestamp: new Date().toISOString() });
+    if (url.pathname === '/health') return Response.json({ status: 'ok', service: 'fortress-mcp', environment: env.PLATFORM_ENV, version: PLATFORM_VERSION, timestamp: new Date().toISOString() });
     if (url.pathname === '/.well-known/oauth-protected-resource') return Response.json({ resource: url.origin, authorization_servers: [`${env.AUTH_BASE_URL}/api/auth`], scopes_supported: ['mcp:connect', 'content:read', 'content:search', 'dataset:read'] });
     if (url.pathname !== '/mcp' || request.method !== 'POST') return Response.json({ error: 'Not found' }, { status: 404 });
     const service = await env.AUTH.getServiceState('mcp');
@@ -25,7 +47,7 @@ export default {
     let message: { jsonrpc?: string; id?: unknown; method?: string; params?: Record<string, unknown> };
     try { message = await request.json(); } catch { return rpc(null, undefined, { code: -32700, message: 'Parse error' }, 400); }
     const toolset = url.searchParams.get('toolset') ?? undefined;
-    if (message.method === 'initialize') return rpc(message.id, { protocolVersion: '2025-06-18', capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'Fortress Platform MCP', version: '0.11.0' }, instructions: 'Use Fortress tools for dataset-grounded dua content. All tools are read-only. For a named dua or situation, call find_dua first because it fuzzy-matches titles and returns complete records in one call. Use search_duas only for broad searches inside the dua text. Call get_dua_evidence before making authenticity, attribution, or citation claims, and state clearly when evidence is pending or incomplete.' });
+    if (message.method === 'initialize') return rpc(message.id, { protocolVersion: '2025-06-18', capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'Fortress Platform MCP', version: PLATFORM_VERSION }, instructions: 'Use Fortress tools for dataset-grounded dua content. All tools are read-only. For a named dua or situation, call find_dua first because it fuzzy-matches titles and returns complete records in one call. Use search_duas only for broad searches inside the dua text. Call get_dua_evidence before making authenticity, attribution, or citation claims, and state clearly when evidence is pending or incomplete.' });
     if (message.method === 'notifications/initialized') return new Response(null, { status: 202 });
     if (message.method === 'tools/list') {
       const tools = await env.AUTH.getMcpTools(ownerUserId, toolset);
@@ -39,8 +61,10 @@ export default {
       catch (error) { return rpc(message.id, { content: [{ type: 'text', text: error instanceof Error ? error.message : 'Tool execution failed.' }], isError: true }); }
     }
     return rpc(message.id, undefined, { code: -32601, message: 'Method not found' });
-  },
-};
+}
+
+function requestIdFrom(request: Request) { const supplied=request.headers.get('X-Request-ID'); return supplied&&/^[A-Za-z0-9._:-]{8,128}$/.test(supplied)?supplied:request.headers.get('CF-Ray')??crypto.randomUUID(); }
+function applyOperationalHeaders(headers: Headers,requestId:string,duration:number){headers.set('X-Request-ID',requestId);headers.set('X-Fortress-Platform-Version',PLATFORM_VERSION);headers.set('Server-Timing',`app;dur=${duration.toFixed(1)}`);headers.set('X-Content-Type-Options','nosniff');headers.set('Referrer-Policy','no-referrer');headers.set('Permissions-Policy','camera=(), microphone=(), geolocation=()');headers.set('Strict-Transport-Security','max-age=31536000; includeSubDomains');}
 
 function bearer(value: string | null) { return value?.startsWith('Bearer ') ? value.slice(7).trim() : null; }
 function unauthorized(env: Bindings, url: URL, description = 'OAuth access token with mcp:connect is required.') { return Response.json({ error: 'unauthorized', error_description: description }, { status: 401, headers: { 'WWW-Authenticate': `Bearer resource_metadata="${url.origin}/.well-known/oauth-protected-resource", authorization_uri="${env.AUTH_BASE_URL}/api/auth"` } }); }

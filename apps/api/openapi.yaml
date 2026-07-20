@@ -3,7 +3,7 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
-  x-platform-version: 0.11.0
+  x-platform-version: 0.12.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production
@@ -181,6 +181,23 @@ paths:
         '404':
           description: Query not found or not owned by the credential principal
 components:
+  headers:
+    RequestId:
+      description: Caller-supplied or edge-generated request correlation ID.
+      schema:
+        type: string
+    PlatformVersion:
+      description: Deployed Fortress Platform release.
+      schema:
+        type: string
+    ServerTiming:
+      description: Worker application processing duration.
+      schema:
+        type: string
+    DatasetVersion:
+      description: Active dataset identifier returned on versioned content routes.
+      schema:
+        type: string
   securitySchemes:
     fortressApiKey:
       type: apiKey

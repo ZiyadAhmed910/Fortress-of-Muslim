@@ -1,8 +1,11 @@
 {
   "name": "@fortress/mcp",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "private": true,
   "type": "module",
+  "dependencies": {
+    "@fortress/contracts": "0.12.0"
+  },
   "scripts": {
     "dev": "wrangler dev --env test",
     "deploy:test": "wrangler deploy --env test",
