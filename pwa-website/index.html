@@ -29,6 +29,21 @@
 
       <main>
         <section class="home-view" id="homeView">
+          <nav class="content-mode-switch" aria-label="Content mode">
+            <button class="active" data-content-mode="duas" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z"/></svg>
+              <span>Duas</span>
+            </button>
+            <button data-content-mode="hadith" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+              <span>Hadith</span>
+            </button>
+            <button data-content-mode="ask" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a7 7 0 0 0-4 12.7V20l4-2 4 2v-4.3A7 7 0 0 0 12 3Z"/><path d="M9.5 10a2.5 2.5 0 1 1 4.2 1.8c-.9.7-1.7 1.1-1.7 2.2M12 16h.01"/></svg>
+              <span>Ask</span>
+            </button>
+          </nav>
+
           <section class="advanced-home" id="advancedHome" aria-label="Advanced home">
             <div class="advanced-card-list">
               <button class="advanced-card advanced-featured" data-advanced-filter="all" aria-label="Open all duas">
@@ -60,6 +75,39 @@
               </button>
             </div>
 
+          </section>
+
+          <section class="online-home hadith-home" id="hadithHome" hidden>
+            <div id="hadithBrowse">
+              <form class="online-search" id="hadithSearchForm">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+                <input id="hadithSearchInput" type="search" placeholder="Search Hadith" autocomplete="off" maxlength="200">
+                <button type="submit" aria-label="Search Hadith">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 7 7-7 7"/></svg>
+                </button>
+              </form>
+              <div class="online-filter-strip" id="hadithCollections" aria-label="Hadith collections"></div>
+              <div class="section-head">
+                <span id="hadithResultCount">Connect to browse Hadith</span>
+                <span class="online-indicator">Online</span>
+              </div>
+              <div class="hadith-list" id="hadithList" aria-live="polite"></div>
+              <button class="load-more-button" id="hadithLoadMore" type="button" hidden>Load more</button>
+            </div>
+            <article class="hadith-detail" id="hadithDetail" hidden aria-live="polite"></article>
+          </section>
+
+          <section class="online-home assistant-home" id="assistantHome" hidden>
+            <form class="assistant-form" id="assistantForm">
+              <label for="assistantQuestion">Ask the Fortress sources</label>
+              <textarea id="assistantQuestion" rows="4" minlength="5" maxlength="500" placeholder="What do the sources say about intentions?" required></textarea>
+              <button class="primary-action" id="assistantSubmit" type="submit">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-5 16-3-6-8-2Z"/><path d="m12 14 8-10"/></svg>
+                <span>Ask</span>
+              </button>
+            </form>
+            <p class="assistant-note">Answers use retrieved Fortress records and numbered citations. Imported records may still be pending scholarly verification.</p>
+            <div class="assistant-result" id="assistantResult" aria-live="polite"></div>
           </section>
 
           <div class="simple-home" id="simpleHome">

@@ -17,4 +17,5 @@ export const state = {
   deferredInstallPrompt: null,
   waitingWorker: null,
   refreshing: false,
+  contentMode: 'duas',
 };

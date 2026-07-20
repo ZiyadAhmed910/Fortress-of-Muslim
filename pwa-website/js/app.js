@@ -16,6 +16,9 @@ import {
 } from './reader.js';
 import { applyWaitingUpdate, promptInstall, setupInstallPrompt, setupServiceWorker } from './pwa.js';
 import { exportUserData, importUserDataFile } from './userData.js';
+import { initAssistant } from './assistant.js';
+import { initHadith } from './hadith.js';
+import { initContentModes } from './modes.js';
 
 init();
 
@@ -23,6 +26,9 @@ async function init() {
   setOpenEntryHandler(openEntry);
   applySettings();
   bindEvents();
+  initHadith();
+  initAssistant();
+  initContentModes();
   renderLoadingSkeleton();
 
   try {

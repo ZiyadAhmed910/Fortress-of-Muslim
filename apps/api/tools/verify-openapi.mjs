@@ -15,11 +15,12 @@ const requiredPaths = [
   '/hadith',
   '/hadith/search',
   '/hadith/{id}',
+  '/ask',
   '/queries/{id}',
 ];
 
 if (document.openapi !== '3.0.3') throw new Error('OpenAPI version must remain 3.0.3.');
-if (document.info?.['x-platform-version'] !== '0.14.0') {
+if (document.info?.['x-platform-version'] !== '0.15.0') {
   throw new Error('OpenAPI platform version is not synchronized with the release.');
 }
 if (!document.components?.securitySchemes?.fortressApiKey || !document.components?.securitySchemes?.fortressOAuth) {
@@ -30,9 +31,10 @@ for (const header of ['RequestId', 'PlatformVersion', 'ServerTiming', 'DatasetVe
 }
 
 for (const path of requiredPaths) {
-  if (!document.paths?.[path]?.get) throw new Error(`OpenAPI GET operation is missing: ${path}`);
+  const method = path === '/ask' ? 'post' : 'get';
+  if (!document.paths?.[path]?.[method]) throw new Error(`OpenAPI ${method.toUpperCase()} operation is missing: ${path}`);
 }
 if (document.security) throw new Error('Public read endpoints must not inherit global authentication.');
 if (!document.paths?.['/queries/{id}']?.get?.security) throw new Error('Owner-scoped named queries must remain authenticated.');
 
-console.log(`Verified OpenAPI document with ${requiredPaths.length - 1} public read paths and one protected named-query path.`);
+console.log(`Verified OpenAPI document with ${requiredPaths.length - 1} public operations and one protected named-query path.`);

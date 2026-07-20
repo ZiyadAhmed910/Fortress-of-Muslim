@@ -1,6 +1,7 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { app } from './app';
 import { executeRecordQuery } from './lib/record-query';
+import { answerQuestion } from './rag';
 import { D1ContentRepository } from './repositories/d1-content-repository';
 import type { Bindings } from './types';
 
@@ -29,6 +30,11 @@ export default class ApiWorker extends WorkerEntrypoint<Bindings> {
     if (name === 'list_hadith') return repository.listHadith(optionalString(args.collection), 0, limit(args.limit));
     if (name === 'search_hadith') return (await repository.searchHadith(String(args.query ?? ''), optionalString(args.collection), 0, limit(args.limit))).items;
     if (name === 'get_hadith') return repository.getHadith(String(args.id ?? ''));
+    if (name === 'ask_fortress') {
+      const question = String(args.question ?? '').trim();
+      if (question.length < 5 || question.length > 500) throw new Error('Question must contain between 5 and 500 characters.');
+      return answerQuestion(this.env, repository, question, `mcp:${ownerUserId}`);
+    }
     if (name === 'current_dataset') return repository.getCurrentDataset();
     throw new Error('Tool is not supported by the Fortress API runtime.');
   }

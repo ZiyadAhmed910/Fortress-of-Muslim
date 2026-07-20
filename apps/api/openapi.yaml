@@ -3,7 +3,7 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
-  x-platform-version: 0.14.0
+  x-platform-version: 0.15.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production
@@ -240,6 +240,29 @@ paths:
                 $ref: '#/components/schemas/HadithResponse'
         '404':
           description: Hadith not found
+  /ask:
+    post:
+      operationId: askFortress
+      tags: [AI]
+      summary: Ask a source-grounded question
+      description: Retrieves semantically relevant published records and produces a concise answer with numbered source citations. This endpoint does not replace scholarly guidance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AskRequest'
+      responses:
+        '200':
+          description: Grounded answer and traceable sources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AskResponse'
+        '400':
+          description: Question is missing or invalid
+        '429':
+          description: Daily assistant allowance reached
   /queries/{id}:
     get:
       operationId: executeNamedQuery
@@ -525,5 +548,48 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Hadith'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    AskRequest:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+          minLength: 5
+          maxLength: 500
+    RagSource:
+      type: object
+      required: [index, id, contentType, title, collection, reference, sourceUrl, verificationStatus, score]
+      properties:
+        index: { type: integer, minimum: 1 }
+        id: { type: string }
+        contentType: { type: string, enum: [dua, hadith] }
+        title: { type: string }
+        collection: { type: string }
+        reference: { type: string }
+        sourceUrl: { type: string, format: uri }
+        verificationStatus: { type: string, enum: [pending, verified, rejected, deprecated] }
+        score: { type: number }
+    AskResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [answer, sources, meta]
+          properties:
+            answer: { type: string }
+            sources:
+              type: array
+              items:
+                $ref: '#/components/schemas/RagSource'
+            meta:
+              type: object
+              required: [datasetId, model, remainingToday]
+              properties:
+                datasetId: { type: string }
+                model: { type: string }
+                remainingToday: { type: integer, minimum: 0 }
         meta:
           $ref: '#/components/schemas/ResponseMeta'

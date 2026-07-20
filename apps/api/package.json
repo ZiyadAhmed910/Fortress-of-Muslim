@@ -1,6 +1,6 @@
 {
   "name": "@fortress/api",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,11 +19,13 @@
     "corpus:verify:test": "node tools/import-sunnah-corpus.mjs verify-remote --env=test",
     "corpus:import:production": "node tools/import-sunnah-corpus.mjs apply --env=production",
     "corpus:verify:production": "node tools/import-sunnah-corpus.mjs verify-remote --env=production",
+    "rag:index:test": "node tools/index-rag.mjs test",
+    "rag:index:production": "node tools/index-rag.mjs production",
     "test": "vitest run && npm run db:verify && npm run editorial:verify && npm run openapi:verify",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fortress/contracts": "0.14.0",
+    "@fortress/contracts": "0.15.0",
     "hono": "^4.8.0"
   },
   "devDependencies": {

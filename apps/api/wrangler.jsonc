@@ -10,6 +10,9 @@
   "env": {
     "test": {
       "name": "fortress-platform-api-test",
+      "ai": {
+        "binding": "AI"
+      },
       "routes": [
         {
           "pattern": "api-test.fortressofmuslim.org",
@@ -27,6 +30,12 @@
           "migrations_dir": "migrations"
         }
       ],
+      "vectorize": [
+        {
+          "binding": "VECTOR_INDEX",
+          "index_name": "fortress-rag-test"
+        }
+      ],
       "services": [
         {
           "binding": "AUTH",
@@ -36,6 +45,9 @@
     },
     "production": {
       "name": "fortress-platform-api-production",
+      "ai": {
+        "binding": "AI"
+      },
       "routes": [
         {
           "pattern": "api.fortressofmuslim.org",
@@ -51,6 +63,12 @@
           "database_name": "fortress-platform-production",
           "database_id": "36233189-9e08-47de-b862-1530dcda24a3",
           "migrations_dir": "migrations"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "VECTOR_INDEX",
+          "index_name": "fortress-rag-production"
         }
       ],
       "services": [

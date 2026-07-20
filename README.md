@@ -118,10 +118,13 @@ Useful verification endpoints:
 /v1/hadith?collection=bukhari&limit=2
 /v1/hadith/search?q=intentions&collection=bukhari
 /v1/hadith/bukhari:1
+/v1/ask
 /v1/queries/{named-query-id}
 ```
 
 Canonical IDs and legacy IDs are both accepted by detail and part routes. List and search responses return lightweight summaries; detail and random routes return the complete ordered content record.
+
+The PWA keeps the complete Fortress of Muslim collection local: 132 chapters containing 268 ordered source recitations. Hadith browse/search and the source-grounded assistant are API-based and are not stored for offline use.
 
 Published datasets and dua browse, search, detail, part, random, and evidence endpoints are public without login. Developer-owned named queries and management capabilities require a Fortress API key or OAuth 2.1 bearer token.
 
@@ -160,6 +163,15 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.15.0
+
+- Replaced the legacy PWA export with a validated local corpus of 132 Fortress chapters and all 268 ordered recitations while preserving stable favourite IDs.
+- Added explicit category, mood, and tag metadata to the local PWA artifact and strict reproducible build checks.
+- Added an online PWA Hadith browser with collection filtering, full-text search, pagination, and source-linked details.
+- Added a rate-limited, source-grounded Ask API and PWA interface using Workers AI and Cloudflare Vectorize.
+- Added the `ask_fortress` standard MCP tool, resumable vector indexing, D1 usage accounting, and OpenAPI coverage.
+- Kept raw source artifacts out of Git and kept Hadith and AI responses outside the PWA offline cache.
 
 ### 0.14.0
 

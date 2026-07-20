@@ -21,6 +21,7 @@ const STANDARD_MCP_TOOLS = [
   { name: 'list_hadith', description: 'List Hadith summaries, optionally restricted to a collection such as bukhari, muslim, or tirmidhi.', inputSchema: { type: 'object', properties: { collection: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } } } },
   { name: 'search_hadith', description: 'Full-text search across published Hadith Arabic, English, narrator, title, book, and chapter fields.', inputSchema: { type: 'object', properties: { query: { type: 'string' }, collection: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } }, required: ['query'] } },
   { name: 'get_hadith', description: 'Retrieve one complete Hadith by Fortress ID or provider record ID, including hierarchy, grading, text, and references.', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
+  { name: 'ask_fortress', description: 'Ask a natural-language question using semantic retrieval over active Fortress records. Returns a grounded answer with numbered source records and verification status.', inputSchema: { type: 'object', properties: { question: { type: 'string', minLength: 5, maxLength: 500 } }, required: ['question'] } },
   { name: 'current_dataset', description: 'Read active dataset provenance and verification metadata.', inputSchema: { type: 'object', properties: {} } },
 ];
 

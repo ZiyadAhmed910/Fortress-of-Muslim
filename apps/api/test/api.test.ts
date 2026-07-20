@@ -112,10 +112,10 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.14.0');
+    expect(body.version).toBe('0.15.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     expect(response.headers.get('X-Request-ID')).toBe('test-request-123');
-    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.14.0');
+    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.15.0');
     expect(response.headers.get('Server-Timing')).toMatch(/^app;dur=\d+\.\d$/);
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
   });
@@ -126,7 +126,7 @@ describe('Fortress Platform API', () => {
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
-    expect(body.version).toBe('0.14.0');
+    expect(body.version).toBe('0.15.0');
     expect(body.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
     expect(body.recordCount).toBe(3);
   });
@@ -312,5 +312,43 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.data.segments).toHaveLength(2);
     expect(body.data.references[0]?.locator).toBe('Sahih al-Bukhari 1');
+  });
+
+  it('answers from vector-retrieved records with citations', async () => {
+    const ragEnv = {
+      ...envConfig,
+      CONTENT_DB: {
+        prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
+      },
+      AI: {
+        run: async (model: string) => model.includes('bge-base')
+          ? { data: [[0.1, 0.2, 0.3]] }
+          : { response: 'Actions are judged by intentions [1]. This imported record is pending verification.' },
+      },
+      VECTOR_INDEX: {
+        query: async () => ({ count: 1, matches: [{
+          id: 'hadith.bukhari.1', score: 0.94,
+          metadata: { recordId: 'hadith.bukhari.1', contentType: 'hadith', collection: 'bukhari', providerId: 'bukhari:1' },
+        }] }),
+      },
+    } as never;
+    const response = await app.request('/v1/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '203.0.113.4' },
+      body: JSON.stringify({ question: 'What do the sources say about intentions?' }),
+    }, ragEnv);
+    const body = await response.json() as { data: { answer: string; sources: Array<{ sourceUrl: string; verificationStatus: string }> } };
+    expect(response.status).toBe(200);
+    expect(body.data.answer).toContain('[1]');
+    expect(body.data.sources[0]?.sourceUrl).toBe('https://sunnah.com/bukhari:1');
+    expect(body.data.sources[0]?.verificationStatus).toBe('pending');
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+  });
+
+  it('validates assistant questions before invoking AI', async () => {
+    const response = await app.request('/v1/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: 'hi' }),
+    }, env);
+    expect(response.status).toBe(400);
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "fortress-platform",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "private": true,
   "description": "Open-source Islamic data and agent platform",
   "workspaces": [
@@ -20,6 +20,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "security:check": "npm audit --omit=dev --audit-level=high",
     "data:safety": "node tools/verify-local-data-boundary.mjs",
+    "pwa:data:build": "node pwa-website/tools/build_local_duas.mjs",
+    "pwa:visual-check": "node tools/check-pwa.mjs",
     "smoke:test:services": "node tools/deployment-smoke.mjs test services",
     "smoke:test:portals": "node tools/deployment-smoke.mjs test portals",
     "smoke:production:services": "node tools/deployment-smoke.mjs production services",
@@ -37,5 +39,8 @@
     "@better-auth/kysely-adapter": {
       "kysely": "0.28.17"
     }
+  },
+  "devDependencies": {
+    "playwright-core": "^1.61.1"
   }
 }

@@ -2,12 +2,14 @@ import {
   API_VERSION,
   PLATFORM_NAME,
   PLATFORM_VERSION,
+  askQuestionSchema,
   contentTypeSchema,
   hadithListSchema,
   hadithSearchSchema,
   paginationSchema,
   partPositionSchema,
   searchSchema,
+  vectorIndexBatchSchema,
   type Dua,
   type DuaPart,
 } from '@fortress/contracts';
@@ -15,6 +17,7 @@ import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { decodeCursor, encodeCursor } from './lib/pagination';
 import { executeRecordQuery } from './lib/record-query';
+import { RagRateLimitError, answerQuestion, indexRecordBatch } from './rag';
 import type { ContentRepository } from './repositories/content-repository';
 import { D1ContentRepository } from './repositories/d1-content-repository';
 import type { ApiVariables, Bindings } from './types';
@@ -29,8 +32,8 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
 
   app.use('*', cors({
     origin: '*',
-    allowMethods: ['GET', 'OPTIONS'],
-    allowHeaders: ['Authorization', 'X-Fortress-API-Key', 'X-Request-ID'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: ['Authorization', 'Content-Type', 'X-Fortress-API-Key', 'X-Fortress-Index-Key', 'X-Request-ID'],
     exposeHeaders: ['X-Request-ID', 'X-Fortress-Dataset-Version', 'X-Fortress-Platform-Version', 'Server-Timing'],
   }));
   app.use('*', async (context, next) => {
@@ -153,6 +156,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       collections: '/v1/collections',
       hadith: '/v1/hadith',
       hadithSearch: '/v1/hadith/search?q=intentions',
+      ask: '/v1/ask',
       namedQuery: '/v1/queries/{id}',
     },
   }));
@@ -361,6 +365,38 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     return context.json({ data: hadith, meta: responseMeta(context) });
   });
 
+  app.post('/v1/ask', async (context) => {
+    const parsed = askQuestionSchema.safeParse(await readJsonBody(context));
+    if (!parsed.success) return context.json({ error: { code: 'invalid_request', message: 'Question must contain between 5 and 500 characters.', requestId: context.get('requestId') } }, 400);
+    try {
+      const data = await answerQuestion(
+        context.env,
+        repositoryFactory(context.env),
+        parsed.data.question,
+        context.req.header('CF-Connecting-IP') ?? 'unknown-client',
+      );
+      context.header('Cache-Control', 'no-store');
+      return context.json({ data, meta: responseMeta(context) });
+    } catch (error) {
+      if (error instanceof RagRateLimitError) {
+        context.header('Retry-After', '86400');
+        return context.json({ error: { code: 'rate_limited', message: error.message, requestId: context.get('requestId') } }, 429);
+      }
+      throw error;
+    }
+  });
+
+  app.post('/v1/internal/vector-index', async (context) => {
+    if (!context.env.INDEXING_SECRET || !await secretsMatch(context.req.header('X-Fortress-Index-Key') ?? '', context.env.INDEXING_SECRET)) {
+      return context.json({ error: { code: 'not_found', message: 'Route was not found.', requestId: context.get('requestId') } }, 404);
+    }
+    const parsed = vectorIndexBatchSchema.safeParse(await readJsonBody(context));
+    if (!parsed.success) return context.json({ error: { code: 'invalid_request', message: 'Index cursor or batch size is invalid.', requestId: context.get('requestId') } }, 400);
+    const data = await indexRecordBatch(context.env, parsed.data.cursor, parsed.data.limit);
+    context.header('Cache-Control', 'no-store');
+    return context.json({ data, meta: responseMeta(context) });
+  });
+
   app.get('/v1/queries/:id', async (context) => {
     const definition = await context.env.AUTH.getNamedQuery(context.req.param('id'), context.get('principalId'));
     if (!definition) {
@@ -476,4 +512,19 @@ function unauthorized(context: ApiContext, message: string) {
 
 function invalidHadithRequest(context: ApiContext, message: string) {
   return context.json({ error: { code: 'invalid_request', message, requestId: context.get('requestId') } }, 400);
+}
+
+async function readJsonBody(context: ApiContext) {
+  try { return await context.req.json(); } catch { return null; }
+}
+
+async function secretsMatch(candidate: string, expected: string) {
+  const encoder = new TextEncoder();
+  const [candidateHash, expectedHash] = await Promise.all([
+    crypto.subtle.digest('SHA-256', encoder.encode(candidate)),
+    crypto.subtle.digest('SHA-256', encoder.encode(expected)),
+  ]);
+  const left = new Uint8Array(candidateHash);
+  const right = new Uint8Array(expectedHash);
+  return left.every((value, index) => value === right[index]);
 }

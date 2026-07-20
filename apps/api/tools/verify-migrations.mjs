@@ -4,8 +4,8 @@ import { withNodeSqliteCompatibility } from './node-sqlite-compat.mjs';
 
 const migrationsUrl = new URL('../migrations/', import.meta.url);
 const migrationFiles = (await readdir(migrationsUrl)).filter((file) => file.endsWith('.sql')).sort();
-const source = JSON.parse(await readFile(new URL('../../../pwa-website/data/duas.json', import.meta.url), 'utf8'));
 const database = new DatabaseSync(':memory:');
+const legacy = { records: 135, parts: 320, segments: 1105, firstParts: 5 };
 
 database.exec('PRAGMA foreign_keys = ON;');
 for (const migration of migrationFiles) {
@@ -13,25 +13,19 @@ for (const migration of migrationFiles) {
   database.exec(withNodeSqliteCompatibility(sql));
 }
 
-const expectedParts = source.entries.reduce((total, entry) => total + entry.parts.length, 0);
-const expectedSegments = source.entries.reduce(
-  (total, entry) => total + entry.parts.reduce((partTotal, part) => partTotal + part.length, 0),
-  0,
-);
-
-assertCount('content_records', source.entries.length);
-assertCount('content_parts', expectedParts);
-assertCount('content_segments', expectedSegments);
+assertCount('content_records', legacy.records);
+assertCount('content_parts', legacy.parts);
+assertCount('content_segments', legacy.segments);
 assertCount('dataset_versions', 1);
 assertCount('languages', 3);
 assertCount('source_materials', 1);
 assertCount('dataset_sources', 1);
 assertCount('collections', 1);
-assertCount('record_placements', source.entries.length);
-assertCount('dua_metadata', source.entries.length);
-assertCount('record_search_metadata', source.entries.length);
+assertCount('record_placements', legacy.records);
+assertCount('dua_metadata', legacy.records);
+assertCount('record_search_metadata', legacy.records);
 assertCount('publication_history', 2);
-assertCount('verification_records', source.entries.length + 1);
+assertCount('verification_records', legacy.records + 1);
 assertCount('source_acquisitions', 0);
 assertCount('source_artifacts', 0);
 assertCount('import_runs', 0);
@@ -64,7 +58,7 @@ const first = database.prepare(`
   GROUP BY record.id
 `).get();
 
-if (first.id !== 'dua.hisn.001' || first.legacy_id !== 'dua-001' || first.part_count !== source.entries[0].parts.length) {
+if (first.id !== 'dua.hisn.001' || first.legacy_id !== 'dua-001' || first.part_count !== legacy.firstParts) {
   throw new Error('Canonical first-record verification failed.');
 }
 
@@ -78,7 +72,7 @@ if (provenance.license_status !== 'unknown' || provenance.authenticity_status !=
   throw new Error('Legacy provenance must remain explicitly unverified until editorial review.');
 }
 
-console.log(`Verified ${migrationFiles.length} D1 migrations: ${source.entries.length} records, ${expectedParts} parts, ${expectedSegments} segments.`);
+console.log(`Verified ${migrationFiles.length} D1 migrations and the immutable ${legacy.records}-record legacy seed.`);
 
 function assertCount(table, expected) {
   const actual = database.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;

@@ -1,6 +1,9 @@
 export type Bindings = {
   PLATFORM_ENV: 'test' | 'production';
   CONTENT_DB: D1Database;
+  AI: Ai;
+  VECTOR_INDEX: VectorizeIndex;
+  INDEXING_SECRET?: string;
   AUTH: Fetcher & {
     verifyApiKey(key: string, permissions?: Record<string, string[]>): Promise<{
       valid: boolean;

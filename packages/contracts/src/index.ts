@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const API_VERSION = 'v1' as const;
 export const PLATFORM_NAME = 'Fortress Platform' as const;
-export const PLATFORM_VERSION = '0.14.0' as const;
+export const PLATFORM_VERSION = '0.15.0' as const;
 export const CURRENT_DATASET_ID = 'dataset.hisn.legacy.2026-07-11-v2' as const;
 
 export const contentSegmentSchema = z.object({
@@ -84,6 +84,15 @@ export const hadithSearchSchema = hadithListSchema.extend({
   q: z.string().trim().min(2).max(200),
 });
 
+export const askQuestionSchema = z.object({
+  question: z.string().trim().min(5).max(500),
+});
+
+export const vectorIndexBatchSchema = z.object({
+  cursor: z.coerce.number().int().nonnegative().default(0),
+  limit: z.coerce.number().int().min(1).max(50).default(25),
+});
+
 export type ContentSegment = z.infer<typeof contentSegmentSchema>;
 export type DuaSummary = z.infer<typeof duaSummarySchema>;
 export type Dua = z.infer<typeof duaSchema>;
@@ -93,3 +102,4 @@ export type ContentType = z.infer<typeof contentTypeSchema>;
 export type CollectionSummary = z.infer<typeof collectionSummarySchema>;
 export type HadithSummary = z.infer<typeof hadithSummarySchema>;
 export type Hadith = z.infer<typeof hadithSchema>;
+export type AskQuestion = z.infer<typeof askQuestionSchema>;
