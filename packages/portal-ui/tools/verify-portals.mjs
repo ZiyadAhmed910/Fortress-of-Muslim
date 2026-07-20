@@ -12,5 +12,14 @@ for (const portal of ['developers', 'status', 'admin']) {
   if (portal === 'developers') {
     for (const path of ['console.html', 'console.js', 'console.css', 'device.html', 'device.js']) await access(new URL(path, output));
   }
+  if (portal === 'admin') {
+    for (const marker of ['id="sources"', 'id="taxonomy"', 'id="content-dialog"', 'id="reference-dialog"']) {
+      if (!html.includes(marker)) throw new Error(`Admin portal is missing ${marker}.`);
+    }
+    const script = await readFile(new URL('app.js', output), 'utf8');
+    for (const route of ['/v1/admin/sources', '/v1/admin/taxonomy', '/references']) {
+      if (!script.includes(route)) throw new Error(`Admin portal is missing editorial route ${route}.`);
+    }
+  }
 }
 console.log('Verified developer, status, and admin portal builds.');

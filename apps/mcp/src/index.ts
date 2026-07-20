@@ -12,7 +12,7 @@ type Bindings = {
 export default {
   async fetch(request: Request, env: Bindings): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname === '/health') return Response.json({ status: 'ok', service: 'fortress-mcp', environment: env.PLATFORM_ENV, version: '0.10.0', timestamp: new Date().toISOString() });
+    if (url.pathname === '/health') return Response.json({ status: 'ok', service: 'fortress-mcp', environment: env.PLATFORM_ENV, version: '0.11.0', timestamp: new Date().toISOString() });
     if (url.pathname === '/.well-known/oauth-protected-resource') return Response.json({ resource: url.origin, authorization_servers: [`${env.AUTH_BASE_URL}/api/auth`], scopes_supported: ['mcp:connect', 'content:read', 'content:search', 'dataset:read'] });
     if (url.pathname !== '/mcp' || request.method !== 'POST') return Response.json({ error: 'Not found' }, { status: 404 });
     const service = await env.AUTH.getServiceState('mcp');
@@ -25,7 +25,7 @@ export default {
     let message: { jsonrpc?: string; id?: unknown; method?: string; params?: Record<string, unknown> };
     try { message = await request.json(); } catch { return rpc(null, undefined, { code: -32700, message: 'Parse error' }, 400); }
     const toolset = url.searchParams.get('toolset') ?? undefined;
-    if (message.method === 'initialize') return rpc(message.id, { protocolVersion: '2025-06-18', capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'Fortress Platform MCP', version: '0.10.0' }, instructions: 'Use Fortress tools for dataset-grounded dua content. All tools are read-only. For a named dua or situation, call find_dua first because it fuzzy-matches titles and returns complete records in one call. Use search_duas only for broad searches inside the dua text. Call get_dua_evidence before making authenticity, attribution, or citation claims, and state clearly when evidence is pending or incomplete.' });
+    if (message.method === 'initialize') return rpc(message.id, { protocolVersion: '2025-06-18', capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'Fortress Platform MCP', version: '0.11.0' }, instructions: 'Use Fortress tools for dataset-grounded dua content. All tools are read-only. For a named dua or situation, call find_dua first because it fuzzy-matches titles and returns complete records in one call. Use search_duas only for broad searches inside the dua text. Call get_dua_evidence before making authenticity, attribution, or citation claims, and state clearly when evidence is pending or incomplete.' });
     if (message.method === 'notifications/initialized') return new Response(null, { status: 202 });
     if (message.method === 'tools/list') {
       const tools = await env.AUTH.getMcpTools(ownerUserId, toolset);

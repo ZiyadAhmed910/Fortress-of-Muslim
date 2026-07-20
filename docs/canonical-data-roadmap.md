@@ -11,10 +11,13 @@
 - Search metadata ready for deterministic indexing.
 - Anonymous public reading with authenticated owner-scoped named queries.
 - Evidence endpoint: `GET /v1/duas/{id}/evidence`.
+- Admin source registry with independent license and authenticity trust decisions.
+- Admin record inspector for citations, taxonomy assignment, evidence eligibility, and review history.
+- Evidence-gated reference and record verification with append-only audit events.
 
 ## Next Increments
 
-1. Admin source, collection, citation, taxonomy, and translation management.
+1. Admin collection, translation, and correction workflows.
 2. Staged import jobs with validation reports and resumable background events.
 3. Atomic dataset publisher and rollback, followed by a versioned PWA snapshot manifest.
 4. Exact-reference, metadata-filtered, and indexed full-text search.

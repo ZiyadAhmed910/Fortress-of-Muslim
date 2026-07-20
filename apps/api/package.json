@@ -1,6 +1,6 @@
 {
   "name": "@fortress/api",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,14 +9,15 @@
     "deploy:production": "wrangler deploy --env production",
     "db:generate": "node tools/generate-legacy-migration.mjs",
     "db:verify": "node tools/verify-migrations.mjs",
+    "editorial:verify": "node tools/verify-editorial-workflow.mjs",
     "db:migrate:test": "wrangler d1 migrations apply fortress-platform-test --remote --env test",
     "db:migrate:production": "wrangler d1 migrations apply fortress-platform-production --remote --env production",
     "openapi:verify": "node tools/verify-openapi.mjs",
-    "test": "vitest run && npm run db:verify && npm run openapi:verify",
+    "test": "vitest run && npm run db:verify && npm run editorial:verify && npm run openapi:verify",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fortress/contracts": "0.10.0",
+    "@fortress/contracts": "0.11.0",
     "hono": "^4.8.0"
   },
   "devDependencies": {

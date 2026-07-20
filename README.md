@@ -128,7 +128,7 @@ npm run db:generate --workspace @fortress/api
 npm run db:verify --workspace @fortress/api
 ```
 
-The generated migration preserves the source text exactly and must not be edited manually. Editorial corrections belong in the source dataset or the future Admin publishing workflow.
+The generated migration preserves the source text exactly and must not be edited manually. Editorial corrections belong in the source dataset or the Admin editorial and publishing workflow.
 
 The test API uses the `dev` branch and the production API uses `main`. Cloudflare deployment remains disabled until the repository variable `CLOUDFLARE_DEPLOY_ENABLED` is set to `true` and the required account secrets are configured. Setup is documented in `docs/cloudflare-setup.md`.
 
@@ -141,6 +141,14 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.11.0
+
+- Added an Admin source registry for editions, publishers, machine formats, licensing, authenticity, URLs, and editorial notes.
+- Added a content record inspector for citations, controlled taxonomy, verification eligibility, review history, and correction history.
+- Enforced trusted-source rules when approving references and content records; source trust elevation remains restricted to super administrators.
+- Added source records to global Admin search and surfaced source and pending-reference counts on the platform overview.
+- Added transactional content audit events and an automated editorial workflow verification check.
 
 ### 0.10.0
 
@@ -261,7 +269,7 @@ Every platform release must:
 
 ### Admin Console
 
-The Admin Console is a separate static portal backed by authenticated `/v1/admin/*` control-plane routes on the Auth Worker. Administrator authorization is stored in D1 and is never inferred from an email address or browser state.
+The Admin Console is a separate static portal backed by authenticated `/v1/admin/*` control-plane routes on the Auth Worker. Administrator authorization is stored in D1 and is never inferred from an email address or browser state. Its Knowledge workspace manages source provenance, citation status, controlled taxonomy, evidence eligibility, and append-only editorial history.
 
 ```bash
 npm run dev:admin

@@ -20,6 +20,16 @@ export async function handleAdminPlane(request: Request, url: URL, env: Bindings
   if (url.pathname === '/v1/admin/users' && request.method === 'GET') return listUsers(context, url);
   if (url.pathname === '/v1/admin/resources' && request.method === 'GET') return listResources(context, url);
   if (url.pathname === '/v1/admin/content' && request.method === 'GET') return listContent(context, url);
+  if (url.pathname === '/v1/admin/sources' && request.method === 'GET') return listSources(context, url);
+  if (url.pathname === '/v1/admin/sources' && request.method === 'POST') {
+    if (!canWrite(grant.role)) return forbidden();
+    return createSource(context, await readJson(request));
+  }
+  if (url.pathname === '/v1/admin/taxonomy' && request.method === 'GET') return listTaxonomy(context, url);
+  if (url.pathname === '/v1/admin/taxonomy' && request.method === 'POST') {
+    if (!canWrite(grant.role)) return forbidden();
+    return createTaxonomyTerm(context, await readJson(request));
+  }
   if (url.pathname === '/v1/admin/services' && request.method === 'GET') return listServices(context);
   if (url.pathname === '/v1/admin/audit' && request.method === 'GET') return listAudit(context, url);
 
@@ -43,9 +53,39 @@ export async function handleAdminPlane(request: Request, url: URL, env: Bindings
   }
 
   const contentMatch = url.pathname.match(/^\/v1\/admin\/content\/([^/]+)$/);
+  if (contentMatch && request.method === 'GET') return getContent(context, decodeURIComponent(contentMatch[1]!));
   if (contentMatch && request.method === 'PATCH') {
     if (!canWrite(grant.role)) return forbidden();
     return updateContent(context, decodeURIComponent(contentMatch[1]!), await readJson(request));
+  }
+
+  const sourceMatch = url.pathname.match(/^\/v1\/admin\/sources\/([^/]+)$/);
+  if (sourceMatch && request.method === 'GET') return getSource(context, decodeURIComponent(sourceMatch[1]!));
+  if (sourceMatch && request.method === 'PATCH') {
+    if (!canWrite(grant.role)) return forbidden();
+    return updateSource(context, decodeURIComponent(sourceMatch[1]!), await readJson(request));
+  }
+
+  const referenceMatch = url.pathname.match(/^\/v1\/admin\/content\/([^/]+)\/references$/);
+  if (referenceMatch && request.method === 'POST') {
+    if (!canWrite(grant.role)) return forbidden();
+    return createReference(context, decodeURIComponent(referenceMatch[1]!), await readJson(request));
+  }
+  const referenceStatusMatch = url.pathname.match(/^\/v1\/admin\/references\/([^/]+)$/);
+  if (referenceStatusMatch && request.method === 'PATCH') {
+    if (!canWrite(grant.role)) return forbidden();
+    return updateReference(context, decodeURIComponent(referenceStatusMatch[1]!), await readJson(request));
+  }
+
+  const taxonomyMatch = url.pathname.match(/^\/v1\/admin\/content\/([^/]+)\/taxonomy$/);
+  if (taxonomyMatch && request.method === 'POST') {
+    if (!canWrite(grant.role)) return forbidden();
+    return assignTaxonomy(context, decodeURIComponent(taxonomyMatch[1]!), await readJson(request));
+  }
+  const taxonomyDeleteMatch = url.pathname.match(/^\/v1\/admin\/content\/([^/]+)\/taxonomy\/([^/]+)$/);
+  if (taxonomyDeleteMatch && request.method === 'DELETE') {
+    if (!canWrite(grant.role)) return forbidden();
+    return removeTaxonomy(context, decodeURIComponent(taxonomyDeleteMatch[1]!), decodeURIComponent(taxonomyDeleteMatch[2]!));
   }
 
   return json({ error: { code: 'not_found', message: 'Admin route was not found.' } }, 404);
@@ -67,20 +107,24 @@ async function overview({ env }: AdminContext) {
     count(env.IDENTITY_DB, "SELECT COUNT(*) AS count FROM mcp_toolsets WHERE status = 'active'"),
     count(env.IDENTITY_DB, "SELECT COUNT(*) AS count FROM access_requests WHERE status = 'pending'"),
   ];
-  const [[users, apiKeys, oauthClients, devices, mcpServers, pendingRequests], content, services, audit] = await Promise.all([
+  const [[users, apiKeys, oauthClients, devices, mcpServers, pendingRequests], [content, sources, pendingEvidence], services, audit] = await Promise.all([
     Promise.all(identityQueries),
-    count(env.CONTENT_DB, 'SELECT COUNT(*) AS count FROM content_records'),
+    Promise.all([
+      count(env.CONTENT_DB, 'SELECT COUNT(*) AS count FROM content_records'),
+      count(env.CONTENT_DB, 'SELECT COUNT(*) AS count FROM source_materials'),
+      count(env.CONTENT_DB, "SELECT COUNT(*) AS count FROM source_references WHERE verification_status = 'pending'"),
+    ]),
     env.IDENTITY_DB.prepare('SELECT service_key AS serviceKey, display_name AS displayName, status, enforcement, updated_at AS updatedAt FROM platform_services ORDER BY display_name').all(),
     env.IDENTITY_DB.prepare('SELECT occurred_at AS occurredAt, actor_type AS actorType, action, target_type AS targetType, target_id AS targetId, details FROM audit_events ORDER BY occurred_at DESC LIMIT 8').all(),
   ]);
-  return json({ data: { counts: { users, apiKeys, oauthClients, devices, mcpServers, pendingRequests, content }, services: services.results, audit: audit.results } });
+  return json({ data: { counts: { users, apiKeys, oauthClients, devices, mcpServers, pendingRequests, content, sources, pendingEvidence }, services: services.results, audit: audit.results } });
 }
 
 async function globalSearch({ env }: AdminContext, url: URL) {
   const query = cleanQuery(url.searchParams.get('q'));
   if (query.length < 2) return json({ data: [] });
   const like = `%${query}%`;
-  const [users, keys, clients, devices, mcp, queries, content] = await Promise.all([
+  const [users, keys, clients, devices, mcp, queries, content, sources] = await Promise.all([
     env.IDENTITY_DB.prepare('SELECT id, name AS label, email AS detail FROM "user" WHERE name LIKE ? OR email LIKE ? ORDER BY name LIMIT 8').bind(like, like).all(),
     env.IDENTITY_DB.prepare('SELECT id, COALESCE(name, start, id) AS label, start AS detail FROM apikey WHERE name LIKE ? OR start LIKE ? ORDER BY createdAt DESC LIMIT 8').bind(like, like).all(),
     env.IDENTITY_DB.prepare('SELECT clientId AS id, COALESCE(name, clientId) AS label, clientId AS detail FROM "oauthClient" WHERE name LIKE ? OR clientId LIKE ? ORDER BY createdAt DESC LIMIT 8').bind(like, like).all(),
@@ -88,11 +132,12 @@ async function globalSearch({ env }: AdminContext, url: URL) {
     env.IDENTITY_DB.prepare('SELECT id, name AS label, status AS detail FROM mcp_toolsets WHERE name LIKE ? OR slug LIKE ? ORDER BY created_at DESC LIMIT 8').bind(like, like).all(),
     env.IDENTITY_DB.prepare('SELECT id, name AS label, operation AS detail FROM named_queries WHERE name LIKE ? OR slug LIKE ? ORDER BY created_at DESC LIMIT 8').bind(like, like).all(),
     env.CONTENT_DB.prepare('SELECT id, title AS label, verification_status AS detail FROM content_records WHERE title LIKE ? OR id LIKE ? OR legacy_id LIKE ? ORDER BY sequence LIMIT 12').bind(like, like, like).all(),
+    env.CONTENT_DB.prepare('SELECT id, title AS label, COALESCE(publisher, source_type) AS detail FROM source_materials WHERE title LIKE ? OR publisher LIKE ? OR id LIKE ? ORDER BY title LIMIT 8').bind(like, like, like).all(),
   ]);
   return json({ data: [
     ...typed('user', users.results), ...typed('api-key', keys.results), ...typed('oauth-client', clients.results),
     ...typed('device', devices.results), ...typed('mcp-server', mcp.results), ...typed('named-query', queries.results),
-    ...typed('content', content.results),
+    ...typed('content', content.results), ...typed('source', sources.results),
   ] });
 }
 
@@ -180,6 +225,268 @@ async function updateResourceStatus(context: AdminContext, type: string, id: str
   return json({ data: { id, status: requested } });
 }
 
+async function listSources({ env }: AdminContext, url: URL) {
+  const query = cleanQuery(url.searchParams.get('q'));
+  const status = cleanQuery(url.searchParams.get('status'));
+  const like = `%${query}%`;
+  const result = await env.CONTENT_DB.prepare(`
+    SELECT source.id, source.title, source.source_type AS sourceType, source.publisher,
+           source.license_name AS licenseName, source.license_status AS licenseStatus,
+           source.authenticity_status AS authenticityStatus, source.updated_at AS updatedAt,
+           COUNT(DISTINCT reference.id) AS referenceCount
+    FROM source_materials source
+    LEFT JOIN source_references reference ON reference.source_id = source.id
+    WHERE (? = '' OR source.title LIKE ? OR source.publisher LIKE ? OR source.id LIKE ?)
+      AND (? = '' OR source.license_status = ? OR source.authenticity_status = ?)
+    GROUP BY source.id ORDER BY source.updated_at DESC LIMIT 150
+  `).bind(query, like, like, like, status, status, status).all();
+  return json({ data: result.results });
+}
+
+async function getSource({ env }: AdminContext, id: string) {
+  const source = await env.CONTENT_DB.prepare(`
+    SELECT id, source_type AS sourceType, title, original_title AS originalTitle, publisher, edition,
+           publication_year AS publicationYear, source_url AS sourceUrl, license_name AS licenseName,
+           license_url AS licenseUrl, license_status AS licenseStatus,
+           authenticity_status AS authenticityStatus, machine_format AS machineFormat, notes,
+           created_at AS createdAt, updated_at AS updatedAt
+    FROM source_materials WHERE id = ?
+  `).bind(id).first();
+  if (!source) return json({ error: { code: 'not_found', message: 'Source was not found.' } }, 404);
+  const [datasets, references] = await Promise.all([
+    env.CONTENT_DB.prepare(`SELECT dataset_id AS datasetId, source_role AS sourceRole, import_locator AS importLocator,
+      imported_at AS importedAt FROM dataset_sources WHERE source_id = ? ORDER BY imported_at DESC`).bind(id).all(),
+    env.CONTENT_DB.prepare(`SELECT reference.id, reference.record_id AS recordId, record.title,
+      reference.reference_type AS referenceType, reference.locator,
+      reference.verification_status AS verificationStatus
+      FROM source_references reference JOIN content_records record ON record.id = reference.record_id
+      WHERE reference.source_id = ? ORDER BY record.sequence LIMIT 100`).bind(id).all(),
+  ]);
+  return json({ data: { source, datasets: datasets.results, references: references.results } });
+}
+
+async function createSource(context: AdminContext, body: Record<string, unknown>) {
+  const parsed = parseSource(body);
+  if (!parsed.ok) return invalid(parsed.message);
+  if (requiresSourceAuthority(parsed.value) && context.grant.role !== 'super_admin') {
+    return json({ error: { code: 'forbidden', message: 'Only a super administrator can approve source trust or licensing.' } }, 403);
+  }
+  const id = `source.${crypto.randomUUID()}`;
+  const now = new Date().toISOString();
+  await context.env.CONTENT_DB.batch([
+    context.env.CONTENT_DB.prepare(`INSERT INTO source_materials
+      (id, source_type, title, original_title, publisher, edition, publication_year, source_url,
+       license_name, license_url, license_status, authenticity_status, machine_format, notes, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .bind(id, parsed.value.sourceType, parsed.value.title, parsed.value.originalTitle, parsed.value.publisher,
+        parsed.value.edition, parsed.value.publicationYear, parsed.value.sourceUrl, parsed.value.licenseName,
+        parsed.value.licenseUrl, parsed.value.licenseStatus, parsed.value.authenticityStatus,
+        parsed.value.machineFormat, parsed.value.notes, now, now),
+    contentAuditStatement(context, 'source.created', 'source', id, parsed.value, now),
+  ]);
+  await audit(context, 'source.created', 'source', id, parsed.value);
+  return json({ data: { id, ...parsed.value, createdAt: now, updatedAt: now } }, 201);
+}
+
+async function updateSource(context: AdminContext, id: string, body: Record<string, unknown>) {
+  const current = await context.env.CONTENT_DB.prepare(`SELECT source_type AS sourceType, title, original_title AS originalTitle,
+    publisher, edition, publication_year AS publicationYear, source_url AS sourceUrl, license_name AS licenseName,
+    license_url AS licenseUrl, license_status AS licenseStatus, authenticity_status AS authenticityStatus,
+    machine_format AS machineFormat, notes FROM source_materials WHERE id = ?`).bind(id).first<Record<string, unknown>>();
+  if (!current) return json({ error: { code: 'not_found', message: 'Source was not found.' } }, 404);
+  const parsed = parseSource({ ...current, ...body });
+  if (!parsed.ok) return invalid(parsed.message);
+  const elevatesTrust = (parsed.value.licenseStatus === 'approved' && current.licenseStatus !== 'approved')
+    || (parsed.value.authenticityStatus === 'trusted' && current.authenticityStatus !== 'trusted');
+  if (elevatesTrust && context.grant.role !== 'super_admin') {
+    return json({ error: { code: 'forbidden', message: 'Only a super administrator can approve source trust or licensing.' } }, 403);
+  }
+  const now = new Date().toISOString();
+  await context.env.CONTENT_DB.batch([
+    context.env.CONTENT_DB.prepare(`UPDATE source_materials SET source_type = ?, title = ?, original_title = ?,
+      publisher = ?, edition = ?, publication_year = ?, source_url = ?, license_name = ?, license_url = ?,
+      license_status = ?, authenticity_status = ?, machine_format = ?, notes = ?, updated_at = ? WHERE id = ?`)
+      .bind(parsed.value.sourceType, parsed.value.title, parsed.value.originalTitle, parsed.value.publisher,
+        parsed.value.edition, parsed.value.publicationYear, parsed.value.sourceUrl, parsed.value.licenseName,
+        parsed.value.licenseUrl, parsed.value.licenseStatus, parsed.value.authenticityStatus,
+        parsed.value.machineFormat, parsed.value.notes, now, id),
+    contentAuditStatement(context, 'source.updated', 'source', id,
+      { previousLicenseStatus: current.licenseStatus, previousAuthenticityStatus: current.authenticityStatus, ...parsed.value }, now),
+  ]);
+  await audit(context, 'source.updated', 'source', id, parsed.value);
+  return json({ data: { id, ...parsed.value, updatedAt: now } });
+}
+
+async function listTaxonomy({ env }: AdminContext, url: URL) {
+  const query = cleanQuery(url.searchParams.get('q'));
+  const type = cleanQuery(url.searchParams.get('type'));
+  const like = `%${query}%`;
+  const result = await env.CONTENT_DB.prepare(`SELECT term.id, term.taxonomy_type AS type, term.slug, term.label,
+    term.language_code AS languageCode, term.description, COUNT(assignment.record_id) AS recordCount
+    FROM taxonomy_terms term LEFT JOIN record_taxonomy assignment ON assignment.term_id = term.id
+    WHERE (? = '' OR term.label LIKE ? OR term.slug LIKE ?) AND (? = '' OR term.taxonomy_type = ?)
+    GROUP BY term.id ORDER BY term.taxonomy_type, term.label LIMIT 250`)
+    .bind(query, like, like, type, type).all();
+  return json({ data: result.results });
+}
+
+async function createTaxonomyTerm(context: AdminContext, body: Record<string, unknown>) {
+  const type = String(body.type ?? '');
+  const slug = String(body.slug ?? '').trim().toLocaleLowerCase();
+  const label = String(body.label ?? '').trim();
+  const languageCode = String(body.languageCode ?? 'en').trim();
+  const description = optionalText(body.description, 500);
+  if (!['category', 'topic', 'tag', 'keyword', 'mood', 'occasion'].includes(type)) return invalid('Choose a supported taxonomy type.');
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || label.length < 2 || label.length > 100) return invalid('Enter a label and a lowercase hyphenated slug.');
+  const language = await context.env.CONTENT_DB.prepare('SELECT 1 FROM languages WHERE code = ? AND status = \'active\'').bind(languageCode).first();
+  if (!language) return invalid('Choose an active language code.');
+  const id = `term.${type}.${crypto.randomUUID()}`;
+  const now = new Date().toISOString();
+  try {
+    await context.env.CONTENT_DB.batch([
+      context.env.CONTENT_DB.prepare(`INSERT INTO taxonomy_terms
+        (id, taxonomy_type, slug, label, language_code, description) VALUES (?, ?, ?, ?, ?, ?)`)
+        .bind(id, type, slug, label, languageCode, description),
+      contentAuditStatement(context, 'taxonomy.created', 'taxonomy', id, { type, slug, label, languageCode }, now),
+    ]);
+  } catch (error) {
+    if (String(error).includes('UNIQUE')) return json({ error: { code: 'conflict', message: 'That taxonomy slug already exists for this type and language.' } }, 409);
+    throw error;
+  }
+  await audit(context, 'taxonomy.created', 'taxonomy', id, { type, slug, label, languageCode });
+  return json({ data: { id, type, slug, label, languageCode, description, recordCount: 0 } }, 201);
+}
+
+async function getContent({ env }: AdminContext, id: string) {
+  const record = await env.CONTENT_DB.prepare(`SELECT record.id, record.legacy_id AS legacyId, record.sequence,
+    record.title, record.content_type AS contentType, record.verification_status AS status,
+    record.dataset_id AS datasetId, record.updated_at AS updatedAt,
+    collection.id AS collectionId, collection.title AS collectionTitle
+    FROM content_records record
+    LEFT JOIN record_placements placement ON placement.record_id = record.id
+    LEFT JOIN collections collection ON collection.id = placement.collection_id
+    WHERE record.id = ? OR record.legacy_id = ? LIMIT 1`).bind(id, id).first();
+  if (!record) return json({ error: { code: 'not_found', message: 'Content record was not found.' } }, 404);
+  const recordId = String(record.id);
+  const [references, taxonomy, verification, corrections, sources, terms] = await Promise.all([
+    env.CONTENT_DB.prepare(`SELECT reference.id, reference.source_id AS sourceId, source.title AS sourceTitle,
+      reference.reference_type AS referenceType, reference.locator, reference.canonical_url AS canonicalUrl,
+      reference.notes, reference.verification_status AS verificationStatus,
+      source.license_status AS licenseStatus, source.authenticity_status AS authenticityStatus
+      FROM source_references reference JOIN source_materials source ON source.id = reference.source_id
+      WHERE reference.record_id = ? ORDER BY reference.created_at DESC`).bind(recordId).all(),
+    env.CONTENT_DB.prepare(`SELECT term.id, term.taxonomy_type AS type, term.slug, term.label,
+      term.language_code AS languageCode FROM record_taxonomy assignment
+      JOIN taxonomy_terms term ON term.id = assignment.term_id WHERE assignment.record_id = ?
+      ORDER BY term.taxonomy_type, term.label`).bind(recordId).all(),
+    env.CONTENT_DB.prepare(`SELECT status, method, notes, reviewer_external_id AS reviewerExternalId,
+      reviewed_at AS reviewedAt FROM verification_records WHERE target_type = 'record' AND target_id = ?
+      ORDER BY reviewed_at DESC LIMIT 50`).bind(recordId).all(),
+    env.CONTENT_DB.prepare(`SELECT field_path AS fieldPath, reason, created_at AS createdAt
+      FROM correction_history WHERE record_id = ? ORDER BY created_at DESC LIMIT 50`).bind(recordId).all(),
+    env.CONTENT_DB.prepare(`SELECT id, title, license_status AS licenseStatus,
+      authenticity_status AS authenticityStatus FROM source_materials ORDER BY title LIMIT 250`).all(),
+    env.CONTENT_DB.prepare(`SELECT id, taxonomy_type AS type, slug, label, language_code AS languageCode
+      FROM taxonomy_terms ORDER BY taxonomy_type, label LIMIT 500`).all(),
+  ]);
+  const canVerify = references.results.some((item) => {
+    const reference = item as Record<string, unknown>;
+    return reference.verificationStatus === 'verified'
+      && reference.licenseStatus === 'approved'
+      && reference.authenticityStatus === 'trusted';
+  });
+  return json({ data: { record, references: references.results, taxonomy: taxonomy.results,
+    verificationHistory: verification.results, corrections: corrections.results,
+    availableSources: sources.results, availableTerms: terms.results, canVerify } });
+}
+
+async function createReference(context: AdminContext, recordId: string, body: Record<string, unknown>) {
+  const sourceId = String(body.sourceId ?? '');
+  const referenceType = String(body.referenceType ?? 'primary');
+  const locator = String(body.locator ?? '').trim();
+  const canonicalUrl = optionalUrl(body.canonicalUrl);
+  const notes = optionalText(body.notes, 1000);
+  if (!['primary', 'supporting', 'grading', 'cross_check'].includes(referenceType)) return invalid('Choose a supported reference type.');
+  if (!locator || locator.length > 240) return invalid('Enter a source locator of 240 characters or fewer.');
+  if (canonicalUrl === false) return invalid('Canonical URL must use HTTPS.');
+  const [record, source] = await Promise.all([
+    context.env.CONTENT_DB.prepare('SELECT 1 FROM content_records WHERE id = ?').bind(recordId).first(),
+    context.env.CONTENT_DB.prepare('SELECT 1 FROM source_materials WHERE id = ?').bind(sourceId).first(),
+  ]);
+  if (!record || !source) return invalid('Choose an existing content record and source.');
+  const id = `reference.${crypto.randomUUID()}`;
+  const now = new Date().toISOString();
+  try {
+    await context.env.CONTENT_DB.batch([
+      context.env.CONTENT_DB.prepare(`INSERT INTO source_references
+        (id, record_id, source_id, reference_type, locator, canonical_url, notes, verification_status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)`)
+        .bind(id, recordId, sourceId, referenceType, locator, canonicalUrl || null, notes, now),
+      contentAuditStatement(context, 'reference.created', 'record', recordId, { referenceId: id, sourceId, referenceType, locator }, now),
+    ]);
+  } catch (error) {
+    if (String(error).includes('UNIQUE')) return json({ error: { code: 'conflict', message: 'This source reference is already attached.' } }, 409);
+    throw error;
+  }
+  await audit(context, 'reference.created', 'content', recordId, { referenceId: id, sourceId, referenceType, locator });
+  return json({ data: { id, recordId, sourceId, referenceType, locator, canonicalUrl: canonicalUrl || null, notes, verificationStatus: 'pending' } }, 201);
+}
+
+async function updateReference(context: AdminContext, id: string, body: Record<string, unknown>) {
+  const status = String(body.status ?? '');
+  if (!['pending', 'verified', 'rejected'].includes(status)) return invalid('Choose pending, verified, or rejected.');
+  const reference = await context.env.CONTENT_DB.prepare(`SELECT reference.record_id AS recordId,
+    source.license_status AS licenseStatus, source.authenticity_status AS authenticityStatus
+    FROM source_references reference JOIN source_materials source ON source.id = reference.source_id
+    WHERE reference.id = ?`).bind(id).first<{ recordId: string; licenseStatus: string; authenticityStatus: string }>();
+  if (!reference) return json({ error: { code: 'not_found', message: 'Reference was not found.' } }, 404);
+  if (status === 'verified' && (reference.licenseStatus !== 'approved' || reference.authenticityStatus !== 'trusted')) {
+    return invalid('A reference can be verified only after its source is trusted and its license is approved.');
+  }
+  const now = new Date().toISOString();
+  await context.env.CONTENT_DB.batch([
+    context.env.CONTENT_DB.prepare('UPDATE source_references SET verification_status = ? WHERE id = ?').bind(status, id),
+    contentAuditStatement(context, 'reference.status_changed', 'record', reference.recordId, { referenceId: id, status }, now),
+  ]);
+  await audit(context, 'reference.status_changed', 'content', reference.recordId, { referenceId: id, status });
+  return json({ data: { id, status } });
+}
+
+async function assignTaxonomy(context: AdminContext, recordId: string, body: Record<string, unknown>) {
+  const termId = String(body.termId ?? '');
+  const [record, term] = await Promise.all([
+    context.env.CONTENT_DB.prepare('SELECT 1 FROM content_records WHERE id = ?').bind(recordId).first(),
+    context.env.CONTENT_DB.prepare('SELECT 1 FROM taxonomy_terms WHERE id = ?').bind(termId).first(),
+  ]);
+  if (!record || !term) return invalid('Choose an existing content record and taxonomy term.');
+  try {
+    await context.env.CONTENT_DB.batch([
+      context.env.CONTENT_DB.prepare(`INSERT INTO record_taxonomy
+        (record_id, term_id, assignment_source, confidence) VALUES (?, ?, 'editorial', 1)`).bind(recordId, termId),
+      contentAuditStatement(context, 'taxonomy.assigned', 'record', recordId, { termId }, new Date().toISOString()),
+    ]);
+  } catch (error) {
+    if (String(error).includes('UNIQUE')) return json({ error: { code: 'conflict', message: 'That taxonomy term is already assigned.' } }, 409);
+    throw error;
+  }
+  await audit(context, 'taxonomy.assigned', 'content', recordId, { termId });
+  return json({ data: { recordId, termId } }, 201);
+}
+
+async function removeTaxonomy(context: AdminContext, recordId: string, termId: string) {
+  const exists = await context.env.CONTENT_DB.prepare(
+    'SELECT 1 FROM record_taxonomy WHERE record_id = ? AND term_id = ?',
+  ).bind(recordId, termId).first();
+  if (!exists) return json({ error: { code: 'not_found', message: 'Taxonomy assignment was not found.' } }, 404);
+  const now = new Date().toISOString();
+  await context.env.CONTENT_DB.batch([
+    context.env.CONTENT_DB.prepare('DELETE FROM record_taxonomy WHERE record_id = ? AND term_id = ?').bind(recordId, termId),
+    contentAuditStatement(context, 'taxonomy.removed', 'record', recordId, { termId }, now),
+  ]);
+  await audit(context, 'taxonomy.removed', 'content', recordId, { termId });
+  return new Response(null, { status: 204 });
+}
+
 async function listContent({ env }: AdminContext, url: URL) {
   const query = cleanQuery(url.searchParams.get('q'));
   const status = url.searchParams.get('status') ?? '';
@@ -265,6 +572,72 @@ async function audit(context: AdminContext, action: string, targetType: string, 
     (id, actor_user_id, actor_type, action, target_type, target_id, request_id, details)
     VALUES (?, ?, 'admin', ?, ?, ?, ?, ?)`)
     .bind(`aud_${crypto.randomUUID()}`, context.user.id, action, targetType, targetId, context.requestId, JSON.stringify(details)).run();
+}
+
+function contentAuditStatement(context: AdminContext, action: string, targetType: string, targetId: string, details: unknown, occurredAt: string) {
+  return context.env.CONTENT_DB.prepare(`INSERT INTO content_audit_events
+    (id, occurred_at, actor_type, actor_external_id, action, target_type, target_id, request_id, details_json)
+    VALUES (?, ?, 'admin', ?, ?, ?, ?, ?, ?)`)
+    .bind(`caud_${crypto.randomUUID()}`, occurredAt, context.user.id, action, targetType, targetId, context.requestId, JSON.stringify(details));
+}
+
+type SourceInput = {
+  sourceType: string;
+  title: string;
+  originalTitle: string | null;
+  publisher: string | null;
+  edition: string | null;
+  publicationYear: number | null;
+  sourceUrl: string | null;
+  licenseName: string | null;
+  licenseUrl: string | null;
+  licenseStatus: string;
+  authenticityStatus: string;
+  machineFormat: string | null;
+  notes: string | null;
+};
+
+function parseSource(body: Record<string, unknown>): { ok: true; value: SourceInput } | { ok: false; message: string } {
+  const sourceType = String(body.sourceType ?? '');
+  const title = String(body.title ?? '').trim();
+  const publicationYearText = String(body.publicationYear ?? '').trim();
+  const publicationYear = publicationYearText ? Number(publicationYearText) : null;
+  const sourceUrl = optionalUrl(body.sourceUrl);
+  const licenseUrl = optionalUrl(body.licenseUrl);
+  const licenseStatus = String(body.licenseStatus ?? 'unknown');
+  const authenticityStatus = String(body.authenticityStatus ?? 'unreviewed');
+  if (!['book', 'publication', 'digital_library', 'api', 'file', 'dataset'].includes(sourceType)) return { ok: false, message: 'Choose a supported source type.' };
+  if (title.length < 3 || title.length > 200) return { ok: false, message: 'Source title must contain 3 to 200 characters.' };
+  if (publicationYear !== null && (!Number.isInteger(publicationYear) || publicationYear < 500 || publicationYear > new Date().getUTCFullYear() + 1)) return { ok: false, message: 'Publication year is invalid.' };
+  if (sourceUrl === false || licenseUrl === false) return { ok: false, message: 'Source and license URLs must use HTTPS.' };
+  if (!['unknown', 'reviewing', 'approved', 'restricted'].includes(licenseStatus)) return { ok: false, message: 'Choose a valid license status.' };
+  if (!['unreviewed', 'trusted', 'rejected'].includes(authenticityStatus)) return { ok: false, message: 'Choose a valid authenticity status.' };
+  return { ok: true, value: {
+    sourceType, title, originalTitle: optionalText(body.originalTitle, 200),
+    publisher: optionalText(body.publisher, 160), edition: optionalText(body.edition, 120), publicationYear,
+    sourceUrl: sourceUrl || null, licenseName: optionalText(body.licenseName, 160), licenseUrl: licenseUrl || null,
+    licenseStatus, authenticityStatus, machineFormat: optionalText(body.machineFormat, 80), notes: optionalText(body.notes, 2000),
+  } };
+}
+
+function requiresSourceAuthority(source: SourceInput) {
+  return source.licenseStatus === 'approved' || source.authenticityStatus === 'trusted';
+}
+
+function optionalText(value: unknown, maximum: number) {
+  const text = typeof value === 'string' ? value.trim() : '';
+  return text ? text.slice(0, maximum) : null;
+}
+
+function optionalUrl(value: unknown): string | null | false {
+  const text = typeof value === 'string' ? value.trim() : '';
+  if (!text) return null;
+  try {
+    const url = new URL(text);
+    return url.protocol === 'https:' ? url.toString() : false;
+  } catch {
+    return false;
+  }
 }
 
 async function count(db: D1Database, sql: string) {
