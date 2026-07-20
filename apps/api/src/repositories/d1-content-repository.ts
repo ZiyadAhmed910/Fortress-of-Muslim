@@ -77,18 +77,26 @@ export class D1ContentRepository implements ContentRepository {
       SELECT collection.id, collection.slug, collection.content_type AS contentType,
              collection.title, collection.title_arabic AS titleArabic,
              collection.verification_status AS verificationStatus,
-             COUNT(DISTINCT record.id) AS recordCount,
-             COUNT(DISTINCT book.id) AS bookCount,
-             COUNT(DISTINCT chapter.id) AS chapterCount
+             (SELECT COUNT(*)
+              FROM record_placements placement
+              JOIN content_records record ON record.id = placement.record_id
+              JOIN dataset_versions dataset ON dataset.id = record.dataset_id
+              WHERE placement.collection_id = collection.id
+                AND dataset.publication_status = 'active') AS recordCount,
+             (SELECT COUNT(*) FROM books book
+              WHERE book.collection_id = collection.id) AS bookCount,
+             (SELECT COUNT(*) FROM chapters chapter
+              JOIN books book ON book.id = chapter.book_id
+              WHERE book.collection_id = collection.id) AS chapterCount
       FROM collections collection
-      JOIN record_placements placement ON placement.collection_id = collection.id
-      JOIN content_records record ON record.id = placement.record_id
-      JOIN dataset_versions dataset ON dataset.id = record.dataset_id
-      LEFT JOIN books book ON book.collection_id = collection.id
-      LEFT JOIN chapters chapter ON chapter.book_id = book.id
-      WHERE dataset.publication_status = 'active'
-        AND (? IS NULL OR collection.content_type = ?)
-      GROUP BY collection.id
+      WHERE (? IS NULL OR collection.content_type = ?)
+        AND EXISTS (
+          SELECT 1 FROM record_placements placement
+          JOIN content_records record ON record.id = placement.record_id
+          JOIN dataset_versions dataset ON dataset.id = record.dataset_id
+          WHERE placement.collection_id = collection.id
+            AND dataset.publication_status = 'active'
+        )
       ORDER BY collection.content_type, collection.title
     `).bind(contentType ?? null, contentType ?? null).all<CollectionSummary>();
     return result.results;
