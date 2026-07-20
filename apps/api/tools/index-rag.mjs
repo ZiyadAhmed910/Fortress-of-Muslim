@@ -22,20 +22,34 @@ if (environment === 'production') {
   if (confirmation !== dataset.id) throw new Error(`Production indexing requires --confirm-production=${dataset.id}`);
 }
 
-let cursor = 0;
-let indexed = 0;
+let cursor = Number(process.argv.find((argument) => argument.startsWith('--cursor='))?.split('=')[1] ?? 0);
+if (!Number.isInteger(cursor) || cursor < 0) throw new Error('--cursor must be a non-negative integer.');
+let indexed = cursor;
 for (;;) {
-  const response = await fetch(`${endpoint}/v1/internal/vector-index`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Fortress-Index-Key': secret },
-    body: JSON.stringify({ cursor, limit: 50 }),
-  });
-  const body = await response.json();
-  if (!response.ok) throw new Error(`Indexing failed at cursor ${cursor}: ${body.error?.message ?? response.status}`);
+  const body = await requestBatch(cursor);
   indexed += body.data.indexed;
-  console.log(`Indexed ${indexed} records from ${dataset.id}.`);
+  if (indexed % 500 === 0 || body.data.complete) console.log(`Indexed through record ${indexed} from ${dataset.id}.`);
   if (body.data.complete) break;
   cursor = body.data.nextCursor;
 }
 
 console.log(`Vector indexing complete for ${environment}: ${indexed} records.`);
+
+async function requestBatch(batchCursor) {
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
+    const response = await fetch(`${endpoint}/v1/internal/vector-index`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Fortress-Index-Key': secret },
+      body: JSON.stringify({ cursor: batchCursor, limit: 50 }),
+    });
+    const body = await response.json();
+    if (response.ok) return body;
+    if (attempt === 6 || ![429, 500, 502, 503, 504].includes(response.status)) {
+      throw new Error(`Indexing failed at cursor ${batchCursor}: ${body.error?.message ?? response.status}`);
+    }
+    const delay = Math.min(30_000, 1_000 * (2 ** attempt));
+    console.warn(`Transient ${response.status} at cursor ${batchCursor}; retrying in ${delay / 1_000}s (${attempt}/6).`);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+  throw new Error(`Indexing failed at cursor ${batchCursor}.`);
+}

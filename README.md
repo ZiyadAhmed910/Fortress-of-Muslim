@@ -146,6 +146,12 @@ npm run corpus:import:test --workspace @fortress/api
 npm run corpus:verify:test --workspace @fortress/api
 ```
 
+Vector indexing is idempotent and can resume after a transient provider failure:
+
+```powershell
+npm run rag:index:test --workspace @fortress/api -- --cursor=10050
+```
+
 Production import requires the exact validated dataset ID as an explicit confirmation:
 
 ```powershell
