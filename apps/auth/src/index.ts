@@ -4,10 +4,12 @@ import { oauthProviderResourceClient } from '@better-auth/oauth-provider/resourc
 import { createAuthClient } from 'better-auth/client';
 import { createAuth } from './auth';
 import { handleAdminPlane } from './admin-plane';
+import { hasOversizedBody, isMutation, isTrustedBrowserMutation } from './security';
 import type { Bindings, KeyVerification, McpToolDefinition, NamedQueryDefinition, ServiceState, TokenVerification } from './types';
 
 const allowedMethods = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
 const allowedHeaders = 'Content-Type, Authorization, X-Fortress-API-Key, X-Request-ID';
+const MAX_MANAGEMENT_BODY_BYTES = 64 * 1024;
 const STANDARD_MCP_TOOLS = [
   { name: 'find_dua', description: 'Use this first when a user names, describes, or misspells a dua title. Fuzzy-matches titles and returns the complete best dua records in one call; do not list all duas or call get_dua afterward.', inputSchema: { type: 'object', properties: { query: { type: 'string', description: 'Natural-language title or situation, such as "waking up", "entering mosqe", or "travel dua".' }, limit: { type: 'integer', minimum: 1, maximum: 3, default: 1 } }, required: ['query'] } },
   { name: 'search_duas', description: 'Use for broad searches inside Arabic, transliteration, translation, or commentary text. Returns summaries; for a title or situation lookup, prefer find_dua because it returns complete records in one call.', inputSchema: { type: 'object', properties: { query: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } }, required: ['query'] } },
@@ -55,6 +57,16 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
     const allowedOrigin = origin === this.env.DEVELOPERS_URL || origin === this.env.ADMIN_URL ? origin : null;
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders(allowedOrigin) });
+    }
+
+    const customManagementRoute = url.pathname.startsWith('/v1/admin/') || url.pathname.startsWith('/v1/control/');
+    if (customManagementRoute && isMutation(request.method)) {
+      if (!isTrustedBrowserMutation(request, this.env)) {
+        return json({ error: { code: 'forbidden_origin', message: 'This request did not originate from a trusted Fortress portal.' } }, 403);
+      }
+      if (await hasOversizedBody(request, MAX_MANAGEMENT_BODY_BYTES)) {
+        return json({ error: { code: 'payload_too_large', message: 'Management requests are limited to 64 KB.' } }, 413);
+      }
     }
 
     let response: Response;
@@ -346,6 +358,10 @@ function applyOperationalHeaders(headers: Headers, requestId: string, duration: 
   headers.set('Referrer-Policy', 'no-referrer');
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  headers.set('Cache-Control', 'no-store');
+  headers.set('Pragma', 'no-cache');
+  headers.set('X-Frame-Options', 'DENY');
+  headers.set('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
 }
 
 function isDeveloperManagementRoute(pathname: string) {

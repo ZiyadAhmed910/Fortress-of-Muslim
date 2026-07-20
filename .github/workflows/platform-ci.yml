@@ -8,6 +8,7 @@ on:
     paths:
       - "apps/**"
       - "packages/**"
+      - "tools/**"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.base.json"
@@ -19,6 +20,7 @@ on:
     paths:
       - "apps/**"
       - "packages/**"
+      - "tools/**"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.base.json"
@@ -31,6 +33,7 @@ jobs:
   check:
     name: Typecheck and test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4

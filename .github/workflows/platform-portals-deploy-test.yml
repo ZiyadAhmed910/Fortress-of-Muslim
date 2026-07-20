@@ -8,6 +8,7 @@ on:
       - "apps/status/**"
       - "apps/admin/**"
       - "packages/portal-ui/**"
+      - "tools/deployment-smoke.mjs"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/platform-portals-deploy-test.yml"
@@ -24,6 +25,7 @@ jobs:
   deploy:
     if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -48,3 +50,5 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Smoke test deployed portals
+        run: npm run smoke:test:portals

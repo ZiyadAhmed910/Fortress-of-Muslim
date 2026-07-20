@@ -1,6 +1,6 @@
 {
   "name": "fortress-platform",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": true,
   "description": "Open-source Islamic data and agent platform",
   "workspaces": [
@@ -18,7 +18,12 @@
     "build:portals": "npm run build --workspace @fortress/portal-ui",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "check": "npm run typecheck && npm run test"
+    "security:check": "npm audit --omit=dev --audit-level=high",
+    "smoke:test:services": "node tools/deployment-smoke.mjs test services",
+    "smoke:test:portals": "node tools/deployment-smoke.mjs test portals",
+    "smoke:production:services": "node tools/deployment-smoke.mjs production services",
+    "smoke:production:portals": "node tools/deployment-smoke.mjs production portals",
+    "check": "npm run typecheck && npm run test && npm run security:check"
   },
   "engines": {
     "node": ">=22"

@@ -1,6 +1,6 @@
 {
   "name": "@fortress/auth",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,14 +12,14 @@
     "db:migrate:test": "wrangler d1 migrations apply fortress-identity-test --remote --env test",
     "db:migrate:production": "wrangler d1 migrations apply fortress-identity-production --remote --env production",
     "typecheck": "tsc --noEmit",
-    "test": "node tools/verify-schema.mjs"
+    "test": "node tools/verify-schema.mjs && vitest run"
   },
   "dependencies": {
     "@better-auth/api-key": "1.7.0-rc.1",
     "@better-auth/core": "1.7.0-rc.1",
     "@better-auth/kysely-adapter": "1.7.0-rc.1",
     "@better-auth/oauth-provider": "1.7.0-rc.1",
-    "@fortress/contracts": "0.12.0",
+    "@fortress/contracts": "0.13.0",
     "better-auth": "1.7.0-rc.1",
     "hono": "^4.8.0",
     "kysely": "0.28.17"

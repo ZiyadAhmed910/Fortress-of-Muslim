@@ -142,6 +142,14 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.13.0
+
+- Added cross-site mutation protection and a 64 KB request-body ceiling for session-authenticated Admin and Developer Console operations.
+- Prevented Auth responses from being cached or framed and added a restrictive Content Security Policy to every Cloudflare portal.
+- Made Developer Console requests time out cleanly, retry safe reads once, include request IDs, recover from partial loading failures, and return to sign-in when a session expires.
+- Improved tabs, profile menus, drawers, focus restoration, keyboard navigation, live error announcements, submit locking, and corrupted dynamic labels in the Developer Console.
+- Added production dependency auditing, bounded workflow runtimes, and post-deployment smoke tests for Workers, portals, and both PWA environments.
+
 ### 0.12.0
 
 - Standardized request IDs, platform-version headers, server timing, baseline security headers, and privacy-conscious structured request logs across API, Auth, and MCP Workers.
@@ -368,6 +376,7 @@ Canonical data decisions and staged work are documented in:
 - `docs/adr/0002-public-read-api.md`
 - `docs/adr/0003-evidence-gated-verification.md`
 - `docs/adr/0004-operational-response-contract.md`
+- `docs/adr/0005-browser-and-deployment-hardening.md`
 
 ## Contributing
 

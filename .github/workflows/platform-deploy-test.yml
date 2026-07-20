@@ -9,6 +9,7 @@ on:
       - "apps/api/**"
       - "apps/mcp/**"
       - "packages/contracts/**"
+      - "tools/deployment-smoke.mjs"
       - "pwa-website/data/duas.json"
       - "package.json"
       - "package-lock.json"
@@ -29,6 +30,7 @@ jobs:
     name: Deploy test API Worker
     if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -74,3 +76,6 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Smoke test deployed services
+        run: npm run smoke:test:services
