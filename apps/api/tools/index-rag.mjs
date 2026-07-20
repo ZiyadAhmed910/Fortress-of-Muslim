@@ -22,7 +22,7 @@ if (environment === 'production') {
   if (confirmation !== dataset.id) throw new Error(`Production indexing requires --confirm-production=${dataset.id}`);
 }
 
-let cursor = Number(process.argv.find((argument) => argument.startsWith('--cursor='))?.split('=')[1] ?? 0);
+let cursor = Number(process.argv.find((argument) => argument.startsWith('--cursor='))?.split('=')[1] ?? process.env.RAG_CURSOR ?? 0);
 if (!Number.isInteger(cursor) || cursor < 0) throw new Error('--cursor must be a non-negative integer.');
 let indexed = cursor;
 for (;;) {
