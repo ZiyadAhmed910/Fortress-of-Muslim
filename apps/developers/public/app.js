@@ -31,9 +31,9 @@ loadBrowserKeys(); const savedPath = sessionStorage.getItem('fortress-explorer-p
 $$('[data-explorer-path]').forEach((link) => link.addEventListener('click', () => { $('#api-path').value = link.dataset.explorerPath; }));
 $('#send-request').addEventListener('click', async () => {
   const path = $('#api-path').value.trim(); if (!path.startsWith('/')) return setResponse('Invalid path',{error:{message:'Path must begin with /.'}},true);
-  const key = explorerKey.value.trim(); if (!key) return setResponse('Credential required',{error:{message:'Choose or paste a Fortress API key.'}},true);
+  const key = explorerKey.value.trim();
   const button = $('#send-request'); button.disabled = true; $('#response-state').textContent = 'Loading'; $('#response-body').textContent = 'Sending request...'; const started = performance.now();
-  try { const response = await fetch(`${$('#environment').value}${path}`,{headers:{'X-Fortress-API-Key':key}}); setResponse(`${response.status} ${response.ok?'OK':'Error'}`,await response.json(),!response.ok); }
+  try { const headers = key ? {'X-Fortress-API-Key':key} : {}; const response = await fetch(`${$('#environment').value}${path}`,{headers}); setResponse(`${response.status} ${response.ok?'OK':'Error'}`,await response.json(),!response.ok); }
   catch(error){ setResponse('Network error',{error:{message:error.message}},true); }
   finally { $('#response-time').textContent = `${Math.round(performance.now()-started)} ms`; button.disabled = false; }
 });

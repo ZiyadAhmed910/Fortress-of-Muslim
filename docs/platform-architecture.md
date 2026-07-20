@@ -51,7 +51,7 @@ API keys are displayed once and stored hashed. Connected apps support public PKC
 
 ## Content Storage
 
-The normalized D1 model has four levels:
+The normalized D1 model keeps the four core content levels:
 
 | Table | Purpose |
 | --- | --- |
@@ -66,6 +66,12 @@ The current JSON is a publishing input, not a runtime API database. The migratio
 
 Future Admin publishing should create a new dataset version, validate it, and atomically activate it. Religious content must retain source provenance and verification status throughout that process.
 
+Canonical metadata extends those core tables with languages, translations, collections, books, chapters, dua and Hadith metadata, typed taxonomy, source references, cross references, contributors, deterministic search metadata, and append-only verification, correction, publication, and content-audit history.
+
+The current user-provided DOCX import is registered honestly as an unreviewed source with unknown licensing. It cannot satisfy the verification gate until an editor attaches a verified record reference from a trusted, approved source.
+
+Core published read routes are anonymous. Developer-owned named queries and management capabilities remain credentialed. API responses resolve the active dataset dynamically and expose its identifier in metadata and the `X-Fortress-Dataset-Version` header.
+
 ## Architectural Rules
 
 1. Public contracts are versioned and independent from internal code organization.
@@ -74,3 +80,5 @@ Future Admin publishing should create a new dataset version, validate it, and at
 4. Rate enforcement, exact quota accounting and analytics are separate responsibilities.
 5. Test and production infrastructure never share mutable state.
 6. The hosted platform may meter compute while source data remains open and exportable.
+7. A record cannot become verified without verified evidence from a trusted, legally approved source.
+8. AI may retrieve and summarize evidence, but it never creates canonical religious claims.

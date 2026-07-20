@@ -64,6 +64,18 @@ const repository: ContentRepository = {
   },
   async getRandomDua() { return records[0]; },
   async getDua(id) { return records.find((record) => record.id === id || record.legacyId === id); },
+  async getDuaEvidence(id) {
+    const record = records.find((item) => item.id === id || item.legacyId === id);
+    if (!record) return undefined;
+    return {
+      recordId: record.id,
+      dataset: await this.getCurrentDataset(),
+      collection: { id: 'collection.hisn.legacy', title: 'Fortress of Muslim (legacy import)', verificationStatus: 'pending' },
+      sources: [],
+      datasetSources: [{ id: 'source.legacy', title: 'Legacy source', importLocator: 'source.docx', licenseStatus: 'unknown', authenticityStatus: 'unreviewed' }],
+      taxonomy: [], verificationHistory: [], corrections: [],
+    };
+  },
 };
 const app = createApp(() => repository);
 
@@ -75,7 +87,7 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.9.0');
+    expect(body.version).toBe('0.10.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
@@ -108,7 +120,7 @@ describe('Fortress Platform API', () => {
   });
 
   it('returns a paginated dua summary list', async () => {
-    const response = await app.request('/v1/duas?limit=2', authenticated, env);
+    const response = await app.request('/v1/duas?limit=2', {}, env);
     const body = await response.json() as {
       data: Array<{ id: string; parts?: unknown }>;
       pagination: { nextCursor: string | null };
@@ -120,10 +132,20 @@ describe('Fortress Platform API', () => {
     expect(first.id).toBe('dua.hisn.001');
     expect(first.parts).toBeUndefined();
     expect(body.pagination.nextCursor).toBeTruthy();
+    expect(response.headers.get('X-Fortress-Dataset-Version')).toBe('dataset.hisn.legacy.2026-07-11-v2');
+  });
+
+  it('keeps anonymous reading available when service control is unreachable', async () => {
+    const unavailableControlEnv = {
+      ...envConfig,
+      AUTH: { ...envConfig.AUTH, getServiceState: async () => { throw new Error('Auth unavailable'); } },
+    } as never;
+    const response = await app.request('/v1/duas?limit=1', {}, unavailableControlEnv);
+    expect(response.status).toBe(200);
   });
 
   it('reports the active dataset provenance', async () => {
-    const response = await app.request('/v1/datasets/current', authenticated, env);
+    const response = await app.request('/v1/datasets/current', {}, env);
     const body = await response.json() as {
       id: string;
       verificationStatus: string;
@@ -139,7 +161,7 @@ describe('Fortress Platform API', () => {
   });
 
   it('retrieves a dua using its canonical ID', async () => {
-    const response = await app.request('/v1/duas/dua.hisn.001', authenticated, env);
+    const response = await app.request('/v1/duas/dua.hisn.001', {}, env);
     const body = await response.json() as {
       data: { legacyId: string; parts: unknown[] };
     };
@@ -194,6 +216,15 @@ describe('Fortress Platform API', () => {
     expect(partBody.data.segmentCount).toBe(2);
   });
 
+  it('returns traceable evidence without requiring a user account', async () => {
+    const response = await app.request('/v1/duas/dua.hisn.001/evidence', {}, env);
+    const body = await response.json() as { data: { recordId: string; datasetSources: Array<{ licenseStatus: string }> } };
+
+    expect(response.status).toBe(200);
+    expect(body.data.recordId).toBe('dua.hisn.001');
+    expect(body.data.datasetSources[0]?.licenseStatus).toBe('unknown');
+  });
+
   it('validates part positions', async () => {
     const invalidResponse = await app.request('/v1/duas/dua.hisn.001/parts/nope', authenticated, env);
     const missingResponse = await app.request('/v1/duas/dua.hisn.001/parts/10', authenticated, env);
@@ -217,8 +248,8 @@ describe('Fortress Platform API', () => {
     expect(body.error.requestId).toBeTruthy();
   });
 
-  it('rejects protected content requests without credentials', async () => {
-    const response = await app.request('/v1/duas?limit=2', {}, env);
+  it('keeps owner-scoped named queries protected', async () => {
+    const response = await app.request('/v1/queries/qry-test', {}, env);
     const body = await response.json() as { error: { code: string } };
 
     expect(response.status).toBe(401);

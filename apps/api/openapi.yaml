@@ -3,16 +3,12 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
-  x-platform-version: 0.9.0
+  x-platform-version: 0.10.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production
   - url: https://api-test.fortressofmuslim.org/v1
     description: Test
-security:
-  - fortressApiKey: []
-  - fortressOAuth:
-      - content:read
 paths:
   /datasets/current:
     get:
@@ -102,6 +98,22 @@ paths:
                 $ref: '#/components/schemas/DuaResponse'
         '404':
           description: Dua not found
+  /duas/{id}/evidence:
+    get:
+      operationId: getDuaEvidence
+      summary: Retrieve source provenance and editorial history for a dua
+      description: Returns the evidence currently attached to the record. Empty or pending evidence is represented honestly and never inferred.
+      parameters:
+        - $ref: '#/components/parameters/DuaId'
+      responses:
+        '200':
+          description: Traceable source, taxonomy, verification, and correction metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaEvidenceResponse'
+        '404':
+          description: Dua not found
   /duas/{id}/parts:
     get:
       operationId: listDuaParts
@@ -153,6 +165,10 @@ paths:
       operationId: executeNamedQuery
       summary: Execute an owner-scoped named query
       description: Runs a saved, allowlisted read-only operation. Raw SQL is never accepted.
+      security:
+        - fortressApiKey: []
+        - fortressOAuth:
+            - content:read
       parameters:
         - in: path
           name: id
@@ -304,5 +320,42 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Dua'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    DuaEvidenceResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [recordId, dataset, sources, datasetSources, taxonomy, verificationHistory, corrections]
+          properties:
+            recordId:
+              type: string
+            dataset:
+              type: object
+            collection:
+              type: object
+              nullable: true
+            sources:
+              type: array
+              items:
+                type: object
+            datasetSources:
+              type: array
+              items:
+                type: object
+            taxonomy:
+              type: array
+              items:
+                type: object
+            verificationHistory:
+              type: array
+              items:
+                type: object
+            corrections:
+              type: array
+              items:
+                type: object
         meta:
           $ref: '#/components/schemas/ResponseMeta'

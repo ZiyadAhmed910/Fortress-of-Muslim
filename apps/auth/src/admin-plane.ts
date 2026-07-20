@@ -194,9 +194,40 @@ async function listContent({ env }: AdminContext, url: URL) {
 async function updateContent(context: AdminContext, id: string, body: Record<string, unknown>) {
   const status = String(body.status ?? '');
   if (!['pending', 'verified', 'rejected', 'deprecated'].includes(status)) return invalid('Choose a valid verification status.');
-  const result = await context.env.CONTENT_DB.prepare('UPDATE content_records SET verification_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(status, id).run();
-  if (!result.meta.changes) return json({ error: { code: 'not_found', message: 'Content record was not found.' } }, 404);
-  await audit(context, 'content.verification_changed', 'content', id, { status });
+  const current = await context.env.CONTENT_DB.prepare(
+    'SELECT verification_status AS status FROM content_records WHERE id = ?',
+  ).bind(id).first<{ status: string }>();
+  if (!current) return json({ error: { code: 'not_found', message: 'Content record was not found.' } }, 404);
+
+  if (status === 'verified') {
+    const evidence = await context.env.CONTENT_DB.prepare(`
+      SELECT COUNT(*) AS count
+      FROM source_references reference
+      JOIN source_materials source ON source.id = reference.source_id
+      WHERE reference.record_id = ? AND reference.verification_status = 'verified'
+        AND source.authenticity_status = 'trusted' AND source.license_status = 'approved'
+    `).bind(id).first<{ count: number }>();
+    if (!evidence?.count) return invalid('Add a verified reference from a trusted, approved source before verifying religious content.');
+  }
+
+  const notes = typeof body.notes === 'string' ? body.notes.trim().slice(0, 1000) : null;
+  const occurredAt = new Date().toISOString();
+  const details = JSON.stringify({ previousStatus: current.status, status, notes });
+  const [result] = await context.env.CONTENT_DB.batch([
+    context.env.CONTENT_DB.prepare(
+      'UPDATE content_records SET verification_status = ?, updated_at = ? WHERE id = ?',
+    ).bind(status, occurredAt, id),
+    context.env.CONTENT_DB.prepare(`INSERT INTO verification_records
+      (id, target_type, target_id, status, reviewer_external_id, method, notes, reviewed_at)
+      VALUES (?, 'record', ?, ?, ?, 'admin_editorial_review', ?, ?)`)
+      .bind(`verify_${crypto.randomUUID()}`, id, status, context.user.id, notes, occurredAt),
+    context.env.CONTENT_DB.prepare(`INSERT INTO content_audit_events
+      (id, occurred_at, actor_type, actor_external_id, action, target_type, target_id, request_id, details_json)
+      VALUES (?, ?, 'admin', ?, 'content.verification_changed', 'record', ?, ?, ?)`)
+      .bind(`caud_${crypto.randomUUID()}`, occurredAt, context.user.id, id, context.requestId, details),
+  ]);
+  if (!result?.meta.changes) return json({ error: { code: 'conflict', message: 'Content status was not changed.' } }, 409);
+  await audit(context, 'content.verification_changed', 'content', id, { previousStatus: current.status, status, notes });
   return json({ data: { id, status } });
 }
 

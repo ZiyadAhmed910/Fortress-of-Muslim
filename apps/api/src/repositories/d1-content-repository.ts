@@ -1,6 +1,6 @@
 import type { ContentSegment, Dua, DuaSummary } from '@fortress/contracts';
 import { rankDuaTitles } from '../lib/fuzzy-title';
-import type { ContentRepository, DatasetSummary, DuaTitleMatch } from './content-repository';
+import type { ContentRepository, DatasetSummary, DuaTitleMatch, RecordEvidence } from './content-repository';
 
 type DatasetRow = {
   id: string;
@@ -179,6 +179,75 @@ export class D1ContentRepository implements ContentRepository {
     }
 
     return { ...toSummary(record), parts };
+  }
+
+  async getDuaEvidence(id: string): Promise<RecordEvidence | undefined> {
+    const record = await this.database.prepare(`
+      SELECT record.id, record.dataset_id AS datasetId
+      FROM content_records record
+      JOIN dataset_versions dataset ON dataset.id = record.dataset_id
+      WHERE dataset.publication_status = 'active'
+        AND record.content_type = 'dua'
+        AND (record.id = ? OR record.legacy_id = ?)
+      LIMIT 1
+    `).bind(id, id).first<{ id: string; datasetId: string }>();
+    if (!record) return undefined;
+
+    const [dataset, collection, sources, datasetSources, taxonomy, verificationHistory, corrections] = await Promise.all([
+      this.getCurrentDataset(),
+      this.database.prepare(`
+        SELECT collection.id, collection.title, collection.verification_status AS verificationStatus
+        FROM record_placements placement
+        JOIN collections collection ON collection.id = placement.collection_id
+        WHERE placement.record_id = ?
+      `).bind(record.id).first<{ id: string; title: string; verificationStatus: string }>(),
+      this.database.prepare(`
+        SELECT source.id, source.title, source.publisher, source.edition, source.source_url AS sourceUrl,
+               source.license_name AS licenseName, source.license_status AS licenseStatus,
+               source.authenticity_status AS authenticityStatus, reference.reference_type AS referenceType,
+               reference.locator, reference.verification_status AS verificationStatus
+        FROM source_references reference
+        JOIN source_materials source ON source.id = reference.source_id
+        WHERE reference.record_id = ?
+        ORDER BY reference.reference_type, reference.locator
+      `).bind(record.id).all<RecordEvidence['sources'][number]>(),
+      this.database.prepare(`
+        SELECT source.id, source.title, dataset_source.import_locator AS importLocator,
+               source.license_status AS licenseStatus, source.authenticity_status AS authenticityStatus
+        FROM dataset_sources dataset_source
+        JOIN source_materials source ON source.id = dataset_source.source_id
+        WHERE dataset_source.dataset_id = ?
+        ORDER BY dataset_source.source_role, source.title
+      `).bind(record.datasetId).all<RecordEvidence['datasetSources'][number]>(),
+      this.database.prepare(`
+        SELECT term.taxonomy_type AS type, term.slug, term.label, term.language_code AS languageCode
+        FROM record_taxonomy assignment
+        JOIN taxonomy_terms term ON term.id = assignment.term_id
+        WHERE assignment.record_id = ?
+        ORDER BY term.taxonomy_type, term.label
+      `).bind(record.id).all<RecordEvidence['taxonomy'][number]>(),
+      this.database.prepare(`
+        SELECT status, method, notes, reviewed_at AS reviewedAt
+        FROM verification_records
+        WHERE target_type = 'record' AND target_id = ?
+        ORDER BY reviewed_at DESC
+      `).bind(record.id).all<RecordEvidence['verificationHistory'][number]>(),
+      this.database.prepare(`
+        SELECT field_path AS fieldPath, reason, created_at AS createdAt
+        FROM correction_history WHERE record_id = ? ORDER BY created_at DESC
+      `).bind(record.id).all<RecordEvidence['corrections'][number]>(),
+    ]);
+
+    return {
+      recordId: record.id,
+      dataset,
+      collection: collection ?? null,
+      sources: sources.results,
+      datasetSources: datasetSources.results,
+      taxonomy: taxonomy.results,
+      verificationHistory: verificationHistory.results,
+      corrections: corrections.results,
+    };
   }
 }
 

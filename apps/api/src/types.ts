@@ -39,6 +39,7 @@ export type Bindings = {
 
 export type ApiVariables = {
   requestId: string;
+  activeDatasetId: string;
   principalId: string;
   credentialId: string;
 };

@@ -1,14 +1,13 @@
 import { DatabaseSync } from 'node:sqlite';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 
-const schema = await readFile(new URL('../migrations/0001_content_schema.sql', import.meta.url), 'utf8');
-const seed = await readFile(new URL('../migrations/0002_import_legacy_dataset.sql', import.meta.url), 'utf8');
+const migrationsUrl = new URL('../migrations/', import.meta.url);
+const migrationFiles = (await readdir(migrationsUrl)).filter((file) => file.endsWith('.sql')).sort();
 const source = JSON.parse(await readFile(new URL('../../../pwa-website/data/duas.json', import.meta.url), 'utf8'));
 const database = new DatabaseSync(':memory:');
 
 database.exec('PRAGMA foreign_keys = ON;');
-database.exec(schema);
-database.exec(seed);
+for (const migration of migrationFiles) database.exec(await readFile(new URL(migration, migrationsUrl), 'utf8'));
 
 const expectedParts = source.entries.reduce((total, entry) => total + entry.parts.length, 0);
 const expectedSegments = source.entries.reduce(
@@ -20,6 +19,15 @@ assertCount('content_records', source.entries.length);
 assertCount('content_parts', expectedParts);
 assertCount('content_segments', expectedSegments);
 assertCount('dataset_versions', 1);
+assertCount('languages', 3);
+assertCount('source_materials', 1);
+assertCount('dataset_sources', 1);
+assertCount('collections', 1);
+assertCount('record_placements', source.entries.length);
+assertCount('dua_metadata', source.entries.length);
+assertCount('record_search_metadata', source.entries.length);
+assertCount('publication_history', 2);
+assertCount('verification_records', source.entries.length + 1);
 
 const orphanParts = database.prepare(`
   SELECT COUNT(*) AS count
@@ -50,7 +58,17 @@ if (first.id !== 'dua.hisn.001' || first.legacy_id !== 'dua-001' || first.part_c
   throw new Error('Canonical first-record verification failed.');
 }
 
-console.log(`Verified D1 migrations: ${source.entries.length} records, ${expectedParts} parts, ${expectedSegments} segments.`);
+const provenance = database.prepare(`
+  SELECT source.license_status, source.authenticity_status
+  FROM dataset_sources dataset_source
+  JOIN source_materials source ON source.id = dataset_source.source_id
+  WHERE dataset_source.dataset_id = ?
+`).get('dataset.hisn.legacy.2026-07-11-v2');
+if (provenance.license_status !== 'unknown' || provenance.authenticity_status !== 'unreviewed') {
+  throw new Error('Legacy provenance must remain explicitly unverified until editorial review.');
+}
+
+console.log(`Verified ${migrationFiles.length} D1 migrations: ${source.entries.length} records, ${expectedParts} parts, ${expectedSegments} segments.`);
 
 function assertCount(table, expected) {
   const actual = database.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;

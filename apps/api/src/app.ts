@@ -1,6 +1,5 @@
 import {
   API_VERSION,
-  CURRENT_DATASET_ID,
   PLATFORM_NAME,
   PLATFORM_VERSION,
   paginationSchema,
@@ -38,7 +37,6 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     context.set('requestId', requestId);
     await next();
     context.header('X-Request-ID', requestId);
-    context.header('X-Fortress-Dataset-Version', CURRENT_DATASET_ID);
   });
 
   const authorize = async (context: ApiContext, next: () => Promise<void>) => {
@@ -74,9 +72,6 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     await next();
   };
 
-  app.use('/v1/datasets/*', authorize);
-  app.use('/v1/duas', authorize);
-  app.use('/v1/duas/*', authorize);
   app.use('/v1/queries/*', authorize);
 
   app.get('/', (context) => context.json({
@@ -109,7 +104,13 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
   });
 
   app.use('/v1/*', async (context, next) => {
-    const state = await context.env.AUTH.getServiceState('api');
+    let state: Awaited<ReturnType<Bindings['AUTH']['getServiceState']>>;
+    try {
+      state = await context.env.AUTH.getServiceState('api');
+    } catch (error) {
+      console.error('Service-control lookup failed; public read API remains available.', error);
+      state = { serviceKey: 'api', status: 'active', message: '', enforcement: 'worker' };
+    }
     if (state.status !== 'active') {
       context.header('Retry-After', '300');
       context.header('Cache-Control', 'no-store');
@@ -121,7 +122,10 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
         },
       }, 503);
     }
+    const dataset = await repositoryFactory(context.env).getCurrentDataset();
+    context.set('activeDatasetId', dataset.id);
     await next();
+    context.header('X-Fortress-Dataset-Version', dataset.id);
   });
 
   app.get('/v1', (context) => context.json({
@@ -133,6 +137,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       search: '/v1/duas/search?q=waking',
       randomDua: '/v1/duas/random',
       duaParts: '/v1/duas/{id}/parts',
+      duaEvidence: '/v1/duas/{id}/evidence',
       namedQuery: '/v1/queries/{id}',
     },
   }));
@@ -173,7 +178,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
         nextCursor: nextOffset < total ? encodeCursor(nextOffset) : null,
       },
       meta: {
-        datasetVersion: CURRENT_DATASET_ID,
+        datasetVersion: context.get('activeDatasetId'),
         requestId: context.get('requestId'),
       },
     });
@@ -204,7 +209,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       meta: {
         query: parsed.data.q,
         total: result.total,
-        datasetVersion: CURRENT_DATASET_ID,
+        datasetVersion: context.get('activeDatasetId'),
         requestId: context.get('requestId'),
       },
     });
@@ -223,7 +228,13 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     }
 
     context.header('Cache-Control', 'no-store');
-    return context.json({ data: dua, meta: responseMeta(context.get('requestId')) });
+    return context.json({ data: dua, meta: responseMeta(context) });
+  });
+
+  app.get('/v1/duas/:id/evidence', async (context) => {
+    const evidence = await repositoryFactory(context.env).getDuaEvidence(context.req.param('id'));
+    if (!evidence) return duaNotFound(context.get('requestId'), context);
+    return context.json({ data: evidence, meta: responseMeta(context) });
   });
 
   app.get('/v1/duas/:id/parts', async (context) => {
@@ -235,7 +246,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       meta: {
         duaId: dua.id,
         partCount: dua.partCount,
-        ...responseMeta(context.get('requestId')),
+        ...responseMeta(context),
       },
     });
   });
@@ -266,7 +277,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       }, 404);
     }
 
-    return context.json({ data: part, meta: responseMeta(context.get('requestId')) });
+    return context.json({ data: part, meta: responseMeta(context) });
   });
 
   app.get('/v1/duas/:id', async (context) => {
@@ -278,7 +289,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     return context.json({
       data: dua,
       meta: {
-        datasetVersion: CURRENT_DATASET_ID,
+        datasetVersion: context.get('activeDatasetId'),
         requestId: context.get('requestId'),
       },
     });
@@ -292,7 +303,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     if (definition.queryKind === 'record_query') {
       try {
         const data = await executeRecordQuery(context.env.CONTENT_DB, definition, context.req.query());
-        return context.json({ data, meta: { namedQueryId: definition.id, rowCount: data.length, ...responseMeta(context.get('requestId')) } });
+        return context.json({ data, meta: { namedQueryId: definition.id, rowCount: data.length, ...responseMeta(context) } });
       } catch (error) {
         return context.json({ error: { code: 'invalid_query_parameters', message: error instanceof Error ? error.message : 'The query could not be executed.', requestId: context.get('requestId') } }, 400);
       }
@@ -301,15 +312,15 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     if (definition.operation === 'get_by_id') {
       const dua = await repository.getDua(definition.parameters.duaId ?? '');
       if (!dua) return duaNotFound(context.get('requestId'), context);
-      return context.json({ data: dua, meta: { namedQueryId: definition.id, ...responseMeta(context.get('requestId')) } });
+      return context.json({ data: dua, meta: { namedQueryId: definition.id, ...responseMeta(context) } });
     }
     const limit = Math.min(100, Math.max(1, definition.parameters.limit ?? 20));
     if (definition.operation === 'search') {
       const result = await repository.searchDuas(definition.parameters.query ?? '', 0, limit);
-      return context.json({ data: result.items, meta: { namedQueryId: definition.id, total: result.total, ...responseMeta(context.get('requestId')) } });
+      return context.json({ data: result.items, meta: { namedQueryId: definition.id, total: result.total, ...responseMeta(context) } });
     }
     const [items, total] = await Promise.all([repository.listDuas(0, limit), repository.countDuas()]);
-    return context.json({ data: items, meta: { namedQueryId: definition.id, total, ...responseMeta(context.get('requestId')) } });
+    return context.json({ data: items, meta: { namedQueryId: definition.id, total, ...responseMeta(context) } });
   });
 
   app.notFound((context) => context.json({
@@ -336,8 +347,8 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
 
 export const app = createApp();
 
-function responseMeta(requestId: string) {
-  return { datasetVersion: CURRENT_DATASET_ID, requestId };
+function responseMeta(context: ApiContext) {
+  return { datasetVersion: context.get('activeDatasetId'), requestId: context.get('requestId') };
 }
 
 function toDuaParts(dua: Dua): DuaPart[] {

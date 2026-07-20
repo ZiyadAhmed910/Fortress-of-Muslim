@@ -17,6 +17,7 @@ export default class ApiWorker extends WorkerEntrypoint<Bindings> {
     }
     const name = tool.standardToolName;
     if (name === 'get_dua') return repository.getDua(String(args.id ?? ''));
+    if (name === 'get_dua_evidence') return repository.getDuaEvidence(String(args.id ?? ''));
     if (name === 'find_dua') return {
       query: String(args.query ?? ''),
       matches: await repository.findDuasByTitle(String(args.query ?? ''), fuzzyLimit(args.limit)),

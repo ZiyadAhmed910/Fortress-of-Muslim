@@ -119,7 +119,7 @@ Useful verification endpoints:
 
 Canonical IDs and legacy IDs are both accepted by detail and part routes. List and search responses return lightweight summaries; detail and random routes return the complete ordered content record.
 
-Content endpoints require a Fortress API key in `X-Fortress-API-Key` or an OAuth 2.1 bearer token. Create beta credentials in the Developer Portal. The API root, `/health`, and `/v1` discovery route remain public.
+Published datasets and dua browse, search, detail, part, random, and evidence endpoints are public without login. Developer-owned named queries and management capabilities require a Fortress API key or OAuth 2.1 bearer token.
 
 The API stores published content in Cloudflare D1. Generate and verify the deterministic migration from the current PWA dataset with:
 
@@ -141,6 +141,15 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.10.0
+
+- Added the canonical knowledge schema for provenance, collections, books, chapters, languages, translations, dua and Hadith metadata, taxonomy, references, contributors, and search metadata.
+- Added append-only verification, correction, publication, and content-audit history.
+- Added `GET /v1/duas/{id}/evidence` so clients can inspect source and editorial evidence without inferred or fabricated citations.
+- Added the read-only MCP tool `get_dua_evidence` for authenticity, attribution, and citation checks.
+- Opened core published read routes for anonymous access while keeping owner-scoped named queries authenticated.
+- Added a trusted-source verification gate and documented canonical publishing, public access, source acquisition, and evidence decisions in ADRs.
 
 ### 0.9.0
 
@@ -334,6 +343,14 @@ Deployment details and required GitHub secrets are documented in:
 ```text
 docs/deployment.md
 ```
+
+Canonical data decisions and staged work are documented in:
+
+- `docs/canonical-data-roadmap.md`
+- `docs/source-acquisition-policy.md`
+- `docs/adr/0001-canonical-knowledge-and-snapshots.md`
+- `docs/adr/0002-public-read-api.md`
+- `docs/adr/0003-evidence-gated-verification.md`
 
 ## Contributing
 
