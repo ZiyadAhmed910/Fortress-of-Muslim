@@ -6,6 +6,7 @@ const consoleMigration = await readFile(new URL('../migrations/0003_developer_co
 const adminMigration = await readFile(new URL('../migrations/0004_admin_console.sql', import.meta.url), 'utf8');
 const queryMigration = await readFile(new URL('../migrations/0005_query_and_mcp_toolsets.sql', import.meta.url), 'utf8');
 const editorialMigration = await readFile(new URL('../migrations/0006_editorial_roles.sql', import.meta.url), 'utf8');
+const roleMigration = await readFile(new URL('../migrations/0007_platform_roles.sql', import.meta.url), 'utf8');
 
 for (const table of ['user', 'session', 'organization', 'apikey', 'oauthClient', 'oauthAccessToken', 'oauthRefreshToken']) {
   if (!identity.includes(`create table "${table}"`)) throw new Error(`Identity migration is missing ${table}.`);
@@ -34,5 +35,12 @@ if (!editorialMigration.includes('CREATE TABLE editorial_role_grants')) {
 for (const role of ['viewer', 'reviewer', 'senior_reviewer', 'editor', 'publisher', 'super_administrator']) {
   if (!editorialMigration.includes(`'${role}'`)) throw new Error(`Editorial role migration is missing ${role}.`);
 }
+if (!roleMigration.includes('CREATE TABLE platform_role_grants')) {
+  throw new Error('Platform role migration is missing platform_role_grants.');
+}
+for (const role of ['admin', 'editor', 'reviewer', 'developer']) {
+  if (!roleMigration.includes(`'${role}'`)) throw new Error(`Platform role migration is missing ${role}.`);
+}
+if (!roleMigration.includes('is_admin')) throw new Error('Platform role migration is missing the administrator flag.');
 
 console.log('Verified identity and control-plane migrations.');

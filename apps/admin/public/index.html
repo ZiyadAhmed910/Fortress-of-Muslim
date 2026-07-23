@@ -28,8 +28,8 @@
 
   <div id="denied" class="denied" hidden>
     <img src="/assets/fortress-mark.svg" alt="">
-    <h1>Administrator access required</h1>
-    <p>Your identity is valid, but it has no active Fortress administrator role.</p>
+    <h1>Staff access required</h1>
+    <p>Your identity is valid, but it has no active Admin, Editor, or Reviewer role.</p>
     <button data-sign-out>Sign out</button>
   </div>
 
@@ -52,7 +52,6 @@
         <a href="#assignments" data-nav><span>Assignments</span></a>
         <a href="#batches" data-nav><span>Publication batches</span></a>
         <a href="#taxonomy" data-nav><span>Taxonomy</span></a>
-        <a href="#roles" data-nav><span>Editorial roles</span></a>
         <p>PLATFORM</p>
         <a href="#users" data-nav><span>Users</span></a>
         <a href="#api-keys" data-nav><span>API keys</span></a>
@@ -65,7 +64,7 @@
         <a href="#services" data-nav><span>Service control</span></a>
         <a href="#audit" data-nav><span>Audit log</span></a>
       </nav>
-      <footer>Fortress Platform <span>0.17.0</span></footer>
+      <footer>Fortress Platform <span>0.18.0</span></footer>
     </aside>
 
     <div class="scrim" data-scrim></div>
@@ -85,13 +84,13 @@
       </section>
 
       <section id="queue" class="view" hidden>
-        <header><div><span class="kicker">HUMAN VERIFICATION</span><h1>Review queue</h1><p>Every candidate remains private until two independent reviews, senior approval, and publication.</p></div></header>
+        <header><div><span class="kicker">HUMAN VERIFICATION</span><h1>Review queue</h1><p>Every candidate remains private until one authorized person verifies it and an Admin publishes it.</p></div></header>
         <form class="filter" data-filter="queue">
           <input name="q" placeholder="Title or canonical ID">
           <input name="collection" placeholder="Collection slug">
           <select name="contentType"><option value="">All content</option><option value="dua">Duas</option><option value="hadith">Hadith</option></select>
           <select name="assignment"><option value="">Any assignment</option><option value="assigned">Assigned</option><option value="unassigned">Unassigned</option></select>
-          <select name="state"><option value="">All states</option><option>pending_review</option><option>assigned</option><option>in_review</option><option>changes_requested</option><option>needs_second_review</option><option>needs_senior_approval</option><option>approved</option><option>published</option></select>
+          <select name="state"><option value="">All states</option><option>imported</option><option>pending_review</option><option>assigned</option><option>in_review</option><option>changes_requested</option><option>approved</option><option>published</option></select>
           <button>Apply</button>
         </form>
         <div id="queue-table" class="table"></div>
@@ -123,14 +122,13 @@
         <div id="datasets-table" class="table"></div>
       </section>
 
-      <section id="roles" class="view" hidden>
-        <header><div><span class="kicker">SEPARATION OF DUTIES</span><h1>Editorial roles</h1><p>Manage reviewer, editor, publisher, and super administrator authority.</p></div></header>
-        <div id="roles-table" class="table"></div>
-      </section>
-
       <section id="users" class="view" hidden>
-        <header><div><span class="kicker">IDENTITY</span><h1>Users</h1><p>Inspect access and suspend compromised or abusive accounts.</p></div></header>
-        <form class="filter" data-filter="users"><input name="q" placeholder="Name or email"><select name="status"><option value="">All statuses</option><option>active</option><option>suspended</option><option>closed</option></select><button>Apply</button></form>
+        <header><div><span class="kicker">ACCESS HIERARCHY</span><h1>Manage users</h1><p>Admins manage every role. Editors can grant or remove Reviewer access only.</p></div></header>
+        <div id="roles-table" class="table"></div>
+        <div id="platform-users">
+          <header class="subheader"><div><h2>Developer accounts</h2><p>Inspect credentials and suspend compromised or abusive accounts.</p></div></header>
+          <form class="filter" data-filter="users"><input name="q" placeholder="Name or email"><select name="status"><option value="">All statuses</option><option>active</option><option>suspended</option><option>closed</option></select><button>Apply</button></form>
+        </div>
         <div id="users-table" class="table"></div>
       </section>
 

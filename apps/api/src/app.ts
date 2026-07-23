@@ -257,7 +257,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       return context.json({
         error: {
           code: 'not_found',
-          message: 'No published dua is available.',
+          message: 'No dua is available.',
           requestId: context.get('requestId'),
         },
       }, 404);
@@ -379,7 +379,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     }
     const hadith = await repositoryFactory(context.env).resolveHadithPath(collection, book, number);
     if (!hadith) {
-      return context.json({ error: { code: 'not_found', message: 'Published canonical Hadith was not found.', requestId: context.get('requestId') } }, 404);
+      return context.json({ error: { code: 'not_found', message: 'Canonical Hadith was not found.', requestId: context.get('requestId') } }, 404);
     }
     return context.json({ data: hadith, meta: responseMeta(context) });
   });
@@ -500,6 +500,10 @@ function responseMeta(context: ApiContext) {
 function toDuaParts(dua: Dua): DuaPart[] {
   return dua.parts.map((segments, index) => ({
     duaId: dua.id,
+    verificationStatus: dua.verificationStatus,
+    workflowState: dua.workflowState,
+    verifiedBy: dua.verifiedBy,
+    verifiedAt: dua.verifiedAt,
     position: index + 1,
     segmentCount: segments.length,
     segments,

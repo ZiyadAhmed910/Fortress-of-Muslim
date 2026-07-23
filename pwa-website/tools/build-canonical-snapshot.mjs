@@ -10,7 +10,11 @@ do {
   const params = new URLSearchParams({ limit: '100' });
   if (cursor) params.set('cursor', cursor);
   const page = await request(`/v1/duas?${params}`);
-  summaries.push(...page.data);
+  summaries.push(...page.data.filter((dua) =>
+    dua.verificationStatus === 'verified'
+    && dua.workflowState === 'published'
+    && dua.publishedAt
+  ));
   cursor = page.pagination.nextCursor;
 } while (cursor);
 

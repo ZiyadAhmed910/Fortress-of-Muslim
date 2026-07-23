@@ -7,11 +7,11 @@ Fortress Platform is the sole public canonical publisher. Candidate acquisition 
 Implemented controls:
 
 1. Normalized canonical records, ordered parts and segments, collections, books, chapters, references, and taxonomy.
-2. Immutable revisions and append-only field reviews, decisions, publication history, and audit events.
-3. Scoped reviewer assignments and 13 required field checks from two independent reviewers.
-4. Separate senior approval, independently verified canonical references, and publication batches.
+2. Immutable revisions and append-only decisions, publication history, and audit events.
+3. One complete verification stamped with the authorized verifier's identity and time.
+4. Canonical reference gating and Admin-controlled publication batches.
 5. Complete immutable dataset snapshots with audited atomic rollback.
-6. Published-only list, search, detail, evidence, MCP, RAG, and PWA boundaries.
+6. Status-labelled public list, search, detail, evidence, and MCP access, with published-only RAG and PWA boundaries.
 7. Hybrid Ask retrieval with citation validation, lexical fallback, and per-dataset vector readiness.
 8. Technical editorial pilot coverage from assignment through publication and rollback.
 
@@ -19,10 +19,10 @@ Implemented controls:
 
 The next operational requirement is human, not architectural:
 
-1. Appoint qualified editors, independent reviewers, senior reviewers, and publishers.
+1. Appoint qualified Editors and Reviewers while retaining Admin control of publication.
 2. Begin with a small Fortress of Muslim chapter batch.
 3. Resolve corrections and disagreements through immutable revisions.
-4. Publish only after reference verification and all approval gates are complete.
+4. Publish only after one complete verification and its evidence requirements are satisfied.
 5. Rebuild the PWA snapshot and vector namespace from the resulting published dataset.
 
 Automated pilot identities verify software behavior only. They never represent scholarly or editorial approval.

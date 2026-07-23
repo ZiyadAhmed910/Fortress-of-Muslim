@@ -92,6 +92,10 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
 
   private async handleControlPlane(request: Request, url: URL, user: { id: string; name: string; email: string }): Promise<Response> {
     if (!await this.isUserActive(user.id)) return json({ error: { code: 'account_suspended', message: 'This developer account is not active.' } }, 403);
+    await this.env.IDENTITY_DB.prepare(`
+      INSERT OR IGNORE INTO platform_role_grants (user_id, role, status)
+      VALUES (?, 'developer', 'active')
+    `).bind(user.id).run();
 
     if (url.pathname === '/v1/control/profile' && request.method === 'GET') {
       const profile = await this.env.IDENTITY_DB.prepare(

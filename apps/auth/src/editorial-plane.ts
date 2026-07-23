@@ -1,12 +1,6 @@
 import type { Bindings } from './types';
 
-export type EditorialRole =
-  | 'viewer'
-  | 'reviewer'
-  | 'senior_reviewer'
-  | 'editor'
-  | 'publisher'
-  | 'super_administrator';
+export type EditorialRole = 'admin' | 'editor' | 'reviewer';
 
 type EditorialContext = {
   env: Bindings;
@@ -41,22 +35,22 @@ export async function handleEditorialPlane(
     return listAssignments(context);
   }
   if (url.pathname === '/v1/admin/editorial/assignments' && request.method === 'POST') {
-    requireRole(context.role, ['editor', 'publisher', 'super_administrator']);
+    requireRole(context.role, ['editor', 'admin']);
     return createAssignment(context, await readJson(request));
   }
   if (url.pathname === '/v1/admin/editorial/batches' && request.method === 'GET') {
     return listBatches(context);
   }
   if (url.pathname === '/v1/admin/editorial/batches' && request.method === 'POST') {
-    requireRole(context.role, ['editor', 'publisher', 'super_administrator']);
+    requireRole(context.role, ['editor', 'admin']);
     return createBatch(context, await readJson(request));
   }
   if (url.pathname === '/v1/admin/editorial/roles' && request.method === 'GET') {
-    requireRole(context.role, ['super_administrator']);
+    requireRole(context.role, ['editor', 'admin']);
     return listRoles(context);
   }
   if (url.pathname === '/v1/admin/editorial/roles' && request.method === 'PATCH') {
-    requireRole(context.role, ['super_administrator']);
+    requireRole(context.role, ['editor', 'admin']);
     return updateRole(context, await readJson(request));
   }
 
@@ -78,12 +72,12 @@ export async function handleEditorialPlane(
   }
   const revisionMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)\/revisions$/);
   if (revisionMatch && request.method === 'POST') {
-    requireRole(context.role, ['editor', 'senior_reviewer', 'publisher', 'super_administrator']);
+    requireRole(context.role, ['editor', 'admin']);
     return createRevision(context, decodeURIComponent(revisionMatch[1]!), await readJson(request));
   }
   const fieldsMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)\/field-reviews$/);
   if (fieldsMatch && request.method === 'POST') {
-    requireRole(context.role, ['reviewer', 'senior_reviewer', 'editor', 'publisher', 'super_administrator']);
+    requireRole(context.role, ['reviewer', 'editor', 'admin']);
     return submitFieldReviews(context, decodeURIComponent(fieldsMatch[1]!), await readJson(request));
   }
   const decisionMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)\/decision$/);
@@ -92,14 +86,14 @@ export async function handleEditorialPlane(
   }
   const referencesMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)\/references$/);
   if (referencesMatch && request.method === 'POST') {
-    requireRole(context.role, ['editor', 'senior_reviewer', 'publisher', 'super_administrator']);
+    requireRole(context.role, ['editor', 'admin']);
     return addCanonicalReference(context, decodeURIComponent(referencesMatch[1]!), await readJson(request));
   }
   const referenceReviewMatch = url.pathname.match(
     /^\/v1\/admin\/editorial\/records\/([^/]+)\/references\/([^/]+)\/review$/,
   );
   if (referenceReviewMatch && request.method === 'POST') {
-    requireRole(context.role, ['reviewer', 'senior_reviewer', 'editor', 'publisher', 'super_administrator']);
+    requireRole(context.role, ['reviewer', 'editor', 'admin']);
     return reviewCanonicalReference(
       context,
       decodeURIComponent(referenceReviewMatch[1]!),
@@ -110,11 +104,11 @@ export async function handleEditorialPlane(
 
   const batchItemMatch = url.pathname.match(/^\/v1\/admin\/editorial\/batches\/([^/]+)\/items$/);
   if (batchItemMatch && request.method === 'POST') {
-    requireRole(context.role, ['editor', 'publisher', 'super_administrator']);
+    requireRole(context.role, ['editor', 'admin']);
     return addBatchItems(context, decodeURIComponent(batchItemMatch[1]!), await readJson(request));
   }
   if (batchItemMatch && request.method === 'DELETE') {
-    requireRole(context.role, ['editor', 'publisher', 'super_administrator']);
+    requireRole(context.role, ['editor', 'admin']);
     return removeBatchItems(context, decodeURIComponent(batchItemMatch[1]!), await readJson(request));
   }
   const batchDetailMatch = url.pathname.match(/^\/v1\/admin\/editorial\/batches\/([^/]+)$/);
@@ -125,10 +119,10 @@ export async function handleEditorialPlane(
   if (batchActionMatch && request.method === 'POST') {
     const id = decodeURIComponent(batchActionMatch[1]!);
     if (batchActionMatch[2] === 'validate') {
-      requireRole(context.role, ['editor', 'publisher', 'super_administrator']);
+      requireRole(context.role, ['editor', 'admin']);
       return validateBatch(context, id);
     }
-    requireRole(context.role, ['publisher', 'super_administrator']);
+    requireRole(context.role, ['admin']);
     return batchActionMatch[2] === 'approve' ? approveBatch(context, id) : publishBatch(context, id);
   }
   if (url.pathname === '/v1/admin/editorial/datasets' && request.method === 'GET') {
@@ -136,7 +130,7 @@ export async function handleEditorialPlane(
   }
   const rollbackMatch = url.pathname.match(/^\/v1\/admin\/editorial\/datasets\/([^/]+)\/rollback$/);
   if (rollbackMatch && request.method === 'POST') {
-    requireRole(context.role, ['publisher', 'super_administrator']);
+    requireRole(context.role, ['admin']);
     return rollbackDataset(context, decodeURIComponent(rollbackMatch[1]!), await readJson(request));
   }
 
@@ -197,6 +191,7 @@ async function queue({ env }: EditorialContext, url: URL) {
     SELECT canonical.canonical_id AS canonicalId, canonical.content_type AS contentType,
            revision.revision_number AS revisionNumber, revision.sequence, revision.title,
            state.workflow_state AS workflowState, state.assigned_to_external_id AS assignedTo,
+           state.verified_by_external_id AS verifiedBy, state.verified_at AS verifiedAt,
            collection.slug AS collection, book.book_number AS bookNumber,
            chapter.chapter_number AS chapterNumber, state.changed_at AS changedAt
     FROM editorial_record_state state
@@ -230,10 +225,10 @@ async function lookups({ env }: EditorialContext) {
   const [reviewers, collections, books, chapters] = await Promise.all([
     env.IDENTITY_DB.prepare(`
       SELECT role.user_id AS id, user.name, user.email, role.role
-      FROM editorial_role_grants role
+      FROM platform_role_grants role
       JOIN "user" user ON user.id = role.user_id
       WHERE role.status = 'active'
-        AND role.role IN ('reviewer','senior_reviewer','editor','publisher','super_administrator')
+        AND role.role IN ('reviewer','editor','admin')
       ORDER BY user.name, user.email
     `).all(),
     env.CONTENT_DB.prepare(`
@@ -270,6 +265,7 @@ async function getRecord({ env }: EditorialContext, canonicalId: string) {
            revision.created_by_external_id AS revisionAuthor,
            revision.correction_reason AS correctionReason, revision.created_at AS revisionCreatedAt,
            state.workflow_state AS workflowState, state.assigned_to_external_id AS assignedTo,
+           state.verified_by_external_id AS verifiedBy, state.verified_at AS verifiedAt,
            metadata.display_number AS displayNumber, metadata.narrator, metadata.grade,
            metadata.grading_authority AS gradingAuthority,
            collection.slug AS collection, collection.title AS collectionTitle,
@@ -474,8 +470,8 @@ async function createAssignment(context: EditorialContext, body: Record<string, 
     return invalid('Choose an assignment scope and reviewer.');
   }
   const reviewer = await context.env.IDENTITY_DB.prepare(`
-    SELECT 1 FROM editorial_role_grants
-    WHERE user_id = ? AND status = 'active' AND role IN ('reviewer','senior_reviewer','editor','publisher','super_administrator')
+    SELECT 1 FROM platform_role_grants
+    WHERE user_id = ? AND status = 'active' AND role IN ('reviewer','editor','admin')
   `).bind(assignedTo).first();
   if (!reviewer) return invalid('The assignee must have an active editorial review role.');
   const id = `assignment.${crypto.randomUUID()}`;
@@ -606,16 +602,6 @@ async function listAssignments({ env }: EditorialContext) {
 async function submitFieldReviews(context: EditorialContext, canonicalId: string, body: Record<string, unknown>) {
   const current = await currentRevision(context.env.CONTENT_DB, canonicalId);
   if (!current) return notFound('Canonical record was not found.');
-  if (current.createdBy === context.user.id) return invalid('A correction author cannot review their own revision.');
-  if (
-    ['reviewer', 'senior_reviewer'].includes(context.role)
-    && !await hasActiveAssignment(context.env.CONTENT_DB, canonicalId, context.user.id)
-  ) {
-    return new Response(JSON.stringify({ error: { code: 'forbidden', message: 'This record is not assigned to you.' } }), {
-      status: 403,
-      headers: { 'content-type': 'application/json' },
-    });
-  }
   if (!['pending_review', 'assigned', 'in_review', 'needs_second_review'].includes(current.workflowState)) {
     return conflict('This revision is not open for field review.');
   }
@@ -654,104 +640,75 @@ async function submitFieldReviews(context: EditorialContext, canonicalId: string
 }
 
 async function submitDecision(context: EditorialContext, canonicalId: string, body: Record<string, unknown>) {
+  requireRole(context.role, ['reviewer', 'editor', 'admin']);
   const current = await currentRevision(context.env.CONTENT_DB, canonicalId);
   if (!current) return notFound('Canonical record was not found.');
   const decision = String(body.decision ?? '');
-  const stage = String(body.stage ?? 'independent_review');
   if (!['approved', 'changes_requested'].includes(decision)) return invalid('Choose approved or changes requested.');
-  if (!['independent_review', 'senior_approval'].includes(stage)) return invalid('Choose a supported review stage.');
-  if (current.createdBy === context.user.id) return invalid('A correction author cannot approve their own revision.');
-
-  if (stage === 'independent_review') {
-    requireRole(context.role, ['reviewer', 'senior_reviewer', 'editor', 'publisher', 'super_administrator']);
-    if (
-      ['reviewer', 'senior_reviewer'].includes(context.role)
-      && !await hasActiveAssignment(context.env.CONTENT_DB, canonicalId, context.user.id)
-    ) {
-      return new Response(JSON.stringify({ error: { code: 'forbidden', message: 'This record is not assigned to you.' } }), {
-        status: 403,
-        headers: { 'content-type': 'application/json' },
-      });
-    }
-    if (!['pending_review', 'assigned', 'in_review', 'needs_second_review'].includes(current.workflowState)) {
-      return conflict('This revision is not open for independent review.');
-    }
-    const fieldCount = await count(context.env.CONTENT_DB, `
-      SELECT COUNT(DISTINCT field_name) AS count FROM field_reviews
+  if (!['imported', 'pending_review', 'assigned', 'in_review', 'changes_requested', 'needs_second_review', 'needs_senior_approval'].includes(current.workflowState)) {
+    return conflict('This revision is not open for verification.');
+  }
+  if (decision === 'approved') {
+    const references = await count(context.env.CONTENT_DB, `
+      SELECT COUNT(*) AS count FROM canonical_references
       WHERE revision_id = '${sqlLiteral(current.revisionId)}'
-        AND reviewer_external_id = '${sqlLiteral(context.user.id)}'
+        AND verification_status != 'rejected'
     `);
-    if (fieldCount !== REVIEW_FIELDS.length) return invalid(`Complete all ${REVIEW_FIELDS.length} field checks before submitting an independent decision.`);
-    const corrections = await context.env.CONTENT_DB.prepare(`
-      SELECT COUNT(*) AS count FROM field_reviews
-      WHERE revision_id = ? AND reviewer_external_id = ? AND decision = 'correction_required'
-    `).bind(current.revisionId, context.user.id).first<{ count: number }>();
-    if (decision === 'approved' && Number(corrections?.count ?? 0) > 0) {
-      return invalid('A review containing required corrections cannot be approved.');
-    }
-  } else {
-    requireRole(context.role, ['senior_reviewer', 'publisher', 'super_administrator']);
-    if (current.workflowState !== 'needs_senior_approval') {
-      return conflict('Senior approval is available only after two independent approvals.');
-    }
-    const independent = await context.env.CONTENT_DB.prepare(`
-      SELECT COUNT(DISTINCT reviewer_external_id) AS count,
-             SUM(CASE WHEN reviewer_external_id = ? THEN 1 ELSE 0 END) AS selfCount
-      FROM review_decisions
-      WHERE revision_id = ? AND review_stage = 'independent_review' AND decision = 'approved'
-    `).bind(context.user.id, current.revisionId).first<{ count: number; selfCount: number }>();
-    if (Number(independent?.count ?? 0) < 2) return invalid('Two independent reviewer approvals are required first.');
-    if (Number(independent?.selfCount ?? 0) > 0) return invalid('Senior approval must be independent from both record reviewers.');
+    if (references < 1) return invalid('Attach at least one canonical reference before verifying this record.');
   }
 
   const id = `review-decision.${crypto.randomUUID()}`;
+  const now = new Date().toISOString();
   try {
     await context.env.CONTENT_DB.batch([
       context.env.CONTENT_DB.prepare(`
         INSERT INTO review_decisions (
           id, revision_id, reviewer_external_id, review_stage, decision, notes
         ) VALUES (?, ?, ?, ?, ?, ?)
-      `).bind(id, current.revisionId, context.user.id, stage, decision, optionalText(body.notes, 2000)),
+      `).bind(id, current.revisionId, context.user.id, 'independent_review', decision, optionalText(body.notes, 2000)),
+      context.env.CONTENT_DB.prepare(`
+        UPDATE canonical_references
+        SET verification_status = CASE WHEN ? = 'approved' THEN 'verified' ELSE verification_status END,
+            verified_by_external_id = CASE WHEN ? = 'approved' THEN ? ELSE verified_by_external_id END,
+            verified_at = CASE WHEN ? = 'approved' THEN ? ELSE verified_at END
+        WHERE revision_id = ? AND verification_status = 'pending'
+      `).bind(decision, decision, context.user.id, decision, now, current.revisionId),
+      context.env.CONTENT_DB.prepare(`
+        UPDATE editorial_record_state
+        SET workflow_state = ?,
+            verified_by_external_id = CASE WHEN ? = 'approved' THEN ? ELSE NULL END,
+            verified_at = CASE WHEN ? = 'approved' THEN ? ELSE NULL END,
+            changed_by_external_id = ?,
+            changed_at = ?
+        WHERE canonical_id = ?
+      `).bind(
+        decision === 'approved' ? 'approved' : 'changes_requested',
+        decision,
+        context.user.id,
+        decision,
+        now,
+        context.user.id,
+        now,
+        canonicalId,
+      ),
       auditStatement(context, 'editorial.review_decided', 'record', canonicalId, {
-        revisionId: current.revisionId, stage, decision,
+        revisionId: current.revisionId, stage: 'single_verification', decision,
       }),
     ]);
   } catch (error) {
-    if (String(error).includes('UNIQUE')) return conflict('This reviewer already submitted an immutable decision for this stage.');
+    if (String(error).includes('UNIQUE')) return conflict('You already submitted an immutable verification for this revision.');
     throw error;
   }
-
-  let nextState = 'changes_requested';
-  if (decision === 'approved' && stage === 'senior_approval') {
-    nextState = 'approved';
-  } else if (decision === 'approved') {
-    const approvals = await count(context.env.CONTENT_DB, `
-      SELECT COUNT(DISTINCT reviewer_external_id) AS count FROM review_decisions
-      WHERE revision_id = '${sqlLiteral(current.revisionId)}'
-        AND review_stage = 'independent_review' AND decision = 'approved'
-    `);
-    nextState = approvals >= 2 ? 'needs_senior_approval' : 'needs_second_review';
-  }
-  const stateStatements = [
-    context.env.CONTENT_DB.prepare(`
-      UPDATE editorial_record_state SET workflow_state = ?,
-        changed_by_external_id = ?, changed_at = CURRENT_TIMESTAMP WHERE canonical_id = ?
-    `).bind(nextState, context.user.id, canonicalId),
-  ];
-  if (decision === 'changes_requested') {
-    const priorApproval = await count(context.env.CONTENT_DB, `
-      SELECT COUNT(*) AS count FROM review_decisions
-      WHERE revision_id = '${sqlLiteral(current.revisionId)}' AND decision = 'approved'
-    `);
-    if (priorApproval > 0) {
-      stateStatements.push(context.env.CONTENT_DB.prepare(`
-        INSERT INTO disagreement_queue (id, revision_id)
-        VALUES (?, ?)
-      `).bind(`disagreement.${crypto.randomUUID()}`, current.revisionId));
-    }
-  }
-  await context.env.CONTENT_DB.batch(stateStatements);
-  return json({ data: { canonicalId, revisionId: current.revisionId, stage, decision, workflowState: nextState } });
+  return json({
+    data: {
+      canonicalId,
+      revisionId: current.revisionId,
+      decision,
+      workflowState: decision === 'approved' ? 'approved' : 'changes_requested',
+      verifiedBy: decision === 'approved' ? context.user.id : null,
+      verifiedAt: decision === 'approved' ? now : null,
+    },
+  });
 }
 
 async function createRevision(context: EditorialContext, canonicalId: string, body: Record<string, unknown>) {
@@ -863,7 +820,8 @@ async function createRevision(context: EditorialContext, canonicalId: string, bo
     `).bind(revisionId, canonicalId),
     context.env.CONTENT_DB.prepare(`
       UPDATE editorial_record_state SET revision_id = ?, workflow_state = 'pending_review',
-        assigned_to_external_id = NULL, changed_by_external_id = ?, changed_at = CURRENT_TIMESTAMP
+        assigned_to_external_id = NULL, verified_by_external_id = NULL, verified_at = NULL,
+        changed_by_external_id = ?, changed_at = CURRENT_TIMESTAMP
       WHERE canonical_id = ?
     `).bind(revisionId, context.user.id, canonicalId),
     auditStatement(context, 'editorial.revision_created', 'record', canonicalId, {
@@ -997,14 +955,10 @@ async function validateBatch(context: EditorialContext, batchId: string) {
              WHERE reference.canonical_id = item.canonical_id
                AND reference.revision_id = item.revision_id
                AND reference.verification_status = 'verified') AS verifiedReferences,
-           (SELECT COUNT(DISTINCT reviewer_external_id) FROM review_decisions decision
-             WHERE decision.revision_id = item.revision_id
-               AND decision.review_stage = 'independent_review'
-               AND decision.decision = 'approved') AS independentApprovals,
-           (SELECT COUNT(*) FROM review_decisions decision
-             WHERE decision.revision_id = item.revision_id
-               AND decision.review_stage = 'senior_approval'
-               AND decision.decision = 'approved') AS seniorApprovals
+            (SELECT COUNT(DISTINCT reviewer_external_id) FROM review_decisions decision
+              WHERE decision.revision_id = item.revision_id
+                AND decision.review_stage = 'independent_review'
+                AND decision.decision = 'approved') AS verifications
     FROM publication_batch_items item
     JOIN editorial_record_state state ON state.canonical_id = item.canonical_id
     WHERE item.batch_id = ?
@@ -1014,16 +968,14 @@ async function validateBatch(context: EditorialContext, batchId: string) {
     workflowState: string;
     revisionMatches: number;
     verifiedReferences: number;
-    independentApprovals: number;
-    seniorApprovals: number;
+    verifications: number;
   }>();
   const invalidRecords = rows.results.flatMap((row) => {
     const issues: string[] = [];
     if (row.workflowState !== 'approved') issues.push(`Workflow state is ${row.workflowState}, not approved.`);
     if (!row.revisionMatches) issues.push('The batch revision is no longer current.');
     if (Number(row.verifiedReferences) < 1) issues.push('No independently verified canonical reference is attached.');
-    if (Number(row.independentApprovals) < 2) issues.push('Two independent reviewer approvals are required.');
-    if (Number(row.seniorApprovals) < 1) issues.push('Senior approval is required.');
+    if (Number(row.verifications) < 1) issues.push('One verified editorial decision is required.');
     return issues.length ? [{ canonicalId: row.canonicalId, revisionId: row.revisionId, issues }] : [];
   });
   const itemCount = rows.results.length;
@@ -1356,9 +1308,10 @@ async function rollbackDataset(context: EditorialContext, targetDatasetId: strin
 async function listRoles({ env }: EditorialContext) {
   const rows = await env.IDENTITY_DB.prepare(`
     SELECT user.id AS userId, user.name, user.email,
-           COALESCE(role.role, 'viewer') AS role,
-           COALESCE(role.status, 'inactive') AS status
-    FROM "user" user LEFT JOIN editorial_role_grants role ON role.user_id = user.id
+           COALESCE(role.role, 'developer') AS role,
+           COALESCE(role.status, 'active') AS status,
+           user.is_admin AS isAdmin
+    FROM "user" user LEFT JOIN platform_role_grants role ON role.user_id = user.id
     ORDER BY user.name, user.email LIMIT 500
   `).all();
   return json({ data: rows.results });
@@ -1368,24 +1321,40 @@ async function updateRole(context: EditorialContext, body: Record<string, unknow
   const userId = String(body.userId ?? '');
   const role = String(body.role ?? '');
   const status = String(body.status ?? 'active');
-  if (!userId || !['viewer', 'reviewer', 'senior_reviewer', 'editor', 'publisher', 'super_administrator'].includes(role)) {
-    return invalid('Choose a user and supported editorial role.');
+  if (!userId || !['admin', 'editor', 'reviewer', 'developer'].includes(role)) {
+    return invalid('Choose a user and supported platform role.');
   }
   if (!['active', 'inactive'].includes(status)) return invalid('Choose active or inactive.');
-  if (userId === context.user.id && (role !== 'super_administrator' || status !== 'active')) {
-    return invalid('A super administrator cannot remove their own active authority.');
+  const target = await context.env.IDENTITY_DB.prepare(`
+    SELECT COALESCE(role.role, 'developer') AS role
+    FROM "user" user LEFT JOIN platform_role_grants role ON role.user_id = user.id
+    WHERE user.id = ?
+  `).bind(userId).first<{ role: string }>();
+  if (!target) return notFound('User was not found.');
+  if (context.role === 'editor') {
+    if (userId === context.user.id) return invalid('Editors cannot change their own role.');
+    if (!['developer', 'reviewer'].includes(target.role) || !['developer', 'reviewer'].includes(role)) {
+      return invalid('Editors can manage reviewer access only.');
+    }
+  }
+  if (userId === context.user.id && (role !== 'admin' || status !== 'active')) {
+    return invalid('An administrator cannot remove their own active authority.');
   }
   await context.env.IDENTITY_DB.batch([
     context.env.IDENTITY_DB.prepare(`
-      INSERT INTO editorial_role_grants (user_id, role, status, granted_by)
+      INSERT INTO platform_role_grants (user_id, role, status, granted_by)
       VALUES (?, ?, ?, ?)
       ON CONFLICT(user_id) DO UPDATE SET role = excluded.role, status = excluded.status,
         granted_by = excluded.granted_by, updated_at = CURRENT_TIMESTAMP
     `).bind(userId, role, status, context.user.id),
     context.env.IDENTITY_DB.prepare(`
+      UPDATE "user" SET is_admin = CASE WHEN ? = 'admin' AND ? = 'active' THEN 1 ELSE 0 END
+      WHERE id = ?
+    `).bind(role, status, userId),
+    context.env.IDENTITY_DB.prepare(`
       INSERT INTO audit_events (
         id, actor_user_id, actor_type, action, target_type, target_id, request_id, details
-      ) VALUES (?, ?, 'admin', 'editorial.role_changed', 'user', ?, ?, ?)
+      ) VALUES (?, ?, 'admin', 'platform.role_changed', 'user', ?, ?, ?)
     `).bind(
       `audit.${crypto.randomUUID()}`, context.user.id, userId, context.requestId,
       JSON.stringify({ role, status }),
@@ -1413,27 +1382,6 @@ async function currentState(database: D1Database, canonicalId: string) {
     SELECT revision_id AS revisionId, workflow_state AS workflowState
     FROM editorial_record_state WHERE canonical_id = ?
   `).bind(canonicalId).first<{ revisionId: string; workflowState: string }>();
-}
-
-async function hasActiveAssignment(database: D1Database, canonicalId: string, reviewerId: string) {
-  const row = await database.prepare(`
-    SELECT 1
-    FROM editorial_assignments assignment
-    JOIN editorial_record_state state ON state.canonical_id = ?
-    JOIN content_revisions revision ON revision.id = state.revision_id
-    LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
-    WHERE assignment.assigned_to_external_id = ?
-      AND assignment.status = 'active'
-      AND (
-        (assignment.scope_type = 'record' AND assignment.canonical_id = state.canonical_id)
-        OR (assignment.scope_type = 'record_range' AND revision.sequence BETWEEN assignment.range_start AND assignment.range_end)
-        OR (assignment.scope_type = 'collection' AND metadata.collection_id = assignment.collection_id)
-        OR (assignment.scope_type = 'book' AND metadata.book_id = assignment.book_id)
-        OR (assignment.scope_type = 'chapter' AND metadata.chapter_id = assignment.chapter_id)
-      )
-    LIMIT 1
-  `).bind(canonicalId, reviewerId).first();
-  return Boolean(row);
 }
 
 function auditStatement(context: EditorialContext, action: string, targetType: string, targetId: string, details: unknown) {

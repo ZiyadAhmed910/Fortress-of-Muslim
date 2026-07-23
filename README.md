@@ -123,11 +123,11 @@ Useful verification endpoints:
 /v1/queries/{named-query-id}
 ```
 
-Canonical IDs and retained Fortress legacy dua IDs are accepted by detail and part routes. List and search responses return lightweight summaries; detail and random routes return the complete ordered published revision.
+Canonical IDs and retained Fortress legacy dua IDs are accepted by detail and part routes. List, search, detail, part, random, and evidence routes expose the current editorial revision, including unverified candidates. Every response carries `verificationStatus`, `workflowState`, `verifiedBy`, `verifiedAt`, and nullable `publishedAt` fields so consumers can make an explicit trust decision.
 
 The PWA snapshot contains only published canonical Fortress of Muslim chapters. Candidate records under editorial review are never included. Hadith browse/search and the source-grounded assistant are API-based and are not stored for offline use.
 
-Published datasets and browse, search, detail, part, random, and evidence endpoints are public without login. Developer-owned named queries and management capabilities require a Fortress API key or OAuth 2.1 bearer token.
+Current editorial records and browse, search, detail, part, random, and evidence endpoints are public without login. Developer-owned named queries and management capabilities require a Fortress API key or OAuth 2.1 bearer token.
 
 The API stores candidates, immutable revisions, editorial decisions, and published records in Cloudflare D1. Verify the public migration and governance invariants with:
 
@@ -136,7 +136,7 @@ npm run db:verify --workspace @fortress/api
 npm run editorial:verify --workspace @fortress/api
 ```
 
-The public API, MCP, RAG index, and PWA snapshot all read through `canonical_publications`. A record cannot enter that table until its current immutable revision has complete field checks from two independent reviewers, separate senior approval, verified canonical references, and an approved publication batch.
+The public REST API and API-backed MCP tools expose current records through `api_current_content`, including unverified material with an explicit editorial state. RAG and PWA snapshots remain restricted to verified records in `canonical_publications`. One authorized Admin, Editor, or Reviewer verifies the current immutable revision and references; an Admin publishes an approved batch before that revision can be used as trusted PWA or RAG material.
 
 Build the PWA's offline dua snapshot from the published API boundary:
 
@@ -161,6 +161,16 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.18.0
+
+- Replaced the multi-review workflow with one complete verification by an authorized Admin, Editor, or Reviewer.
+- Added permanent verifier identity and timestamp stamps to editorial record state and evidence.
+- Added a unified Admin, Editor, Reviewer, and Developer hierarchy with an explicit administrator flag.
+- Restricted platform management to Admins, while Editors can manage Reviewer access and editorial work.
+- Seeded `ziyadahmed910@gmail.com` as the protected default Admin and added self-healing bootstrap on sign-in.
+- Exposed current verified and unverified records through REST and API-backed MCP tools with explicit verification and workflow fields.
+- Kept PWA snapshots and RAG retrieval restricted to verified, published revisions.
 
 ### 0.17.0
 

@@ -4,14 +4,8 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { handleEditorialPlane, type EditorialRole } from '../src/editorial-plane';
 
-const reviewFields = [
-  'arabic', 'translation', 'transliteration', 'narrator', 'collection',
-  'book', 'chapter', 'number', 'references', 'grades', 'formatting',
-  'completeness', 'duplicate_detection',
-];
-
 describe('canonical editorial pilot', () => {
-  it('rehearses assignment, separated review, publication, and rollback', async () => {
+  it('rehearses one-person verification, publication, and rollback', async () => {
     const content = createContentDatabase();
     const identity = createIdentityDatabase();
     const env = {
@@ -20,49 +14,47 @@ describe('canonical editorial pilot', () => {
     } as never;
     const users = {
       editor: context(env, 'pilot-editor', 'editor'),
-      reviewerA: context(env, 'pilot-reviewer-a', 'reviewer'),
-      reviewerB: context(env, 'pilot-reviewer-b', 'reviewer'),
-      unassigned: context(env, 'pilot-reviewer-unassigned', 'reviewer'),
-      senior: context(env, 'pilot-senior', 'senior_reviewer'),
-      publisher: context(env, 'pilot-publisher', 'publisher'),
+      reviewer: context(env, 'pilot-reviewer', 'reviewer'),
+      admin: context(env, 'pilot-admin', 'admin'),
+      target: context(env, 'pilot-target', 'reviewer'),
     };
     seedIdentity(identity, Object.values(users));
+    identity.prepare("UPDATE platform_role_grants SET role = 'developer' WHERE user_id = ?").run(users.target.user.id);
+
+    await request(users.editor, 'PATCH', '/v1/admin/editorial/roles', {
+      userId: users.target.user.id,
+      role: 'reviewer',
+      status: 'active',
+    });
+    expect(String(identity.prepare('SELECT role FROM platform_role_grants WHERE user_id = ?').pluck().get(users.target.user.id))).toBe('reviewer');
+    await request(users.editor, 'PATCH', '/v1/admin/editorial/roles', {
+      userId: users.target.user.id,
+      role: 'admin',
+      status: 'active',
+    }, 400);
 
     const canonicalId = 'dua.hisn.001';
-    await post(users.editor, '/v1/admin/editorial/assignments', {
-      scopeType: 'record', assignedTo: users.reviewerA.user.id, canonicalId,
-    }, 201);
-    await post(users.editor, '/v1/admin/editorial/assignments', {
-      scopeType: 'record', assignedTo: users.reviewerB.user.id, canonicalId,
-    }, 201);
-
-    const denied = await post(users.unassigned, `/v1/admin/editorial/records/${canonicalId}/field-reviews`, {
-      reviews: reviewFields.map((field) => ({ field, decision: 'verified' })),
-    }, 403);
-    expect(((await denied.json()) as { error: { code: string } }).error.code).toBe('forbidden');
-
     const referenceResponse = await post(users.editor, `/v1/admin/editorial/records/${canonicalId}/references`, {
       referenceType: 'primary',
       locator: 'Hisn al-Muslim 1',
     }, 201);
     const referenceId = ((await referenceResponse.json()) as { data: { id: string } }).data.id;
-    await post(users.senior, `/v1/admin/editorial/records/${canonicalId}/references/${referenceId}/review`, {
-      decision: 'verified',
-    });
 
-    for (const reviewer of [users.reviewerA, users.reviewerB]) {
-      await post(reviewer, `/v1/admin/editorial/records/${canonicalId}/field-reviews`, {
-        reviews: reviewFields.map((field) => ({ field, decision: 'verified' })),
-      }, 201);
-      await post(reviewer, `/v1/admin/editorial/records/${canonicalId}/decision`, {
-        stage: 'independent_review',
-        decision: 'approved',
-      });
-    }
-    await post(users.senior, `/v1/admin/editorial/records/${canonicalId}/decision`, {
-      stage: 'senior_approval',
+    const verification = await post(users.reviewer, `/v1/admin/editorial/records/${canonicalId}/decision`, {
       decision: 'approved',
     });
+    expect(((await verification.json()) as { data: unknown }).data).toMatchObject({
+      workflowState: 'approved',
+      verifiedBy: users.reviewer.user.id,
+    });
+    expect(scalar(content, "SELECT COUNT(*) FROM review_decisions WHERE decision = 'approved'")).toBe(1);
+    expect(scalar(content, `SELECT COUNT(*) FROM canonical_references WHERE id = '${referenceId}' AND verification_status = 'verified'`)).toBe(1);
+    expect(String(content.prepare(`SELECT verified_by_external_id FROM editorial_record_state WHERE canonical_id = ?`).pluck().get(canonicalId))).toBe(users.reviewer.user.id);
+
+    const duplicate = await post(users.editor, `/v1/admin/editorial/records/${canonicalId}/decision`, {
+      decision: 'approved',
+    }, 409);
+    expect(((await duplicate.json()) as { error: { code: string } }).error.code).toBe('conflict');
 
     const batchResponse = await post(users.editor, '/v1/admin/editorial/batches', {
       label: 'Automated editorial pilot',
@@ -72,9 +64,13 @@ describe('canonical editorial pilot', () => {
       canonicalIds: [canonicalId],
     });
     const validation = await post(users.editor, `/v1/admin/editorial/batches/${batchId}/validate`, {});
-    expect(((await validation.json()) as { data: unknown }).data).toMatchObject({ valid: true, itemCount: 1, invalidRecords: [] });
-    await post(users.publisher, `/v1/admin/editorial/batches/${batchId}/approve`, {});
-    const publication = await post(users.publisher, `/v1/admin/editorial/batches/${batchId}/publish`, {});
+    expect(((await validation.json()) as { data: unknown }).data).toMatchObject({
+      valid: true,
+      itemCount: 1,
+      invalidRecords: [],
+    });
+    await post(users.admin, `/v1/admin/editorial/batches/${batchId}/approve`, {});
+    const publication = await post(users.admin, `/v1/admin/editorial/batches/${batchId}/publish`, {});
     const publicationData = ((await publication.json()) as { data: { datasetId: string; recordCount: number } }).data;
 
     expect(publicationData.recordCount).toBe(1);
@@ -83,16 +79,14 @@ describe('canonical editorial pilot', () => {
     expect(scalar(content, "SELECT COUNT(*) FROM canonical_search_fts WHERE canonical_id = 'dua.hisn.001'")).toBe(1);
 
     const rollback = await post(
-      users.publisher,
+      users.admin,
       '/v1/admin/editorial/datasets/canonical.bootstrap.2026-07-23/rollback',
       { reason: 'Complete the automated pilot by restoring the empty bootstrap snapshot.' },
     );
     const rollbackData = ((await rollback.json()) as { data: { recordCount: number } }).data;
     expect(rollbackData.recordCount).toBe(0);
     expect(scalar(content, "SELECT COUNT(*) FROM canonical_publications WHERE publication_status = 'published'")).toBe(0);
-    expect(scalar(content, "SELECT COUNT(*) FROM canonical_search_fts")).toBe(0);
-    expect(scalar(content, "SELECT COUNT(*) FROM canonical_dataset_versions WHERE publication_status = 'published' AND record_count = 0")).toBe(1);
-    expect(scalar(content, "SELECT COUNT(*) FROM canonical_publication_history WHERE event_type = 'rolled_back'")).toBe(1);
+    expect(scalar(content, 'SELECT COUNT(*) FROM canonical_search_fts')).toBe(0);
   });
 });
 
@@ -112,23 +106,35 @@ function createIdentityDatabase() {
     CREATE TABLE "user" (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
-      email TEXT NOT NULL
+      email TEXT NOT NULL,
+      is_admin INTEGER NOT NULL DEFAULT 0
     );
-    CREATE TABLE editorial_role_grants (
+    CREATE TABLE platform_role_grants (
       user_id TEXT PRIMARY KEY,
       role TEXT NOT NULL,
       status TEXT NOT NULL,
-      granted_by TEXT
+      granted_by TEXT,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE audit_events (
+      id TEXT PRIMARY KEY,
+      actor_user_id TEXT,
+      actor_type TEXT,
+      action TEXT,
+      target_type TEXT,
+      target_id TEXT,
+      request_id TEXT,
+      details TEXT
     );
   `);
   return database;
 }
 
 function seedIdentity(database: Database.Database, contexts: ReturnType<typeof context>[]) {
-  const insertUser = database.prepare('INSERT INTO "user" (id, name, email) VALUES (?, ?, ?)');
-  const insertRole = database.prepare('INSERT INTO editorial_role_grants (user_id, role, status) VALUES (?, ?, ?)');
+  const insertUser = database.prepare('INSERT INTO "user" (id, name, email, is_admin) VALUES (?, ?, ?, ?)');
+  const insertRole = database.prepare('INSERT INTO platform_role_grants (user_id, role, status) VALUES (?, ?, ?)');
   for (const item of contexts) {
-    insertUser.run(item.user.id, item.user.name, item.user.email);
+    insertUser.run(item.user.id, item.user.name, item.user.email, item.role === 'admin' ? 1 : 0);
     insertRole.run(item.user.id, item.role, 'active');
   }
 }
@@ -148,12 +154,22 @@ async function post(
   body: unknown,
   expectedStatus = 200,
 ) {
-  const request = new Request(`https://auth-test.fortressofmuslim.org${path}`, {
-    method: 'POST',
+  return request(editorialContext, 'POST', path, body, expectedStatus);
+}
+
+async function request(
+  editorialContext: ReturnType<typeof context>,
+  method: string,
+  path: string,
+  body: unknown,
+  expectedStatus = 200,
+) {
+  const httpRequest = new Request(`https://auth-test.fortressofmuslim.org${path}`, {
+    method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  const response = await handleEditorialPlane(request, new URL(request.url), editorialContext);
+  const response = await handleEditorialPlane(httpRequest, new URL(httpRequest.url), editorialContext);
   expect(response, path).not.toBeNull();
   expect(response!.status, `${path}: ${await response!.clone().text()}`).toBe(expectedStatus);
   return response!;

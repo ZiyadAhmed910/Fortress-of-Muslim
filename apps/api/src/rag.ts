@@ -222,7 +222,9 @@ async function retrieveVectorRecords(env: Bindings, repository: ContentRepositor
       const metadata = match.metadata as Record<string, string> | undefined;
       const id = metadata?.recordId ?? match.id;
       const contentType: 'dua' | 'hadith' = metadata?.contentType === 'dua' ? 'dua' : 'hadith';
-      const record = contentType === 'dua' ? await repository.getDua(id) : await repository.getHadith(id);
+      const record = contentType === 'dua'
+        ? await repository.getPublishedDua(id)
+        : await repository.getPublishedHadith(id);
       return record ? { record, contentType, score: match.score, metadata, retrieval: 'vector' as const } : null;
     }));
     return {
@@ -245,8 +247,8 @@ async function retrieveLexicalRecords(repository: ContentRepository, question: s
   }
   const records = await Promise.all(candidates.map(async (candidate) => {
     const record = candidate.contentType === 'dua'
-      ? await repository.getDua(candidate.id)
-      : await repository.getHadith(candidate.id);
+      ? await repository.getPublishedDua(candidate.id)
+      : await repository.getPublishedHadith(candidate.id);
     return record ? {
       record,
       contentType: candidate.contentType,

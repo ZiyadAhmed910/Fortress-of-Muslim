@@ -407,7 +407,7 @@ components:
           type: string
     DuaSummary:
       type: object
-      required: [id, legacyId, sequence, title, partCount, verificationStatus, revisionNumber, publishedAt, canonicalUrl]
+      required: [id, legacyId, sequence, title, partCount, verificationStatus, workflowState, verifiedBy, verifiedAt, revisionNumber, publishedAt, canonicalUrl]
       properties:
         id:
           type: string
@@ -425,13 +425,23 @@ components:
           minimum: 0
         verificationStatus:
           type: string
-          enum: [verified]
+          enum: [unverified, verified]
+        workflowState:
+          $ref: '#/components/schemas/EditorialWorkflowState'
+        verifiedBy:
+          type: string
+          nullable: true
+        verifiedAt:
+          type: string
+          format: date-time
+          nullable: true
         revisionNumber:
           type: integer
           minimum: 1
         publishedAt:
           type: string
           format: date-time
+          nullable: true
         canonicalUrl:
           type: string
           format: uri
@@ -449,10 +459,22 @@ components:
                   $ref: '#/components/schemas/ContentSegment'
     DuaPart:
       type: object
-      required: [duaId, position, segmentCount, segments]
+      required: [duaId, verificationStatus, workflowState, verifiedBy, verifiedAt, position, segmentCount, segments]
       properties:
         duaId:
           type: string
+        verificationStatus:
+          type: string
+          enum: [unverified, verified]
+        workflowState:
+          $ref: '#/components/schemas/EditorialWorkflowState'
+        verifiedBy:
+          type: string
+          nullable: true
+        verifiedAt:
+          type: string
+          format: date-time
+          nullable: true
         position:
           type: integer
           minimum: 1
@@ -506,7 +528,7 @@ components:
       properties:
         data:
           type: object
-          required: [recordId, canonicalUrl, revisionNumber, publishedAt, references, taxonomy, verificationHistory, corrections]
+          required: [recordId, canonicalUrl, revisionNumber, verificationStatus, workflowState, verifiedBy, verifiedAt, publishedAt, references, taxonomy, verificationHistory, corrections]
           properties:
             recordId:
               type: string
@@ -516,9 +538,22 @@ components:
             revisionNumber:
               type: integer
               minimum: 1
+            verificationStatus:
+              type: string
+              enum: [unverified, verified]
+            workflowState:
+              $ref: '#/components/schemas/EditorialWorkflowState'
+            verifiedBy:
+              type: string
+              nullable: true
+            verifiedAt:
+              type: string
+              format: date-time
+              nullable: true
             publishedAt:
               type: string
               format: date-time
+              nullable: true
             collection:
               type: object
               nullable: true
@@ -552,10 +587,10 @@ components:
         recordCount: { type: integer, minimum: 0 }
         bookCount: { type: integer, minimum: 0 }
         chapterCount: { type: integer, minimum: 0 }
-        verificationStatus: { type: string, enum: [verified] }
+        verificationStatus: { type: string, enum: [pending, verified, rejected, deprecated] }
     HadithSummary:
       type: object
-      required: [id, sequence, displayNumber, title, collection, narrator, grade, verificationStatus, revisionNumber, publishedAt, canonicalUrl]
+      required: [id, sequence, displayNumber, title, collection, narrator, grade, verificationStatus, workflowState, verifiedBy, verifiedAt, revisionNumber, publishedAt, canonicalUrl]
       properties:
         id: { type: string, example: hadith.bukhari.1 }
         sequence: { type: integer, minimum: 1 }
@@ -566,9 +601,13 @@ components:
         chapter: { type: object, nullable: true }
         narrator: { type: string, nullable: true }
         grade: { type: object, nullable: true }
-        verificationStatus: { type: string, enum: [verified] }
+        verificationStatus: { type: string, enum: [unverified, verified] }
+        workflowState:
+          $ref: '#/components/schemas/EditorialWorkflowState'
+        verifiedBy: { type: string, nullable: true }
+        verifiedAt: { type: string, format: date-time, nullable: true }
         revisionNumber: { type: integer, minimum: 1 }
-        publishedAt: { type: string, format: date-time }
+        publishedAt: { type: string, format: date-time, nullable: true }
         canonicalUrl: { type: string, format: uri }
     Hadith:
       allOf:
@@ -588,6 +627,9 @@ components:
                 properties:
                   type: { type: string }
                   locator: { type: string }
+    EditorialWorkflowState:
+      type: string
+      enum: [imported, pending_review, assigned, in_review, changes_requested, needs_second_review, needs_senior_approval, approved, published, superseded]
     HadithListResponse:
       type: object
       required: [data, pagination, meta]

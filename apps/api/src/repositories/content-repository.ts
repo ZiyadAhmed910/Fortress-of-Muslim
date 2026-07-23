@@ -18,7 +18,11 @@ export type RecordEvidence = {
   recordId: string;
   canonicalUrl: string;
   revisionNumber: number;
-  publishedAt: string;
+  verificationStatus: 'unverified' | 'verified';
+  workflowState: string;
+  verifiedBy: string | null;
+  verifiedAt: string | null;
+  publishedAt: string | null;
   collection: { id: string; title: string; verificationStatus: string } | null;
   references: Array<{
     id: string;
@@ -41,10 +45,12 @@ export interface ContentRepository {
   findDuasByTitle(query: string, limit: number): Promise<DuaTitleMatch[]>;
   getRandomDua(): Promise<Dua | undefined>;
   getDua(id: string): Promise<Dua | undefined>;
+  getPublishedDua(id: string): Promise<Dua | undefined>;
   getDuaEvidence(id: string): Promise<RecordEvidence | undefined>;
   countHadith(collection?: string): Promise<number>;
   listHadith(collection: string | undefined, offset: number, limit: number): Promise<HadithSummary[]>;
   searchHadith(query: string, collection: string | undefined, offset: number, limit: number): Promise<{ items: HadithSummary[]; total: number }>;
   resolveHadithPath(collection: string, book: string, number: string): Promise<Hadith | undefined>;
   getHadith(id: string): Promise<Hadith | undefined>;
+  getPublishedHadith(id: string): Promise<Hadith | undefined>;
 }

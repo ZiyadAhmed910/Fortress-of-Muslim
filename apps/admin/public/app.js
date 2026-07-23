@@ -12,11 +12,11 @@ const state = {
   lookups: null,
   queue: { params: {}, offset: 0, limit: 50, total: 0 },
 };
-const reviewFields = [
-  'arabic', 'translation', 'transliteration', 'narrator', 'collection', 'book',
-  'chapter', 'number', 'references', 'grades', 'formatting', 'completeness',
-  'duplicate_detection',
-];
+const roleViews = {
+  admin: null,
+  editor: new Set(['overview', 'queue', 'assignments', 'batches', 'users']),
+  reviewer: new Set(['overview', 'queue']),
+};
 const resourceNames = {
   'api-keys': 'API keys',
   'oauth-clients': 'Connected apps',
@@ -108,13 +108,24 @@ async function bootstrap() {
   $('[data-user-name]').textContent = state.session.user.name;
   $('[data-user-email]').textContent = state.session.user.email;
   $('[data-role]').textContent = human(state.session.role);
-  $('[data-editorial-role]').textContent = human(state.session.editorialRole);
+  $('[data-editorial-role]').hidden = true;
   $('[data-initials]').textContent = initials(state.session.user.name || state.session.user.email);
+  configureAccess();
   route();
+}
+
+function configureAccess() {
+  const allowed = roleViews[state.session.role];
+  $$('[data-nav]').forEach((link) => {
+    link.hidden = Boolean(allowed && !allowed.has(link.hash.slice(1)));
+  });
+  $('#global-search').hidden = state.session.role !== 'admin';
 }
 
 function route() {
   let id = location.hash.slice(1) || 'overview';
+  const allowed = roleViews[state.session.role];
+  if (allowed && !allowed.has(id)) id = 'overview';
   if (!document.getElementById(id)?.classList.contains('view')) id = 'overview';
   $$('.view').forEach((view) => { view.hidden = view.id !== id; });
   $$('[data-nav]').forEach((link) => link.classList.toggle('active', link.hash === `#${id}`));
@@ -128,7 +139,6 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'queue') await loadQueue(params);
     else if (id === 'assignments') await Promise.all([loadLookups(), loadAssignments()]);
     else if (id === 'batches') await Promise.all([loadBatches(), loadDatasets()]);
-    else if (id === 'roles') await loadRoles();
     else if (id === 'users') await loadUsers(params);
     else if (id === 'taxonomy') await loadTaxonomy(params);
     else if (id === 'services') await loadServices();
@@ -141,10 +151,8 @@ async function loadView(id, force = false, params = {}) {
 }
 
 async function loadOverview() {
-  const [platform, editorial] = await Promise.all([
-    api('/v1/admin/overview'),
-    api('/v1/admin/editorial/overview'),
-  ]);
+  const editorial = await api('/v1/admin/editorial/overview');
+  const platform = state.session.role === 'admin' ? await api('/v1/admin/overview') : null;
   const labels = {
     users: 'Users',
     apiKeys: 'Active API keys',
@@ -154,16 +162,20 @@ async function loadOverview() {
     publishedRecords: 'Published records',
     disagreements: 'Open disagreements',
   };
-  $('#metrics').innerHTML = Object.entries(platform.data.counts)
-    .filter(([key]) => labels[key])
-    .map(([key, value]) => `<div class="metric"><span>${labels[key]}</span><strong>${value}</strong></div>`)
-    .join('');
+  $('#metrics').innerHTML = platform
+    ? Object.entries(platform.data.counts)
+      .filter(([key]) => labels[key])
+      .map(([key, value]) => `<div class="metric"><span>${labels[key]}</span><strong>${value}</strong></div>`)
+      .join('')
+    : `<div class="metric"><span>Editorial records</span><strong>${Object.values(editorial.data.queues).reduce((sum, value) => sum + value, 0)}</strong></div>`;
   $('#overview-queues').innerHTML = Object.entries(editorial.data.queues)
     .map(([key, value]) => `<button class="service-line" data-queue-state="${esc(key)}"><span><strong>${esc(human(key))}</strong><small>Editorial records</small></span><span class="badge">${value}</span></button>`)
     .join('') || empty();
-  $('#overview-services').innerHTML = platform.data.services
-    .map((service) => `<div class="service-line"><span><strong>${esc(service.displayName)}</strong><small>${esc(service.enforcement)} enforcement</small></span><span class="badge ${esc(service.status)}">${esc(service.status)}</span></div>`)
-    .join('');
+  $('#overview-services').innerHTML = platform
+    ? platform.data.services
+      .map((service) => `<div class="service-line"><span><strong>${esc(service.displayName)}</strong><small>${esc(service.enforcement)} enforcement</small></span><span class="badge ${esc(service.status)}">${esc(service.status)}</span></div>`)
+      .join('')
+    : '<div class="service-line"><span><strong>Editorial access</strong><small>Scoped by your staff role</small></span><span class="badge active">active</span></div>';
 }
 $('#overview-queues').addEventListener('click', (event) => {
   const button = event.target.closest('[data-queue-state]');
@@ -241,18 +253,16 @@ async function loadLookups() {
 async function showRecord(id) {
   const data = (await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}`)).data;
   state.record = data;
-  const reviewed = new Map(data.fieldReviews
-    .filter((item) => item.reviewerId === state.session.user.id)
-    .map((item) => [item.fieldName, item]));
   const grouped = groupSegments(data.segments);
-  const reviewers = [...new Set(data.fieldReviews.map((item) => item.reviewerId))];
   const priorRevisions = data.revisions.filter((revision) => revision.id !== data.record.revisionId);
+  const canEdit = ['admin', 'editor'].includes(state.session.role);
+  const isVerified = ['approved', 'published'].includes(data.record.workflowState);
   $('#record-detail').innerHTML = `
     <header class="editor-head"><div><span class="kicker">CANONICAL RECORD</span><h2>${esc(data.record.title)}</h2><p>${esc(data.record.canonicalId)} &middot; revision ${data.record.revisionNumber}</p></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header>
-    <div class="verification-banner"><strong>${esc(human(data.record.workflowState))}</strong><span>${esc(data.record.collectionTitle || 'Collection pending editorial confirmation')}</span><small>${reviewers.length} reviewer${reviewers.length === 1 ? '' : 's'} started &middot; ${data.decisions.length} decisions</small></div>
+    <div class="verification-banner"><strong>${esc(isVerified ? 'Verified' : human(data.record.workflowState))}</strong><span>${esc(data.record.collectionTitle || 'Collection pending editorial confirmation')}</span><small>${data.record.verifiedBy ? `Verified by ${esc(data.record.verifiedBy)} &middot; ${date(data.record.verifiedAt)}` : 'Not yet verified'}</small></div>
     <section class="editor-section"><header><div><h3>Revision content</h3><p>Review the immutable text snapshot currently assigned to this record.</p></div></header>
       ${grouped.map((part) => `<div class="revision-part"><strong>Part ${part.position}</strong>${part.segments.map((segment) => `<label>${esc(human(segment.kind))}<textarea rows="${segment.kind === 'arabic' ? 4 : 3}" dir="${segment.kind === 'arabic' ? 'rtl' : 'ltr'}" data-segment="${part.position}:${segment.segmentPosition}">${esc(segment.text)}</textarea></label>`).join('')}</div>`).join('')}
-      <form id="revision-form" class="inline-control"><input name="title" value="${esc(data.record.title)}" aria-label="Corrected title"><input name="reason" placeholder="Correction reason (required)" minlength="10"><button type="submit">Create correction revision</button></form>
+      ${canEdit ? `<form id="revision-form" class="inline-control"><input name="title" value="${esc(data.record.title)}" aria-label="Corrected title"><input name="reason" placeholder="Correction reason (required)" minlength="10"><button type="submit">Create correction revision</button></form>` : ''}
     </section>
     <section class="editor-section"><header><div><h3>Revision history</h3><p>Compare the current immutable snapshot with any earlier correction.</p></div></header>
       ${priorRevisions.map((revision) => `<div class="history-row"><span><strong>Revision ${revision.revisionNumber}</strong><small>${esc(revision.correctionReason || 'Imported candidate')} &middot; ${date(revision.createdAt)}</small></span><button data-compare-revision="${esc(revision.id)}">Compare</button></div>`).join('') || empty('This is the first revision.')}
@@ -260,26 +270,17 @@ async function showRecord(id) {
     <section class="editor-section"><header><div><h3>Duplicate assistance</h3><p>Title similarity is a reviewer aid only; it never makes an editorial decision.</p></div><button data-find-duplicates>Check candidates</button></header><div data-duplicate-results></div></section>
     <section class="editor-section"><header><div><h3>Canonical references</h3><p>Reference locators are Fortress-owned evidence metadata, not provider links.</p></div></header>
       <div id="reference-list">${data.references.map(referenceRow).join('') || empty('No canonical references attached.')}</div>
-      <form id="reference-form" class="inline-control"><input name="referenceType" placeholder="Reference type" value="primary" required><input name="locator" placeholder="Canonical locator" required><button type="submit">Add reference</button></form>
+      ${canEdit ? '<form id="reference-form" class="inline-control"><input name="referenceType" placeholder="Reference type" value="primary" required><input name="locator" placeholder="Canonical locator" required><button type="submit">Add reference</button></form>' : ''}
     </section>
-    <section class="editor-section"><header><div><h3>Field verification</h3><p>All 13 checks are required from each independent reviewer.</p></div></header>
-      <form id="field-review-form" class="field-review-grid">${reviewFields.map((field) => {
-        const previous = reviewed.get(field);
-        return `<label><span>${esc(human(field))}</span><select name="${esc(field)}" ${previous ? 'disabled' : ''}><option value="verified" ${previous?.decision === 'verified' ? 'selected' : ''}>Verified</option><option value="correction_required" ${previous?.decision === 'correction_required' ? 'selected' : ''}>Correction required</option><option value="not_applicable" ${previous?.decision === 'not_applicable' ? 'selected' : ''}>Not applicable</option></select></label>`;
-      }).join('')}<button class="primary" type="submit" ${reviewed.size === reviewFields.length ? 'disabled' : ''}>Submit remaining field checks</button></form>
-    </section>
-    <section class="editor-section"><header><div><h3>Decisions</h3><p>Two independent reviewers must approve before a separate senior approval.</p></div></header>
-      <div class="decision-bar"><button data-decision="approved" data-stage="independent_review">Independent approve</button><button data-decision="changes_requested" data-stage="independent_review">Request changes</button><button class="primary" data-decision="approved" data-stage="senior_approval">Senior approve</button></div>
-      ${data.decisions.map((item) => `<div class="history-row"><span><strong>${esc(human(item.decision))}</strong><small>${esc(human(item.reviewStage))} by ${esc(item.reviewerId)}</small></span><small>${date(item.decidedAt)}</small></div>`).join('') || empty('No review decisions yet.')}
+    <section class="editor-section"><header><div><h3>Verification</h3><p>One authorized person verifies the complete revision. Their identity and timestamp are permanently recorded.</p></div></header>
+      <div class="decision-bar"><button class="primary" data-decision="approved" ${isVerified ? 'disabled' : ''}>Verify record</button><button data-decision="changes_requested" ${isVerified ? 'disabled' : ''}>Request changes</button></div>
+      ${data.decisions.map((item) => `<div class="history-row"><span><strong>${esc(item.decision === 'approved' ? 'Verified' : human(item.decision))}</strong><small>by ${esc(item.reviewerId)}</small></span><small>${date(item.decidedAt)}</small></div>`).join('') || empty('No verification recorded yet.')}
     </section>`;
   if (!$('#record-dialog').open) $('#record-dialog').showModal();
 }
 
 function referenceRow(reference) {
-  const actions = reference.verificationStatus === 'pending'
-    ? `<button data-reference="${esc(reference.id)}" data-reference-decision="verified">Verify</button><button class="danger" data-reference="${esc(reference.id)}" data-reference-decision="rejected">Reject</button>`
-    : '';
-  return `<div class="evidence-row"><span><strong>${esc(human(reference.referenceType))}</strong><small>${esc(reference.locator)}</small></span><span><span class="badge ${esc(reference.verificationStatus)}">${esc(reference.verificationStatus)}</span>${actions}</span></div>`;
+  return `<div class="evidence-row"><span><strong>${esc(human(reference.referenceType))}</strong><small>${esc(reference.locator)}</small></span><span class="badge ${esc(reference.verificationStatus)}">${esc(reference.verificationStatus)}</span></div>`;
 }
 
 $('#record-detail').addEventListener('submit', async (event) => {
@@ -287,11 +288,7 @@ $('#record-detail').addEventListener('submit', async (event) => {
   const id = state.record?.record?.canonicalId;
   if (!id) return;
   try {
-    if (event.target.id === 'field-review-form') {
-      const reviews = [...new FormData(event.target)].map(([field, decision]) => ({ field, decision }));
-      await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/field-reviews`, { method: 'POST', body: { reviews } });
-      notify('Immutable field review submitted.');
-    } else if (event.target.id === 'reference-form') {
+    if (event.target.id === 'reference-form') {
       await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/references`, { method: 'POST', body: Object.fromEntries(new FormData(event.target)) });
       notify('Canonical reference added for independent verification.');
     } else if (event.target.id === 'revision-form') {
@@ -331,9 +328,9 @@ $('#record-detail').addEventListener('click', async (event) => {
     } else if (decision) {
       await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/decision`, {
         method: 'POST',
-        body: { decision: decision.dataset.decision, stage: decision.dataset.stage },
+        body: { decision: decision.dataset.decision },
       });
-      notify('Editorial decision recorded.');
+      notify(decision.dataset.decision === 'approved' ? 'Record verified.' : 'Changes requested.');
     } else if (reference) {
       await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/references/${encodeURIComponent(reference.dataset.reference)}/review`, {
         method: 'POST',
@@ -512,9 +509,16 @@ $('#batch-action-form').addEventListener('submit', async (event) => {
 
 async function loadRoles() {
   const rows = (await api('/v1/admin/editorial/roles')).data;
-  const roles = ['viewer', 'reviewer', 'senior_reviewer', 'editor', 'publisher', 'super_administrator'];
-  $('#roles-table').innerHTML = tableHead(['User', 'Editorial role', 'Status', ''])
-    + rows.map((row) => `<div class="row"><span><strong>${esc(row.name)}</strong><small>${esc(row.email)}</small></span><select data-role-user="${esc(row.userId)}">${roles.map((role) => `<option ${role === row.role ? 'selected' : ''}>${role}</option>`).join('')}</select><select data-role-status="${esc(row.userId)}"><option ${row.status === 'active' ? 'selected' : ''}>active</option><option ${row.status !== 'active' ? 'selected' : ''}>inactive</option></select><span><button data-save-role="${esc(row.userId)}">Save</button></span></div>`).join('');
+  const roles = ['admin', 'editor', 'reviewer', 'developer'];
+  $('#roles-table').innerHTML = tableHead(['User', 'Platform role', 'Status', ''])
+    + rows.map((row) => {
+      const editorCanManage = state.session.role === 'editor'
+        && row.userId !== state.session.user.id
+        && ['reviewer', 'developer'].includes(row.role);
+      const editable = state.session.role === 'admin' || editorCanManage;
+      const allowedRoles = state.session.role === 'admin' ? roles : ['reviewer', 'developer'];
+      return `<div class="row"><span><strong>${esc(row.name)}</strong><small>${esc(row.email)}</small></span><select data-role-user="${esc(row.userId)}" ${editable ? '' : 'disabled'}>${allowedRoles.map((role) => `<option ${role === row.role ? 'selected' : ''}>${role}</option>`).join('')}</select><select data-role-status="${esc(row.userId)}" ${editable ? '' : 'disabled'}><option ${row.status === 'active' ? 'selected' : ''}>active</option><option ${row.status !== 'active' ? 'selected' : ''}>inactive</option></select><span>${editable ? `<button data-save-role="${esc(row.userId)}">Save</button>` : '<span class="badge">protected</span>'}</span></div>`;
+    }).join('');
 }
 $('#roles-table').addEventListener('click', async (event) => {
   const button = event.target.closest('[data-save-role]');
@@ -529,7 +533,7 @@ $('#roles-table').addEventListener('click', async (event) => {
         status: $(`[data-role-status="${CSS.escape(userId)}"]`).value,
       },
     });
-    notify('Editorial role updated.');
+    notify('Platform role updated.');
     loadRoles();
   } catch (error) {
     notify(error.message, true);
@@ -537,6 +541,13 @@ $('#roles-table').addEventListener('click', async (event) => {
 });
 
 async function loadUsers(params = {}) {
+  await loadRoles();
+  if (state.session.role !== 'admin') {
+    $('#platform-users').hidden = true;
+    $('#users-table').innerHTML = '';
+    return;
+  }
+  $('#platform-users').hidden = false;
   const rows = (await api(`/v1/admin/users?${new URLSearchParams(params)}`)).data;
   $('#users-table').innerHTML = tableHead(['User', 'Plan', 'Credentials', 'Status', ''])
     + rows.map((user) => `<div class="row"><span><strong>${esc(user.name)}</strong><small>${esc(user.email)}</small></span><span>${esc(user.planCode)}</span><span>${user.apiKeyCount} keys &middot; ${user.oauthClientCount} apps</span><span class="badge ${esc(user.status)}">${esc(user.status)}</span><span class="actions"><button data-user-view="${esc(user.id)}">Inspect</button>${user.status === 'active' ? `<button class="danger" data-user-status="suspended" data-id="${esc(user.id)}">Suspend</button>` : `<button data-user-status="active" data-id="${esc(user.id)}">Activate</button>`}</span></div>`).join('');

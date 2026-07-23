@@ -23,22 +23,25 @@ const authenticated = { headers: { Authorization: 'Bearer test-token' } };
 const records: Dua[] = [
   {
     id: 'dua.hisn.001', legacyId: 'dua-001', sequence: 1, title: 'When waking up',
-    partCount: 1, verificationStatus: 'verified', revisionNumber: 1,
+    partCount: 1, verificationStatus: 'verified', workflowState: 'published',
+    verifiedBy: 'reviewer-1', verifiedAt: '2026-07-22T00:00:00.000Z', revisionNumber: 1,
     publishedAt: '2026-07-23T00:00:00.000Z',
     canonicalUrl: 'https://fortressofmuslim.org/hisn/chapter1',
     parts: [[{ kind: 'arabic', text: 'Arabic text' }, { kind: 'translation', text: 'Translation' }]],
   },
   {
     id: 'dua.hisn.002', legacyId: 'dua-002', sequence: 2, title: 'Upon wearing clothes',
-    partCount: 1, verificationStatus: 'verified', revisionNumber: 1,
+    partCount: 1, verificationStatus: 'verified', workflowState: 'published',
+    verifiedBy: 'reviewer-1', verifiedAt: '2026-07-22T00:00:00.000Z', revisionNumber: 1,
     publishedAt: '2026-07-23T00:00:00.000Z',
     canonicalUrl: 'https://fortressofmuslim.org/hisn/chapter2',
     parts: [[{ kind: 'translation', text: 'Translation' }]],
   },
   {
     id: 'dua.hisn.003', legacyId: 'dua-003', sequence: 3, title: 'Upon wearing new clothes',
-    partCount: 1, verificationStatus: 'verified', revisionNumber: 1,
-    publishedAt: '2026-07-23T00:00:00.000Z',
+    partCount: 1, verificationStatus: 'unverified', workflowState: 'pending_review',
+    verifiedBy: null, verifiedAt: null, revisionNumber: 1,
+    publishedAt: null,
     canonicalUrl: 'https://fortressofmuslim.org/hisn/chapter3',
     parts: [[{ kind: 'translation', text: 'Translation' }]],
   },
@@ -48,6 +51,7 @@ const hadith: Hadith = {
   collection: { slug: 'bukhari', title: 'Sahih al-Bukhari' },
   book: { number: '1', title: 'Revelation' }, chapter: { number: '1', title: 'How revelation began' },
   narrator: 'Umar bin Al-Khattab', grade: null, verificationStatus: 'verified',
+  workflowState: 'published', verifiedBy: 'reviewer-1', verifiedAt: '2026-07-22T00:00:00.000Z',
   revisionNumber: 1, publishedAt: '2026-07-23T00:00:00.000Z',
   canonicalUrl: 'https://fortressofmuslim.org/bukhari/book1/1',
   segments: [{ kind: 'arabic', text: 'Arabic Hadith' }, { kind: 'translation', text: 'Actions are by intentions.' }],
@@ -100,6 +104,10 @@ const repository: ContentRepository = {
   },
   async getRandomDua() { return records[0]; },
   async getDua(id) { return records.find((record) => record.id === id || record.legacyId === id); },
+  async getPublishedDua(id) {
+    return records.find((record) =>
+      (record.id === id || record.legacyId === id) && record.workflowState === 'published');
+  },
   async getDuaEvidence(id) {
     const record = records.find((item) => item.id === id || item.legacyId === id);
     if (!record) return undefined;
@@ -107,6 +115,10 @@ const repository: ContentRepository = {
       recordId: record.id,
       canonicalUrl: record.canonicalUrl,
       revisionNumber: record.revisionNumber,
+      verificationStatus: record.verificationStatus,
+      workflowState: record.workflowState,
+      verifiedBy: record.verifiedBy,
+      verifiedAt: record.verifiedAt,
       publishedAt: record.publishedAt,
       collection: { id: 'collection.hisn', title: 'Fortress of Muslim', verificationStatus: 'verified' },
       references: [{ id: 'reference.1', referenceType: 'primary', locator: 'Hisn al-Muslim 1', verificationStatus: 'verified' }],
@@ -127,6 +139,7 @@ const repository: ContentRepository = {
     return collection === 'bukhari' && book === '1' && number === '1' ? hadith : undefined;
   },
   async getHadith(id) { return id === hadith.id || id === 'bukhari:1' ? hadith : undefined; },
+  async getPublishedHadith(id) { return id === hadith.id || id === 'bukhari:1' ? hadith : undefined; },
 };
 const app = createApp(() => repository);
 
@@ -138,10 +151,10 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.17.0');
+    expect(body.version).toBe('0.18.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     expect(response.headers.get('X-Request-ID')).toBe('test-request-123');
-    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.17.0');
+    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.18.0');
     expect(response.headers.get('Server-Timing')).toMatch(/^app;dur=\d+\.\d$/);
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
   });
@@ -152,7 +165,7 @@ describe('Fortress Platform API', () => {
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
-    expect(body.version).toBe('0.17.0');
+    expect(body.version).toBe('0.18.0');
     expect(body.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
     expect(body.recordCount).toBe(3);
   });
@@ -189,6 +202,21 @@ describe('Fortress Platform API', () => {
     expect(first.parts).toBeUndefined();
     expect(body.pagination.nextCursor).toBeTruthy();
     expect(response.headers.get('X-Fortress-Dataset-Version')).toBe('dataset.hisn.legacy.2026-07-11-v2');
+  });
+
+  it('exposes current unverified records with their exact editorial state', async () => {
+    const response = await app.request('/v1/duas?limit=3', {}, env);
+    const body = await response.json() as { data: DuaSummary[] };
+    const candidate = body.data.find((item) => item.id === 'dua.hisn.003');
+
+    expect(response.status).toBe(200);
+    expect(candidate).toMatchObject({
+      verificationStatus: 'unverified',
+      workflowState: 'pending_review',
+      verifiedBy: null,
+      verifiedAt: null,
+      publishedAt: null,
+    });
   });
 
   it('keeps anonymous reading available when service control is unreachable', async () => {
@@ -314,7 +342,7 @@ describe('Fortress Platform API', () => {
     expect(response.headers.get('WWW-Authenticate')).toContain('Bearer');
   });
 
-  it('lists published collections by content type', async () => {
+  it('lists current collections by content type', async () => {
     const response = await app.request('/v1/collections?type=hadith', {}, env);
     const body = await response.json() as { data: Array<{ slug: string; contentType: string }> };
     expect(response.status).toBe(200);

@@ -18,7 +18,11 @@ type SummaryRow = {
   title: string;
   part_count: number;
   revision_number: number;
-  published_at: string;
+  published_at: string | null;
+  workflow_state: DuaSummary['workflowState'];
+  verification_status: DuaSummary['verificationStatus'];
+  verified_by_external_id: string | null;
+  verified_at: string | null;
 };
 
 type HadithRow = {
@@ -27,7 +31,11 @@ type HadithRow = {
   display_number: string;
   title: string;
   revision_number: number;
-  published_at: string;
+  published_at: string | null;
+  workflow_state: HadithSummary['workflowState'];
+  verification_status: HadithSummary['verificationStatus'];
+  verified_by_external_id: string | null;
+  verified_at: string | null;
   collection_slug: string;
   collection_title: string;
   book_number: string | null;
@@ -75,16 +83,16 @@ export class D1ContentRepository implements ContentRepository {
     const result = await this.database.prepare(`
       SELECT collection.id, collection.slug, canonical.content_type AS contentType,
              collection.title, collection.title_arabic AS titleArabic,
-             'verified' AS verificationStatus,
+             CASE WHEN SUM(CASE WHEN publication.verification_status = 'unverified' THEN 1 ELSE 0 END) > 0
+               THEN 'pending' ELSE 'verified' END AS verificationStatus,
              COUNT(DISTINCT publication.canonical_id) AS recordCount,
              COUNT(DISTINCT metadata.book_id) AS bookCount,
              COUNT(DISTINCT metadata.chapter_id) AS chapterCount
-      FROM canonical_publications publication
+      FROM api_current_content publication
       JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
       JOIN revision_metadata metadata ON metadata.revision_id = publication.revision_id
       JOIN collections collection ON collection.id = metadata.collection_id
-      WHERE publication.publication_status = 'published'
-        AND (? IS NULL OR canonical.content_type = ?)
+      WHERE (? IS NULL OR canonical.content_type = ?)
       GROUP BY collection.id
       ORDER BY canonical.content_type, collection.title
     `).bind(contentType ?? null, contentType ?? null).all<CollectionSummary>();
@@ -97,7 +105,7 @@ export class D1ContentRepository implements ContentRepository {
 
   async listDuas(offset: number, limit: number): Promise<DuaSummary[]> {
     const rows = await this.database.prepare(`${duaSummarySql()}
-      WHERE publication.publication_status = 'published' AND canonical.content_type = 'dua'
+      WHERE canonical.content_type = 'dua'
       GROUP BY publication.canonical_id
       ORDER BY revision.sequence
       LIMIT ? OFFSET ?
@@ -108,7 +116,7 @@ export class D1ContentRepository implements ContentRepository {
   async searchDuas(query: string, offset: number, limit: number): Promise<{ items: DuaSummary[]; total: number }> {
     const pattern = `%${escapeLike(query)}%`;
     const predicate = `
-      publication.publication_status = 'published' AND canonical.content_type = 'dua'
+      canonical.content_type = 'dua'
       AND (
         revision.title LIKE ? ESCAPE '\\' COLLATE NOCASE
         OR EXISTS (
@@ -128,7 +136,7 @@ export class D1ContentRepository implements ContentRepository {
       `).bind(pattern, pattern, limit, offset).all<SummaryRow>(),
       this.database.prepare(`
         SELECT COUNT(*) AS count
-        FROM canonical_publications publication
+        FROM api_current_content publication
         JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
         JOIN content_revisions revision ON revision.id = publication.revision_id
         WHERE ${predicate}
@@ -164,10 +172,10 @@ export class D1ContentRepository implements ContentRepository {
   async findDuasByTitle(query: string, limit: number): Promise<DuaTitleMatch[]> {
     const result = await this.database.prepare(`
       SELECT publication.canonical_id AS id, revision.title, revision.sequence
-      FROM canonical_publications publication
+      FROM api_current_content publication
       JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
       JOIN content_revisions revision ON revision.id = publication.revision_id
-      WHERE publication.publication_status = 'published' AND canonical.content_type = 'dua'
+      WHERE canonical.content_type = 'dua'
       ORDER BY revision.sequence
     `).all<{ id: string; title: string; sequence: number }>();
     const ranked = rankDuaTitles(result.results, query, limit);
@@ -178,17 +186,25 @@ export class D1ContentRepository implements ContentRepository {
   async getRandomDua(): Promise<Dua | undefined> {
     const row = await this.database.prepare(`
       SELECT publication.canonical_id AS id
-      FROM canonical_publications publication
+      FROM api_current_content publication
       JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
-      WHERE publication.publication_status = 'published' AND canonical.content_type = 'dua'
+      WHERE canonical.content_type = 'dua'
       ORDER BY RANDOM() LIMIT 1
     `).first<{ id: string }>();
     return row ? this.getDua(row.id) : undefined;
   }
 
   async getDua(id: string): Promise<Dua | undefined> {
-    const record = await this.database.prepare(`${duaSummarySql()}
-      WHERE publication.publication_status = 'published' AND canonical.content_type = 'dua'
+    return this.getDuaFromSource(id, 'api_current_content');
+  }
+
+  async getPublishedDua(id: string): Promise<Dua | undefined> {
+    return this.getDuaFromSource(id, 'api_published_content');
+  }
+
+  private async getDuaFromSource(id: string, source: 'api_current_content' | 'api_published_content'): Promise<Dua | undefined> {
+    const record = await this.database.prepare(`${duaSummarySql(source)}
+      WHERE canonical.content_type = 'dua'
         AND (publication.canonical_id = ? OR revision.legacy_id = ?)
       GROUP BY publication.canonical_id
       LIMIT 1
@@ -198,10 +214,10 @@ export class D1ContentRepository implements ContentRepository {
     const segments = await this.database.prepare(`
       SELECT part.position AS part_position, segment.position AS segment_position,
              segment.kind, segment.text
-      FROM canonical_publications publication
+      FROM ${source} publication
       JOIN revision_parts part ON part.revision_id = publication.revision_id
       LEFT JOIN revision_segments segment ON segment.revision_part_id = part.id
-      WHERE publication.canonical_id = ? AND publication.publication_status = 'published'
+      WHERE publication.canonical_id = ?
       ORDER BY part.position, segment.position
     `).bind(record.id).all<SegmentRow>();
     const parts: ContentSegment[][] = Array.from({ length: record.part_count }, () => []);
@@ -217,21 +233,29 @@ export class D1ContentRepository implements ContentRepository {
     const record = await this.database.prepare(`
       SELECT publication.canonical_id AS id, publication.revision_id AS revisionId,
              publication.revision_number AS revisionNumber, publication.published_at AS publishedAt,
+             publication.workflow_state AS workflowState,
+             publication.verification_status AS verificationStatus,
+             publication.verified_by_external_id AS verifiedBy,
+             publication.verified_at AS verifiedAt,
              publication.record_id AS recordId, revision.sequence,
              collection.id AS collectionId, collection.title AS collectionTitle
-      FROM canonical_publications publication
+      FROM api_current_content publication
       JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
       JOIN content_revisions revision ON revision.id = publication.revision_id
       LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
       LEFT JOIN collections collection ON collection.id = metadata.collection_id
-      WHERE publication.publication_status = 'published' AND canonical.content_type = 'dua'
+      WHERE canonical.content_type = 'dua'
         AND (publication.canonical_id = ? OR revision.legacy_id = ?)
       LIMIT 1
     `).bind(id, id).first<{
       id: string;
       revisionId: string;
       revisionNumber: number;
-      publishedAt: string;
+      publishedAt: string | null;
+      workflowState: string;
+      verificationStatus: 'unverified' | 'verified';
+      verifiedBy: string | null;
+      verifiedAt: string | null;
       recordId: string;
       sequence: number;
       collectionId: string | null;
@@ -270,9 +294,13 @@ export class D1ContentRepository implements ContentRepository {
       recordId: record.id,
       canonicalUrl: canonicalDuaUrl(record.sequence),
       revisionNumber: record.revisionNumber,
+      verificationStatus: record.verificationStatus,
+      workflowState: record.workflowState,
+      verifiedBy: record.verifiedBy,
+      verifiedAt: record.verifiedAt,
       publishedAt: record.publishedAt,
       collection: record.collectionId
-        ? { id: record.collectionId, title: record.collectionTitle ?? '', verificationStatus: 'verified' }
+        ? { id: record.collectionId, title: record.collectionTitle ?? '', verificationStatus: record.verificationStatus }
         : null,
       references: references.results,
       taxonomy: taxonomy.results,
@@ -284,11 +312,11 @@ export class D1ContentRepository implements ContentRepository {
   async countHadith(collection?: string): Promise<number> {
     const row = await this.database.prepare(`
       SELECT COUNT(*) AS count
-      FROM canonical_publications publication
+      FROM api_current_content publication
       JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
       JOIN revision_metadata metadata ON metadata.revision_id = publication.revision_id
       LEFT JOIN collections collection ON collection.id = metadata.collection_id
-      WHERE publication.publication_status = 'published' AND canonical.content_type = 'hadith'
+      WHERE canonical.content_type = 'hadith'
         AND (? IS NULL OR collection.slug = ?)
     `).bind(collection ?? null, collection ?? null).first<{ count: number }>();
     return row?.count ?? 0;
@@ -296,7 +324,7 @@ export class D1ContentRepository implements ContentRepository {
 
   async listHadith(collection: string | undefined, offset: number, limit: number): Promise<HadithSummary[]> {
     const rows = await this.database.prepare(`${hadithSummarySql()}
-      WHERE publication.publication_status = 'published' AND canonical.content_type = 'hadith'
+      WHERE canonical.content_type = 'hadith'
         AND (? IS NULL OR collection.slug = ?)
       ORDER BY collection.title, revision.sequence
       LIMIT ? OFFSET ?
@@ -305,33 +333,53 @@ export class D1ContentRepository implements ContentRepository {
   }
 
   async searchHadith(query: string, collection: string | undefined, offset: number, limit: number): Promise<{ items: HadithSummary[]; total: number }> {
-    const ftsQuery = toFtsQuery(query);
+    const pattern = `%${escapeLike(query)}%`;
+    const predicate = `
+      canonical.content_type = 'hadith'
+      AND (
+        revision.title LIKE ? ESCAPE '\\' COLLATE NOCASE
+        OR metadata.narrator LIKE ? ESCAPE '\\' COLLATE NOCASE
+        OR metadata.display_number LIKE ? ESCAPE '\\' COLLATE NOCASE
+        OR EXISTS (
+          SELECT 1 FROM revision_parts search_part
+          JOIN revision_segments search_segment ON search_segment.revision_part_id = search_part.id
+          WHERE search_part.revision_id = revision.id
+            AND search_segment.text LIKE ? ESCAPE '\\' COLLATE NOCASE
+        )
+      )
+    `;
     const [rows, count] = await Promise.all([
       this.database.prepare(`${hadithSummarySql()}
-        JOIN canonical_search_fts search ON search.canonical_id = publication.canonical_id
-          AND search.revision_id = publication.revision_id
-        WHERE publication.publication_status = 'published' AND canonical.content_type = 'hadith'
-          AND canonical_search_fts MATCH ?
+        WHERE ${predicate}
           AND (? IS NULL OR collection.slug = ?)
-        ORDER BY bm25(canonical_search_fts), collection.title, revision.sequence
+        ORDER BY collection.title, revision.sequence
         LIMIT ? OFFSET ?
-      `).bind(ftsQuery, collection ?? null, collection ?? null, limit, offset).all<HadithRow>(),
+      `).bind(pattern, pattern, pattern, pattern, collection ?? null, collection ?? null, limit, offset).all<HadithRow>(),
       this.database.prepare(`
-        SELECT COUNT(*) AS count FROM canonical_search_fts search
-        JOIN canonical_publications publication
-          ON publication.canonical_id = search.canonical_id
-         AND publication.revision_id = search.revision_id
-        WHERE publication.publication_status = 'published'
-          AND search.content_type = 'hadith' AND canonical_search_fts MATCH ?
-          AND (? IS NULL OR search.collection_slug = ?)
-      `).bind(ftsQuery, collection ?? null, collection ?? null).first<{ count: number }>(),
+        SELECT COUNT(*) AS count
+        FROM api_current_content publication
+        JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
+        JOIN content_revisions revision ON revision.id = publication.revision_id
+        JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+        JOIN collections collection ON collection.id = metadata.collection_id
+        WHERE ${predicate}
+          AND (? IS NULL OR collection.slug = ?)
+      `).bind(pattern, pattern, pattern, pattern, collection ?? null, collection ?? null).first<{ count: number }>(),
     ]);
     return { items: rows.results.map(toHadithSummary), total: count?.count ?? 0 };
   }
 
   async getHadith(id: string): Promise<Hadith | undefined> {
-    const row = await this.database.prepare(`${hadithSummarySql()}
-      WHERE publication.publication_status = 'published' AND canonical.content_type = 'hadith'
+    return this.getHadithFromSource(id, 'api_current_content');
+  }
+
+  async getPublishedHadith(id: string): Promise<Hadith | undefined> {
+    return this.getHadithFromSource(id, 'api_published_content');
+  }
+
+  private async getHadithFromSource(id: string, source: 'api_current_content' | 'api_published_content'): Promise<Hadith | undefined> {
+    const row = await this.database.prepare(`${hadithSummarySql(source)}
+      WHERE canonical.content_type = 'hadith'
         AND (publication.canonical_id = ? OR revision.legacy_id = ?)
       LIMIT 1
     `).bind(id, id).first<HadithRow>();
@@ -339,18 +387,18 @@ export class D1ContentRepository implements ContentRepository {
     const [segments, references] = await Promise.all([
       this.database.prepare(`
         SELECT segment.kind, segment.text
-        FROM canonical_publications publication
+        FROM ${source} publication
         JOIN revision_parts part ON part.revision_id = publication.revision_id
         JOIN revision_segments segment ON segment.revision_part_id = part.id
-        WHERE publication.canonical_id = ? AND publication.publication_status = 'published'
+        WHERE publication.canonical_id = ?
         ORDER BY part.position, segment.position
       `).bind(row.id).all<ContentSegment>(),
       this.database.prepare(`
         SELECT reference_type AS type, locator
         FROM canonical_references
         WHERE canonical_id = ? AND revision_id = (
-          SELECT revision_id FROM canonical_publications
-          WHERE canonical_id = ? AND publication_status = 'published'
+          SELECT revision_id FROM ${source}
+          WHERE canonical_id = ?
         )
         ORDER BY reference_type, locator
       `).bind(row.id, row.id).all<{ type: string; locator: string }>(),
@@ -361,13 +409,12 @@ export class D1ContentRepository implements ContentRepository {
   async resolveHadithPath(collection: string, book: string, number: string): Promise<Hadith | undefined> {
     const row = await this.database.prepare(`
       SELECT publication.canonical_id AS id
-      FROM canonical_publications publication
+      FROM api_current_content publication
       JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
       JOIN revision_metadata metadata ON metadata.revision_id = publication.revision_id
       JOIN collections collection ON collection.id = metadata.collection_id
       LEFT JOIN books book ON book.id = metadata.book_id
-      WHERE publication.publication_status = 'published'
-        AND canonical.content_type = 'hadith'
+      WHERE canonical.content_type = 'hadith'
         AND collection.slug = ?
         AND COALESCE(book.book_number, 'unassigned') = ?
         AND COALESCE(metadata.display_number, CAST((
@@ -382,34 +429,39 @@ export class D1ContentRepository implements ContentRepository {
   private async countRecords(contentType: 'dua' | 'hadith') {
     const row = await this.database.prepare(`
       SELECT COUNT(*) AS count
-      FROM canonical_publications publication
+      FROM api_current_content publication
       JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
-      WHERE publication.publication_status = 'published' AND canonical.content_type = ?
+      WHERE canonical.content_type = ?
     `).bind(contentType).first<{ count: number }>();
     return row?.count ?? 0;
   }
 }
 
-function duaSummarySql() {
+function duaSummarySql(source = 'api_current_content') {
   return `
     SELECT publication.canonical_id AS id, revision.legacy_id, revision.sequence, revision.title,
-           publication.revision_number, publication.published_at, COUNT(part.id) AS part_count
-    FROM canonical_publications publication
+           publication.revision_number, publication.published_at,
+           publication.workflow_state, publication.verification_status,
+           publication.verified_by_external_id, publication.verified_at,
+           COUNT(part.id) AS part_count
+    FROM ${source} publication
     JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
     JOIN content_revisions revision ON revision.id = publication.revision_id
     LEFT JOIN revision_parts part ON part.revision_id = revision.id`;
 }
 
-function hadithSummarySql() {
+function hadithSummarySql(source = 'api_current_content') {
   return `
     SELECT publication.canonical_id AS id, revision.sequence,
            COALESCE(metadata.display_number, CAST(revision.sequence AS TEXT)) AS display_number,
            revision.title, publication.revision_number, publication.published_at,
+           publication.workflow_state, publication.verification_status,
+           publication.verified_by_external_id, publication.verified_at,
            collection.slug AS collection_slug, collection.title AS collection_title,
            book.book_number, book.title AS book_title,
            chapter.chapter_number, chapter.title AS chapter_title,
            metadata.narrator, metadata.grade, metadata.grading_authority
-    FROM canonical_publications publication
+    FROM ${source} publication
     JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
     JOIN content_revisions revision ON revision.id = publication.revision_id
     JOIN revision_metadata metadata ON metadata.revision_id = revision.id
@@ -425,7 +477,10 @@ function toDuaSummary(row: SummaryRow): DuaSummary {
     sequence: row.sequence,
     title: row.title,
     partCount: row.part_count,
-    verificationStatus: 'verified',
+    verificationStatus: row.verification_status,
+    workflowState: row.workflow_state,
+    verifiedBy: row.verified_by_external_id,
+    verifiedAt: row.verified_at,
     revisionNumber: row.revision_number,
     publishedAt: row.published_at,
     canonicalUrl: canonicalDuaUrl(row.sequence),
@@ -443,7 +498,10 @@ function toHadithSummary(row: HadithRow): HadithSummary {
     chapter: row.chapter_title ? { number: row.chapter_number, title: row.chapter_title } : null,
     narrator: row.narrator,
     grade: row.grade ? { value: row.grade, authority: row.grading_authority } : null,
-    verificationStatus: 'verified',
+    verificationStatus: row.verification_status,
+    workflowState: row.workflow_state,
+    verifiedBy: row.verified_by_external_id,
+    verifiedAt: row.verified_at,
     revisionNumber: row.revision_number,
     publishedAt: row.published_at,
     canonicalUrl: canonicalHadithUrl(row),

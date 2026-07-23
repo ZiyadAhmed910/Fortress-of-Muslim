@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const API_VERSION = 'v1' as const;
 export const PLATFORM_NAME = 'Fortress Platform' as const;
-export const PLATFORM_VERSION = '0.17.0' as const;
+export const PLATFORM_VERSION = '0.18.0' as const;
 export const CURRENT_DATASET_ID = 'dataset.hisn.legacy.2026-07-11-v2' as const;
 
 export const contentSegmentSchema = z.object({
@@ -10,15 +10,33 @@ export const contentSegmentSchema = z.object({
   text: z.string(),
 });
 
+export const editorialWorkflowStateSchema = z.enum([
+  'imported',
+  'pending_review',
+  'assigned',
+  'in_review',
+  'changes_requested',
+  'needs_second_review',
+  'needs_senior_approval',
+  'approved',
+  'published',
+  'superseded',
+]);
+
+export const recordVerificationStatusSchema = z.enum(['unverified', 'verified']);
+
 export const duaSummarySchema = z.object({
   id: z.string(),
   legacyId: z.string(),
   sequence: z.number().int().positive(),
   title: z.string(),
   partCount: z.number().int().nonnegative(),
-  verificationStatus: z.literal('verified'),
+  verificationStatus: recordVerificationStatusSchema,
+  workflowState: editorialWorkflowStateSchema,
+  verifiedBy: z.string().nullable(),
+  verifiedAt: z.string().nullable(),
   revisionNumber: z.number().int().positive(),
-  publishedAt: z.string(),
+  publishedAt: z.string().nullable(),
   canonicalUrl: z.string().url(),
 });
 
@@ -28,6 +46,10 @@ export const duaSchema = duaSummarySchema.extend({
 
 export const duaPartSchema = z.object({
   duaId: z.string(),
+  verificationStatus: recordVerificationStatusSchema,
+  workflowState: editorialWorkflowStateSchema,
+  verifiedBy: z.string().nullable(),
+  verifiedAt: z.string().nullable(),
   position: z.number().int().positive(),
   segmentCount: z.number().int().nonnegative(),
   segments: z.array(contentSegmentSchema),
@@ -68,9 +90,12 @@ export const hadithSummarySchema = z.object({
   chapter: z.object({ number: z.string().nullable(), title: z.string() }).nullable(),
   narrator: z.string().nullable(),
   grade: z.object({ value: z.string(), authority: z.string().nullable() }).nullable(),
-  verificationStatus: z.literal('verified'),
+  verificationStatus: recordVerificationStatusSchema,
+  workflowState: editorialWorkflowStateSchema,
+  verifiedBy: z.string().nullable(),
+  verifiedAt: z.string().nullable(),
   revisionNumber: z.number().int().positive(),
-  publishedAt: z.string(),
+  publishedAt: z.string().nullable(),
   canonicalUrl: z.string().url(),
 });
 

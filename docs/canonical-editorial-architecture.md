@@ -2,9 +2,9 @@
 
 ## Public Trust Boundary
 
-Fortress Platform is the sole public canonical publisher. REST, MCP, RAG, PWA snapshots, canonical web routes, and developer documentation may expose only records present in `canonical_publications` with publication status `published`.
+Fortress Platform exposes current editorial records through REST and API-backed MCP tools, including records that have not yet been verified. Every exposed record must include its `verificationStatus`, current `workflowState`, verifier identity and timestamp when present, and nullable publication timestamp.
 
-Candidate preparation happens outside the public repository and deployment artifacts. Candidates enter the platform without public visibility and begin in `pending_review`.
+Candidate preparation provenance remains outside the public repository and deployment artifacts. Candidates enter the platform in `pending_review`. Only verified, published revisions may enter PWA snapshots, RAG indexes, or grounded Ask responses.
 
 ## Record Lifecycle
 
@@ -12,8 +12,6 @@ Candidate preparation happens outside the public repository and deployment artif
 pending_review
 -> assigned
 -> in_review
--> needs_second_review
--> needs_senior_approval
 -> approved
 -> published
 -> superseded
@@ -23,42 +21,26 @@ pending_review
 
 ## Roles
 
-- `viewer`: read editorial state.
-- `reviewer`: perform field checks and independent review.
-- `senior_reviewer`: perform senior approval after two independent approvals.
-- `editor`: assign work, add canonical references, and create correction revisions.
-- `publisher`: validate, approve, and publish batches.
-- `super_administrator`: manage editorial roles and perform all administrative actions.
+- `admin`: full platform and editorial authority, including staff roles, service controls, publication, and rollback.
+- `editor`: create and correct records, manage references and assignments, validate batches, and manage Reviewer access.
+- `reviewer`: inspect candidates and verify a complete revision or request changes.
+- `developer`: use the Developer Portal, API credentials, OAuth apps, MCP configurations, and developer tooling; no Admin Console access.
 
-An author cannot review or approve their own revision. A senior approver cannot be either independent reviewer.
+The identity table carries an explicit administrator flag. An active `admin` role and that flag are both required for platform management. Admins can manage every role. Editors can move users only between `reviewer` and `developer`; they cannot alter Admins, Editors, or themselves.
 
 ## Required Verification
 
-Each independent reviewer must record a decision for:
+One authorized Admin, Editor, or Reviewer verifies the complete immutable revision. The decision stores the verifier's user ID and timestamp. Verification also stamps every pending canonical reference attached to that revision. At least one non-rejected canonical reference is required.
 
-1. Arabic
-2. Translation
-3. Transliteration
-4. Narrator
-5. Collection
-6. Book
-7. Chapter
-8. Number
-9. References
-10. Grades
-11. Formatting
-12. Completeness
-13. Duplicate detection
-
-Publication validation also requires at least one independently verified canonical reference on the exact revision being published.
+A correction creates a new immutable revision, clears the prior verification stamp, and returns the record to `pending_review`.
 
 ## Publication
 
-Editors group approved revisions into a publication batch. A batch is validated against current workflow state, revision identity, and evidence requirements. A publisher approves and publishes the batch atomically, creating a canonical dataset version, publication history, current publication pointers, and search rows.
+Editors group verified revisions into a publication batch and validate it against current workflow state, revision identity, one verification, and evidence requirements. An Admin approves and publishes the batch atomically, creating a canonical dataset version, publication history, current publication pointers, and search rows.
 
 Every published dataset also receives a complete immutable `canonical_dataset_items` snapshot. A rollback never mutates or reactivates an old version. It creates a new audited dataset from a complete prior snapshot, rebuilds current publication pointers and canonical search rows atomically, and marks its vector index pending.
 
-The automated editorial pilot uses separate synthetic identities to verify authorization and state transitions. It is a software rehearsal only and cannot substitute for independent human editorial or scholarly review.
+The automated editorial pilot uses separate synthetic Editor, Reviewer, and Admin identities to verify authorization and state transitions. It is a software rehearsal only and cannot substitute for qualified human editorial or scholarly judgment.
 
 Canonical URLs use Fortress-owned sequential paths:
 

@@ -7,6 +7,7 @@ import {
 
 type AdminUser = { id: string; name: string; email: string; image?: string | null };
 type AdminGrant = { role: 'super_admin' | 'admin' | 'analyst' };
+type PlatformRole = 'admin' | 'editor' | 'reviewer' | 'developer';
 type AdminContext = {
   env: Bindings;
   user: AdminUser;
@@ -21,16 +22,24 @@ export async function handleAdminPlane(
   user: AdminUser,
   requestId?: string,
 ): Promise<Response> {
-  const grant = await env.IDENTITY_DB.prepare(
-    "SELECT role FROM platform_admins WHERE user_id = ? AND status = 'active'",
-  ).bind(user.id).first<AdminGrant>();
-  if (!grant) return json({ error: { code: 'forbidden', message: 'An active platform administrator role is required.' } }, 403);
-
-  const editorialGrant = await env.IDENTITY_DB.prepare(`
-    SELECT role FROM editorial_role_grants WHERE user_id = ? AND status = 'active'
-  `).bind(user.id).first<{ role: EditorialRole }>();
-  const editorialRole = editorialGrant?.role
-    ?? (grant.role === 'super_admin' ? 'super_administrator' : 'viewer');
+  await bootstrapDefaultAdmin(env, user);
+  const access = await env.IDENTITY_DB.prepare(`
+    SELECT role.role, role.status, identity.is_admin AS isAdmin
+    FROM "user" identity
+    LEFT JOIN platform_role_grants role ON role.user_id = identity.id
+    WHERE identity.id = ?
+  `).bind(user.id).first<{ role: PlatformRole | null; status: string | null; isAdmin: number }>();
+  if (
+    !access
+    || access.status !== 'active'
+    || !access.role
+    || access.role === 'developer'
+    || (access.role === 'admin' && access.isAdmin !== 1)
+  ) {
+    return json({ error: { code: 'forbidden', message: 'An active Admin, Editor, or Reviewer role is required.' } }, 403);
+  }
+  const editorialRole = access.role as EditorialRole;
+  const grant: AdminGrant = { role: access.role === 'admin' ? 'super_admin' : 'analyst' };
   const context: AdminContext = {
     env,
     user,
@@ -39,7 +48,15 @@ export async function handleAdminPlane(
   };
 
   if (url.pathname === '/v1/admin/session' && request.method === 'GET') {
-    return json({ data: { user, role: grant.role, editorialRole, environment: env.PLATFORM_ENV } });
+    return json({
+      data: {
+        user,
+        role: access.role,
+        editorialRole,
+        isAdmin: access.isAdmin === 1,
+        environment: env.PLATFORM_ENV,
+      },
+    });
   }
 
   try {
@@ -55,6 +72,10 @@ export async function handleAdminPlane(
       return json({ error: { code: 'forbidden', message: 'This editorial role cannot perform that action.' } }, 403);
     }
     throw error;
+  }
+
+  if (access.role !== 'admin') {
+    return forbidden('Only administrators can access platform management.');
   }
 
   if (
@@ -99,6 +120,21 @@ export async function handleAdminPlane(
   }
 
   return json({ error: { code: 'not_found', message: 'Admin route was not found.' } }, 404);
+}
+
+async function bootstrapDefaultAdmin(env: Bindings, user: AdminUser) {
+  if (user.email.trim().toLowerCase() !== 'ziyadahmed910@gmail.com') return;
+  await env.IDENTITY_DB.batch([
+    env.IDENTITY_DB.prepare('UPDATE "user" SET is_admin = 1 WHERE id = ?').bind(user.id),
+    env.IDENTITY_DB.prepare(`
+      INSERT INTO platform_role_grants (user_id, role, status)
+      VALUES (?, 'admin', 'active')
+      ON CONFLICT(user_id) DO UPDATE SET
+        role = 'admin',
+        status = 'active',
+        updated_at = CURRENT_TIMESTAMP
+    `).bind(user.id),
+  ]);
 }
 
 async function overview({ env }: AdminContext) {
