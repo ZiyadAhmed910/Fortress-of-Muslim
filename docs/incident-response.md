@@ -19,18 +19,19 @@ Create an encrypted-at-rest local export outside Git:
 .\tools\backup-d1.ps1 -Environment production
 ```
 
-Each run exports identity and content databases and writes a manifest with the Git commit and SHA-256 checksums. `.fortress-backups/` is intentionally ignored by Git. Move production backups to an access-controlled encrypted store according to the operator retention policy.
+Each run captures exact D1 Time Travel bookmarks, exports the identity database, and exports all durable content application tables. FTS5 virtual and shadow tables are intentionally excluded because Cloudflare cannot export a database containing virtual tables; search indexes are derived data and must be rebuilt from canonical records after disaster recovery. The manifest records the export mode, Git commit, bookmarks, and SHA-256 checksums. `.fortress-backups/` is intentionally ignored by Git. Move production backups to an access-controlled encrypted store according to the operator retention policy.
+The default per-database export timeout is 30 minutes and can be changed with `-ExportTimeoutMinutes`. A timed-out export is terminated, its incomplete file is removed, and no manifest is produced.
 
 ## Restore
 
-Always restore test first and run the full soak. The restore script creates a fresh pre-restore backup before applying an export.
+Always restore test first and run the full soak. Active databases are restored only through D1 Time Travel, which preserves FTS5 and database internals. The script records the current bookmark before rollback so the rollback itself can be reversed.
 
 ```powershell
-.\tools\restore-d1.ps1 -Database content -Environment test -BackupFile .fortress-backups\<file>.sql -ExpectedSha256 <hash>
-.\tools\restore-d1.ps1 -Database identity -Environment production -BackupFile <secure-path> -ExpectedSha256 <hash> -ProductionApproval RESTORE-PRODUCTION
+.\tools\restore-d1.ps1 -Database content -Environment test -Bookmark <manifest-bookmark>
+.\tools\restore-d1.ps1 -Database identity -Environment production -Timestamp 2026-07-23T12:00:00Z -ProductionApproval RESTORE-PRODUCTION
 ```
 
-Never restore identity and content databases from unrelated timestamps without documenting why. After restoration, run `npm run soak:test`, inspect editorial counts and authentication, and verify API/MCP reads before returning the service to active.
+Never restore identity and content databases from unrelated timestamps without documenting why. Time Travel is retained by Cloudflare for a limited window. SQL exports are durable disaster-recovery artifacts and must be imported into a new replacement database, verified, have search indexes rebuilt, and then be rebound; they are never executed over an active database by this script. After restoration, run `npm run soak:test`, inspect editorial counts and authentication, and verify API/MCP reads before returning the service to active.
 
 ## Deployment Rollback
 
