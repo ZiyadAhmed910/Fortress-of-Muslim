@@ -310,6 +310,7 @@ export class D1ContentRepository implements ContentRepository {
   }
 
   async countHadith(collection?: string): Promise<number> {
+    if (!collection) return this.countRecords('hadith');
     const row = await this.database.prepare(`
       SELECT COUNT(*) AS count
       FROM api_current_content publication
@@ -429,9 +430,8 @@ export class D1ContentRepository implements ContentRepository {
   private async countRecords(contentType: 'dua' | 'hadith') {
     const row = await this.database.prepare(`
       SELECT COUNT(*) AS count
-      FROM api_current_content publication
-      JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
-      WHERE canonical.content_type = ?
+      FROM canonical_records
+      WHERE content_type = ?
     `).bind(contentType).first<{ count: number }>();
     return row?.count ?? 0;
   }

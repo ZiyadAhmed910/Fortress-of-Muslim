@@ -171,6 +171,7 @@ Every platform release must:
 - Seeded `ziyadahmed910@gmail.com` as the protected default Admin and added self-healing bootstrap on sign-in.
 - Exposed current verified and unverified records through REST and API-backed MCP tools with explicit verification and workflow fields.
 - Kept PWA snapshots and RAG retrieval restricted to verified, published revisions.
+- Added public-read indexes and direct content-type counts to reduce cold list latency as the library grows.
 
 ### 0.17.0
 
