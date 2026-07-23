@@ -3,10 +3,11 @@ import { dirname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'pwa-website');
-const [manifestText, serviceWorker, html] = await Promise.all([
+const [manifestText, serviceWorker, html, apacheConfig] = await Promise.all([
   readFile(join(root, 'manifest.json'), 'utf8'),
   readFile(join(root, 'sw.js'), 'utf8'),
   readFile(join(root, 'index.html'), 'utf8'),
+  readFile(join(root, '.htaccess'), 'utf8'),
 ]);
 const manifest = JSON.parse(manifestText);
 if (manifest.display !== 'standalone') throw new Error('PWA manifest must use standalone display mode.');
@@ -27,6 +28,9 @@ for (const asset of new Set(assets)) {
 }
 for (const required of ['SKIP_WAITING', "event.request.mode === 'navigate'", 'response.ok']) {
   if (!serviceWorker.includes(required)) throw new Error(`Service worker is missing ${required}.`);
+}
+if (!/<Files "sw\.js">[\s\S]*?no-store, no-cache, must-revalidate[\s\S]*?<\/Files>/.test(apacheConfig)) {
+  throw new Error('Bluehost must force immediate service-worker revalidation.');
 }
 
 const shellBytes = await directoryBytes(join(root, 'js')) + await directoryBytes(join(root, 'css'))
