@@ -11,6 +11,11 @@ for (const migration of migrationFiles) {
 }
 
 const recordId = 'dua.hisn.001';
+assertCount(
+  'editorial_record_state',
+  "workflow_state IN ('needs_second_review', 'needs_senior_approval')",
+  0,
+);
 const revision = database.prepare(`
   SELECT state.revision_id AS revisionId, state.workflow_state AS workflowState
   FROM editorial_record_state state WHERE state.canonical_id = ?
