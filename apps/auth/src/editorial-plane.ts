@@ -72,7 +72,7 @@ export async function handleEditorialPlane(
   }
   if (url.pathname === '/v1/admin/editorial/roles' && request.method === 'GET') {
     requireRole(context.role, ['editor', 'admin']);
-    return listRoles(context);
+    return listRoles(context, url);
   }
   if (url.pathname === '/v1/admin/editorial/roles' && request.method === 'PATCH') {
     requireRole(context.role, ['editor', 'admin']);
@@ -1939,15 +1939,22 @@ async function rollbackDataset(context: EditorialContext, targetDatasetId: strin
   });
 }
 
-async function listRoles({ env }: EditorialContext) {
+async function listRoles({ env }: EditorialContext, url: URL) {
+  const query = String(url.searchParams.get('q') ?? '').trim().slice(0, 100);
+  const role = String(url.searchParams.get('role') ?? '').trim();
+  const status = String(url.searchParams.get('status') ?? '').trim();
+  const like = `%${query}%`;
   const rows = await env.IDENTITY_DB.prepare(`
     SELECT user.id AS userId, user.name, user.email,
            COALESCE(role.role, 'developer') AS role,
            COALESCE(role.status, 'active') AS status,
            user.is_admin AS isAdmin
     FROM "user" user LEFT JOIN platform_role_grants role ON role.user_id = user.id
+    WHERE (? = '' OR user.name LIKE ? OR user.email LIKE ?)
+      AND (? = '' OR COALESCE(role.role, 'developer') = ?)
+      AND (? = '' OR COALESCE(role.status, 'active') = ?)
     ORDER BY user.name, user.email LIMIT 500
-  `).all();
+  `).bind(query, like, like, role, role, status, status).all();
   return json({ data: rows.results });
 }
 

@@ -1,6 +1,6 @@
 const authBase = location.hostname.startsWith('developers-test.') ? 'https://auth-test.fortressofmuslim.org' : location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8788' : 'https://auth.fortressofmuslim.org';
 const apiBase = authBase.includes('auth-test.') ? 'https://api-test.fortressofmuslim.org/v1' : 'https://api.fortressofmuslim.org/v1';
-const state = { user: null, keys: [], apps: [], devices: [], mcp: [], queries: [], standardTools: [] };
+const state = { user: null, keys: [], apps: [], devices: [], mcp: [], queries: [], standardTools: [], passkeys: [] };
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const REQUEST_TIMEOUT_MS = 12_000;
@@ -30,7 +30,14 @@ async function submitAuth(event, path) {
       if (body.password !== body.passwordConfirm) throw new Error('Passwords do not match.');
       delete body.passwordConfirm;
     }
-    await authJson(path, { method: 'POST', body });
+    const result = await authJson(path, { method: 'POST', body });
+    if (result?.twoFactorRedirect) {
+      $$('[data-auth-panel]').forEach((panel) => { panel.hidden = true; });
+      $('#two-factor-form').hidden = false;
+      $('#two-factor-form input[name="code"]').focus();
+      $('#auth-message').textContent = '';
+      return;
+    }
     form.reset();
     await refreshSession();
   } catch (error) {
@@ -39,13 +46,52 @@ async function submitAuth(event, path) {
   } finally { setFormBusy(form, false); }
 }
 
+$('#two-factor-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  setFormBusy(form, true);
+  try {
+    const values = new FormData(form);
+    await authJson('/api/auth/two-factor/verify-totp', {
+      method: 'POST',
+      body: { code: values.get('code'), trustDevice: values.get('trustDevice') === 'on' },
+    });
+    form.reset();
+    form.hidden = true;
+    await refreshSession();
+  } catch (error) {
+    $('#auth-message').setAttribute('role', 'alert');
+    $('#auth-message').textContent = error.message;
+  } finally { setFormBusy(form, false); }
+});
+$('[data-cancel-two-factor]').addEventListener('click', resetAuthPanels);
+$('[data-passkey-sign-in]').addEventListener('click', async (event) => {
+  event.currentTarget.disabled = true;
+  try {
+    const options = await authJson('/api/auth/passkey/generate-authenticate-options');
+    const credential = await navigator.credentials.get({ publicKey: decodeRequestOptions(options) });
+    if (!credential) throw new Error('Passkey sign-in was cancelled.');
+    await authJson('/api/auth/passkey/verify-authentication', {
+      method: 'POST',
+      body: { response: serializeCredential(credential) },
+    });
+    await refreshSession();
+  } catch (error) {
+    $('#auth-message').setAttribute('role', 'alert');
+    $('#auth-message').textContent = friendlyCredentialError(error);
+  } finally { event.currentTarget.disabled = false; }
+});
+
 async function signOut() {
   const button = $('[data-sign-out]'); button.disabled = true;
   try {
-    await authJson('/api/auth/sign-out', { method: 'POST' });
-    state.user = null;
+    await authJson('/api/auth/sign-out', { method: 'POST', body: {} });
     closeProfile();
-    await refreshSession();
+    closeDrawers();
+    clearAuthenticatedState();
+    setSessionView(false);
+    history.replaceState(null, '', location.pathname);
+    $('#sign-in-form input[name="email"]')?.focus();
   } catch (error) { notify(error.message, true); }
   finally { button.disabled = false; }
 }
@@ -216,10 +262,72 @@ async function refreshSession() {
   $$('[data-profile-initials], [data-sidebar-initials]').forEach((node) => { node.textContent = initials; });
   $('[data-profile-name]').textContent = state.user.name || 'Developer'; $('[data-profile-email]').textContent = state.user.email;
   $('[data-sidebar-name]').textContent = state.user.name || 'Developer'; setView(location.hash.slice(1) || 'overview');
-  const resources = await Promise.allSettled([loadKeys(), loadApps(), loadDevices(), loadMcp(), loadQueries()]);
+  const resources = await Promise.allSettled([loadKeys(), loadApps(), loadDevices(), loadMcp(), loadQueries(), loadSecurity()]);
   const failed = resources.filter((result) => result.status === 'rejected');
   if (failed.length) notify(`${failed.length} console section${failed.length === 1 ? '' : 's'} could not be loaded. Retry by refreshing the page.`, true);
   if (sessionStorage.getItem('fortress-device-code')) location.href = '/device.html';
+}
+
+$('#passkey-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  await action(async () => {
+    if (!window.PublicKeyCredential) throw new Error('This browser does not support passkeys.');
+    const name = new FormData(form).get('name');
+    const options = await authJson(`/api/auth/passkey/generate-register-options?name=${encodeURIComponent(name)}`);
+    const credential = await navigator.credentials.create({ publicKey: decodeCreationOptions(options) });
+    if (!credential) throw new Error('Passkey setup was cancelled.');
+    await authJson('/api/auth/passkey/verify-registration', {
+      method: 'POST',
+      body: { name, response: serializeCredential(credential) },
+    });
+    form.reset();
+    await loadSecurity();
+  }, 'Passkey added.', form);
+});
+$('#passkey-list').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-delete-passkey]');
+  if (!button) return;
+  await action(async () => {
+    await authJson('/api/auth/passkey/delete-passkey', { method: 'POST', body: { id: button.dataset.deletePasskey } });
+    await loadSecurity();
+  }, 'Passkey removed.');
+});
+$('#totp-enable-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  await action(async () => {
+    const result = await authJson('/api/auth/two-factor/enable', {
+      method: 'POST',
+      body: { password: new FormData(form).get('password'), method: 'totp', issuer: 'Fortress Platform' },
+    });
+    $('#totp-setup').innerHTML = `<strong>Authenticator setup</strong><code>${esc(result.totpURI)}</code><small>Recovery codes: ${esc((result.backupCodes || []).join('  '))}</small>`;
+    $('#totp-setup').hidden = false;
+    $('#totp-confirm-form').hidden = false;
+    form.reset();
+  }, 'Scan or copy the setup URI, then confirm a code.', form);
+});
+$('#totp-confirm-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  await action(async () => {
+    await authJson('/api/auth/two-factor/verify-totp', {
+      method: 'POST',
+      body: { code: new FormData(form).get('code'), trustDevice: true },
+    });
+    form.reset();
+    form.hidden = true;
+    $('#totp-setup').hidden = true;
+    await refreshSession();
+  }, 'Two-factor authentication enabled.', form);
+});
+
+async function loadSecurity() {
+  const result = await authJson('/api/auth/passkey/list-user-passkeys');
+  state.passkeys = Array.isArray(result) ? result : [];
+  $('#security-metrics').innerHTML = `<div><span>Two-factor</span><strong>${state.user?.twoFactorEnabled ? 'Enabled' : 'Not enabled'}</strong></div><div><span>Passkeys</span><strong>${state.passkeys.length}</strong></div>`;
+  render('#passkey-list', state.passkeys, (passkeyItem) => `<div class="security-row"><span><strong>${esc(passkeyItem.name || 'Passkey')}</strong><small>${formatDate(passkeyItem.createdAt)} &middot; ${passkeyItem.backedUp ? 'Synced' : 'This authenticator'}</small></span><button class="button compact" data-delete-passkey="${esc(passkeyItem.id)}">Remove</button></div>`);
+  $('#totp-enable-form').hidden = Boolean(state.user?.twoFactorEnabled);
 }
 
 async function loadKeys() {
@@ -291,7 +399,7 @@ async function authFetch(path, options = {}) {
   headers.set('X-Request-ID', crypto.randomUUID());
   const method = String(options.method || 'GET').toUpperCase();
   for (let attempt = 0; attempt < (method === 'GET' ? 2 : 1); attempt += 1) {
-    try { return await fetch(`${authBase}${path}`, { ...options, headers, body, credentials: 'include', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) }); }
+    try { return await fetch(`${authBase}${path}`, { ...options, headers, body, credentials: 'include', cache: 'no-store', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) }); }
     catch (error) {
       if (attempt === 0 && method === 'GET') continue;
       if (error?.name === 'TimeoutError') throw new Error('The platform took too long to respond. Please try again.');
@@ -299,7 +407,82 @@ async function authFetch(path, options = {}) {
     }
   }
 }
-function setSessionView(signedIn) { $('#signed-out').hidden = signedIn; $('#signed-in').hidden = !signedIn; $('[data-console-menu]').hidden = !signedIn; if (!signedIn) state.user = null; }
+function clearAuthenticatedState() {
+  state.user = null;
+  for (const key of ['keys', 'apps', 'devices', 'mcp', 'queries', 'standardTools', 'passkeys']) state[key] = [];
+  for (const selector of ['#api-key-list', '#oauth-list', '#device-list', '#mcp-list', '#query-list']) $(selector).replaceChildren();
+}
+function setSessionView(signedIn) {
+  $('#signed-out').hidden = signedIn;
+  $('#signed-in').hidden = !signedIn;
+  $('[data-console-menu]').hidden = !signedIn;
+  $('[data-auth-only]').hidden = !signedIn;
+  if (!signedIn) {
+    closeProfile();
+    clearAuthenticatedState();
+    resetAuthPanels();
+  }
+}
+function resetAuthPanels() {
+  $('#two-factor-form').hidden = true;
+  $$('[data-auth-panel]').forEach((panel) => { panel.hidden = panel.dataset.authPanel !== 'sign-in'; });
+  $$('[data-auth-tab]').forEach((tab) => {
+    const selected = tab.dataset.authTab === 'sign-in';
+    tab.classList.toggle('active', selected);
+    tab.setAttribute('aria-selected', String(selected));
+  });
+}
+function decodeCreationOptions(options) {
+  return {
+    ...options,
+    challenge: fromBase64Url(options.challenge),
+    user: { ...options.user, id: fromBase64Url(options.user.id) },
+    excludeCredentials: (options.excludeCredentials || []).map((item) => ({ ...item, id: fromBase64Url(item.id) })),
+  };
+}
+function decodeRequestOptions(options) {
+  return {
+    ...options,
+    challenge: fromBase64Url(options.challenge),
+    allowCredentials: (options.allowCredentials || []).map((item) => ({ ...item, id: fromBase64Url(item.id) })),
+  };
+}
+function serializeCredential(credential) {
+  const response = {
+    clientDataJSON: toBase64Url(credential.response.clientDataJSON),
+  };
+  if ('attestationObject' in credential.response) {
+    response.attestationObject = toBase64Url(credential.response.attestationObject);
+    if (credential.response.getTransports) response.transports = credential.response.getTransports();
+  } else {
+    response.authenticatorData = toBase64Url(credential.response.authenticatorData);
+    response.signature = toBase64Url(credential.response.signature);
+    response.userHandle = credential.response.userHandle ? toBase64Url(credential.response.userHandle) : null;
+  }
+  return {
+    id: credential.id,
+    rawId: toBase64Url(credential.rawId),
+    type: credential.type,
+    authenticatorAttachment: credential.authenticatorAttachment,
+    clientExtensionResults: credential.getClientExtensionResults(),
+    response,
+  };
+}
+function fromBase64Url(value) {
+  const base64 = String(value).replaceAll('-', '+').replaceAll('_', '/').padEnd(Math.ceil(String(value).length / 4) * 4, '=');
+  return Uint8Array.from(atob(base64), (character) => character.charCodeAt(0)).buffer;
+}
+function toBase64Url(value) {
+  const bytes = new Uint8Array(value);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+}
+function friendlyCredentialError(error) {
+  if (error?.name === 'NotAllowedError') return 'Passkey use was cancelled or timed out.';
+  if (error?.name === 'InvalidStateError') return 'That passkey is already registered.';
+  return error?.message || 'The passkey operation could not be completed.';
+}
 function setFormBusy(form, busy) { if (!form) return; form.setAttribute('aria-busy', String(busy)); $$('button[type="submit"]', form).forEach((button) => { button.disabled = busy; }); }
 function firstFocusable(root) { return $('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]', root); }
 function trapFocus(event, root) { const items = $$('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]', root).filter((item) => item.offsetParent !== null); if (!items.length) return; const first = items[0]; const last = items.at(-1); if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); } }

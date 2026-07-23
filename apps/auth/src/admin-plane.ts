@@ -6,6 +6,7 @@ import {
 } from './editorial-plane';
 
 type AdminUser = { id: string; name: string; email: string; image?: string | null };
+type AdminSession = { id: string; createdAt: Date; updatedAt: Date; expiresAt: Date; ipAddress?: string | null; userAgent?: string | null; userId: string };
 type AdminGrant = { role: 'super_admin' | 'admin' | 'analyst' };
 type PlatformRole = 'admin' | 'editor' | 'reviewer' | 'developer';
 type AdminContext = {
@@ -20,6 +21,7 @@ export async function handleAdminPlane(
   url: URL,
   env: Bindings,
   user: AdminUser,
+  currentSession: AdminSession,
   requestId?: string,
 ): Promise<Response> {
   await bootstrapDefaultAdmin(env, user);
@@ -38,6 +40,16 @@ export async function handleAdminPlane(
   ) {
     return json({ error: { code: 'forbidden', message: 'An active Admin, Editor, or Reviewer role is required.' } }, 403);
   }
+  const sessionStartedAt = new Date(currentSession.createdAt).getTime();
+  if (Number.isFinite(sessionStartedAt) && Date.now() - sessionStartedAt > 12 * 60 * 60 * 1000) {
+    await env.IDENTITY_DB.prepare('DELETE FROM "session" WHERE id = ?').bind(currentSession.id).run();
+    return json({
+      error: {
+        code: 'admin_session_expired',
+        message: 'Admin sessions expire after 12 hours. Sign in again to continue.',
+      },
+    }, 401);
+  }
   const editorialRole = access.role as EditorialRole;
   const grant: AdminGrant = { role: access.role === 'admin' ? 'super_admin' : 'analyst' };
   const context: AdminContext = {
@@ -55,6 +67,11 @@ export async function handleAdminPlane(
         editorialRole,
         isAdmin: access.isAdmin === 1,
         environment: env.PLATFORM_ENV,
+        security: {
+          twoFactorEnabled: Boolean((user as AdminUser & { twoFactorEnabled?: boolean }).twoFactorEnabled),
+          sessionId: currentSession.id,
+          sessionExpiresAt: currentSession.expiresAt,
+        },
       },
     });
   }
@@ -87,6 +104,8 @@ export async function handleAdminPlane(
   }
 
   if (url.pathname === '/v1/admin/overview' && request.method === 'GET') return overview(context);
+  if (url.pathname === '/v1/admin/operations' && request.method === 'GET') return operations(context);
+  if (url.pathname === '/v1/admin/sessions' && request.method === 'GET') return listSessions(context, user.id, currentSession.id);
   if (url.pathname === '/v1/admin/search' && request.method === 'GET') return globalSearch(context, url);
   if (url.pathname === '/v1/admin/users' && request.method === 'GET') return listUsers(context, url);
   if (url.pathname === '/v1/admin/resources' && request.method === 'GET') return listResources(context, url);
@@ -103,6 +122,11 @@ export async function handleAdminPlane(
   if (userMatch && request.method === 'PATCH') {
     if (!canWrite(grant.role)) return forbidden();
     return updateUser(context, decodeURIComponent(userMatch[1]!), await readJson(request));
+  }
+
+  const sessionMatch = url.pathname.match(/^\/v1\/admin\/sessions\/([^/]+)$/);
+  if (sessionMatch && request.method === 'DELETE') {
+    return revokeSession(context, decodeURIComponent(sessionMatch[1]!), currentSession.id);
   }
 
   const serviceMatch = url.pathname.match(/^\/v1\/admin\/services\/([a-z-]+)$/);
@@ -182,6 +206,101 @@ async function overview({ env }: AdminContext) {
   });
 }
 
+async function operations({ env }: AdminContext) {
+  const [traffic, routes, credentials, sessions, accessQueue, editorialQueue, services] = await Promise.all([
+    env.IDENTITY_DB.prepare(`
+      SELECT service,
+        SUM(request_units) AS requests,
+        SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END) AS errors,
+        ROUND(AVG(duration_ms), 1) AS averageDurationMs,
+        MAX(duration_ms) AS maximumDurationMs
+      FROM usage_events
+      WHERE occurred_at >= datetime('now', '-24 hours') AND environment = ?
+      GROUP BY service ORDER BY requests DESC
+    `).bind(env.PLATFORM_ENV).all(),
+    env.IDENTITY_DB.prepare(`
+      SELECT route, SUM(request_units) AS requests,
+        SUM(CASE WHEN status_code = 429 THEN 1 ELSE 0 END) AS rateLimited,
+        SUM(CASE WHEN status_code >= 500 THEN 1 ELSE 0 END) AS serverErrors,
+        ROUND(AVG(duration_ms), 1) AS averageDurationMs
+      FROM usage_events
+      WHERE occurred_at >= datetime('now', '-24 hours') AND environment = ?
+      GROUP BY route ORDER BY requests DESC LIMIT 12
+    `).bind(env.PLATFORM_ENV).all(),
+    env.IDENTITY_DB.prepare(`
+      SELECT COUNT(*) AS total,
+        SUM(CASE WHEN enabled = 1 AND (expiresAt IS NULL OR expiresAt > datetime('now')) THEN 1 ELSE 0 END) AS active,
+        COALESCE(SUM(requestCount), 0) AS requests,
+        SUM(CASE WHEN rateLimitEnabled = 1 THEN 1 ELSE 0 END) AS rateLimitedKeys
+      FROM apikey
+    `).first(),
+    env.IDENTITY_DB.prepare(`
+      SELECT COUNT(*) AS active,
+        COUNT(DISTINCT "userId") AS users,
+        MIN(expiresAt) AS nextExpiry
+      FROM "session" WHERE expiresAt > datetime('now')
+    `).first(),
+    env.IDENTITY_DB.prepare(`
+      SELECT request_type AS type, COUNT(*) AS count
+      FROM access_requests WHERE status = 'pending'
+      GROUP BY request_type ORDER BY count DESC
+    `).all(),
+    env.CONTENT_DB.prepare(`
+      SELECT workflow_state AS state, COUNT(*) AS count
+      FROM editorial_record_state
+      WHERE workflow_state NOT IN ('published', 'superseded')
+      GROUP BY workflow_state ORDER BY count DESC
+    `).all(),
+    env.IDENTITY_DB.prepare(`
+      SELECT service_key AS serviceKey, display_name AS displayName, service_type AS serviceType,
+        base_url AS baseUrl, status, enforcement, updated_at AS updatedAt
+      FROM platform_services ORDER BY display_name
+    `).all(),
+  ]);
+  return json({
+    data: {
+      window: '24h',
+      generatedAt: new Date().toISOString(),
+      traffic: traffic.results,
+      routes: routes.results,
+      credentials,
+      sessions,
+      queues: {
+        access: accessQueue.results,
+        editorial: editorialQueue.results,
+      },
+      deployments: services.results,
+    },
+  });
+}
+
+async function listSessions({ env }: AdminContext, userId: string, currentSessionId: string) {
+  const rows = await env.IDENTITY_DB.prepare(`
+    SELECT id, createdAt, updatedAt, expiresAt, ipAddress, userAgent
+    FROM "session" WHERE "userId" = ? AND expiresAt > datetime('now')
+    ORDER BY updatedAt DESC
+  `).bind(userId).all<Record<string, unknown>>();
+  return json({
+    data: rows.results.map((row) => ({
+      ...row,
+      current: row.id === currentSessionId,
+    })),
+  });
+}
+
+async function revokeSession(context: AdminContext, sessionId: string, currentSessionId: string) {
+  if (sessionId === currentSessionId) {
+    return invalid('Use Sign out to end the current Admin session.');
+  }
+  const session = await context.env.IDENTITY_DB.prepare(
+    'SELECT id, "userId" AS userId FROM "session" WHERE id = ?',
+  ).bind(sessionId).first<{ id: string; userId: string }>();
+  if (!session) return json({ error: { code: 'not_found', message: 'Session was not found.' } }, 404);
+  await context.env.IDENTITY_DB.prepare('DELETE FROM "session" WHERE id = ?').bind(sessionId).run();
+  await audit(context, 'session.revoked', 'session', sessionId, { userId: session.userId });
+  return new Response(null, { status: 204 });
+}
+
 async function globalSearch({ env }: AdminContext, url: URL) {
   const query = cleanQuery(url.searchParams.get('q'));
   if (query.length < 2) return json({ data: [] });
@@ -235,7 +354,7 @@ async function listUsers({ env }: AdminContext, url: URL) {
 }
 
 async function getUser({ env }: AdminContext, id: string) {
-  const [user, keys, clients, devices, mcp, queries] = await Promise.all([
+  const [user, keys, clients, devices, mcp, queries, sessions] = await Promise.all([
     env.IDENTITY_DB.prepare(`SELECT u.id, u.name, u.email, u.emailVerified AS emailVerified, u.createdAt AS createdAt,
       COALESCE(p.plan_code, 'basic') AS planCode, COALESCE(p.status, 'active') AS status
       FROM "user" u LEFT JOIN developer_profiles p ON p.user_id = u.id WHERE u.id = ?`).bind(id).first(),
@@ -244,9 +363,10 @@ async function getUser({ env }: AdminContext, id: string) {
     env.IDENTITY_DB.prepare('SELECT id, name, device_type AS deviceType, status, created_at AS createdAt FROM device_registrations WHERE owner_user_id = ? ORDER BY created_at DESC LIMIT 25').bind(id).all(),
     env.IDENTITY_DB.prepare('SELECT id, name, status, created_at AS createdAt FROM mcp_toolsets WHERE owner_user_id = ? ORDER BY created_at DESC LIMIT 25').bind(id).all(),
     env.IDENTITY_DB.prepare('SELECT id, name, operation, status, created_at AS createdAt FROM named_queries WHERE owner_user_id = ? ORDER BY created_at DESC LIMIT 25').bind(id).all(),
+    env.IDENTITY_DB.prepare('SELECT id, createdAt, updatedAt, expiresAt, ipAddress, userAgent FROM "session" WHERE "userId" = ? AND expiresAt > datetime(\'now\') ORDER BY updatedAt DESC LIMIT 25').bind(id).all(),
   ]);
   if (!user) return json({ error: { code: 'not_found', message: 'User was not found.' } }, 404);
-  return json({ data: { user, apiKeys: keys.results, oauthClients: clients.results, devices: devices.results, mcpServers: mcp.results, namedQueries: queries.results } });
+  return json({ data: { user, apiKeys: keys.results, oauthClients: clients.results, devices: devices.results, mcpServers: mcp.results, namedQueries: queries.results, sessions: sessions.results } });
 }
 
 async function updateUser(context: AdminContext, id: string, body: Record<string, unknown>) {

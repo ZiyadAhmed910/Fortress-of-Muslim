@@ -21,4 +21,5 @@ admin-*.png
 # Approved source corpus and generated database import bundles stay local-only
 sunnah-data-fast-do-not-deploy/
 .fortress-import/
+.fortress-backups/
 private-acquisition-do-not-commit/

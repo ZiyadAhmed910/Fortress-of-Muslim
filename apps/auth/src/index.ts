@@ -78,7 +78,7 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
     if (url.pathname.startsWith('/v1/admin/') || url.pathname.startsWith('/v1/control/')) {
       const session = await createAuth(this.env).api.getSession({ headers: request.headers });
       if (!session?.user) response = json({ error: { code: 'unauthorized', message: 'Sign in is required.' } }, 401);
-      else if (url.pathname.startsWith('/v1/admin/')) response = await handleAdminPlane(request, url, this.env, session.user, requestId);
+      else if (url.pathname.startsWith('/v1/admin/')) response = await handleAdminPlane(request, url, this.env, session.user, session.session, requestId);
       else response = await this.handleControlPlane(request, url, session.user);
     } else if (isDeveloperManagementRoute(url.pathname)) {
       const session = await createAuth(this.env).api.getSession({ headers: request.headers });
@@ -325,6 +325,40 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       return { valid: false, key: null, error: { code: 'account_suspended', message: 'The credential owner is not active.' } };
     }
     return verification;
+  }
+
+  async recordUsage(event: {
+    userId?: string;
+    credentialId?: string;
+    service: string;
+    route: string;
+    statusCode: number;
+    durationMs: number;
+    requestUnits?: number;
+  }): Promise<void> {
+    const insert = this.env.IDENTITY_DB.prepare(`
+      INSERT INTO usage_events
+        (id, occurred_at, user_id, credential_id, service, route, status_code, duration_ms, request_units, environment)
+      VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      crypto.randomUUID(),
+      event.userId ?? null,
+      event.credentialId ?? null,
+      event.service.slice(0, 40),
+      event.route.slice(0, 180),
+      Math.trunc(event.statusCode),
+      Math.max(0, Math.round(event.durationMs)),
+      Math.max(1, Math.round(event.requestUnits ?? 1)),
+      this.env.PLATFORM_ENV,
+    );
+    if (Math.random() < 0.01) {
+      await this.env.IDENTITY_DB.batch([
+        insert,
+        this.env.IDENTITY_DB.prepare("DELETE FROM usage_events WHERE occurred_at < datetime('now', '-30 days')"),
+      ]);
+    } else {
+      await insert.run();
+    }
   }
 
   async verifyBearerToken(token: string, scopes: string[] = [], audience: 'api' | 'mcp' = 'api'): Promise<TokenVerification> {

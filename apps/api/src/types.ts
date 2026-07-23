@@ -18,6 +18,15 @@ export type Bindings = {
       error?: string;
       ownerUserId?: string;
     }>;
+    recordUsage(event: {
+      userId?: string;
+      credentialId?: string;
+      service: string;
+      route: string;
+      statusCode: number;
+      durationMs: number;
+      requestUnits?: number;
+    }): Promise<void>;
     getNamedQuery(id: string, ownerUserId: string): Promise<{
       id: string;
       ownerUserId: string;

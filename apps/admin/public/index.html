@@ -22,7 +22,19 @@
       <label>Email<input name="email" type="email" autocomplete="email" required></label>
       <label>Password<input name="password" type="password" autocomplete="current-password" minlength="12" required></label>
       <button class="primary" type="submit">Sign in</button>
+      <button type="button" data-admin-passkey>Sign in with passkey</button>
       <p id="login-message" class="message" role="status"></p>
+    </form>
+    <form id="admin-two-factor-form" class="login-panel" hidden>
+      <img src="/assets/fortress-mark.svg" alt="">
+      <span class="kicker">SECOND FACTOR</span>
+      <h1>Verify your identity</h1>
+      <p>Enter the six-digit code from your authenticator app.</p>
+      <label>Authentication code<input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+      <label><input name="trustDevice" type="checkbox"> Trust this device for 30 days</label>
+      <button class="primary" type="submit">Verify</button>
+      <button type="button" data-admin-two-factor-cancel>Back</button>
+      <p class="message" data-two-factor-message role="status"></p>
     </form>
   </main>
 
@@ -63,11 +75,13 @@
         <a href="#mcp-tools" data-nav><span>External tool review</span></a>
         <a href="#named-queries" data-nav><span>Named queries</span></a>
         <p>OPERATIONS</p>
+        <a href="#operations" data-nav><span>Operations monitor</span></a>
         <a href="#rag" data-nav><span>RAG monitor</span></a>
         <a href="#services" data-nav><span>Service control</span></a>
+        <a href="#security" data-nav><span>Account security</span></a>
         <a href="#audit" data-nav><span>Audit log</span></a>
       </nav>
-      <footer>Fortress Platform <span>0.18.0</span></footer>
+      <footer>Fortress Platform <span>0.19.0</span></footer>
     </aside>
 
     <div class="scrim" data-scrim></div>
@@ -169,13 +183,20 @@
       </section>
 
       <section id="users" class="view" hidden>
-        <header><div><span class="kicker">ACCESS HIERARCHY</span><h1>Manage users</h1><p>Admins manage every role. Editors can grant or remove Reviewer access only.</p></div></header>
-        <div id="roles-table" class="table"></div>
-        <div id="platform-users">
-          <header class="subheader"><div><h2>Developer accounts</h2><p>Inspect credentials and suspend compromised or abusive accounts.</p></div></header>
-          <form class="filter" data-filter="users"><input name="q" placeholder="Name or email"><select name="status"><option value="">All statuses</option><option>active</option><option>suspended</option><option>closed</option></select><button>Apply</button></form>
+        <header><div><span class="kicker">ACCESS HIERARCHY</span><h1>Manage users</h1><p>Find people quickly, then manage either platform roles or developer account access.</p></div></header>
+        <div class="segmented" role="tablist" aria-label="User management view">
+          <button class="active" type="button" role="tab" aria-selected="true" data-user-tab="team">Team access</button>
+          <button type="button" role="tab" aria-selected="false" data-user-tab="developers">Developer accounts</button>
         </div>
-        <div id="users-table" class="table"></div>
+        <div data-user-panel="team">
+          <form id="roles-filter" class="filter"><input name="q" type="search" placeholder="Search name or email"><select name="role"><option value="">All roles</option><option>admin</option><option>editor</option><option>reviewer</option><option>developer</option></select><select name="status"><option value="">All statuses</option><option>active</option><option>inactive</option></select><button>Search</button></form>
+          <div id="roles-table" class="table"></div>
+        </div>
+        <div data-user-panel="developers" hidden>
+          <header class="subheader"><div><h2>Developer accounts</h2><p>Inspect credentials and suspend compromised or abusive accounts.</p></div></header>
+          <form class="filter" data-filter="users"><input name="q" type="search" placeholder="Search name or email"><select name="status"><option value="">All statuses</option><option>active</option><option>suspended</option><option>closed</option></select><button>Search</button></form>
+          <div id="users-table" class="table"></div>
+        </div>
       </section>
 
       <section id="api-keys" class="view" hidden data-resource="api-keys"><resource-header></resource-header><div class="table resource-table"></div></section>
@@ -194,6 +215,20 @@
       <section id="services" class="view" hidden>
         <header><div><span class="kicker">OPERATIONS</span><h1>Service control</h1><p>Place Worker-enforced services into maintenance or disabled state.</p></div></header>
         <div id="services-grid" class="service-grid"></div>
+      </section>
+
+      <section id="operations" class="view" hidden>
+        <header><div><span class="kicker">LIVE OPERATIONS</span><h1>Platform monitor</h1><p>Traffic, errors, rate limiting, queues, sessions, and deployment state in one focused view.</p></div><button data-refresh-operations>Refresh</button></header>
+        <div id="operations-metrics" class="metrics"></div>
+        <div class="split"><section><h2>Request telemetry</h2><div id="operations-traffic"></div></section><section><h2>Work queues</h2><div id="operations-queues"></div></section></div>
+        <section><h2>Highest traffic routes</h2><div id="operations-routes" class="table"></div></section>
+        <section><h2>Deployment state</h2><div id="operations-deployments" class="service-grid"></div></section>
+      </section>
+
+      <section id="security" class="view" hidden>
+        <header><div><span class="kicker">ACCOUNT SECURITY</span><h1>Admin sessions</h1><p>Review active browser sessions, end unfamiliar access, and manage MFA or passkeys through your Fortress identity.</p></div><a id="identity-security-link" class="button" href="https://developers-test.fortressofmuslim.org/console.html#security">Manage MFA and passkeys</a></header>
+        <div id="security-summary" class="metrics"></div>
+        <div id="sessions-table" class="table"></div>
       </section>
 
       <section id="rag" class="view" hidden>

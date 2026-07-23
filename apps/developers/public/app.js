@@ -48,9 +48,9 @@ function setResponse(label,data,error){ $('#response-state').textContent=label; 
 
 $('[data-profile-toggle]').addEventListener('click', () => { const menu=$('[data-profile-menu]'); menu.hidden=!menu.hidden; $('[data-profile-toggle]').setAttribute('aria-expanded',String(!menu.hidden)); if(!menu.hidden)$('[role="menuitem"]',menu)?.focus(); });
 document.addEventListener('click',(event)=>{ if(!event.target.closest('.profile-menu')) closeProfile(); });
-$('[data-profile-sign-out]').addEventListener('click', async (event) => { event.currentTarget.disabled=true; try{await fetch(`${authBase}/api/auth/sign-out`,{method:'POST',credentials:'include',headers:{'X-Request-ID':crypto.randomUUID()},signal:AbortSignal.timeout(REQUEST_TIMEOUT_MS)});await refreshProfile();closeProfile();}finally{event.currentTarget.disabled=false;} });
+$('[data-profile-sign-out]').addEventListener('click', async (event) => { event.currentTarget.disabled=true; try{const response=await fetch(`${authBase}/api/auth/sign-out`,{method:'POST',credentials:'include',cache:'no-store',headers:{'Content-Type':'application/json','X-Request-ID':crypto.randomUUID()},body:'{}',signal:AbortSignal.timeout(REQUEST_TIMEOUT_MS)});if(!response.ok)throw new Error('Sign out failed.');await refreshProfile();closeProfile();}finally{event.currentTarget.disabled=false;} });
 async function refreshProfile(){
-  let user=null; try{ const response=await fetch(`${authBase}/api/auth/get-session`,{credentials:'include'}); if(response.ok) user=(await response.json())?.user; }catch{}
+  let user=null; try{ const response=await fetch(`${authBase}/api/auth/get-session`,{credentials:'include',cache:'no-store'}); if(response.ok) user=(await response.json())?.user; }catch{}
   const button=$('[data-profile-toggle]'); const identity=$('[data-profile-identity]'); $('[data-profile-sign-out]').hidden=!user;
   if(user){ button.classList.add('signed-in'); $('[data-profile-initials]').textContent=getInitials(user.name||user.email); identity.innerHTML=`<strong>${esc(user.name||'Developer')}</strong><small>${esc(user.email)}</small>`; }
   else { button.classList.remove('signed-in'); $('[data-profile-initials]').textContent=''; identity.innerHTML='<strong>Developer account</strong><small>Sign in to manage credentials</small>'; }

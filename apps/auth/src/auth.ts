@@ -1,7 +1,8 @@
 import { apiKey } from '@better-auth/api-key';
 import { oauthProvider } from '@better-auth/oauth-provider';
+import { passkey } from '@better-auth/passkey';
 import { betterAuth } from 'better-auth';
-import { deviceAuthorization, jwt, openAPI, organization } from 'better-auth/plugins';
+import { deviceAuthorization, jwt, openAPI, organization, twoFactor } from 'better-auth/plugins';
 import type { Bindings } from './types';
 
 export const FORTRESS_SCOPES = [
@@ -20,6 +21,10 @@ export const FORTRESS_SCOPES = [
 ] as const;
 
 export function createAuth(env: Bindings) {
+  const developerOrigin = new URL(env.DEVELOPERS_URL);
+  const relyingPartyId = developerOrigin.hostname.endsWith('.fortressofmuslim.org')
+    ? 'fortressofmuslim.org'
+    : developerOrigin.hostname;
   return betterAuth({
     appName: 'Fortress Platform',
     baseURL: env.AUTH_BASE_URL,
@@ -51,6 +56,15 @@ export function createAuth(env: Bindings) {
     },
     plugins: [
       organization({ allowUserToCreateOrganization: true }),
+      twoFactor({
+        issuer: 'Fortress Platform',
+        totpOptions: { digits: 6, period: 30 },
+      }),
+      passkey({
+        rpID: relyingPartyId,
+        rpName: 'Fortress Platform',
+        origin: [env.DEVELOPERS_URL, env.ADMIN_URL],
+      }),
       apiKey({
         apiKeyHeaders: ['x-fortress-api-key'],
         defaultPrefix: env.PLATFORM_ENV === 'test' ? 'fom_test_' : 'fom_live_',

@@ -151,10 +151,10 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.18.0');
+    expect(body.version).toBe('0.19.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     expect(response.headers.get('X-Request-ID')).toBe('test-request-123');
-    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.18.0');
+    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.19.0');
     expect(response.headers.get('Server-Timing')).toMatch(/^app;dur=\d+\.\d$/);
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
   });
@@ -165,7 +165,7 @@ describe('Fortress Platform API', () => {
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
-    expect(body.version).toBe('0.18.0');
+    expect(body.version).toBe('0.19.0');
     expect(body.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
     expect(body.recordCount).toBe(3);
   });

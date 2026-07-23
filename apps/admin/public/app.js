@@ -14,7 +14,7 @@ const state = {
   queueSelection: new Set(),
 };
 const roleViews = {
-  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'services', 'audit']),
+  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'operations', 'services', 'security', 'audit']),
   editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'workload', 'users', 'rag']),
   reviewer: new Set(['overview', 'queue', 'books', 'assignments', 'workload', 'rag']),
 };
@@ -35,15 +35,74 @@ $('#login-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   $('#login-message').textContent = 'Signing in...';
   try {
-    await api('/api/auth/sign-in/email', { method: 'POST', body: Object.fromEntries(new FormData(event.currentTarget)) });
+    const result = await api('/api/auth/sign-in/email', { method: 'POST', body: Object.fromEntries(new FormData(event.currentTarget)) });
+    if (result?.twoFactorRedirect) {
+      $('#login-form').hidden = true;
+      $('#admin-two-factor-form').hidden = false;
+      $('#admin-two-factor-form input[name="code"]').focus();
+      return;
+    }
     await bootstrap();
   } catch (error) {
     $('#login-message').textContent = error.message;
   }
 });
+$('#admin-two-factor-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const values = new FormData(form);
+  try {
+    await api('/api/auth/two-factor/verify-totp', {
+      method: 'POST',
+      body: { code: values.get('code'), trustDevice: values.get('trustDevice') === 'on' },
+    });
+    form.reset();
+    form.hidden = true;
+    $('#login-form').hidden = false;
+    await bootstrap();
+  } catch (error) {
+    $('[data-two-factor-message]').textContent = error.message;
+  }
+});
+$('[data-admin-two-factor-cancel]').addEventListener('click', () => {
+  $('#admin-two-factor-form').hidden = true;
+  $('#login-form').hidden = false;
+});
+$('[data-admin-passkey]').addEventListener('click', async (event) => {
+  event.currentTarget.disabled = true;
+  try {
+    const options = await api('/api/auth/passkey/generate-authenticate-options');
+    const credential = await navigator.credentials.get({ publicKey: decodeRequestOptions(options) });
+    if (!credential) throw new Error('Passkey sign-in was cancelled.');
+    await api('/api/auth/passkey/verify-authentication', {
+      method: 'POST',
+      body: { response: serializeCredential(credential) },
+    });
+    await bootstrap();
+  } catch (error) {
+    $('#login-message').textContent = error?.name === 'NotAllowedError' ? 'Passkey use was cancelled or timed out.' : error.message;
+  } finally {
+    event.currentTarget.disabled = false;
+  }
+});
 $$('[data-sign-out]').forEach((button) => button.addEventListener('click', async () => {
-  await api('/api/auth/sign-out', { method: 'POST' }).catch(() => {});
-  location.reload();
+  button.disabled = true;
+  try {
+    await api('/api/auth/sign-out', { method: 'POST', body: {} });
+    state.session = null;
+    state.loaded.clear();
+    $('[data-profile-menu]').hidden = true;
+    $('#console').hidden = true;
+    $('#denied').hidden = true;
+    $('#login').hidden = false;
+    $('#login-message').textContent = 'Signed out.';
+    $('#login-form input[name="email"]')?.focus();
+    history.replaceState(null, '', location.pathname);
+  } catch (error) {
+    notify(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
 }));
 $('[data-profile]').addEventListener('click', () => {
   const menu = $('[data-profile-menu]');
@@ -79,7 +138,21 @@ $$('[data-filter]').forEach((form) => form.addEventListener('submit', (event) =>
   event.preventDefault();
   loadView(form.dataset.filter, true, Object.fromEntries(new FormData(form)));
 }));
+$('[data-user-panel="developers"]').hidden = true;
+$$('[data-user-tab]').forEach((tab) => tab.addEventListener('click', () => {
+  $$('[data-user-tab]').forEach((item) => {
+    const selected = item === tab;
+    item.classList.toggle('active', selected);
+    item.setAttribute('aria-selected', String(selected));
+  });
+  $$('[data-user-panel]').forEach((panel) => { panel.hidden = panel.dataset.userPanel !== tab.dataset.userTab; });
+}));
+$('#roles-filter').addEventListener('submit', (event) => {
+  event.preventDefault();
+  loadRoles(Object.fromEntries(new FormData(event.currentTarget)));
+});
 $('[data-refresh]').addEventListener('click', () => loadOverview());
+$('[data-refresh-operations]').addEventListener('click', () => loadOperations());
 
 async function bootstrap() {
   let session;
@@ -96,6 +169,12 @@ async function bootstrap() {
   try {
     state.session = (await api('/v1/admin/session')).data;
   } catch (error) {
+    if (error.status === 401) {
+      $('#login').hidden = false;
+      $('#console').hidden = true;
+      $('#login-message').textContent = error.message;
+      return;
+    }
     if (error.status === 403) {
       $('#denied').hidden = false;
       $('#login').hidden = true;
@@ -144,6 +223,8 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'users') await loadUsers(params);
     else if (id === 'taxonomy') await loadTaxonomy(params);
     else if (id === 'services') await loadServices();
+    else if (id === 'operations') await loadOperations();
+    else if (id === 'security') await loadSecurity();
     else if (id === 'rag') await loadRag();
     else if (id === 'workload') await loadWorkload();
     else if (id === 'audit') await loadAudit(params);
@@ -741,8 +822,8 @@ $('#batch-action-form').addEventListener('submit', async (event) => {
   }
 });
 
-async function loadRoles() {
-  const rows = (await api('/v1/admin/editorial/roles')).data;
+async function loadRoles(params = {}) {
+  const rows = (await api(`/v1/admin/editorial/roles?${new URLSearchParams(params)}`)).data;
   const roles = ['admin', 'editor', 'reviewer', 'developer'];
   $('#roles-table').innerHTML = tableHead(['User', 'Platform role', 'Status', ''])
     + rows.map((row) => {
@@ -778,13 +859,17 @@ $('#roles-table').addEventListener('click', async (event) => {
 });
 
 async function loadUsers(params = {}) {
-  await loadRoles();
+  await loadRoles(Object.fromEntries(new FormData($('#roles-filter'))));
+  const developerTab = $('[data-user-tab="developers"]');
+  const developerPanel = $('[data-user-panel="developers"]');
   if (state.session.role !== 'admin') {
-    $('#platform-users').hidden = true;
+    developerTab.hidden = true;
+    developerPanel.hidden = true;
+    $('[data-user-panel="team"]').hidden = false;
     $('#users-table').innerHTML = '';
     return;
   }
-  $('#platform-users').hidden = false;
+  developerTab.hidden = false;
   const rows = (await api(`/v1/admin/users?${new URLSearchParams(params)}`)).data;
   $('#users-table').innerHTML = tableHead(['User', 'Plan', 'Credentials', 'Status', ''])
     + rows.map((user) => `<div class="row"><span><strong>${esc(user.name)}</strong><small>${esc(user.email)}</small></span><span>${esc(user.planCode)}</span><span>${user.apiKeyCount} keys &middot; ${user.oauthClientCount} apps</span><span class="badge ${esc(user.status)}">${esc(user.status)}</span><span class="actions"><button data-user-view="${esc(user.id)}">Inspect</button>${user.status === 'active' ? `<button class="danger" data-user-status="suspended" data-id="${esc(user.id)}">Suspend</button>` : `<button data-user-status="active" data-id="${esc(user.id)}">Activate</button>`}</span></div>`).join('');
@@ -805,7 +890,7 @@ async function showUser(id) {
   const data = (await api(`/v1/admin/users/${encodeURIComponent(id)}`)).data;
   const dialog = document.createElement('dialog');
   dialog.className = 'detail-dialog';
-  dialog.innerHTML = `<form method="dialog"><h2>${esc(data.user.name)}</h2><p>${esc(data.user.email)} &middot; ${esc(data.user.status)} &middot; ${esc(data.user.planCode)}</p><div class="metrics"><div class="metric"><span>API keys</span><strong>${data.apiKeys.length}</strong></div><div class="metric"><span>Apps</span><strong>${data.oauthClients.length}</strong></div><div class="metric"><span>Devices</span><strong>${data.devices.length}</strong></div><div class="metric"><span>MCP</span><strong>${data.mcpServers.length}</strong></div></div><code>${esc(data.user.id)}</code><div><button>Close</button></div></form>`;
+  dialog.innerHTML = `<form method="dialog"><h2>${esc(data.user.name)}</h2><p>${esc(data.user.email)} &middot; ${esc(data.user.status)} &middot; ${esc(data.user.planCode)}</p><div class="metrics"><div class="metric"><span>API keys</span><strong>${data.apiKeys.length}</strong></div><div class="metric"><span>Apps</span><strong>${data.oauthClients.length}</strong></div><div class="metric"><span>Devices</span><strong>${data.devices.length}</strong></div><div class="metric"><span>Sessions</span><strong>${data.sessions.length}</strong></div></div><code>${esc(data.user.id)}</code><section class="detail-sessions"><h3>Active sessions</h3>${data.sessions.length ? data.sessions.map((session) => `<div class="service-line"><span><strong>${esc(browserName(session.userAgent))}</strong><small>${date(session.updatedAt)} &middot; ${esc(session.ipAddress || 'Address unavailable')}</small></span><button type="button" class="danger" data-revoke-session="${esc(session.id)}">End</button></div>`).join('') : empty('No active sessions.')}</section><div><button>Close</button></div></form>`;
   document.body.append(dialog);
   dialog.addEventListener('close', () => dialog.remove());
   dialog.showModal();
@@ -859,6 +944,84 @@ async function loadServices() {
   const rows = (await api('/v1/admin/services')).data;
   $('#services-grid').innerHTML = rows.map((service) => `<article class="service-card"><header><strong>${esc(service.displayName)}</strong><span class="badge ${esc(service.status)}">${esc(service.status)}</span></header><p>${esc(service.serviceType)} &middot; ${esc(service.enforcement)} enforcement</p><small>${esc(service.maintenanceMessage)}</small><footer><code>${esc(service.serviceKey)}</code><div>${service.enforcement === 'worker' && service.serviceKey !== 'admin' ? ['active', 'maintenance', 'disabled'].filter((item) => item !== service.status).map((status) => `<button class="${status === 'disabled' ? 'danger' : ''}" data-service="${esc(service.serviceKey)}" data-service-status="${status}">${human(status)}</button>`).join('') : '<span class="badge">monitor only</span>'}</div></footer></article>`).join('');
 }
+
+async function loadOperations() {
+  const data = (await api('/v1/admin/operations')).data;
+  const probes = await probeDeployments(data.deployments);
+  const requests = data.traffic.reduce((sum, row) => sum + Number(row.requests), 0);
+  const errors = data.traffic.reduce((sum, row) => sum + Number(row.errors), 0);
+  $('#operations-metrics').innerHTML = [
+    ['Requests (24h)', requests],
+    ['Errors (24h)', errors],
+    ['Active API keys', Number(data.credentials?.active || 0)],
+    ['Active sessions', Number(data.sessions?.active || 0)],
+  ].map(([label, value]) => `<div class="metric"><span>${esc(label)}</span><strong>${value}</strong></div>`).join('');
+  $('#operations-traffic').innerHTML = data.traffic.length
+    ? data.traffic.map((row) => `<div class="service-line"><span><strong>${esc(human(row.service))}</strong><small>${Number(row.averageDurationMs || 0).toFixed(1)} ms average</small></span><span class="badge">${row.requests} requests &middot; ${row.errors} errors</span></div>`).join('')
+    : empty('No request telemetry has been collected in this 24-hour window.');
+  const queues = [
+    ...data.queues.editorial.map((row) => ({ label: human(row.state), count: row.count, type: 'Editorial' })),
+    ...data.queues.access.map((row) => ({ label: human(row.type), count: row.count, type: 'Access request' })),
+  ];
+  $('#operations-queues').innerHTML = queues.length
+    ? queues.map((row) => `<div class="service-line"><span><strong>${esc(row.label)}</strong><small>${esc(row.type)}</small></span><span class="badge">${row.count}</span></div>`).join('')
+    : empty('All monitored queues are clear.');
+  $('#operations-routes').innerHTML = tableHead(['Route', 'Requests', 'Rate limited', 'Server errors', 'Average'])
+    + data.routes.map((row) => `<div class="row"><code>${esc(row.route)}</code><span>${row.requests}</span><span>${row.rateLimited}</span><span>${row.serverErrors}</span><span>${Number(row.averageDurationMs || 0).toFixed(1)} ms</span></div>`).join('');
+  $('#operations-deployments').innerHTML = data.deployments.map((service) => {
+    const probe = probes.get(service.serviceKey);
+    const liveState = probe?.ok ? 'reachable' : probe ? 'unreachable' : 'not probed';
+    return `<article class="service-card"><header><strong>${esc(service.displayName)}</strong><span class="badge ${probe?.ok ? 'active' : probe ? 'disabled' : esc(service.status)}">${esc(liveState)}</span></header><p>${esc(human(service.serviceType))} &middot; ${esc(service.enforcement)} enforcement${probe?.version ? ` &middot; ${esc(probe.version)}` : ''}</p><footer><code>${esc(probe?.url || service.baseUrl)}</code><small>Configured ${date(service.updatedAt)}</small></footer></article>`;
+  }).join('');
+}
+
+async function probeDeployments(services) {
+  const test = authBase.includes('auth-test.');
+  const origins = {
+    api: test ? 'https://api-test.fortressofmuslim.org' : 'https://api.fortressofmuslim.org',
+    auth: test ? 'https://auth-test.fortressofmuslim.org' : 'https://auth.fortressofmuslim.org',
+    mcp: test ? 'https://mcp-test.fortressofmuslim.org' : 'https://mcp.fortressofmuslim.org',
+  };
+  const results = await Promise.all(services.filter((service) => origins[service.serviceKey]).map(async (service) => {
+    const url = `${origins[service.serviceKey]}/health`;
+    try {
+      const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+      const body = await response.json().catch(() => ({}));
+      return [service.serviceKey, { ok: response.ok, url, version: body.version }];
+    } catch {
+      return [service.serviceKey, { ok: false, url }];
+    }
+  }));
+  return new Map(results);
+}
+
+async function loadSecurity() {
+  const [sessions, passkeys] = await Promise.all([
+    api('/v1/admin/sessions'),
+    api('/api/auth/passkey/list-user-passkeys').catch(() => []),
+  ]);
+  const rows = sessions.data || [];
+  const passkeyRows = Array.isArray(passkeys) ? passkeys : [];
+  $('#identity-security-link').href = authBase.includes('auth-test.')
+    ? 'https://developers-test.fortressofmuslim.org/console.html#security'
+    : 'https://developers.fortressofmuslim.org/console.html#security';
+  $('#security-summary').innerHTML = [
+    ['Two-factor', state.session.security?.twoFactorEnabled ? 'Enabled' : 'Not enabled'],
+    ['Passkeys', passkeyRows.length],
+    ['Active sessions', rows.length],
+    ['Current expires', date(state.session.security?.sessionExpiresAt)],
+  ].map(([label, value]) => `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
+  $('#sessions-table').innerHTML = tableHead(['Browser', 'Address', 'Last active', 'Expires', ''])
+    + rows.map((session) => `<div class="row"><span><strong>${esc(browserName(session.userAgent))}</strong><small>${session.current ? 'Current session' : esc(session.userAgent || 'Unknown browser')}</small></span><code>${esc(session.ipAddress || 'Unavailable')}</code><span>${date(session.updatedAt)}</span><span>${date(session.expiresAt)}</span><span>${session.current ? '<span class="badge active">current</span>' : `<button class="danger" data-revoke-session="${esc(session.id)}">End session</button>`}</span></div>`).join('');
+}
+document.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-revoke-session]');
+  if (!button) return;
+  if (!await confirmChange('End this session?', 'That browser will need to sign in again.')) return;
+  await api(`/v1/admin/sessions/${encodeURIComponent(button.dataset.revokeSession)}`, { method: 'DELETE' });
+  notify('Session ended.');
+  loadSecurity();
+});
 $('#services-grid').addEventListener('click', async (event) => {
   const button = event.target.closest('[data-service]');
   if (!button) return;
@@ -952,7 +1115,7 @@ async function api(path, options = {}) {
     headers.set('Content-Type', 'application/json');
     body = JSON.stringify(body);
   }
-  const response = await fetch(`${authBase}${path}`, { ...options, headers, body, credentials: 'include' });
+  const response = await fetch(`${authBase}${path}`, { ...options, headers, body, credentials: 'include', cache: 'no-store' });
   const data = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
     const error = new Error(data?.error?.message || data?.message || `Request failed (${response.status}).`);
@@ -969,6 +1132,47 @@ function human(value) {
 }
 function initials(value) {
   return String(value).split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+}
+function browserName(userAgent) {
+  const value = String(userAgent || '');
+  if (/Edg\//.test(value)) return 'Microsoft Edge';
+  if (/Firefox\//.test(value)) return 'Firefox';
+  if (/Chrome\//.test(value)) return 'Chrome';
+  if (/Safari\//.test(value)) return 'Safari';
+  return 'Unknown browser';
+}
+function decodeRequestOptions(options) {
+  return {
+    ...options,
+    challenge: fromBase64Url(options.challenge),
+    allowCredentials: (options.allowCredentials || []).map((item) => ({ ...item, id: fromBase64Url(item.id) })),
+  };
+}
+function serializeCredential(credential) {
+  return {
+    id: credential.id,
+    rawId: toBase64Url(credential.rawId),
+    type: credential.type,
+    authenticatorAttachment: credential.authenticatorAttachment,
+    clientExtensionResults: credential.getClientExtensionResults(),
+    response: {
+      clientDataJSON: toBase64Url(credential.response.clientDataJSON),
+      authenticatorData: toBase64Url(credential.response.authenticatorData),
+      signature: toBase64Url(credential.response.signature),
+      userHandle: credential.response.userHandle ? toBase64Url(credential.response.userHandle) : null,
+    },
+  };
+}
+function fromBase64Url(value) {
+  const source = String(value);
+  const base64 = source.replaceAll('-', '+').replaceAll('_', '/').padEnd(Math.ceil(source.length / 4) * 4, '=');
+  return Uint8Array.from(atob(base64), (character) => character.charCodeAt(0)).buffer;
+}
+function toBase64Url(value) {
+  const bytes = new Uint8Array(value);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
 }
 function date(value) {
   if (!value) return '-';

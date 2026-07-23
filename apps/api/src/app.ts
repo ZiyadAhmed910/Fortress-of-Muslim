@@ -51,6 +51,24 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       path: context.req.path, status: context.res.status, durationMs: Number(duration.toFixed(1)),
       environment: context.env?.PLATFORM_ENV ?? 'local',
     }));
+    const principalId = context.get('principalId') || undefined;
+    const sampleRate = principalId || context.res.status >= 400 ? 1 : 0.1;
+    if (typeof context.env?.AUTH?.recordUsage === 'function' && Math.random() <= sampleRate) {
+      const telemetry = context.env.AUTH.recordUsage({
+        userId: principalId,
+        credentialId: context.get('credentialId') || undefined,
+        service: 'api',
+        route: context.req.path,
+        statusCode: context.res.status,
+        durationMs: duration,
+        requestUnits: Math.round(1 / sampleRate),
+      }).catch((error) => console.error('Usage telemetry write failed.', error));
+      try {
+        context.executionCtx.waitUntil(telemetry);
+      } catch {
+        void telemetry;
+      }
+    }
   });
 
   const authorize = async (context: ApiContext, next: () => Promise<void>) => {

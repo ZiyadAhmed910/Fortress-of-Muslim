@@ -162,6 +162,19 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.19.0
+
+- Fixed Developer and Admin sign-out so sessions end cleanly and authenticated controls disappear immediately.
+- Added browser-level regression checks for signed-out UI state.
+- Added TOTP two-factor authentication and WebAuthn passkey enrollment and sign-in.
+- Added a 12-hour absolute Admin session lifetime, active-session inventory, and audited session revocation.
+- Added sampled API request telemetry with 30-day retention, latency/error/rate-limit summaries, and API-key usage metrics.
+- Added a focused Admin Operations Monitor for traffic, editorial and access queues, and live API/Auth/MCP deployment probes.
+- Split Admin user management into searchable Team Access and Developer Accounts views.
+- Added user-level active-session inspection and revocation.
+- Added D1 backup and guarded restore scripts with checksums, mandatory pre-restore backups, and explicit production approval.
+- Added the incident response, rollback, credential-compromise, and recovery runbook in `docs/incident-response.md`.
+
 ### 0.18.0
 
 - Replaced the multi-review workflow with one complete verification by an authorized Admin, Editor, or Reviewer.
@@ -454,6 +467,7 @@ Canonical data decisions and staged work are documented in:
 
 - `docs/canonical-data-roadmap.md`
 - `docs/canonical-editorial-architecture.md`
+- `docs/incident-response.md`
 - `docs/release-readiness.md`
 - `docs/adr/0001-canonical-knowledge-and-snapshots.md`
 - `docs/adr/0002-public-read-api.md`
