@@ -62,6 +62,7 @@
         <a href="#mcp-tools" data-nav><span>External tool review</span></a>
         <a href="#named-queries" data-nav><span>Named queries</span></a>
         <p>OPERATIONS</p>
+        <a href="#rag" data-nav><span>RAG monitor</span></a>
         <a href="#services" data-nav><span>Service control</span></a>
         <a href="#audit" data-nav><span>Audit log</span></a>
       </nav>
@@ -180,6 +181,12 @@
       <section id="services" class="view" hidden>
         <header><div><span class="kicker">OPERATIONS</span><h1>Service control</h1><p>Place Worker-enforced services into maintenance or disabled state.</p></div></header>
         <div id="services-grid" class="service-grid"></div>
+      </section>
+
+      <section id="rag" class="view" hidden>
+        <header><div><span class="kicker">GROUNDING OPERATIONS</span><h1>RAG monitor</h1><p>Inspect the verified corpus and Vectorize readiness used by Ask Fortress.</p></div><button data-refresh-rag>Refresh</button></header>
+        <div id="rag-metrics" class="metrics"></div>
+        <div id="rag-state"></div>
       </section>
 
       <section id="audit" class="view" hidden>

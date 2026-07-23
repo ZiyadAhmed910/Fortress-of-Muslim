@@ -179,6 +179,10 @@ Every platform release must:
 - Added one-action Hadith book verification that stamps every record, publishes a complete mixed-corpus snapshot, and queues it for RAG indexing.
 - Added resumable scheduled indexing for verified Hadith and Duas, with per-content-type readiness counts.
 - Unified identity and editorial events in the Admin audit history and protected the default and final active administrator.
+- Replaced positional lexical RAG scores with query-aware title and body relevance, then removed evidence that falls materially below the strongest match.
+- Normalized known legacy typography corruption in generated-answer context without changing canonical source records.
+- Added an Admin RAG monitor with corpus-specific vector readiness, indexing progress, and failure diagnostics.
+- Added role-scoped editorial assignments with audited completion and cancellation controls.
 
 ### 0.17.0
 

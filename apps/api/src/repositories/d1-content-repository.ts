@@ -148,6 +148,7 @@ export class D1ContentRepository implements ContentRepository {
   async searchForRag(query: string, limit: number): Promise<RagRecordMatch[]> {
     const result = await this.database.prepare(`
       SELECT search.canonical_id AS id, search.content_type AS contentType,
+             search.title, search.body, search.narrator,
              bm25(canonical_search_fts) AS rank
       FROM canonical_search_fts search
       JOIN canonical_publications publication
@@ -160,12 +161,15 @@ export class D1ContentRepository implements ContentRepository {
     `).bind(toRagFtsQuery(query), limit).all<{
       id: string;
       contentType: 'dua' | 'hadith';
+      title: string;
+      body: string;
+      narrator: string;
       rank: number;
     }>();
-    return result.results.map((row, index) => ({
+    return result.results.map((row) => ({
       id: row.id,
       contentType: row.contentType,
-      score: Math.max(0.55, 0.82 - (index * 0.04)),
+      score: lexicalRagScore(query, row),
     }));
   }
 
@@ -435,6 +439,39 @@ export class D1ContentRepository implements ContentRepository {
     `).bind(contentType).first<{ count: number }>();
     return row?.count ?? 0;
   }
+}
+
+function lexicalRagScore(
+  query: string,
+  row: { title: string; body: string; narrator: string; rank: number },
+) {
+  const queryTokens = meaningfulTokens(query);
+  if (queryTokens.length === 0) return 0.5;
+  const title = normalizeSearchText(row.title);
+  const body = normalizeSearchText(`${row.body} ${row.narrator}`);
+  const titleMatches = queryTokens.filter((token) => title.includes(token)).length;
+  const bodyMatches = queryTokens.filter((token) => body.includes(token)).length;
+  const titleCoverage = titleMatches / queryTokens.length;
+  const bodyCoverage = bodyMatches / queryTokens.length;
+  const phrase = queryTokens.join(' ');
+  const phraseBonus = phrase.length > 3 && title.includes(phrase) ? 0.12 : 0;
+  const rankBonus = Math.min(0.05, Math.log1p(Math.abs(Number(row.rank) || 0)) / 20);
+  return Math.min(0.99, 0.42 + (titleCoverage * 0.38) + (bodyCoverage * 0.12) + phraseBonus + rankBonus);
+}
+
+function meaningfulTokens(value: string) {
+  const stopWords = new Set([
+    'a', 'an', 'and', 'are', 'do', 'for', 'i', 'in', 'is', 'it', 'of', 'on',
+    'say', 'should', 'the', 'to', 'what', 'when',
+  ]);
+  return normalizeSearchText(value).split(' ').filter((token) => token.length > 1 && !stopWords.has(token));
+}
+
+function normalizeSearchText(value: string) {
+  return value.toLocaleLowerCase().normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
 }
 
 function duaSummarySql(source = 'api_current_content') {

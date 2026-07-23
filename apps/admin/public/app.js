@@ -13,9 +13,9 @@ const state = {
   queue: { params: {}, offset: 0, limit: 50, total: 0 },
 };
 const roleViews = {
-  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'services', 'audit']),
-  editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'users']),
-  reviewer: new Set(['overview', 'queue', 'books']),
+  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'services', 'audit']),
+  editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'users', 'rag']),
+  reviewer: new Set(['overview', 'queue', 'books', 'assignments', 'rag']),
 };
 const resourceNames = {
   'api-keys': 'API keys',
@@ -143,6 +143,7 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'users') await loadUsers(params);
     else if (id === 'taxonomy') await loadTaxonomy(params);
     else if (id === 'services') await loadServices();
+    else if (id === 'rag') await loadRag();
     else if (id === 'audit') await loadAudit(params);
     else if (resourceNames[id]) await loadResources(id);
     state.loaded.add(id);
@@ -505,9 +506,44 @@ $('#assignment-form').addEventListener('submit', async (event) => {
 });
 async function loadAssignments() {
   const rows = (await api('/v1/admin/editorial/assignments')).data;
-  $('#assignments-table').innerHTML = tableHead(['Scope', 'Target', 'Reviewer', 'Status', 'Created'])
-    + rows.map((row) => `<div class="row"><span><strong>${esc(human(row.scopeType))}</strong><small>${esc(row.id)}</small></span><span>${esc(row.canonicalId || row.chapterId || row.bookId || row.collectionId || `${row.rangeStart || ''}-${row.rangeEnd || ''}`)}</span><code>${esc(row.assignedTo)}</code><span class="badge ${esc(row.status)}">${esc(row.status)}</span><span>${date(row.createdAt)}</span></div>`).join('');
+  $('#assignments-table').innerHTML = tableHead(['Scope', 'Target', 'Reviewer', 'Status', ''])
+    + rows.map((row) => `<div class="row"><span><strong>${esc(human(row.scopeType))}</strong><small>${esc(row.id)} &middot; ${date(row.createdAt)}</small></span><span>${esc(row.canonicalId || row.chapterId || row.bookId || row.collectionId || `${row.rangeStart || ''}-${row.rangeEnd || ''}`)}</span><code>${esc(row.assignedTo)}</code><span class="badge ${esc(row.status)}">${esc(row.status)}</span><span class="actions">${row.status === 'active' ? `<button class="primary" data-assignment-status="completed" data-assignment="${esc(row.id)}">Complete</button>${state.session.role !== 'reviewer' ? `<button data-assignment-status="cancelled" data-assignment="${esc(row.id)}">Cancel</button>` : ''}` : `<small>${date(row.completedAt)}</small>`}</span></div>`).join('');
 }
+
+$('#assignments-table').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-assignment-status]');
+  if (!button) return;
+  const status = button.dataset.assignmentStatus;
+  if (!await confirmChange(`${human(status)} assignment?`, status === 'completed'
+    ? 'This closes the assignment while preserving its audit history.'
+    : 'This cancels the assignment without changing any editorial records.')) return;
+  try {
+    await api(`/v1/admin/editorial/assignments/${encodeURIComponent(button.dataset.assignment)}/status`, {
+      method: 'POST',
+      body: { status },
+    });
+    notify(`Assignment ${status}.`);
+    await loadAssignments();
+  } catch (error) {
+    notify(error.message, true);
+  }
+});
+
+async function loadRag() {
+  const data = (await api('/v1/admin/editorial/rag')).data;
+  const progress = data.index.expectedCount
+    ? Math.round((Number(data.index.indexedCount) / Number(data.index.expectedCount)) * 100)
+    : 100;
+  $('#rag-metrics').innerHTML = [
+    ['Verified Duas', data.contentCounts.dua],
+    ['Verified Hadith', data.contentCounts.hadith],
+    ['Indexed vectors', `${data.index.indexedCount}/${data.index.expectedCount}`],
+    ['Progress', `${progress}%`],
+  ].map(([label, value]) => `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
+  $('#rag-state').innerHTML = `<div class="service-card"><header><div><h2>${esc(data.dataset.versionLabel)}</h2><p>${esc(data.dataset.id)}</p></div><span class="badge ${esc(data.index.status)}">${esc(human(data.index.status))}</span></header><p>Published ${date(data.dataset.publishedAt)} &middot; last index update ${date(data.index.updatedAt)}</p>${data.index.lastError ? `<div class="warning"><strong>Indexing error</strong><span>${esc(data.index.lastError)}</span></div>` : ''}</div>`;
+}
+
+$('[data-refresh-rag]').addEventListener('click', () => loadRag().catch((error) => notify(error.message, true)));
 
 $('#batch-form').addEventListener('submit', async (event) => {
   event.preventDefault();

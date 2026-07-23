@@ -25,6 +25,9 @@ export async function handleEditorialPlane(
   if (url.pathname === '/v1/admin/editorial/overview' && request.method === 'GET') {
     return overview(context);
   }
+  if (url.pathname === '/v1/admin/editorial/rag' && request.method === 'GET') {
+    return ragOverview(context);
+  }
   if (url.pathname === '/v1/admin/editorial/queue' && request.method === 'GET') {
     return queue(context, url);
   }
@@ -44,6 +47,14 @@ export async function handleEditorialPlane(
   if (url.pathname === '/v1/admin/editorial/assignments' && request.method === 'POST') {
     requireRole(context.role, ['editor', 'admin']);
     return createAssignment(context, await readJson(request));
+  }
+  const assignmentStatusMatch = url.pathname.match(/^\/v1\/admin\/editorial\/assignments\/([^/]+)\/status$/);
+  if (assignmentStatusMatch && request.method === 'POST') {
+    return updateAssignmentStatus(
+      context,
+      decodeURIComponent(assignmentStatusMatch[1]!),
+      await readJson(request),
+    );
   }
   if (url.pathname === '/v1/admin/editorial/batches' && request.method === 'GET') {
     return listBatches(context);
@@ -182,6 +193,55 @@ async function overview({ env }: EditorialContext) {
       publicationQueue: batches,
       publishedToday,
       reviewerProgress: reviewers.results,
+    },
+  });
+}
+
+async function ragOverview({ env }: EditorialContext) {
+  const dataset = await env.CONTENT_DB.prepare(`
+    SELECT id, version_label AS versionLabel, record_count AS recordCount,
+           published_at AS publishedAt
+    FROM canonical_dataset_versions
+    WHERE publication_status = 'published'
+    ORDER BY published_at DESC, created_at DESC LIMIT 1
+  `).first<{
+    id: string;
+    versionLabel: string;
+    recordCount: number;
+    publishedAt: string;
+  }>();
+  if (!dataset) return notFound('No canonical dataset is published.');
+  const [index, counts] = await Promise.all([
+    env.CONTENT_DB.prepare(`
+      SELECT expected_count AS expectedCount, indexed_count AS indexedCount,
+             status, last_error AS lastError, updated_at AS updatedAt,
+             completed_at AS completedAt
+      FROM rag_index_state WHERE dataset_version_id = ?
+    `).bind(dataset.id).first(),
+    env.CONTENT_DB.prepare(`
+      SELECT canonical.content_type AS contentType, COUNT(*) AS count
+      FROM canonical_dataset_items item
+      JOIN canonical_records canonical ON canonical.canonical_id = item.canonical_id
+      WHERE item.dataset_version_id = ?
+      GROUP BY canonical.content_type
+    `).bind(dataset.id).all<{ contentType: string; count: number }>(),
+  ]);
+  const contentCounts = Object.fromEntries(counts.results.map((row) => [row.contentType, Number(row.count)]));
+  return json({
+    data: {
+      dataset,
+      index: index ?? {
+        expectedCount: dataset.recordCount,
+        indexedCount: 0,
+        status: 'pending',
+        lastError: null,
+        updatedAt: null,
+        completedAt: null,
+      },
+      contentCounts: {
+        dua: contentCounts.dua ?? 0,
+        hadith: contentCounts.hadith ?? 0,
+      },
     },
   });
 }
@@ -1016,15 +1076,49 @@ function assignmentFilter(scope: {
   return filters[scope.scopeType]!;
 }
 
-async function listAssignments({ env }: EditorialContext) {
-  const rows = await env.CONTENT_DB.prepare(`
+async function listAssignments(context: EditorialContext) {
+  const rows = await context.env.CONTENT_DB.prepare(`
     SELECT id, scope_type AS scopeType, collection_id AS collectionId, book_id AS bookId,
            chapter_id AS chapterId, canonical_id AS canonicalId, range_start AS rangeStart,
            range_end AS rangeEnd, assigned_to_external_id AS assignedTo,
-           assigned_by_external_id AS assignedBy, status, notes, created_at AS createdAt
-    FROM editorial_assignments ORDER BY created_at DESC LIMIT 200
-  `).all();
+           assigned_by_external_id AS assignedBy, status, notes, created_at AS createdAt,
+           completed_at AS completedAt
+    FROM editorial_assignments
+    WHERE (? != 'reviewer' OR assigned_to_external_id = ?)
+    ORDER BY created_at DESC LIMIT 200
+  `).bind(context.role, context.user.id).all();
   return json({ data: rows.results });
+}
+
+async function updateAssignmentStatus(
+  context: EditorialContext,
+  assignmentId: string,
+  body: Record<string, unknown>,
+) {
+  const status = String(body.status ?? '');
+  if (!['completed', 'cancelled'].includes(status)) return invalid('Choose completed or cancelled.');
+  const assignment = await context.env.CONTENT_DB.prepare(`
+    SELECT id, assigned_to_external_id AS assignedTo, status
+    FROM editorial_assignments WHERE id = ?
+  `).bind(assignmentId).first<{ id: string; assignedTo: string; status: string }>();
+  if (!assignment) return notFound('Editorial assignment was not found.');
+  if (assignment.status !== 'active') return conflict('This assignment is already closed.');
+  if (context.role === 'reviewer') {
+    if (assignment.assignedTo !== context.user.id || status !== 'completed') {
+      throw new EditorialForbiddenError();
+    }
+  }
+  await context.env.CONTENT_DB.batch([
+    context.env.CONTENT_DB.prepare(`
+      UPDATE editorial_assignments
+      SET status = ?, completed_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND status = 'active'
+    `).bind(status, assignmentId),
+    auditStatement(context, `editorial.assignment_${status}`, 'assignment', assignmentId, {
+      assignedTo: assignment.assignedTo,
+    }),
+  ]);
+  return json({ data: { assignmentId, status } });
 }
 
 async function submitFieldReviews(context: EditorialContext, canonicalId: string, body: Record<string, unknown>) {

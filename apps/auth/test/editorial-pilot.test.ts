@@ -125,6 +125,40 @@ describe('canonical editorial pilot', () => {
       "SELECT editorial_status FROM books WHERE id = 'book.test.hadith.1'",
     ).pluck().get())).toBe('verified');
   });
+
+  it('lets a reviewer complete their own assignment and lets an editor cancel work', async () => {
+    const content = createContentDatabase();
+    const identity = createIdentityDatabase();
+    const env = { CONTENT_DB: d1(content), IDENTITY_DB: d1(identity) } as never;
+    const editor = context(env, 'assignment-editor', 'editor');
+    const reviewer = context(env, 'assignment-reviewer', 'reviewer');
+    seedIdentity(identity, [editor, reviewer]);
+    content.prepare(`
+      INSERT INTO editorial_assignments (
+        id, scope_type, canonical_id, assigned_to_external_id, assigned_by_external_id
+      ) VALUES (?, 'record', 'dua.hisn.001', ?, ?)
+    `).run('assignment.complete', reviewer.user.id, editor.user.id);
+    content.prepare(`
+      INSERT INTO editorial_assignments (
+        id, scope_type, canonical_id, assigned_to_external_id, assigned_by_external_id
+      ) VALUES (?, 'record', 'dua.hisn.002', ?, ?)
+    `).run('assignment.cancel', reviewer.user.id, editor.user.id);
+
+    await post(reviewer, '/v1/admin/editorial/assignments/assignment.complete/status', {
+      status: 'completed',
+    });
+    await post(editor, '/v1/admin/editorial/assignments/assignment.cancel/status', {
+      status: 'cancelled',
+    });
+
+    expect(String(content.prepare(
+      "SELECT status FROM editorial_assignments WHERE id = 'assignment.complete'",
+    ).pluck().get())).toBe('completed');
+    expect(String(content.prepare(
+      "SELECT status FROM editorial_assignments WHERE id = 'assignment.cancel'",
+    ).pluck().get())).toBe('cancelled');
+    expect(scalar(content, "SELECT COUNT(*) FROM content_audit_events WHERE target_type = 'assignment'")).toBe(2);
+  });
 });
 
 function createContentDatabase() {

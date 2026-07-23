@@ -295,7 +295,10 @@ function mergeGrounded(vector: GroundedRecord[], lexical: GroundedRecord[]) {
     const current = merged.get(item.record.id);
     if (!current || item.score > current.score) merged.set(item.record.id, item);
   }
-  return [...merged.values()].sort((left, right) => right.score - left.score).slice(0, MAX_CONTEXTS);
+  const ranked = [...merged.values()].sort((left, right) => right.score - left.score);
+  const bestScore = ranked[0]?.score ?? 0;
+  const evidenceFloor = Math.max(0.58, bestScore - 0.18);
+  return ranked.filter((item) => item.score >= evidenceFloor).slice(0, MAX_CONTEXTS);
 }
 
 async function consumeDailyAllowance(database: D1Database, clientAddress: string) {
@@ -360,7 +363,7 @@ function contextBlock(record: Dua | Hadith, contentType: 'dua' | 'hadith', index
   const segments = contentType === 'dua'
     ? (record as Dua).parts.flat()
     : (record as Hadith).segments;
-  const text = segments.map((segment) => `${segment.kind}: ${segment.text}`).join('\n').slice(0, 8_000);
+  const text = segments.map((segment) => `${segment.kind}: ${normalizeLegacyTypography(segment.text)}`).join('\n').slice(0, 8_000);
   const summary = contentType === 'hadith' ? hadithReference(record as Hadith) : record.title;
   return `[${index}] ${record.title}\nReference: ${summary}\nVerification: ${record.verificationStatus}\n${text}`;
 }
@@ -393,6 +396,17 @@ function groundedFallback(sources: RagSource[]) {
 
 function hadithReference(record: Hadith) {
   return `${record.collection.title} ${record.displayNumber}`;
+}
+
+function normalizeLegacyTypography(value: string) {
+  return value
+    .replaceAll('Ë¹', "'")
+    .replaceAll('Ëº', "'")
+    .replaceAll('â€™', "'")
+    .replaceAll('â€œ', '"')
+    .replaceAll('â€', '"')
+    .replaceAll('â€“', '-')
+    .replaceAll('Â', '');
 }
 
 function errorMessage(error: unknown) {
