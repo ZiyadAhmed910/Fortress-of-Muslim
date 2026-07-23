@@ -50,7 +50,6 @@
         <p>EDITORIAL</p>
         <a href="#queue" data-nav><span>Review queue</span></a>
         <a href="#assignments" data-nav><span>Assignments</span></a>
-        <a href="#batches" data-nav><span>Publication batches</span></a>
         <a href="#taxonomy" data-nav><span>Taxonomy</span></a>
         <p>PLATFORM</p>
         <a href="#users" data-nav><span>Users</span></a>
@@ -72,7 +71,7 @@
       <div id="toast" class="toast" hidden></div>
 
       <section id="overview" class="view">
-        <header><div><span class="kicker">CANONICAL CONTROL PLANE</span><h1>Platform overview</h1><p>Published content and editorial work are separated by a hard publication boundary.</p></div><button data-refresh>Refresh</button></header>
+        <header><div><span class="kicker">CONTENT MANAGEMENT</span><h1>Platform overview</h1><p>Create, review, and verify Fortress content.</p></div><button data-refresh>Refresh</button></header>
         <div id="metrics" class="metrics"></div>
         <div class="split"><section><h2>Editorial queues</h2><div id="overview-queues"></div></section><section><h2>Service health</h2><div id="overview-services"></div></section></div>
       </section>
@@ -84,13 +83,13 @@
       </section>
 
       <section id="queue" class="view" hidden>
-        <header><div><span class="kicker">HUMAN VERIFICATION</span><h1>Review queue</h1><p>Every candidate remains private until one authorized person verifies it and an Admin publishes it.</p></div></header>
+        <header><div><span class="kicker">HUMAN VERIFICATION</span><h1>Review queue</h1><p>New records begin pending review. Verify them or request a change.</p></div></header>
         <form class="filter" data-filter="queue">
           <input name="q" placeholder="Title or canonical ID">
           <input name="collection" placeholder="Collection slug">
           <select name="contentType"><option value="">All content</option><option value="dua">Duas</option><option value="hadith">Hadith</option></select>
           <select name="assignment"><option value="">Any assignment</option><option value="assigned">Assigned</option><option value="unassigned">Unassigned</option></select>
-          <select name="state"><option value="">All states</option><option>imported</option><option>pending_review</option><option>assigned</option><option>in_review</option><option>changes_requested</option><option>approved</option><option>published</option></select>
+          <select name="state"><option value="">All statuses</option><option value="pending_review">Pending Review</option><option value="verified">Verified</option><option value="changes_requested">Change Requested</option></select>
           <button>Apply</button>
         </form>
         <div id="queue-table" class="table"></div>

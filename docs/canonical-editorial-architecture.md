@@ -2,7 +2,7 @@
 
 ## Public Trust Boundary
 
-Fortress Platform exposes current editorial records through REST and API-backed MCP tools, including records that have not yet been verified. Every exposed record must include its `verificationStatus`, current `workflowState`, verifier identity and timestamp when present, and nullable publication timestamp.
+Fortress Platform exposes current editorial records through REST and API-backed MCP tools, including records that have not yet been verified. The public workflow has only `pending_review`, `verified`, and `changes_requested`. Every exposed record includes its verification status, current workflow status, verifier identity and timestamp when present, and nullable publication timestamp.
 
 Candidate preparation provenance remains outside the public repository and deployment artifacts. Candidates enter the platform in `pending_review`. Only verified, published revisions may enter PWA snapshots, RAG indexes, or grounded Ask responses.
 
@@ -10,11 +10,11 @@ Candidate preparation provenance remains outside the public repository and deplo
 
 ```text
 pending_review
--> assigned
--> in_review
--> approved
--> published
--> superseded
+-> verified
+
+pending_review
+-> changes_requested
+-> pending_review
 ```
 
 `changes_requested` returns a record to correction work. A correction creates a new immutable revision and restarts review. Previous revisions and decisions remain append-only history.

@@ -32,7 +32,7 @@ const ASSETS = [
   './js/utils.js',
   './manifest.json',
   './data/duas.json',
-  './data/duas.json?v=2026-07-20-hisn-v3',
+  './data/duas.json?v=2026-07-23-hisn-v4',
   './icons/favicon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',

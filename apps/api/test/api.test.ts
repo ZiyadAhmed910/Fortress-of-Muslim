@@ -23,7 +23,7 @@ const authenticated = { headers: { Authorization: 'Bearer test-token' } };
 const records: Dua[] = [
   {
     id: 'dua.hisn.001', legacyId: 'dua-001', sequence: 1, title: 'When waking up',
-    partCount: 1, verificationStatus: 'verified', workflowState: 'published',
+    partCount: 1, verificationStatus: 'verified', workflowState: 'verified',
     verifiedBy: 'reviewer-1', verifiedAt: '2026-07-22T00:00:00.000Z', revisionNumber: 1,
     publishedAt: '2026-07-23T00:00:00.000Z',
     canonicalUrl: 'https://fortressofmuslim.org/hisn/chapter1',
@@ -31,7 +31,7 @@ const records: Dua[] = [
   },
   {
     id: 'dua.hisn.002', legacyId: 'dua-002', sequence: 2, title: 'Upon wearing clothes',
-    partCount: 1, verificationStatus: 'verified', workflowState: 'published',
+    partCount: 1, verificationStatus: 'verified', workflowState: 'verified',
     verifiedBy: 'reviewer-1', verifiedAt: '2026-07-22T00:00:00.000Z', revisionNumber: 1,
     publishedAt: '2026-07-23T00:00:00.000Z',
     canonicalUrl: 'https://fortressofmuslim.org/hisn/chapter2',
@@ -51,7 +51,7 @@ const hadith: Hadith = {
   collection: { slug: 'bukhari', title: 'Sahih al-Bukhari' },
   book: { number: '1', title: 'Revelation' }, chapter: { number: '1', title: 'How revelation began' },
   narrator: 'Umar bin Al-Khattab', grade: null, verificationStatus: 'verified',
-  workflowState: 'published', verifiedBy: 'reviewer-1', verifiedAt: '2026-07-22T00:00:00.000Z',
+  workflowState: 'verified', verifiedBy: 'reviewer-1', verifiedAt: '2026-07-22T00:00:00.000Z',
   revisionNumber: 1, publishedAt: '2026-07-23T00:00:00.000Z',
   canonicalUrl: 'https://fortressofmuslim.org/bukhari/book1/1',
   segments: [{ kind: 'arabic', text: 'Arabic Hadith' }, { kind: 'translation', text: 'Actions are by intentions.' }],
@@ -106,7 +106,7 @@ const repository: ContentRepository = {
   async getDua(id) { return records.find((record) => record.id === id || record.legacyId === id); },
   async getPublishedDua(id) {
     return records.find((record) =>
-      (record.id === id || record.legacyId === id) && record.workflowState === 'published');
+      (record.id === id || record.legacyId === id) && record.workflowState === 'verified' && record.publishedAt);
   },
   async getDuaEvidence(id) {
     const record = records.find((item) => item.id === id || item.legacyId === id);

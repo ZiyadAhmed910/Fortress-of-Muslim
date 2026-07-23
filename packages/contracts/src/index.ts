@@ -11,16 +11,9 @@ export const contentSegmentSchema = z.object({
 });
 
 export const editorialWorkflowStateSchema = z.enum([
-  'imported',
   'pending_review',
-  'assigned',
-  'in_review',
   'changes_requested',
-  'needs_second_review',
-  'needs_senior_approval',
-  'approved',
-  'published',
-  'superseded',
+  'verified',
 ]);
 
 export const recordVerificationStatusSchema = z.enum(['unverified', 'verified']);

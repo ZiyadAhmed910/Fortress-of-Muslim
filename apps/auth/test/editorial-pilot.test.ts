@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { handleEditorialPlane, type EditorialRole } from '../src/editorial-plane';
 
 describe('canonical editorial pilot', () => {
-  it('rehearses one-person verification, publication, and rollback', async () => {
+  it('rehearses the simple one-person verification flow', async () => {
     const content = createContentDatabase();
     const identity = createIdentityDatabase();
     const env = {
@@ -34,6 +34,11 @@ describe('canonical editorial pilot', () => {
     }, 400);
 
     const canonicalId = 'dua.hisn.001';
+    content.prepare(`
+      UPDATE editorial_record_state
+      SET workflow_state = 'pending_review', verified_by_external_id = NULL, verified_at = NULL
+      WHERE canonical_id = ?
+    `).run(canonicalId);
     const referenceResponse = await post(users.editor, `/v1/admin/editorial/records/${canonicalId}/references`, {
       referenceType: 'primary',
       locator: 'Hisn al-Muslim 1',
@@ -47,46 +52,16 @@ describe('canonical editorial pilot', () => {
       workflowState: 'approved',
       verifiedBy: users.reviewer.user.id,
     });
-    expect(scalar(content, "SELECT COUNT(*) FROM review_decisions WHERE decision = 'approved'")).toBe(1);
+    expect(scalar(content, `SELECT COUNT(*) FROM review_decisions
+      WHERE revision_id = (SELECT revision_id FROM editorial_record_state WHERE canonical_id = '${canonicalId}')
+        AND reviewer_external_id = '${users.reviewer.user.id}' AND decision = 'approved'`)).toBe(1);
     expect(scalar(content, `SELECT COUNT(*) FROM canonical_references WHERE id = '${referenceId}' AND verification_status = 'verified'`)).toBe(1);
     expect(String(content.prepare(`SELECT verified_by_external_id FROM editorial_record_state WHERE canonical_id = ?`).pluck().get(canonicalId))).toBe(users.reviewer.user.id);
 
-    const duplicate = await post(users.editor, `/v1/admin/editorial/records/${canonicalId}/decision`, {
+    const duplicate = await post(users.reviewer, `/v1/admin/editorial/records/${canonicalId}/decision`, {
       decision: 'approved',
     }, 409);
     expect(((await duplicate.json()) as { error: { code: string } }).error.code).toBe('conflict');
-
-    const batchResponse = await post(users.editor, '/v1/admin/editorial/batches', {
-      label: 'Automated editorial pilot',
-    }, 201);
-    const batchId = ((await batchResponse.json()) as { data: { id: string } }).data.id;
-    await post(users.editor, `/v1/admin/editorial/batches/${batchId}/items`, {
-      canonicalIds: [canonicalId],
-    });
-    const validation = await post(users.editor, `/v1/admin/editorial/batches/${batchId}/validate`, {});
-    expect(((await validation.json()) as { data: unknown }).data).toMatchObject({
-      valid: true,
-      itemCount: 1,
-      invalidRecords: [],
-    });
-    await post(users.admin, `/v1/admin/editorial/batches/${batchId}/approve`, {});
-    const publication = await post(users.admin, `/v1/admin/editorial/batches/${batchId}/publish`, {});
-    const publicationData = ((await publication.json()) as { data: { datasetId: string; recordCount: number } }).data;
-
-    expect(publicationData.recordCount).toBe(1);
-    expect(scalar(content, "SELECT COUNT(*) FROM canonical_publications WHERE publication_status = 'published'")).toBe(1);
-    expect(scalar(content, `SELECT COUNT(*) FROM canonical_dataset_items WHERE dataset_version_id = '${publicationData.datasetId}'`)).toBe(1);
-    expect(scalar(content, "SELECT COUNT(*) FROM canonical_search_fts WHERE canonical_id = 'dua.hisn.001'")).toBe(1);
-
-    const rollback = await post(
-      users.admin,
-      '/v1/admin/editorial/datasets/canonical.bootstrap.2026-07-23/rollback',
-      { reason: 'Complete the automated pilot by restoring the empty bootstrap snapshot.' },
-    );
-    const rollbackData = ((await rollback.json()) as { data: { recordCount: number } }).data;
-    expect(rollbackData.recordCount).toBe(0);
-    expect(scalar(content, "SELECT COUNT(*) FROM canonical_publications WHERE publication_status = 'published'")).toBe(0);
-    expect(scalar(content, 'SELECT COUNT(*) FROM canonical_search_fts')).toBe(0);
   });
 });
 

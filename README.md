@@ -136,7 +136,7 @@ npm run db:verify --workspace @fortress/api
 npm run editorial:verify --workspace @fortress/api
 ```
 
-The public REST API and API-backed MCP tools expose current records through `api_current_content`, including unverified material with an explicit editorial state. RAG and PWA snapshots remain restricted to verified records in `canonical_publications`. One authorized Admin, Editor, or Reviewer verifies the current immutable revision and references; an Admin publishes an approved batch before that revision can be used as trusted PWA or RAG material.
+The public REST API and API-backed MCP tools expose current records through `api_current_content`, including unverified material with an explicit editorial status. The public statuses are intentionally small: `pending_review`, `verified`, and `changes_requested`. RAG remains restricted to verified records in `canonical_publications`, while the 132-chapter Hisn library is bundled locally with the PWA for reliable offline reading.
 
 Build the PWA's offline dua snapshot from the published API boundary:
 
@@ -172,6 +172,9 @@ Every platform release must:
 - Exposed current verified and unverified records through REST and API-backed MCP tools with explicit verification and workflow fields.
 - Kept PWA snapshots and RAG retrieval restricted to verified, published revisions.
 - Added public-read indexes and direct content-type counts to reduce cold list latency as the library grows.
+- Restored the verified 132-chapter Hisn offline snapshot and prevented API publication state from emptying local PWA data.
+- Simplified visible editorial statuses to Pending Review, Verified, and Change Requested; publication batching is no longer part of the normal Admin Console flow.
+- Verified and published all 268 individual Hisn readings while leaving Hadith collections pending review.
 
 ### 0.17.0
 

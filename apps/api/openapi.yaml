@@ -629,7 +629,7 @@ components:
                   locator: { type: string }
     EditorialWorkflowState:
       type: string
-      enum: [imported, pending_review, assigned, in_review, changes_requested, needs_second_review, needs_senior_approval, approved, published, superseded]
+      enum: [pending_review, verified, changes_requested]
     HadithListResponse:
       type: object
       required: [data, pagination, meta]

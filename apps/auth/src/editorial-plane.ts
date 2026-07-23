@@ -140,8 +140,12 @@ export async function handleEditorialPlane(
 async function overview({ env }: EditorialContext) {
   const [states, assignments, batches, publishedToday, reviewers] = await Promise.all([
     env.CONTENT_DB.prepare(`
-      SELECT workflow_state AS state, COUNT(*) AS count
-      FROM editorial_record_state GROUP BY workflow_state
+      SELECT CASE
+        WHEN workflow_state IN ('approved', 'published') THEN 'verified'
+        WHEN workflow_state = 'changes_requested' THEN 'changes_requested'
+        ELSE 'pending_review'
+      END AS state, COUNT(*) AS count
+      FROM editorial_record_state GROUP BY state
     `).all(),
     count(env.CONTENT_DB, "SELECT COUNT(*) AS count FROM editorial_assignments WHERE status = 'active'"),
     count(env.CONTENT_DB, "SELECT COUNT(*) AS count FROM publication_batches WHERE status IN ('draft','validated','approved')"),
@@ -175,7 +179,10 @@ async function queue({ env }: EditorialContext, url: URL) {
   const offset = Math.max(0, Number(url.searchParams.get('offset')) || 0);
   const like = `%${query}%`;
   const predicate = `
-    (? = '' OR state.workflow_state = ?)
+    (? = ''
+      OR (? = 'verified' AND state.workflow_state IN ('approved', 'published'))
+      OR (? = 'changes_requested' AND state.workflow_state = 'changes_requested')
+      OR (? = 'pending_review' AND state.workflow_state NOT IN ('approved', 'published', 'changes_requested')))
     AND (? = '' OR collection.slug = ?)
     AND (? = '' OR canonical.content_type = ?)
     AND (? = '' OR (? = 'assigned' AND state.assigned_to_external_id IS NOT NULL)
@@ -183,14 +190,18 @@ async function queue({ env }: EditorialContext, url: URL) {
     AND (? = '' OR revision.title LIKE ? OR canonical.canonical_id LIKE ?)
   `;
   const values = [
-    state, state, collection, collection, contentType, contentType,
+    state, state, state, state, collection, collection, contentType, contentType,
     assignment, assignment, assignment, query, like, like,
   ];
   const [rows, total] = await Promise.all([
     env.CONTENT_DB.prepare(`
     SELECT canonical.canonical_id AS canonicalId, canonical.content_type AS contentType,
            revision.revision_number AS revisionNumber, revision.sequence, revision.title,
-           state.workflow_state AS workflowState, state.assigned_to_external_id AS assignedTo,
+           CASE
+             WHEN state.workflow_state IN ('approved', 'published') THEN 'verified'
+             WHEN state.workflow_state = 'changes_requested' THEN 'changes_requested'
+             ELSE 'pending_review'
+           END AS workflowState, state.assigned_to_external_id AS assignedTo,
            state.verified_by_external_id AS verifiedBy, state.verified_at AS verifiedAt,
            collection.slug AS collection, book.book_number AS bookNumber,
            chapter.chapter_number AS chapterNumber, state.changed_at AS changedAt

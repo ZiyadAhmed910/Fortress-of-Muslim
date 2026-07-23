@@ -1,61 +1,25 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 
-const apiBase = (process.env.FORTRESS_API_URL || 'https://api-test.fortressofmuslim.org').replace(/\/$/, '');
-const outputUrl = new URL('../data/duas.json', import.meta.url);
-const dataset = await request('/v1/datasets/current');
-const summaries = [];
-let cursor = null;
+const snapshotUrl = new URL('../data/duas.json', import.meta.url);
+const snapshot = JSON.parse(await readFile(snapshotUrl, 'utf8'));
 
-do {
-  const params = new URLSearchParams({ limit: '100' });
-  if (cursor) params.set('cursor', cursor);
-  const page = await request(`/v1/duas?${params}`);
-  summaries.push(...page.data.filter((dua) =>
-    dua.verificationStatus === 'verified'
-    && dua.workflowState === 'published'
-    && dua.publishedAt
-  ));
-  cursor = page.pagination.nextCursor;
-} while (cursor);
-
-const entries = [];
-for (const summary of summaries) {
-  const detail = await request(`/v1/duas/${encodeURIComponent(summary.id)}`);
-  entries.push(toLocalEntry(detail.data));
+if (snapshot.schemaVersion !== 4) {
+  throw new Error(`Expected PWA snapshot schema 4, received ${snapshot.schemaVersion}.`);
+}
+if (!Array.isArray(snapshot.entries) || snapshot.entries.length !== 132 || snapshot.count !== 132) {
+  throw new Error('The local Hisn snapshot must contain exactly 132 chapters.');
+}
+if (snapshot.verificationStatus !== 'verified') {
+  throw new Error('The local Hisn snapshot must be explicitly verified.');
+}
+for (const [index, entry] of snapshot.entries.entries()) {
+  const sequence = index + 1;
+  if (entry.sequence !== sequence || entry.uid !== `dua-${String(sequence).padStart(3, '0')}`) {
+    throw new Error(`Hisn chapter sequence is invalid at ${sequence}.`);
+  }
+  if (!entry.title || !Array.isArray(entry.parts) || entry.parts.length === 0) {
+    throw new Error(`Hisn chapter ${sequence} is incomplete.`);
+  }
 }
 
-const snapshot = {
-  schemaVersion: 4,
-  canonicalDataset: dataset.id,
-  publicationStatus: dataset.publicationStatus,
-  verificationStatus: dataset.verificationStatus,
-  count: entries.length,
-  entries,
-};
-await writeFile(outputUrl, `${JSON.stringify(snapshot, null, 2)}\n`, 'utf8');
-console.log(`Wrote ${entries.length} published canonical duas from ${dataset.id}.`);
-
-async function request(path) {
-  const response = await fetch(`${apiBase}${path}`, { headers: { Accept: 'application/json' } });
-  if (!response.ok) throw new Error(`${path} failed with HTTP ${response.status}.`);
-  return response.json();
-}
-
-function toLocalEntry(dua) {
-  return {
-    uid: dua.id,
-    id: dua.sequence,
-    sequence: dua.sequence,
-    title: dua.title,
-    category: 'all',
-    tags: [],
-    moods: [],
-    verificationStatus: dua.verificationStatus,
-    revisionNumber: dua.revisionNumber,
-    canonicalUrl: dua.canonicalUrl,
-    parts: dua.parts.map((segments, index) => ({
-      id: `${dua.id}.part.${index + 1}`,
-      segments,
-    })),
-  };
-}
+console.log(`Verified ${snapshot.entries.length} local Hisn chapters for offline PWA use.`);

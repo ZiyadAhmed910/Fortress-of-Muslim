@@ -13,8 +13,8 @@ const state = {
   queue: { params: {}, offset: 0, limit: 50, total: 0 },
 };
 const roleViews = {
-  admin: null,
-  editor: new Set(['overview', 'queue', 'assignments', 'batches', 'users']),
+  admin: new Set(['overview', 'search', 'queue', 'assignments', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'services', 'audit']),
+  editor: new Set(['overview', 'queue', 'assignments', 'users']),
   reviewer: new Set(['overview', 'queue']),
 };
 const resourceNames = {
@@ -138,7 +138,6 @@ async function loadView(id, force = false, params = {}) {
     if (id === 'overview') await loadOverview();
     else if (id === 'queue') await loadQueue(params);
     else if (id === 'assignments') await Promise.all([loadLookups(), loadAssignments()]);
-    else if (id === 'batches') await Promise.all([loadBatches(), loadDatasets()]);
     else if (id === 'users') await loadUsers(params);
     else if (id === 'taxonomy') await loadTaxonomy(params);
     else if (id === 'services') await loadServices();
@@ -158,7 +157,7 @@ async function loadOverview() {
     apiKeys: 'Active API keys',
     oauthClients: 'Connected apps',
     canonicalRecords: 'Canonical candidates',
-    pendingEditorial: 'Awaiting publication',
+    pendingEditorial: 'Pending review',
     publishedRecords: 'Published records',
     disagreements: 'Open disagreements',
   };
@@ -260,7 +259,7 @@ async function showRecord(id) {
   $('#record-detail').innerHTML = `
     <header class="editor-head"><div><span class="kicker">CANONICAL RECORD</span><h2>${esc(data.record.title)}</h2><p>${esc(data.record.canonicalId)} &middot; revision ${data.record.revisionNumber}</p></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header>
     <div class="verification-banner"><strong>${esc(isVerified ? 'Verified' : human(data.record.workflowState))}</strong><span>${esc(data.record.collectionTitle || 'Collection pending editorial confirmation')}</span><small>${data.record.verifiedBy ? `Verified by ${esc(data.record.verifiedBy)} &middot; ${date(data.record.verifiedAt)}` : 'Not yet verified'}</small></div>
-    <section class="editor-section"><header><div><h3>Revision content</h3><p>Review the immutable text snapshot currently assigned to this record.</p></div></header>
+    <section class="editor-section"><header><div><h3>Record content</h3><p>Review the currently saved text for this record.</p></div></header>
       ${grouped.map((part) => `<div class="revision-part"><strong>Part ${part.position}</strong>${part.segments.map((segment) => `<label>${esc(human(segment.kind))}<textarea rows="${segment.kind === 'arabic' ? 4 : 3}" dir="${segment.kind === 'arabic' ? 'rtl' : 'ltr'}" data-segment="${part.position}:${segment.segmentPosition}">${esc(segment.text)}</textarea></label>`).join('')}</div>`).join('')}
       ${canEdit ? `<form id="revision-form" class="inline-control"><input name="title" value="${esc(data.record.title)}" aria-label="Corrected title"><input name="reason" placeholder="Correction reason (required)" minlength="10"><button type="submit">Create correction revision</button></form>` : ''}
     </section>
@@ -298,7 +297,7 @@ $('#record-detail').addEventListener('submit', async (event) => {
         return { partPosition, segmentPosition, text: input.value };
       });
       await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/revisions`, { method: 'POST', body });
-      notify('New immutable revision created.');
+      notify('Correction revision created.');
     }
     await showRecord(id);
     state.loaded.delete('queue');

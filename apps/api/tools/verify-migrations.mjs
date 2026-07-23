@@ -59,8 +59,8 @@ assertCount('content_revisions', legacy.records + 1);
 assertCount('revision_parts', legacy.parts + 1);
 assertCount('revision_segments', legacy.segments + 1);
 assertCount('editorial_record_state', legacy.records);
-assertCount('canonical_publications', 0);
-assertCount('canonical_dataset_versions', 1);
+assertCount('canonical_publications', legacy.records);
+assertCount('canonical_dataset_versions', 2);
 assertCount('canonical_references', 0);
 for (const retiredTable of [
   'source_acquisitions',
@@ -107,7 +107,7 @@ if (first.id !== 'dua.hisn.001' || first.legacy_id !== 'dua-001' || first.part_c
 const pending = database.prepare(`
   SELECT COUNT(*) AS count FROM editorial_record_state WHERE workflow_state = 'pending_review'
 `).get().count;
-if (pending !== legacy.records) throw new Error('Every imported candidate must begin unpublished and pending review.');
+if (pending !== 0) throw new Error('Approved Hisn records must not remain pending review.');
 
 const overlap = database.prepare(`
   SELECT canonical.current_revision_id AS currentRevisionId, COUNT(revision.id) AS revisionCount
@@ -124,11 +124,19 @@ const bootstrap = database.prepare(`
   SELECT publication_status, verification_status, record_count
   FROM canonical_dataset_versions WHERE id = 'canonical.bootstrap.2026-07-23'
 `).get();
-if (bootstrap.publication_status !== 'published' || bootstrap.verification_status !== 'verified' || bootstrap.record_count !== 0) {
-  throw new Error('The public bootstrap dataset must be verified and empty.');
+if (bootstrap.publication_status !== 'superseded' || bootstrap.verification_status !== 'verified' || bootstrap.record_count !== 0) {
+  throw new Error('The empty bootstrap dataset must be retained as superseded history.');
 }
 
-console.log(`Verified ${migrationFiles.length} D1 migrations, ${legacy.records} unpublished candidates, and the canonical publication boundary.`);
+const hisn = database.prepare(`
+  SELECT publication_status, verification_status, record_count
+  FROM canonical_dataset_versions WHERE id = 'canonical.hisn.verified.2026-07-23'
+`).get();
+if (hisn.publication_status !== 'published' || hisn.verification_status !== 'verified' || hisn.record_count !== legacy.records) {
+  throw new Error('The approved Hisn dataset must be verified and published.');
+}
+
+console.log(`Verified ${migrationFiles.length} D1 migrations and ${legacy.records} published Hisn records.`);
 
 function assertCount(table, expected) {
   const actual = database.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;
