@@ -1,6 +1,6 @@
 import type { CollectionSummary, ContentSegment, Dua, DuaSummary, Hadith, HadithSummary } from '@fortress/contracts';
 import { rankDuaTitles } from '../lib/fuzzy-title';
-import type { ContentRepository, DatasetSummary, DuaTitleMatch, RecordEvidence } from './content-repository';
+import type { ContentRepository, DatasetSummary, DuaTitleMatch, RagRecordMatch, RecordEvidence } from './content-repository';
 
 type DatasetRow = {
   id: string;
@@ -135,6 +135,30 @@ export class D1ContentRepository implements ContentRepository {
       `).bind(pattern, pattern).first<{ count: number }>(),
     ]);
     return { items: rows.results.map(toDuaSummary), total: count?.count ?? 0 };
+  }
+
+  async searchForRag(query: string, limit: number): Promise<RagRecordMatch[]> {
+    const result = await this.database.prepare(`
+      SELECT search.canonical_id AS id, search.content_type AS contentType,
+             bm25(canonical_search_fts) AS rank
+      FROM canonical_search_fts search
+      JOIN canonical_publications publication
+        ON publication.canonical_id = search.canonical_id
+       AND publication.revision_id = search.revision_id
+      WHERE publication.publication_status = 'published'
+        AND canonical_search_fts MATCH ?
+      ORDER BY bm25(canonical_search_fts), search.canonical_id
+      LIMIT ?
+    `).bind(toRagFtsQuery(query), limit).all<{
+      id: string;
+      contentType: 'dua' | 'hadith';
+      rank: number;
+    }>();
+    return result.results.map((row, index) => ({
+      id: row.id,
+      contentType: row.contentType,
+      score: Math.max(0.55, 0.82 - (index * 0.04)),
+    }));
   }
 
   async findDuasByTitle(query: string, limit: number): Promise<DuaTitleMatch[]> {
@@ -445,4 +469,19 @@ function toFtsQuery(value: string) {
   const terms = value.normalize('NFKC').match(/[\p{L}\p{N}]+/gu)?.slice(0, 12) ?? [];
   if (terms.length === 0) throw new Error('Search requires letters or numbers.');
   return terms.map((term) => `"${term.replaceAll('"', '""')}"*`).join(' AND ');
+}
+
+function toRagFtsQuery(value: string) {
+  const stopWords = new Set([
+    'about', 'after', 'before', 'could', 'does', 'from', 'have', 'islam', 'please',
+    'say', 'should', 'sources', 'teach', 'that', 'their', 'there', 'these', 'this',
+    'what', 'when', 'where', 'which', 'with', 'would',
+  ]);
+  const terms = value.normalize('NFKC').toLocaleLowerCase()
+    .match(/[\p{L}\p{N}]+/gu)
+    ?.filter((term) => term.length >= 3 && !stopWords.has(term))
+    .sort((left, right) => right.length - left.length)
+    .slice(0, 8) ?? [];
+  if (terms.length === 0) return toFtsQuery(value);
+  return terms.map((term) => `"${term.replaceAll('"', '""')}"*`).join(' OR ');
 }

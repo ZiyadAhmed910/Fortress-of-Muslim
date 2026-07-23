@@ -81,6 +81,18 @@ const repository: ContentRepository = {
     const items = matches.slice(offset, offset + limit).map(({ parts: _parts, ...summary }) => summary);
     return { items, total: matches.length };
   },
+  async searchForRag(query, limit) {
+    const terms = query.toLocaleLowerCase().match(/[a-z]+/g)?.filter((term) => term.length >= 5) ?? [];
+    const matches = (text: string) => terms.some((term) => text.toLocaleLowerCase().includes(term));
+    const candidates = [
+      ...records.filter((record) => matches(`${record.title} ${record.parts.flat().map((segment) => segment.text).join(' ')}`))
+        .map((record) => ({ id: record.id, contentType: 'dua' as const, score: 0.8 })),
+      ...(matches(`${hadith.title} ${hadith.segments.map((segment) => segment.text).join(' ')}`)
+        ? [{ id: hadith.id, contentType: 'hadith' as const, score: 0.8 }]
+        : []),
+    ];
+    return candidates.slice(0, limit);
+  },
   async findDuasByTitle(query, limit) {
     const normalized = query.toLocaleLowerCase();
     return records.filter((record) => record.title.toLocaleLowerCase().includes(normalized))
@@ -126,10 +138,10 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.16.0');
+    expect(body.version).toBe('0.17.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     expect(response.headers.get('X-Request-ID')).toBe('test-request-123');
-    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.16.0');
+    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.17.0');
     expect(response.headers.get('Server-Timing')).toMatch(/^app;dur=\d+\.\d$/);
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
   });
@@ -140,7 +152,7 @@ describe('Fortress Platform API', () => {
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
-    expect(body.version).toBe('0.16.0');
+    expect(body.version).toBe('0.17.0');
     expect(body.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
     expect(body.recordCount).toBe(3);
   });
@@ -366,6 +378,123 @@ describe('Fortress Platform API', () => {
     expect(body.data.sources[0]?.canonicalUrl).toBe('https://fortressofmuslim.org/bukhari/book1/1');
     expect(body.data.sources[0]?.verificationStatus).toBe('verified');
     expect(response.headers.get('Cache-Control')).toBe('no-store');
+  });
+
+  it('does not consume quota or invoke AI when no records are published', async () => {
+    const emptyRepository = {
+      ...repository,
+      getCurrentDataset: async () => ({
+        ...await repository.getCurrentDataset(),
+        id: 'canonical.empty',
+        recordCount: 0,
+      }),
+    };
+    const emptyApp = createApp(() => emptyRepository);
+    const unavailable = async () => { throw new Error('This dependency must not be called.'); };
+    const response = await emptyApp.request('/v1/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: 'What should I read when worried?' }),
+    }, {
+      ...envConfig,
+      CONTENT_DB: { prepare: unavailable },
+      AI: { run: unavailable },
+      VECTOR_INDEX: { query: unavailable },
+    } as never);
+    const body = await response.json() as { data: { sources: unknown[]; meta: { retrievalMode: string; remainingToday: number } } };
+
+    expect(response.status).toBe(200);
+    expect(body.data.sources).toEqual([]);
+    expect(body.data.meta.retrievalMode).toBe('empty_dataset');
+    expect(body.data.meta.remainingToday).toBe(20);
+  });
+
+  it('falls back to published lexical retrieval when Vectorize is unavailable', async () => {
+    const fallbackEnv = {
+      ...envConfig,
+      CONTENT_DB: {
+        prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
+      },
+      AI: {
+        run: async (model: string) => {
+          if (model.includes('bge-base')) throw new Error('Vector service unavailable');
+          return { response: 'Actions are judged by intentions [1].' };
+        },
+      },
+      VECTOR_INDEX: { query: async () => { throw new Error('Vector service unavailable'); } },
+    } as never;
+    const response = await app.request('/v1/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '203.0.113.5' },
+      body: JSON.stringify({ question: 'What do the sources say about intentions?' }),
+    }, fallbackEnv);
+    const body = await response.json() as {
+      data: { answer: string; sources: Array<{ id: string }>; meta: { retrievalMode: string; vectorAvailable: boolean } };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.data.answer).toContain('[1]');
+    expect(body.data.sources[0]?.id).toBe('hadith.bukhari.1');
+    expect(body.data.meta.retrievalMode).toBe('lexical');
+    expect(body.data.meta.vectorAvailable).toBe(false);
+  });
+
+  it('rejects uncited model output and returns a deterministic cited fallback', async () => {
+    const uncitedEnv = {
+      ...envConfig,
+      CONTENT_DB: {
+        prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
+      },
+      AI: {
+        run: async (model: string) => model.includes('bge-base')
+          ? { data: [[0.1, 0.2, 0.3]] }
+          : { response: 'Actions are judged by intentions.' },
+      },
+      VECTOR_INDEX: {
+        query: async () => ({ count: 1, matches: [{
+          id: 'hadith.bukhari.1', score: 0.94,
+          metadata: { recordId: 'hadith.bukhari.1', contentType: 'hadith', collection: 'bukhari' },
+        }] }),
+      },
+    } as never;
+    const response = await app.request('/v1/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '203.0.113.6' },
+      body: JSON.stringify({ question: 'What do the sources say about intentions?' }),
+    }, uncitedEnv);
+    const body = await response.json() as { data: { answer: string; meta: { generated: boolean; model: string | null } } };
+
+    expect(response.status).toBe(200);
+    expect(body.data.answer).toContain('[1]');
+    expect(body.data.meta.generated).toBe(false);
+    expect(body.data.meta.model).toBeNull();
+  });
+
+  it('reports canonical vector-index readiness', async () => {
+    const statusEnv = {
+      ...envConfig,
+      CONTENT_DB: {
+        prepare: () => ({
+          bind: () => ({
+            first: async () => ({
+              expectedCount: 3,
+              indexedCount: 3,
+              status: 'ready',
+              lastError: null,
+              updatedAt: '2026-07-23T00:00:00.000Z',
+              completedAt: '2026-07-23T00:00:00.000Z',
+            }),
+          }),
+        }),
+      },
+    } as never;
+    const response = await app.request('/v1/ask/status', {}, statusEnv);
+    const body = await response.json() as { data: { datasetId: string; status: string; indexedCount: number } };
+
+    expect(response.status).toBe(200);
+    expect(body.data.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
+    expect(body.data.status).toBe('ready');
+    expect(body.data.indexedCount).toBe(3);
   });
 
   it('validates assistant questions before invoking AI', async () => {

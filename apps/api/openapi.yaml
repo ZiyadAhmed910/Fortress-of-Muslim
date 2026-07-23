@@ -3,7 +3,7 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
-  x-platform-version: 0.16.0
+  x-platform-version: 0.17.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production
@@ -293,6 +293,19 @@ paths:
           description: Question is missing or invalid
         '429':
           description: Daily assistant allowance reached
+  /ask/status:
+    get:
+      operationId: getAskStatus
+      tags: [AI]
+      summary: Inspect canonical retrieval readiness
+      description: Reports whether the current published canonical dataset is empty, pending vector indexing, indexing, ready, or failed. Lexical retrieval remains available when vector retrieval is unavailable.
+      responses:
+        '200':
+          description: Retrieval readiness for the current dataset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RagStatusResponse'
   /queries/{id}:
     get:
       operationId: executeNamedQuery
@@ -631,10 +644,31 @@ components:
                 $ref: '#/components/schemas/RagSource'
             meta:
               type: object
-              required: [datasetId, model, remainingToday]
+              required: [datasetId, model, remainingToday, retrievalMode, vectorAvailable]
               properties:
                 datasetId: { type: string }
-                model: { type: string }
+                model: { type: string, nullable: true }
+                generated: { type: boolean }
                 remainingToday: { type: integer, minimum: 0 }
+                retrievalMode: { type: string, enum: [empty_dataset, vector, lexical, hybrid] }
+                vectorAvailable: { type: boolean }
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    RagStatusResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [datasetId, recordCount, status, indexedCount, expectedCount]
+          properties:
+            datasetId: { type: string }
+            recordCount: { type: integer, minimum: 0 }
+            status: { type: string, enum: [empty, pending, indexing, ready, failed] }
+            indexedCount: { type: integer, minimum: 0 }
+            expectedCount: { type: integer, minimum: 0 }
+            lastError: { type: string, nullable: true }
+            updatedAt: { type: string, nullable: true }
+            completedAt: { type: string, nullable: true }
         meta:
           $ref: '#/components/schemas/ResponseMeta'

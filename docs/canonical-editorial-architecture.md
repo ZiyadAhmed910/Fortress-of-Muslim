@@ -56,6 +56,10 @@ Publication validation also requires at least one independently verified canonic
 
 Editors group approved revisions into a publication batch. A batch is validated against current workflow state, revision identity, and evidence requirements. A publisher approves and publishes the batch atomically, creating a canonical dataset version, publication history, current publication pointers, and search rows.
 
+Every published dataset also receives a complete immutable `canonical_dataset_items` snapshot. A rollback never mutates or reactivates an old version. It creates a new audited dataset from a complete prior snapshot, rebuilds current publication pointers and canonical search rows atomically, and marks its vector index pending.
+
+The automated editorial pilot uses separate synthetic identities to verify authorization and state transitions. It is a software rehearsal only and cannot substitute for independent human editorial or scholarly review.
+
 Canonical URLs use Fortress-owned sequential paths:
 
 ```text

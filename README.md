@@ -162,6 +162,15 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.17.0
+
+- Repaired Ask with canonical-dataset preflight, hybrid vector and lexical retrieval, deterministic cited fallback, citation validation, and public index-readiness reporting.
+- Corrected vector indexing to embed the exact immutable revisions selected by `canonical_publications`.
+- Added per-dataset RAG index state and status monitoring at `GET /v1/ask/status`.
+- Hardened editorial work with reviewer assignment enforcement, queue pagination, operational lookups, revision comparison, duplicate suggestions, and partial immutable field-review progress.
+- Added detailed publication validation reports, editable draft batches, complete immutable dataset snapshots, and audited atomic rollback.
+- Added an automated editorial pilot covering separate editor, reviewer, senior reviewer, and publisher identities from assignment through publication and rollback.
+
 ### 0.16.0
 
 - Established Fortress Platform as the sole public canonical publication boundary.

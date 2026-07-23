@@ -12,6 +12,7 @@ const urls = {
 const services = {
   api: { url: `${urls.api}/health`, mode: 'json', critical: true },
   database: { url: `${urls.api}/health/database`, mode: 'json', critical: true },
+  rag: { url: `${urls.api}/v1/ask/status`, mode: 'json', critical: false, readiness: true },
   auth: { url: `${urls.auth}/health`, mode: 'json', critical: true },
   mcp: { url: `${urls.mcp}/health`, mode: 'json', critical: true },
   pwa: { url: `${urls.pwa}/`, mode: 'opaque', critical: false },
@@ -57,7 +58,8 @@ async function checkService(service) {
     if (service.mode !== 'opaque' && !response.ok) throw new Error(`HTTP ${response.status}`);
     const data = service.mode === 'json' ? await response.json() : null;
     const latency = Math.round(performance.now() - started);
-    return { state: latency > 2000 ? 'degraded' : 'ok', latency, data };
+    const readinessFailed = service.readiness && data?.data?.status === 'failed';
+    return { state: readinessFailed || latency > 2000 ? 'degraded' : 'ok', latency, data };
   } catch (error) {
     return { state: 'outage', latency: null, error: error instanceof Error ? error.message : 'Request failed' };
   } finally {
@@ -73,7 +75,14 @@ function renderServices(results) {
     const state = row.querySelector('.service-state');
     const latency = row.querySelector('.latency');
     state.className = `service-state ${result.state === 'ok' ? '' : result.state}`;
-    state.innerHTML = `<span class="dot"></span>${result.state === 'ok' ? 'Operational' : result.state === 'degraded' ? 'Slow' : 'Unavailable'}`;
+    const readiness = id === 'rag' ? result.data?.data?.status : null;
+    const label = readiness === 'empty' ? 'Awaiting publication'
+      : readiness === 'pending' ? 'Index pending'
+        : readiness === 'indexing' ? 'Indexing'
+          : readiness === 'ready' ? 'Ready'
+            : result.state === 'ok' ? 'Operational'
+              : result.state === 'degraded' ? 'Degraded' : 'Unavailable';
+    state.innerHTML = `<span class="dot"></span>${label}`;
     latency.textContent = result.latency === null ? '--' : `${result.latency} ms`;
     row.querySelector('.check-history').innerHTML = (history[id] || []).map((item, index, entries) => `<span class="history-bar ${item.state}" style="height:${Math.min(22, 7 + (index / Math.max(1, entries.length - 1)) * 10)}px" title="${item.state} at ${new Date(item.at).toLocaleTimeString()}"></span>`).join('');
   }

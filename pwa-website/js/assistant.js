@@ -32,6 +32,6 @@ function renderAnswer(data) {
   els.assistantResult.innerHTML = `
     <article class="assistant-answer"><p>${answer}</p></article>
     <div class="assistant-sources">${sources}</div>
-    <p class="assistant-remaining">${data.meta.remainingToday} questions remaining today on this connection.</p>
+    ${data.meta.retrievalMode === 'empty_dataset' ? '' : `<p class="assistant-remaining">${data.meta.remainingToday} questions remaining today on this connection.</p>`}
   `;
 }

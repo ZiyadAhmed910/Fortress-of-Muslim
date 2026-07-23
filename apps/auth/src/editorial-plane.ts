@@ -34,6 +34,9 @@ export async function handleEditorialPlane(
   if (url.pathname === '/v1/admin/editorial/queue' && request.method === 'GET') {
     return queue(context, url);
   }
+  if (url.pathname === '/v1/admin/editorial/lookups' && request.method === 'GET') {
+    return lookups(context);
+  }
   if (url.pathname === '/v1/admin/editorial/assignments' && request.method === 'GET') {
     return listAssignments(context);
   }
@@ -60,6 +63,18 @@ export async function handleEditorialPlane(
   const recordMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)$/);
   if (recordMatch && request.method === 'GET') {
     return getRecord(context, decodeURIComponent(recordMatch[1]!));
+  }
+  const recordDuplicatesMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)\/duplicates$/);
+  if (recordDuplicatesMatch && request.method === 'GET') {
+    return findDuplicateCandidates(context, decodeURIComponent(recordDuplicatesMatch[1]!));
+  }
+  const revisionDetailMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)\/revisions\/([^/]+)$/);
+  if (revisionDetailMatch && request.method === 'GET') {
+    return getRevision(
+      context,
+      decodeURIComponent(revisionDetailMatch[1]!),
+      decodeURIComponent(revisionDetailMatch[2]!),
+    );
   }
   const revisionMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)\/revisions$/);
   if (revisionMatch && request.method === 'POST') {
@@ -98,6 +113,14 @@ export async function handleEditorialPlane(
     requireRole(context.role, ['editor', 'publisher', 'super_administrator']);
     return addBatchItems(context, decodeURIComponent(batchItemMatch[1]!), await readJson(request));
   }
+  if (batchItemMatch && request.method === 'DELETE') {
+    requireRole(context.role, ['editor', 'publisher', 'super_administrator']);
+    return removeBatchItems(context, decodeURIComponent(batchItemMatch[1]!), await readJson(request));
+  }
+  const batchDetailMatch = url.pathname.match(/^\/v1\/admin\/editorial\/batches\/([^/]+)$/);
+  if (batchDetailMatch && request.method === 'GET') {
+    return getBatch(context, decodeURIComponent(batchDetailMatch[1]!));
+  }
   const batchActionMatch = url.pathname.match(/^\/v1\/admin\/editorial\/batches\/([^/]+)\/(validate|approve|publish)$/);
   if (batchActionMatch && request.method === 'POST') {
     const id = decodeURIComponent(batchActionMatch[1]!);
@@ -107,6 +130,14 @@ export async function handleEditorialPlane(
     }
     requireRole(context.role, ['publisher', 'super_administrator']);
     return batchActionMatch[2] === 'approve' ? approveBatch(context, id) : publishBatch(context, id);
+  }
+  if (url.pathname === '/v1/admin/editorial/datasets' && request.method === 'GET') {
+    return listDatasets(context);
+  }
+  const rollbackMatch = url.pathname.match(/^\/v1\/admin\/editorial\/datasets\/([^/]+)\/rollback$/);
+  if (rollbackMatch && request.method === 'POST') {
+    requireRole(context.role, ['publisher', 'super_administrator']);
+    return rollbackDataset(context, decodeURIComponent(rollbackMatch[1]!), await readJson(request));
   }
 
   return json({ error: { code: 'not_found', message: 'Editorial route was not found.' } }, 404);
@@ -143,9 +174,26 @@ async function overview({ env }: EditorialContext) {
 async function queue({ env }: EditorialContext, url: URL) {
   const state = url.searchParams.get('state')?.trim() ?? '';
   const collection = url.searchParams.get('collection')?.trim() ?? '';
+  const contentType = url.searchParams.get('contentType')?.trim() ?? '';
+  const assignment = url.searchParams.get('assignment')?.trim() ?? '';
   const query = url.searchParams.get('q')?.trim().slice(0, 120) ?? '';
+  const limit = Math.min(100, Math.max(10, Number(url.searchParams.get('limit')) || 50));
+  const offset = Math.max(0, Number(url.searchParams.get('offset')) || 0);
   const like = `%${query}%`;
-  const rows = await env.CONTENT_DB.prepare(`
+  const predicate = `
+    (? = '' OR state.workflow_state = ?)
+    AND (? = '' OR collection.slug = ?)
+    AND (? = '' OR canonical.content_type = ?)
+    AND (? = '' OR (? = 'assigned' AND state.assigned_to_external_id IS NOT NULL)
+      OR (? = 'unassigned' AND state.assigned_to_external_id IS NULL))
+    AND (? = '' OR revision.title LIKE ? OR canonical.canonical_id LIKE ?)
+  `;
+  const values = [
+    state, state, collection, collection, contentType, contentType,
+    assignment, assignment, assignment, query, like, like,
+  ];
+  const [rows, total] = await Promise.all([
+    env.CONTENT_DB.prepare(`
     SELECT canonical.canonical_id AS canonicalId, canonical.content_type AS contentType,
            revision.revision_number AS revisionNumber, revision.sequence, revision.title,
            state.workflow_state AS workflowState, state.assigned_to_external_id AS assignedTo,
@@ -158,12 +206,60 @@ async function queue({ env }: EditorialContext, url: URL) {
     LEFT JOIN collections collection ON collection.id = metadata.collection_id
     LEFT JOIN books book ON book.id = metadata.book_id
     LEFT JOIN chapters chapter ON chapter.id = metadata.chapter_id
-    WHERE (? = '' OR state.workflow_state = ?)
-      AND (? = '' OR collection.slug = ?)
-      AND (? = '' OR revision.title LIKE ? OR canonical.canonical_id LIKE ?)
-    ORDER BY state.changed_at, revision.sequence LIMIT 200
-  `).bind(state, state, collection, collection, query, like, like).all();
-  return json({ data: rows.results });
+    WHERE ${predicate}
+    ORDER BY state.changed_at, revision.sequence
+    LIMIT ? OFFSET ?
+  `).bind(...values, limit, offset).all(),
+    env.CONTENT_DB.prepare(`
+      SELECT COUNT(*) AS count
+      FROM editorial_record_state state
+      JOIN canonical_records canonical ON canonical.canonical_id = state.canonical_id
+      JOIN content_revisions revision ON revision.id = state.revision_id
+      LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+      LEFT JOIN collections collection ON collection.id = metadata.collection_id
+      WHERE ${predicate}
+    `).bind(...values).first<{ count: number }>(),
+  ]);
+  return json({
+    data: rows.results,
+    pagination: { offset, limit, total: Number(total?.count ?? 0), hasMore: offset + rows.results.length < Number(total?.count ?? 0) },
+  });
+}
+
+async function lookups({ env }: EditorialContext) {
+  const [reviewers, collections, books, chapters] = await Promise.all([
+    env.IDENTITY_DB.prepare(`
+      SELECT role.user_id AS id, user.name, user.email, role.role
+      FROM editorial_role_grants role
+      JOIN "user" user ON user.id = role.user_id
+      WHERE role.status = 'active'
+        AND role.role IN ('reviewer','senior_reviewer','editor','publisher','super_administrator')
+      ORDER BY user.name, user.email
+    `).all(),
+    env.CONTENT_DB.prepare(`
+      SELECT id, slug, title FROM collections ORDER BY content_type, title
+    `).all(),
+    env.CONTENT_DB.prepare(`
+      SELECT book.id, book.book_number AS number, book.title,
+             collection.id AS collectionId, collection.title AS collectionTitle
+      FROM books book JOIN collections collection ON collection.id = book.collection_id
+      ORDER BY collection.title, book.sequence LIMIT 1000
+    `).all(),
+    env.CONTENT_DB.prepare(`
+      SELECT chapter.id, chapter.chapter_number AS number, chapter.title,
+             chapter.book_id AS bookId, book.title AS bookTitle
+      FROM chapters chapter JOIN books book ON book.id = chapter.book_id
+      ORDER BY book.sequence, chapter.sequence LIMIT 2000
+    `).all(),
+  ]);
+  return json({
+    data: {
+      reviewers: reviewers.results,
+      collections: collections.results,
+      books: books.results,
+      chapters: chapters.results,
+    },
+  });
 }
 
 async function getRecord({ env }: EditorialContext, canonicalId: string) {
@@ -232,6 +328,70 @@ async function getRecord({ env }: EditorialContext, canonicalId: string) {
       requiredFields: REVIEW_FIELDS,
     },
   });
+}
+
+async function getRevision({ env }: EditorialContext, canonicalId: string, revisionId: string) {
+  const revision = await env.CONTENT_DB.prepare(`
+    SELECT id, canonical_id AS canonicalId, revision_number AS revisionNumber,
+           sequence, title, correction_reason AS correctionReason,
+           created_by_external_id AS createdBy, created_at AS createdAt
+    FROM content_revisions
+    WHERE id = ? AND canonical_id = ?
+  `).bind(revisionId, canonicalId).first<Record<string, unknown>>();
+  if (!revision) return notFound('Revision was not found for this canonical record.');
+  const segments = await env.CONTENT_DB.prepare(`
+    SELECT part.position AS partPosition, segment.position AS segmentPosition,
+           segment.kind, segment.language_code AS languageCode, segment.text
+    FROM revision_parts part
+    JOIN revision_segments segment ON segment.revision_part_id = part.id
+    WHERE part.revision_id = ?
+    ORDER BY part.position, segment.position
+  `).bind(revisionId).all();
+  return json({ data: { revision, segments: segments.results } });
+}
+
+async function findDuplicateCandidates({ env }: EditorialContext, canonicalId: string) {
+  const current = await env.CONTENT_DB.prepare(`
+    SELECT canonical.content_type AS contentType, revision.title,
+           metadata.collection_id AS collectionId
+    FROM editorial_record_state state
+    JOIN canonical_records canonical ON canonical.canonical_id = state.canonical_id
+    JOIN content_revisions revision ON revision.id = state.revision_id
+    LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    WHERE state.canonical_id = ?
+  `).bind(canonicalId).first<{ contentType: string; title: string; collectionId: string | null }>();
+  if (!current) return notFound('Canonical record was not found.');
+  const rows = await env.CONTENT_DB.prepare(`
+    SELECT candidate.canonical_id AS canonicalId, revision.title, revision.sequence,
+           state.workflow_state AS workflowState
+    FROM editorial_record_state state
+    JOIN canonical_records candidate ON candidate.canonical_id = state.canonical_id
+    JOIN content_revisions revision ON revision.id = state.revision_id
+    LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    WHERE candidate.canonical_id <> ?
+      AND candidate.content_type = ?
+      AND (? IS NULL OR metadata.collection_id = ?)
+    ORDER BY ABS(revision.sequence - (
+      SELECT current_revision.sequence
+      FROM editorial_record_state current_state
+      JOIN content_revisions current_revision ON current_revision.id = current_state.revision_id
+      WHERE current_state.canonical_id = ?
+    ))
+    LIMIT 500
+  `).bind(canonicalId, current.contentType, current.collectionId, current.collectionId, canonicalId).all<{
+    canonicalId: string;
+    title: string;
+    sequence: number;
+    workflowState: string;
+  }>();
+  const normalizedTitle = normalizeTitle(current.title);
+  const candidates = rows.results
+    .map((row) => ({ ...row, score: titleSimilarity(normalizedTitle, normalizeTitle(row.title)) }))
+    .filter((row) => row.score >= 0.45)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 12)
+    .map((row) => ({ ...row, score: Number(row.score.toFixed(3)) }));
+  return json({ data: candidates });
 }
 
 async function addCanonicalReference(
@@ -332,7 +492,7 @@ async function createAssignment(context: EditorialContext, body: Record<string, 
   if (scopeType === 'collection' && !collectionId) return invalid('A collection ID is required for collection scope.');
   if (scopeType === 'book' && !bookId) return invalid('A book ID is required for book scope.');
   if (scopeType === 'chapter' && !chapterId) return invalid('A chapter ID is required for chapter scope.');
-  const assignmentTarget = assignmentStateStatement(context, {
+  const scope = {
     scopeType,
     assignedTo,
     canonicalId,
@@ -341,7 +501,10 @@ async function createAssignment(context: EditorialContext, body: Record<string, 
     chapterId,
     rangeStart,
     rangeEnd,
-  });
+  };
+  const matchedRecords = await assignmentTargetCount(context.env.CONTENT_DB, scope);
+  if (matchedRecords === 0) return invalid('The assignment scope did not match any open editorial records.');
+  const assignmentTarget = assignmentStateStatement(context, scope);
   await context.env.CONTENT_DB.batch([
     context.env.CONTENT_DB.prepare(`
       INSERT INTO editorial_assignments (
@@ -356,7 +519,7 @@ async function createAssignment(context: EditorialContext, body: Record<string, 
     assignmentTarget,
     auditStatement(context, 'editorial.assignment_created', 'assignment', id, { scopeType, assignedTo }),
   ]);
-  return json({ data: { id, scopeType, assignedTo } }, 201);
+  return json({ data: { id, scopeType, assignedTo, matchedRecords } }, 201);
 }
 
 function assignmentStateStatement(
@@ -372,14 +535,7 @@ function assignmentStateStatement(
     rangeEnd: number | null;
   },
 ) {
-  const filters: Record<string, { clause: string; values: unknown[] }> = {
-    record: { clause: 'state.canonical_id = ?', values: [scope.canonicalId] },
-    record_range: { clause: 'revision.sequence BETWEEN ? AND ?', values: [scope.rangeStart, scope.rangeEnd] },
-    collection: { clause: 'metadata.collection_id = ?', values: [scope.collectionId] },
-    book: { clause: 'metadata.book_id = ?', values: [scope.bookId] },
-    chapter: { clause: 'metadata.chapter_id = ?', values: [scope.chapterId] },
-  };
-  const filter = filters[scope.scopeType]!;
+  const filter = assignmentFilter(scope);
   return context.env.CONTENT_DB.prepare(`
     UPDATE editorial_record_state AS state
     SET workflow_state = 'assigned', assigned_to_external_id = ?,
@@ -391,6 +547,49 @@ function assignmentStateStatement(
         WHERE revision.id = state.revision_id AND ${filter.clause}
       )
   `).bind(scope.assignedTo, context.user.id, ...filter.values);
+}
+
+async function assignmentTargetCount(
+  database: D1Database,
+  scope: {
+    scopeType: string;
+    canonicalId: string | null;
+    collectionId: string | null;
+    bookId: string | null;
+    chapterId: string | null;
+    rangeStart: number | null;
+    rangeEnd: number | null;
+  },
+) {
+  const filter = assignmentFilter(scope);
+  const row = await database.prepare(`
+    SELECT COUNT(*) AS count
+    FROM editorial_record_state state
+    JOIN content_revisions revision ON revision.id = state.revision_id
+    LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    WHERE state.workflow_state IN ('imported','pending_review','changes_requested','assigned','in_review','needs_second_review')
+      AND ${filter.clause}
+  `).bind(...filter.values).first<{ count: number }>();
+  return Number(row?.count ?? 0);
+}
+
+function assignmentFilter(scope: {
+  scopeType: string;
+  canonicalId: string | null;
+  collectionId: string | null;
+  bookId: string | null;
+  chapterId: string | null;
+  rangeStart: number | null;
+  rangeEnd: number | null;
+}) {
+  const filters: Record<string, { clause: string; values: unknown[] }> = {
+    record: { clause: 'state.canonical_id = ?', values: [scope.canonicalId] },
+    record_range: { clause: 'revision.sequence BETWEEN ? AND ?', values: [scope.rangeStart, scope.rangeEnd] },
+    collection: { clause: 'metadata.collection_id = ?', values: [scope.collectionId] },
+    book: { clause: 'metadata.book_id = ?', values: [scope.bookId] },
+    chapter: { clause: 'metadata.chapter_id = ?', values: [scope.chapterId] },
+  };
+  return filters[scope.scopeType]!;
 }
 
 async function listAssignments({ env }: EditorialContext) {
@@ -408,6 +607,15 @@ async function submitFieldReviews(context: EditorialContext, canonicalId: string
   const current = await currentRevision(context.env.CONTENT_DB, canonicalId);
   if (!current) return notFound('Canonical record was not found.');
   if (current.createdBy === context.user.id) return invalid('A correction author cannot review their own revision.');
+  if (
+    ['reviewer', 'senior_reviewer'].includes(context.role)
+    && !await hasActiveAssignment(context.env.CONTENT_DB, canonicalId, context.user.id)
+  ) {
+    return new Response(JSON.stringify({ error: { code: 'forbidden', message: 'This record is not assigned to you.' } }), {
+      status: 403,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
   if (!['pending_review', 'assigned', 'in_review', 'needs_second_review'].includes(current.workflowState)) {
     return conflict('This revision is not open for field review.');
   }
@@ -456,6 +664,15 @@ async function submitDecision(context: EditorialContext, canonicalId: string, bo
 
   if (stage === 'independent_review') {
     requireRole(context.role, ['reviewer', 'senior_reviewer', 'editor', 'publisher', 'super_administrator']);
+    if (
+      ['reviewer', 'senior_reviewer'].includes(context.role)
+      && !await hasActiveAssignment(context.env.CONTENT_DB, canonicalId, context.user.id)
+    ) {
+      return new Response(JSON.stringify({ error: { code: 'forbidden', message: 'This record is not assigned to you.' } }), {
+        status: 403,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
     if (!['pending_review', 'assigned', 'in_review', 'needs_second_review'].includes(current.workflowState)) {
       return conflict('This revision is not open for independent review.');
     }
@@ -684,6 +901,36 @@ async function listBatches({ env }: EditorialContext) {
   return json({ data: rows.results });
 }
 
+async function getBatch({ env }: EditorialContext, batchId: string) {
+  const batch = await env.CONTENT_DB.prepare(`
+    SELECT id, label, status, created_by_external_id AS createdBy,
+           approved_by_external_id AS approvedBy, published_by_external_id AS publishedBy,
+           validation_report_json AS validationReport, dataset_version_id AS datasetId,
+           created_at AS createdAt, approved_at AS approvedAt, published_at AS publishedAt
+    FROM publication_batches WHERE id = ?
+  `).bind(batchId).first<Record<string, unknown>>();
+  if (!batch) return notFound('Publication batch was not found.');
+  const items = await env.CONTENT_DB.prepare(`
+    SELECT item.canonical_id AS canonicalId, item.revision_id AS revisionId,
+           revision.title, revision.revision_number AS revisionNumber,
+           state.workflow_state AS workflowState
+    FROM publication_batch_items item
+    JOIN content_revisions revision ON revision.id = item.revision_id
+    JOIN editorial_record_state state ON state.canonical_id = item.canonical_id
+    WHERE item.batch_id = ?
+    ORDER BY revision.sequence, item.canonical_id
+  `).bind(batchId).all();
+  return json({
+    data: {
+      batch: {
+        ...batch,
+        validationReport: parseJson(String(batch.validationReport ?? '{}')),
+      },
+      items: items.results,
+    },
+  });
+}
+
 async function addBatchItems(context: EditorialContext, batchId: string, body: Record<string, unknown>) {
   const ids = Array.isArray(body.canonicalIds)
     ? [...new Set(body.canonicalIds.map(String).filter(Boolean))].slice(0, 50)
@@ -717,34 +964,74 @@ async function addBatchItems(context: EditorialContext, batchId: string, body: R
   return json({ data: { batchId, added: ids.length } });
 }
 
+async function removeBatchItems(context: EditorialContext, batchId: string, body: Record<string, unknown>) {
+  const ids = Array.isArray(body.canonicalIds)
+    ? [...new Set(body.canonicalIds.map(String).filter(Boolean))].slice(0, 50)
+    : [];
+  if (ids.length === 0) return invalid('Choose between 1 and 50 canonical record IDs to remove.');
+  const batch = await context.env.CONTENT_DB.prepare(`
+    SELECT status FROM publication_batches WHERE id = ?
+  `).bind(batchId).first<{ status: string }>();
+  if (!batch) return notFound('Publication batch was not found.');
+  if (batch.status !== 'draft') return conflict('Items can be changed only while a batch is in draft.');
+  const statements = ids.map((id) => context.env.CONTENT_DB.prepare(`
+    DELETE FROM publication_batch_items WHERE batch_id = ? AND canonical_id = ?
+  `).bind(batchId, id));
+  statements.push(auditStatement(context, 'editorial.batch_items_removed', 'publication_batch', batchId, { canonicalIds: ids }));
+  const results = await context.env.CONTENT_DB.batch(statements);
+  const removed = results.slice(0, -1).reduce((total, result) => total + Number(result.meta.changes ?? 0), 0);
+  return json({ data: { batchId, removed } });
+}
+
 async function validateBatch(context: EditorialContext, batchId: string) {
   const batch = await context.env.CONTENT_DB.prepare(`
     SELECT status FROM publication_batches WHERE id = ?
   `).bind(batchId).first<{ status: string }>();
   if (!batch) return notFound('Publication batch was not found.');
   if (batch.status !== 'draft') return conflict('Only a draft batch can be validated.');
-  const invalidRows = await context.env.CONTENT_DB.prepare(`
-    SELECT item.canonical_id AS canonicalId
+  const rows = await context.env.CONTENT_DB.prepare(`
+    SELECT item.canonical_id AS canonicalId, item.revision_id AS revisionId,
+           state.workflow_state AS workflowState,
+           state.revision_id = item.revision_id AS revisionMatches,
+           (SELECT COUNT(*) FROM canonical_references reference
+             WHERE reference.canonical_id = item.canonical_id
+               AND reference.revision_id = item.revision_id
+               AND reference.verification_status = 'verified') AS verifiedReferences,
+           (SELECT COUNT(DISTINCT reviewer_external_id) FROM review_decisions decision
+             WHERE decision.revision_id = item.revision_id
+               AND decision.review_stage = 'independent_review'
+               AND decision.decision = 'approved') AS independentApprovals,
+           (SELECT COUNT(*) FROM review_decisions decision
+             WHERE decision.revision_id = item.revision_id
+               AND decision.review_stage = 'senior_approval'
+               AND decision.decision = 'approved') AS seniorApprovals
     FROM publication_batch_items item
     JOIN editorial_record_state state ON state.canonical_id = item.canonical_id
-    WHERE item.batch_id = ? AND (
-      state.workflow_state <> 'approved' OR state.revision_id <> item.revision_id
-      OR NOT EXISTS (
-        SELECT 1 FROM canonical_references reference
-        WHERE reference.canonical_id = item.canonical_id
-          AND reference.revision_id = item.revision_id
-          AND reference.verification_status = 'verified'
-      )
-    )
-  `).bind(batchId).all();
-  const itemCount = await count(context.env.CONTENT_DB, `
-    SELECT COUNT(*) AS count FROM publication_batch_items WHERE batch_id = '${sqlLiteral(batchId)}'
-  `);
-  const report = { valid: invalidRows.results.length === 0 && itemCount > 0, itemCount, invalidRecords: invalidRows.results };
+    WHERE item.batch_id = ?
+  `).bind(batchId).all<{
+    canonicalId: string;
+    revisionId: string;
+    workflowState: string;
+    revisionMatches: number;
+    verifiedReferences: number;
+    independentApprovals: number;
+    seniorApprovals: number;
+  }>();
+  const invalidRecords = rows.results.flatMap((row) => {
+    const issues: string[] = [];
+    if (row.workflowState !== 'approved') issues.push(`Workflow state is ${row.workflowState}, not approved.`);
+    if (!row.revisionMatches) issues.push('The batch revision is no longer current.');
+    if (Number(row.verifiedReferences) < 1) issues.push('No independently verified canonical reference is attached.');
+    if (Number(row.independentApprovals) < 2) issues.push('Two independent reviewer approvals are required.');
+    if (Number(row.seniorApprovals) < 1) issues.push('Senior approval is required.');
+    return issues.length ? [{ canonicalId: row.canonicalId, revisionId: row.revisionId, issues }] : [];
+  });
+  const itemCount = rows.results.length;
+  const report = { valid: invalidRecords.length === 0 && itemCount > 0, itemCount, invalidRecords };
   await context.env.CONTENT_DB.batch([
     context.env.CONTENT_DB.prepare(`
       UPDATE publication_batches SET status = ?, validation_report_json = ? WHERE id = ?
-    `).bind(report.valid ? 'validated' : 'failed', JSON.stringify(report), batchId),
+    `).bind(report.valid ? 'validated' : 'draft', JSON.stringify(report), batchId),
     auditStatement(context, 'editorial.batch_validated', 'publication_batch', batchId, report),
   ]);
   return json({ data: report }, report.valid ? 200 : 409);
@@ -885,6 +1172,9 @@ async function publishBatch(context: EditorialContext, batchId: string) {
           changed_by_external_id = ?, changed_at = ? WHERE canonical_id = ?
       `).bind(context.user.id, now, item.canonicalId),
       context.env.CONTENT_DB.prepare(`
+        DELETE FROM canonical_search_fts WHERE canonical_id = ?
+      `).bind(item.canonicalId),
+      context.env.CONTENT_DB.prepare(`
         INSERT INTO canonical_search_fts (
           canonical_id, revision_id, content_type, collection_slug, title, body, narrator
         ) VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -896,6 +1186,17 @@ async function publishBatch(context: EditorialContext, batchId: string) {
   }
   statements.push(
     context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_dataset_items (dataset_version_id, canonical_id, revision_id)
+      SELECT ?, canonical_id, revision_id
+      FROM canonical_publications
+      WHERE publication_status = 'published'
+    `).bind(datasetId),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO rag_index_state (
+        dataset_version_id, expected_count, indexed_count, status, updated_at
+      ) VALUES (?, ?, 0, ?, CURRENT_TIMESTAMP)
+    `).bind(datasetId, totalPublishedCount, totalPublishedCount === 0 ? 'ready' : 'pending'),
+    context.env.CONTENT_DB.prepare(`
       UPDATE publication_batches SET status = 'published', dataset_version_id = ?,
         published_by_external_id = ?, published_at = ? WHERE id = ?
     `).bind(datasetId, context.user.id, now, batchId),
@@ -905,6 +1206,151 @@ async function publishBatch(context: EditorialContext, batchId: string) {
   );
   await context.env.CONTENT_DB.batch(statements);
   return json({ data: { batchId, status: 'published', datasetId, canonicalHash, recordCount: totalPublishedCount } });
+}
+
+async function listDatasets({ env }: EditorialContext) {
+  const rows = await env.CONTENT_DB.prepare(`
+    SELECT dataset.id, dataset.version_label AS versionLabel,
+           dataset.publication_status AS publicationStatus,
+           dataset.verification_status AS verificationStatus,
+           dataset.record_count AS recordCount, dataset.canonical_hash AS canonicalHash,
+           dataset.publication_batch_id AS publicationBatchId,
+           dataset.published_by_external_id AS publishedBy,
+           dataset.created_at AS createdAt, dataset.published_at AS publishedAt,
+           COUNT(item.canonical_id) AS snapshotCount
+    FROM canonical_dataset_versions dataset
+    LEFT JOIN canonical_dataset_items item ON item.dataset_version_id = dataset.id
+    GROUP BY dataset.id
+    ORDER BY COALESCE(dataset.published_at, dataset.created_at) DESC
+    LIMIT 100
+  `).all();
+  return json({ data: rows.results });
+}
+
+async function rollbackDataset(context: EditorialContext, targetDatasetId: string, body: Record<string, unknown>) {
+  const reason = String(body.reason ?? '').trim();
+  if (reason.length < 10 || reason.length > 1000) return invalid('A rollback reason containing 10 to 1000 characters is required.');
+  const [target, current] = await Promise.all([
+    context.env.CONTENT_DB.prepare(`
+      SELECT id, record_count AS recordCount, canonical_hash AS canonicalHash
+      FROM canonical_dataset_versions
+      WHERE id = ? AND publication_status IN ('published','superseded','rolled_back')
+    `).bind(targetDatasetId).first<{ id: string; recordCount: number; canonicalHash: string | null }>(),
+    context.env.CONTENT_DB.prepare(`
+      SELECT id, publication_batch_id AS publicationBatchId
+      FROM canonical_dataset_versions WHERE publication_status = 'published' LIMIT 1
+    `).first<{ id: string; publicationBatchId: string | null }>(),
+  ]);
+  if (!target) return notFound('Rollback target dataset was not found.');
+  if (!current) return conflict('No current published dataset exists.');
+  if (target.id === current.id) return conflict('The selected dataset is already current.');
+  const snapshotCount = await count(context.env.CONTENT_DB, `
+    SELECT COUNT(*) AS count FROM canonical_dataset_items
+    WHERE dataset_version_id = '${sqlLiteral(target.id)}'
+  `);
+  if (snapshotCount !== Number(target.recordCount)) {
+    return conflict('The rollback target does not have a complete immutable dataset snapshot.');
+  }
+
+  const now = new Date().toISOString();
+  const datasetId = `canonical.rollback.${now.slice(0, 10)}.${crypto.randomUUID().slice(0, 12)}`;
+  const statements: D1PreparedStatement[] = [
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_publication_history (
+        id, canonical_id, revision_id, record_id, dataset_version_id, revision_number,
+        event_type, actor_external_id, occurred_at
+      )
+      SELECT 'publication-history.' || lower(hex(randomblob(16))), canonical_id, revision_id,
+             record_id, dataset_version_id, revision_number, 'rolled_back', ?, ?
+      FROM canonical_publications WHERE publication_status = 'published'
+    `).bind(context.user.id, now),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE editorial_record_state SET workflow_state = 'superseded',
+        changed_by_external_id = ?, changed_at = ?
+      WHERE workflow_state = 'published'
+    `).bind(context.user.id, now),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE canonical_dataset_versions SET publication_status = 'rolled_back'
+      WHERE id = ?
+    `).bind(current.id),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE publication_batches SET status = 'rolled_back'
+      WHERE id = ?
+    `).bind(current.publicationBatchId),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_dataset_versions (
+        id, version_label, publication_status, verification_status, record_count,
+        canonical_hash, published_by_external_id, published_at
+      ) VALUES (?, ?, 'published', 'verified', ?, ?, ?, ?)
+    `).bind(datasetId, datasetId, target.recordCount, target.canonicalHash, context.user.id, now),
+    context.env.CONTENT_DB.prepare('DELETE FROM canonical_publications'),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_publications (
+        canonical_id, revision_id, record_id, dataset_version_id, revision_number,
+        publication_status, published_by_external_id, published_at
+      )
+      SELECT item.canonical_id, item.revision_id, revision.record_id, ?,
+             revision.revision_number, 'published', ?, ?
+      FROM canonical_dataset_items item
+      JOIN content_revisions revision ON revision.id = item.revision_id
+      WHERE item.dataset_version_id = ?
+    `).bind(datasetId, context.user.id, now, target.id),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_dataset_items (dataset_version_id, canonical_id, revision_id)
+      SELECT ?, canonical_id, revision_id
+      FROM canonical_dataset_items WHERE dataset_version_id = ?
+    `).bind(datasetId, target.id),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE editorial_record_state SET workflow_state = 'published',
+        revision_id = (
+          SELECT item.revision_id FROM canonical_dataset_items item
+          WHERE item.dataset_version_id = ? AND item.canonical_id = editorial_record_state.canonical_id
+        ),
+        changed_by_external_id = ?, changed_at = ?
+      WHERE canonical_id IN (
+        SELECT canonical_id FROM canonical_dataset_items WHERE dataset_version_id = ?
+      )
+    `).bind(target.id, context.user.id, now, target.id),
+    context.env.CONTENT_DB.prepare('DELETE FROM canonical_search_fts'),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_search_fts (
+        canonical_id, revision_id, content_type, collection_slug, title, body, narrator
+      )
+      SELECT item.canonical_id, item.revision_id, canonical.content_type,
+             COALESCE(collection.slug, ''), revision.title,
+             COALESCE(GROUP_CONCAT(segment.text, ' '), ''), COALESCE(metadata.narrator, '')
+      FROM canonical_dataset_items item
+      JOIN canonical_records canonical ON canonical.canonical_id = item.canonical_id
+      JOIN content_revisions revision ON revision.id = item.revision_id
+      LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+      LEFT JOIN collections collection ON collection.id = metadata.collection_id
+      LEFT JOIN revision_parts part ON part.revision_id = revision.id
+      LEFT JOIN revision_segments segment ON segment.revision_part_id = part.id
+      WHERE item.dataset_version_id = ?
+      GROUP BY item.canonical_id, item.revision_id
+    `).bind(target.id),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO rag_index_state (
+        dataset_version_id, expected_count, indexed_count, status, updated_at
+      ) VALUES (?, ?, 0, ?, CURRENT_TIMESTAMP)
+    `).bind(datasetId, target.recordCount, Number(target.recordCount) === 0 ? 'ready' : 'pending'),
+    auditStatement(context, 'editorial.dataset_rolled_back', 'canonical_dataset', datasetId, {
+      fromDatasetId: current.id,
+      targetDatasetId: target.id,
+      reason,
+      recordCount: target.recordCount,
+    }),
+  ];
+  await context.env.CONTENT_DB.batch(statements);
+  return json({
+    data: {
+      datasetId,
+      rolledBackFrom: current.id,
+      restoredFrom: target.id,
+      recordCount: target.recordCount,
+      canonicalHash: target.canonicalHash,
+    },
+  });
 }
 
 async function listRoles({ env }: EditorialContext) {
@@ -969,6 +1415,27 @@ async function currentState(database: D1Database, canonicalId: string) {
   `).bind(canonicalId).first<{ revisionId: string; workflowState: string }>();
 }
 
+async function hasActiveAssignment(database: D1Database, canonicalId: string, reviewerId: string) {
+  const row = await database.prepare(`
+    SELECT 1
+    FROM editorial_assignments assignment
+    JOIN editorial_record_state state ON state.canonical_id = ?
+    JOIN content_revisions revision ON revision.id = state.revision_id
+    LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    WHERE assignment.assigned_to_external_id = ?
+      AND assignment.status = 'active'
+      AND (
+        (assignment.scope_type = 'record' AND assignment.canonical_id = state.canonical_id)
+        OR (assignment.scope_type = 'record_range' AND revision.sequence BETWEEN assignment.range_start AND assignment.range_end)
+        OR (assignment.scope_type = 'collection' AND metadata.collection_id = assignment.collection_id)
+        OR (assignment.scope_type = 'book' AND metadata.book_id = assignment.book_id)
+        OR (assignment.scope_type = 'chapter' AND metadata.chapter_id = assignment.chapter_id)
+      )
+    LIMIT 1
+  `).bind(canonicalId, reviewerId).first();
+  return Boolean(row);
+}
+
 function auditStatement(context: EditorialContext, action: string, targetType: string, targetId: string, details: unknown) {
   return context.env.CONTENT_DB.prepare(`
     INSERT INTO content_audit_events (
@@ -997,8 +1464,31 @@ function optionalPositiveInteger(value: unknown) {
   return Number.isInteger(number) && number > 0 ? number : null;
 }
 
+function normalizeTitle(value: string) {
+  return value.normalize('NFKC').toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function titleSimilarity(left: string, right: string) {
+  if (!left || !right) return 0;
+  if (left === right) return 1;
+  const leftWords = new Set(left.split(' '));
+  const rightWords = new Set(right.split(' '));
+  const intersection = [...leftWords].filter((word) => rightWords.has(word)).length;
+  const union = new Set([...leftWords, ...rightWords]).size;
+  const tokenScore = union ? intersection / union : 0;
+  const containment = left.includes(right) || right.includes(left) ? 0.85 : 0;
+  return Math.max(tokenScore, containment);
+}
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function parseJson(value: string) {
+  try { return JSON.parse(value) as unknown; } catch { return {}; }
 }
 
 async function readJson(request: Request): Promise<Record<string, unknown>> {

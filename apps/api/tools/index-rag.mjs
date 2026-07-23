@@ -34,6 +34,12 @@ for (;;) {
 }
 
 console.log(`Vector indexing complete for ${environment}: ${indexed} records.`);
+const statusResponse = await fetch(`${endpoint}/v1/ask/status`, { headers: { Accept: 'application/json' } });
+const statusBody = await statusResponse.json();
+if (!statusResponse.ok || !['ready', 'empty'].includes(statusBody.data?.status)) {
+  throw new Error(`Vector readiness check failed after indexing: ${statusBody.data?.status ?? statusResponse.status}`);
+}
+console.log(`Ask retrieval status: ${statusBody.data.status} (${statusBody.data.indexedCount}/${statusBody.data.expectedCount}).`);
 
 async function requestBatch(batchCursor) {
   for (let attempt = 1; attempt <= 6; attempt += 1) {

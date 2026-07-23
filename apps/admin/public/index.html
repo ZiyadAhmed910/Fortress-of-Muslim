@@ -65,7 +65,7 @@
         <a href="#services" data-nav><span>Service control</span></a>
         <a href="#audit" data-nav><span>Audit log</span></a>
       </nav>
-      <footer>Fortress Platform <span>0.16.0</span></footer>
+      <footer>Fortress Platform <span>0.17.0</span></footer>
     </aside>
 
     <div class="scrim" data-scrim></div>
@@ -89,21 +89,24 @@
         <form class="filter" data-filter="queue">
           <input name="q" placeholder="Title or canonical ID">
           <input name="collection" placeholder="Collection slug">
+          <select name="contentType"><option value="">All content</option><option value="dua">Duas</option><option value="hadith">Hadith</option></select>
+          <select name="assignment"><option value="">Any assignment</option><option value="assigned">Assigned</option><option value="unassigned">Unassigned</option></select>
           <select name="state"><option value="">All states</option><option>pending_review</option><option>assigned</option><option>in_review</option><option>changes_requested</option><option>needs_second_review</option><option>needs_senior_approval</option><option>approved</option><option>published</option></select>
           <button>Apply</button>
         </form>
         <div id="queue-table" class="table"></div>
+        <div id="queue-pagination" class="pagination"></div>
       </section>
 
       <section id="assignments" class="view" hidden>
         <header><div><span class="kicker">WORK DISTRIBUTION</span><h1>Assignments</h1><p>Assign a record, range, chapter, book, or collection to an editorial reviewer.</p></div></header>
         <form id="assignment-form" class="editorial-form">
           <label>Scope<select name="scopeType"><option value="record">Record</option><option value="record_range">Record range</option><option value="chapter">Chapter</option><option value="book">Book</option><option value="collection">Collection</option></select></label>
-          <label>Reviewer ID<input name="assignedTo" required></label>
+          <label>Reviewer<select name="assignedTo" required><option value="">Choose reviewer</option></select></label>
           <label>Canonical ID<input name="canonicalId"></label>
-          <label>Collection ID<input name="collectionId"></label>
-          <label>Book ID<input name="bookId"></label>
-          <label>Chapter ID<input name="chapterId"></label>
+          <label>Collection<select name="collectionId"><option value="">Choose collection</option></select></label>
+          <label>Book<select name="bookId"><option value="">Choose book</option></select></label>
+          <label>Chapter<select name="chapterId"><option value="">Choose chapter</option></select></label>
           <label>Range start<input name="rangeStart" type="number" min="1"></label>
           <label>Range end<input name="rangeEnd" type="number" min="1"></label>
           <label class="wide">Notes<textarea name="notes" rows="2"></textarea></label>
@@ -116,6 +119,8 @@
         <header><div><span class="kicker">ATOMIC RELEASES</span><h1>Publication batches</h1><p>Validate approved revisions, approve the batch, then publish a new canonical dataset version.</p></div></header>
         <form id="batch-form" class="filter"><input name="label" placeholder="Batch label" minlength="3" required><button class="primary">Create batch</button></form>
         <div id="batches-table" class="table"></div>
+        <header class="subheader"><div><h2>Canonical datasets</h2><p>Rollback creates a new immutable dataset from a prior complete snapshot.</p></div></header>
+        <div id="datasets-table" class="table"></div>
       </section>
 
       <section id="roles" class="view" hidden>

@@ -17,7 +17,7 @@ import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { decodeCursor, encodeCursor } from './lib/pagination';
 import { executeRecordQuery } from './lib/record-query';
-import { RagRateLimitError, answerQuestion, indexRecordBatch } from './rag';
+import { RagRateLimitError, answerQuestion, getRagStatus, indexRecordBatch } from './rag';
 import type { ContentRepository } from './repositories/content-repository';
 import { D1ContentRepository } from './repositories/d1-content-repository';
 import type { ApiVariables, Bindings } from './types';
@@ -409,6 +409,12 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       }
       throw error;
     }
+  });
+
+  app.get('/v1/ask/status', async (context) => {
+    const data = await getRagStatus(context.env, repositoryFactory(context.env));
+    context.header('Cache-Control', 'no-store');
+    return context.json({ data, meta: responseMeta(context) });
   });
 
   app.post('/v1/internal/vector-index', async (context) => {

@@ -5,7 +5,13 @@ const authBase = location.hostname.startsWith('admin-test.')
     : 'https://auth.fortressofmuslim.org';
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const state = { session: null, loaded: new Set(), record: null };
+const state = {
+  session: null,
+  loaded: new Set(),
+  record: null,
+  lookups: null,
+  queue: { params: {}, offset: 0, limit: 50, total: 0 },
+};
 const reviewFields = [
   'arabic', 'translation', 'transliteration', 'narrator', 'collection', 'book',
   'chapter', 'number', 'references', 'grades', 'formatting', 'completeness',
@@ -120,8 +126,8 @@ async function loadView(id, force = false, params = {}) {
   try {
     if (id === 'overview') await loadOverview();
     else if (id === 'queue') await loadQueue(params);
-    else if (id === 'assignments') await loadAssignments();
-    else if (id === 'batches') await loadBatches();
+    else if (id === 'assignments') await Promise.all([loadLookups(), loadAssignments()]);
+    else if (id === 'batches') await Promise.all([loadBatches(), loadDatasets()]);
     else if (id === 'roles') await loadRoles();
     else if (id === 'users') await loadUsers(params);
     else if (id === 'taxonomy') await loadTaxonomy(params);
@@ -185,14 +191,52 @@ $('#search-results').addEventListener('click', (event) => {
 });
 
 async function loadQueue(params = {}) {
-  const rows = (await api(`/v1/admin/editorial/queue?${new URLSearchParams(params)}`)).data;
+  const offset = Number(params.offset ?? 0);
+  const query = { ...params, offset, limit: state.queue.limit };
+  const response = await api(`/v1/admin/editorial/queue?${new URLSearchParams(query)}`);
+  const rows = response.data;
+  state.queue = {
+    params: Object.fromEntries(Object.entries(params).filter(([key]) => key !== 'offset')),
+    offset,
+    limit: response.pagination.limit,
+    total: response.pagination.total,
+  };
   $('#queue-table').innerHTML = tableHead(['Record', 'Collection', 'Revision', 'State', ''])
-    + rows.map((row) => `<div class="row"><span><strong>${esc(row.title)}</strong><small>${esc(row.canonicalId)}</small></span><span>${esc(row.collection || 'Unassigned')}</span><span>${row.revisionNumber}</span><span class="badge ${esc(row.workflowState)}">${esc(human(row.workflowState))}</span><span class="actions"><button data-record="${esc(row.canonicalId)}">Review</button></span></div>`).join('');
+    + (rows.map((row) => `<div class="row"><span><strong>${esc(row.title)}</strong><small>${esc(row.canonicalId)}</small></span><span><strong>${esc(row.collection || 'Unassigned')}</strong><small>${esc(row.contentType)}${row.assignedTo ? ` &middot; assigned` : ''}</small></span><span>${row.revisionNumber}</span><span class="badge ${esc(row.workflowState)}">${esc(human(row.workflowState))}</span><span class="actions"><button data-record="${esc(row.canonicalId)}">Review</button></span></div>`).join('') || empty());
+  const start = rows.length ? offset + 1 : 0;
+  const end = offset + rows.length;
+  $('#queue-pagination').innerHTML = `<span>${start}-${end} of ${response.pagination.total}</span><div><button data-queue-page="${Math.max(0, offset - response.pagination.limit)}" ${offset === 0 ? 'disabled' : ''}>Previous</button><button data-queue-page="${offset + response.pagination.limit}" ${!response.pagination.hasMore ? 'disabled' : ''}>Next</button></div>`;
 }
 $('#queue-table').addEventListener('click', (event) => {
   const button = event.target.closest('[data-record]');
   if (button) showRecord(button.dataset.record);
 });
+$('#queue-pagination').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-queue-page]');
+  if (!button || button.disabled) return;
+  loadQueue({ ...state.queue.params, offset: Number(button.dataset.queuePage) });
+});
+
+async function loadLookups() {
+  if (state.lookups) return;
+  state.lookups = (await api('/v1/admin/editorial/lookups')).data;
+  fillSelect($('#assignment-form [name="assignedTo"]'), state.lookups.reviewers, (row) => ({
+    value: row.id,
+    label: `${row.name} (${human(row.role)})`,
+  }));
+  fillSelect($('#assignment-form [name="collectionId"]'), state.lookups.collections, (row) => ({
+    value: row.id,
+    label: row.title,
+  }));
+  fillSelect($('#assignment-form [name="bookId"]'), state.lookups.books, (row) => ({
+    value: row.id,
+    label: `${row.collectionTitle} / ${row.number} ${row.title}`,
+  }));
+  fillSelect($('#assignment-form [name="chapterId"]'), state.lookups.chapters, (row) => ({
+    value: row.id,
+    label: `${row.bookTitle} / ${row.number} ${row.title}`,
+  }));
+}
 
 async function showRecord(id) {
   const data = (await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}`)).data;
@@ -201,13 +245,19 @@ async function showRecord(id) {
     .filter((item) => item.reviewerId === state.session.user.id)
     .map((item) => [item.fieldName, item]));
   const grouped = groupSegments(data.segments);
+  const reviewers = [...new Set(data.fieldReviews.map((item) => item.reviewerId))];
+  const priorRevisions = data.revisions.filter((revision) => revision.id !== data.record.revisionId);
   $('#record-detail').innerHTML = `
     <header class="editor-head"><div><span class="kicker">CANONICAL RECORD</span><h2>${esc(data.record.title)}</h2><p>${esc(data.record.canonicalId)} &middot; revision ${data.record.revisionNumber}</p></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header>
-    <div class="verification-banner"><strong>${esc(human(data.record.workflowState))}</strong><span>${esc(data.record.collectionTitle || 'Collection pending editorial confirmation')}</span></div>
+    <div class="verification-banner"><strong>${esc(human(data.record.workflowState))}</strong><span>${esc(data.record.collectionTitle || 'Collection pending editorial confirmation')}</span><small>${reviewers.length} reviewer${reviewers.length === 1 ? '' : 's'} started &middot; ${data.decisions.length} decisions</small></div>
     <section class="editor-section"><header><div><h3>Revision content</h3><p>Review the immutable text snapshot currently assigned to this record.</p></div></header>
       ${grouped.map((part) => `<div class="revision-part"><strong>Part ${part.position}</strong>${part.segments.map((segment) => `<label>${esc(human(segment.kind))}<textarea rows="${segment.kind === 'arabic' ? 4 : 3}" dir="${segment.kind === 'arabic' ? 'rtl' : 'ltr'}" data-segment="${part.position}:${segment.segmentPosition}">${esc(segment.text)}</textarea></label>`).join('')}</div>`).join('')}
       <form id="revision-form" class="inline-control"><input name="title" value="${esc(data.record.title)}" aria-label="Corrected title"><input name="reason" placeholder="Correction reason (required)" minlength="10"><button type="submit">Create correction revision</button></form>
     </section>
+    <section class="editor-section"><header><div><h3>Revision history</h3><p>Compare the current immutable snapshot with any earlier correction.</p></div></header>
+      ${priorRevisions.map((revision) => `<div class="history-row"><span><strong>Revision ${revision.revisionNumber}</strong><small>${esc(revision.correctionReason || 'Imported candidate')} &middot; ${date(revision.createdAt)}</small></span><button data-compare-revision="${esc(revision.id)}">Compare</button></div>`).join('') || empty('This is the first revision.')}
+    </section>
+    <section class="editor-section"><header><div><h3>Duplicate assistance</h3><p>Title similarity is a reviewer aid only; it never makes an editorial decision.</p></div><button data-find-duplicates>Check candidates</button></header><div data-duplicate-results></div></section>
     <section class="editor-section"><header><div><h3>Canonical references</h3><p>Reference locators are Fortress-owned evidence metadata, not provider links.</p></div></header>
       <div id="reference-list">${data.references.map(referenceRow).join('') || empty('No canonical references attached.')}</div>
       <form id="reference-form" class="inline-control"><input name="referenceType" placeholder="Reference type" value="primary" required><input name="locator" placeholder="Canonical locator" required><button type="submit">Add reference</button></form>
@@ -216,7 +266,7 @@ async function showRecord(id) {
       <form id="field-review-form" class="field-review-grid">${reviewFields.map((field) => {
         const previous = reviewed.get(field);
         return `<label><span>${esc(human(field))}</span><select name="${esc(field)}" ${previous ? 'disabled' : ''}><option value="verified" ${previous?.decision === 'verified' ? 'selected' : ''}>Verified</option><option value="correction_required" ${previous?.decision === 'correction_required' ? 'selected' : ''}>Correction required</option><option value="not_applicable" ${previous?.decision === 'not_applicable' ? 'selected' : ''}>Not applicable</option></select></label>`;
-      }).join('')}<button class="primary" type="submit" ${reviewed.size ? 'disabled' : ''}>Submit immutable field review</button></form>
+      }).join('')}<button class="primary" type="submit" ${reviewed.size === reviewFields.length ? 'disabled' : ''}>Submit remaining field checks</button></form>
     </section>
     <section class="editor-section"><header><div><h3>Decisions</h3><p>Two independent reviewers must approve before a separate senior approval.</p></div></header>
       <div class="decision-bar"><button data-decision="approved" data-stage="independent_review">Independent approve</button><button data-decision="changes_requested" data-stage="independent_review">Request changes</button><button class="primary" data-decision="approved" data-stage="senior_approval">Senior approve</button></div>
@@ -265,8 +315,20 @@ $('#record-detail').addEventListener('click', async (event) => {
   if (!id) return;
   const decision = event.target.closest('[data-decision]');
   const reference = event.target.closest('[data-reference-decision]');
+  const compare = event.target.closest('[data-compare-revision]');
+  const duplicates = event.target.closest('[data-find-duplicates]');
   try {
-    if (decision) {
+    if (compare) {
+      return showRevisionComparison(id, compare.dataset.compareRevision);
+    } else if (duplicates) {
+      const rows = (await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/duplicates`)).data;
+      $('[data-duplicate-results]', $('#record-detail')).innerHTML = rows.length
+        ? rows.map((row) => `<button class="duplicate-row" data-record="${esc(row.canonicalId)}"><span><strong>${esc(row.title)}</strong><small>${esc(row.canonicalId)} &middot; ${human(row.workflowState)}</small></span><span>${Math.round(row.score * 100)}%</span></button>`).join('')
+        : empty('No likely title duplicates found.');
+      return;
+    } else if (event.target.closest('[data-duplicate-results] [data-record]')) {
+      return showRecord(event.target.closest('[data-record]').dataset.record);
+    } else if (decision) {
       await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/decision`, {
         method: 'POST',
         body: { decision: decision.dataset.decision, stage: decision.dataset.stage },
@@ -288,13 +350,32 @@ $('#record-detail').addEventListener('click', async (event) => {
   }
 });
 
+async function showRevisionComparison(canonicalId, revisionId) {
+  const previous = (await api(`/v1/admin/editorial/records/${encodeURIComponent(canonicalId)}/revisions/${encodeURIComponent(revisionId)}`)).data;
+  const current = state.record;
+  const dialog = document.createElement('dialog');
+  dialog.className = 'editor-dialog compare-dialog';
+  dialog.innerHTML = `<header class="editor-head"><div><span class="kicker">REVISION COMPARISON</span><h2>Revision ${previous.revision.revisionNumber} to ${current.record.revisionNumber}</h2><p>${esc(canonicalId)}</p></div><button data-close-dialog aria-label="Close">&times;</button></header>
+    <div class="comparison-grid">
+      <section><h3>Revision ${previous.revision.revisionNumber}</h3>${revisionText(previous.segments)}</section>
+      <section><h3>Current revision ${current.record.revisionNumber}</h3>${revisionText(current.segments)}</section>
+    </div>`;
+  document.body.append(dialog);
+  dialog.addEventListener('close', () => dialog.remove());
+  dialog.showModal();
+}
+
+function revisionText(segments) {
+  return groupSegments(segments).map((part) => `<div class="revision-part"><strong>Part ${part.position}</strong>${part.segments.map((segment) => `<label>${esc(human(segment.kind))}<div class="compare-text" dir="${segment.kind === 'arabic' ? 'rtl' : 'ltr'}">${esc(segment.text)}</div></label>`).join('')}</div>`).join('');
+}
+
 $('#assignment-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const body = compactForm(event.target);
   try {
-    await api('/v1/admin/editorial/assignments', { method: 'POST', body });
+    const response = await api('/v1/admin/editorial/assignments', { method: 'POST', body });
     event.target.reset();
-    notify('Editorial assignment created.');
+    notify(`Editorial assignment created for ${response.data.matchedRecords} record${response.data.matchedRecords === 1 ? '' : 's'}.`);
     loadAssignments();
   } catch (error) {
     notify(error.message, true);
@@ -323,12 +404,15 @@ async function loadBatches() {
     + rows.map((row) => `<div class="row"><span><strong>${esc(row.label)}</strong><small>${esc(row.id)}</small></span><span>${row.itemCount}</span><span class="badge ${esc(row.status)}">${esc(row.status)}</span><span>${date(row.createdAt)}</span><span class="actions">${batchActions(row)}</span></div>`).join('');
 }
 function batchActions(row) {
-  if (row.status === 'draft') return `<button data-batch-add="${esc(row.id)}">Add records</button><button data-batch-action="validate" data-batch="${esc(row.id)}">Validate</button>`;
-  if (row.status === 'validated') return `<button data-batch-action="approve" data-batch="${esc(row.id)}">Approve</button>`;
-  if (row.status === 'approved') return `<button class="primary" data-batch-action="publish" data-batch="${esc(row.id)}">Publish</button>`;
-  return '';
+  const inspect = `<button data-batch-view="${esc(row.id)}">Inspect</button>`;
+  if (row.status === 'draft') return `${inspect}<button data-batch-add="${esc(row.id)}">Add records</button><button data-batch-action="validate" data-batch="${esc(row.id)}">Validate</button>`;
+  if (row.status === 'validated') return `${inspect}<button data-batch-action="approve" data-batch="${esc(row.id)}">Approve</button>`;
+  if (row.status === 'approved') return `${inspect}<button class="primary" data-batch-action="publish" data-batch="${esc(row.id)}">Publish</button>`;
+  return inspect;
 }
 $('#batches-table').addEventListener('click', async (event) => {
+  const view = event.target.closest('[data-batch-view]');
+  if (view) return showBatch(view.dataset.batchView);
   const add = event.target.closest('[data-batch-add]');
   if (add) {
     $('#batch-action-form').reset();
@@ -347,6 +431,71 @@ $('#batches-table').addEventListener('click', async (event) => {
     notify(error.message, true);
   }
 });
+
+async function showBatch(id) {
+  const data = (await api(`/v1/admin/editorial/batches/${encodeURIComponent(id)}`)).data;
+  const report = data.batch.validationReport || {};
+  const dialog = document.createElement('dialog');
+  dialog.className = 'editor-dialog batch-detail';
+  dialog.innerHTML = `<header class="editor-head"><div><span class="kicker">PUBLICATION BATCH</span><h2>${esc(data.batch.label)}</h2><p>${esc(data.batch.id)} &middot; ${human(data.batch.status)}</p></div><button data-close-dialog aria-label="Close">&times;</button></header>
+    <section class="editor-section"><h3>Validation report</h3>${report.itemCount !== undefined
+      ? `<div class="validation-summary"><span class="badge ${report.valid ? 'verified' : 'rejected'}">${report.valid ? 'Valid' : 'Blocked'}</span><span>${report.itemCount} records checked</span></div>${(report.invalidRecords || []).map((item) => `<div class="validation-error"><strong>${esc(item.canonicalId)}</strong><ul>${item.issues.map((issue) => `<li>${esc(issue)}</li>`).join('')}</ul></div>`).join('')}`
+      : empty('This draft has not been validated.')}</section>
+    <section class="editor-section"><h3>Records</h3>${data.items.map((item) => `<div class="history-row"><span><strong>${esc(item.title)}</strong><small>${esc(item.canonicalId)} &middot; revision ${item.revisionNumber} &middot; ${human(item.workflowState)}</small></span>${data.batch.status === 'draft' ? `<button class="danger" data-remove-batch-record="${esc(item.canonicalId)}">Remove</button>` : ''}</div>`).join('') || empty('No records have been added.')}</section>`;
+  dialog.addEventListener('click', async (event) => {
+    const remove = event.target.closest('[data-remove-batch-record]');
+    if (!remove) return;
+    try {
+      await api(`/v1/admin/editorial/batches/${encodeURIComponent(id)}/items`, {
+        method: 'DELETE',
+        body: { canonicalIds: [remove.dataset.removeBatchRecord] },
+      });
+      notify('Record removed from the draft batch.');
+      dialog.close();
+      await Promise.all([loadBatches(), showBatch(id)]);
+    } catch (error) {
+      notify(error.message, true);
+    }
+  });
+  document.body.append(dialog);
+  dialog.addEventListener('close', () => dialog.remove());
+  dialog.showModal();
+}
+
+async function loadDatasets() {
+  const rows = (await api('/v1/admin/editorial/datasets')).data;
+  $('#datasets-table').innerHTML = tableHead(['Dataset', 'Records', 'Status', 'Published', ''])
+    + rows.map((row) => `<div class="row"><span><strong>${esc(row.versionLabel)}</strong><small>${esc(row.id)}</small></span><span>${row.recordCount}<small>${row.snapshotCount} snapshotted</small></span><span class="badge ${esc(row.publicationStatus)}">${esc(human(row.publicationStatus))}</span><span>${date(row.publishedAt)}</span><span class="actions">${row.publicationStatus !== 'published' && Number(row.snapshotCount) === Number(row.recordCount) ? `<button class="danger" data-rollback-dataset="${esc(row.id)}">Rollback to this</button>` : ''}</span></div>`).join('');
+}
+
+$('#datasets-table').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-rollback-dataset]');
+  if (!button) return;
+  showRollbackDialog(button.dataset.rollbackDataset);
+});
+
+function showRollbackDialog(datasetId) {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'editor-dialog rollback-dialog';
+  dialog.innerHTML = `<form><header><div><span class="kicker">DATASET ROLLBACK</span><h2>Restore prior snapshot</h2><p>${esc(datasetId)}</p></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header><div class="form-grid"><label class="wide">Reason<textarea name="reason" rows="4" minlength="10" maxlength="1000" required></textarea></label><div class="warning wide"><span>This creates a new immutable dataset and immediately changes every public API, MCP, RAG, and PWA snapshot source.</span></div></div><footer><button type="button" data-close-dialog>Cancel</button><button class="danger" type="submit">Confirm rollback</button></footer></form>`;
+  dialog.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      await api(`/v1/admin/editorial/datasets/${encodeURIComponent(datasetId)}/rollback`, {
+        method: 'POST',
+        body: Object.fromEntries(new FormData(event.target)),
+      });
+      dialog.close();
+      notify('Canonical dataset rollback published.');
+      await Promise.all([loadDatasets(), loadBatches(), loadOverview()]);
+    } catch (error) {
+      notify(error.message, true);
+    }
+  });
+  document.body.append(dialog);
+  dialog.addEventListener('close', () => dialog.remove());
+  dialog.showModal();
+}
 $('#batch-action-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const values = Object.fromEntries(new FormData(event.target));
@@ -493,6 +642,13 @@ function groupSegments(segments) {
 }
 function compactForm(form) {
   return Object.fromEntries([...new FormData(form)].filter(([, value]) => String(value).trim()));
+}
+function fillSelect(select, rows, map) {
+  const first = select.options[0]?.outerHTML || '<option value="">Choose</option>';
+  select.innerHTML = first + rows.map((row) => {
+    const item = map(row);
+    return `<option value="${esc(item.value)}">${esc(item.label)}</option>`;
+  }).join('');
 }
 function resourceStatus(type, value) {
   if (type === 'api-keys') return Number(value) === 1 ? 'active' : 'revoked';
