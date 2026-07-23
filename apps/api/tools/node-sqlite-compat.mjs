@@ -11,5 +11,16 @@ export function withNodeSqliteCompatibility(sql) {
       body TEXT,
       narrator TEXT
     );`,
+  ).replace(
+    /CREATE VIRTUAL TABLE canonical_search_fts USING fts5\([\s\S]*?\n\);/,
+    `CREATE TABLE canonical_search_fts (
+      canonical_id TEXT,
+      revision_id TEXT,
+      content_type TEXT,
+      collection_slug TEXT,
+      title TEXT,
+      body TEXT,
+      narrator TEXT
+    );`,
   );
 }

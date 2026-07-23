@@ -15,27 +15,15 @@ export type DuaTitleMatch = Dua & { matchScore: number };
 
 export type RecordEvidence = {
   recordId: string;
-  dataset: DatasetSummary;
+  canonicalUrl: string;
+  revisionNumber: number;
+  publishedAt: string;
   collection: { id: string; title: string; verificationStatus: string } | null;
-  sources: Array<{
+  references: Array<{
     id: string;
-    title: string;
-    publisher: string | null;
-    edition: string | null;
-    sourceUrl: string | null;
-    licenseName: string | null;
-    licenseStatus: string;
-    authenticityStatus: string;
     referenceType: string;
     locator: string;
     verificationStatus: string;
-  }>;
-  datasetSources: Array<{
-    id: string;
-    title: string;
-    importLocator: string;
-    licenseStatus: string;
-    authenticityStatus: string;
   }>;
   taxonomy: Array<{ type: string; slug: string; label: string; languageCode: string }>;
   verificationHistory: Array<{ status: string; method: string; notes: string | null; reviewedAt: string }>;
@@ -55,5 +43,6 @@ export interface ContentRepository {
   countHadith(collection?: string): Promise<number>;
   listHadith(collection: string | undefined, offset: number, limit: number): Promise<HadithSummary[]>;
   searchHadith(query: string, collection: string | undefined, offset: number, limit: number): Promise<{ items: HadithSummary[]; total: number }>;
+  resolveHadithPath(collection: string, book: string, number: string): Promise<Hadith | undefined>;
   getHadith(id: string): Promise<Hadith | undefined>;
 }

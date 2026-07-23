@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 const forbiddenPrefixes = [
   'sunnah-data-fast-do-not-deploy/',
   '.fortress-import/',
+  'private-acquisition-do-not-commit/',
 ];
 
 const tracked = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' })
@@ -17,4 +18,4 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
-console.log('Local data boundary verified. No restricted corpus or generated import is tracked.');
+console.log('Local data boundary verified. No restricted candidate material is tracked.');

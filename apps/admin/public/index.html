@@ -1,43 +1,163 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#0b6f73">
-  <title>Admin Console | Fortress Platform</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0b6f73">
+  <title>Editorial Admin | Fortress Platform</title>
   <link rel="icon" href="/assets/fortress-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/portal.css"><link rel="stylesheet" href="/admin.css">
-  <script src="/assets/portal.js" defer></script><script src="/app.js" defer></script>
+  <link rel="stylesheet" href="/assets/portal.css">
+  <link rel="stylesheet" href="/admin.css">
+  <script src="/assets/portal.js" defer></script>
+  <script src="/app.js" defer></script>
 </head>
 <body>
-  <main id="login" class="login-shell" hidden><form id="login-form" class="login-panel"><img src="/assets/fortress-mark.svg" alt=""><span class="kicker">RESTRICTED OPERATIONS</span><h1>Fortress Admin</h1><p>Sign in with an account that has an active platform administrator role.</p><label>Email<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" autocomplete="current-password" minlength="12" required></label><button class="primary" type="submit">Sign in</button><p id="login-message" class="message" role="status"></p></form></main>
-  <div id="denied" class="denied" hidden><img src="/assets/fortress-mark.svg" alt=""><h1>Administrator access required</h1><p>Your identity is valid, but it has no active Fortress administrator role.</p><button data-sign-out>Sign out</button></div>
+  <main id="login" class="login-shell" hidden>
+    <form id="login-form" class="login-panel">
+      <img src="/assets/fortress-mark.svg" alt="">
+      <span class="kicker">RESTRICTED OPERATIONS</span>
+      <h1>Fortress Admin</h1>
+      <p>Sign in with an account that has an active platform administrator role.</p>
+      <label>Email<input name="email" type="email" autocomplete="email" required></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" minlength="12" required></label>
+      <button class="primary" type="submit">Sign in</button>
+      <p id="login-message" class="message" role="status"></p>
+    </form>
+  </main>
+
+  <div id="denied" class="denied" hidden>
+    <img src="/assets/fortress-mark.svg" alt="">
+    <h1>Administrator access required</h1>
+    <p>Your identity is valid, but it has no active Fortress administrator role.</p>
+    <button data-sign-out>Sign out</button>
+  </div>
 
   <div id="console" class="console" hidden>
-    <header class="topbar"><button class="icon-button mobile-menu" data-menu aria-label="Open navigation">&#9776;</button><a class="brand" href="#overview"><img src="/assets/fortress-mark.svg" alt=""><span><strong>Fortress Platform</strong><small>Admin Console</small></span></a><span class="env">BETA</span><form id="global-search" class="global-search"><span>&#8981;</span><input name="q" placeholder="Find users, keys, apps, devices, MCP, content..." autocomplete="off"><kbd>/</kbd></form><button class="profile" data-profile aria-expanded="false"><span data-initials>ZA</span></button><div class="profile-menu" data-profile-menu hidden><strong data-user-name></strong><small data-user-email></small><span data-role></span><button data-sign-out>Sign out</button></div></header>
-    <aside class="sidebar"><nav>
-      <a href="#overview" data-nav>&#9672; <span>Overview</span></a><a href="#search" data-nav>&#8981; <span>Global search</span></a>
-      <p>IDENTITY</p><a href="#users" data-nav>&#9817; <span>Users</span></a><a href="#api-keys" data-nav>&#9919; <span>API keys</span></a><a href="#oauth-clients" data-nav>&#9635; <span>Connected apps</span></a><a href="#devices" data-nav>&#9647; <span>Devices</span></a>
-      <p>KNOWLEDGE</p><a href="#content" data-nav>&#9638; <span>Content records</span></a><a href="#sources" data-nav>&#9671; <span>Sources</span></a><a href="#taxonomy" data-nav>&#8983; <span>Taxonomy</span></a>
-      <p>PLATFORM</p><a href="#mcp-servers" data-nav>&#8984; <span>MCP toolsets</span></a><a href="#mcp-tools" data-nav>&#10003; <span>External tool review</span></a><a href="#named-queries" data-nav>&#9636; <span>Named queries</span></a>
-      <p>OPERATIONS</p><a href="#services" data-nav>&#9673; <span>Service control</span></a><a href="#audit" data-nav>&#8801; <span>Audit log</span></a>
-</nav><footer>Fortress Platform <span>0.15.0</span></footer></aside>
+    <header class="topbar">
+      <button class="icon-button mobile-menu" data-menu aria-label="Open navigation">&#9776;</button>
+      <a class="brand" href="#overview"><img src="/assets/fortress-mark.svg" alt=""><span><strong>Fortress Platform</strong><small>Editorial Admin</small></span></a>
+      <span class="env">BETA</span>
+      <form id="global-search" class="global-search"><span>&#8981;</span><input name="q" placeholder="Find users, records, keys, apps, and tools" autocomplete="off"><kbd>/</kbd></form>
+      <button class="profile" data-profile aria-expanded="false"><span data-initials>FA</span></button>
+      <div class="profile-menu" data-profile-menu hidden><strong data-user-name></strong><small data-user-email></small><span data-role></span><span data-editorial-role></span><button data-sign-out>Sign out</button></div>
+    </header>
+
+    <aside class="sidebar">
+      <nav>
+        <a href="#overview" data-nav><span>Overview</span></a>
+        <a href="#search" data-nav><span>Global search</span></a>
+        <p>EDITORIAL</p>
+        <a href="#queue" data-nav><span>Review queue</span></a>
+        <a href="#assignments" data-nav><span>Assignments</span></a>
+        <a href="#batches" data-nav><span>Publication batches</span></a>
+        <a href="#taxonomy" data-nav><span>Taxonomy</span></a>
+        <a href="#roles" data-nav><span>Editorial roles</span></a>
+        <p>PLATFORM</p>
+        <a href="#users" data-nav><span>Users</span></a>
+        <a href="#api-keys" data-nav><span>API keys</span></a>
+        <a href="#oauth-clients" data-nav><span>Connected apps</span></a>
+        <a href="#devices" data-nav><span>Devices</span></a>
+        <a href="#mcp-servers" data-nav><span>MCP toolsets</span></a>
+        <a href="#mcp-tools" data-nav><span>External tool review</span></a>
+        <a href="#named-queries" data-nav><span>Named queries</span></a>
+        <p>OPERATIONS</p>
+        <a href="#services" data-nav><span>Service control</span></a>
+        <a href="#audit" data-nav><span>Audit log</span></a>
+      </nav>
+      <footer>Fortress Platform <span>0.16.0</span></footer>
+    </aside>
+
     <div class="scrim" data-scrim></div>
-    <main class="workspace"><div id="toast" class="toast" hidden></div>
-      <section id="overview" class="view"><header><div><span class="kicker">COMMAND CENTER</span><h1>Platform overview</h1><p>Live identity, content, and service controls for this environment.</p></div><button data-refresh>Refresh</button></header><div id="metrics" class="metrics"></div><div class="split"><section><h2>Service health</h2><div id="overview-services"></div></section><section><h2>Recent admin activity</h2><div id="overview-audit"></div></section></div></section>
-      <section id="search" class="view" hidden><header><div><span class="kicker">CROSS-PLATFORM LOOKUP</span><h1>Global search</h1><p>Find records across identity, integrations, agents, and content.</p></div></header><form id="search-form" class="filter"><input name="q" placeholder="Search by name, email, ID, title, or slug" minlength="2" required><button class="primary">Search</button></form><div id="search-results" class="search-results"></div></section>
-      <section id="users" class="view" hidden><header><div><span class="kicker">IDENTITY</span><h1>Users</h1><p>Inspect access and suspend compromised or abusive accounts.</p></div></header><form class="filter" data-filter="users"><input name="q" placeholder="Name or email"><select name="status"><option value="">All statuses</option><option>active</option><option>suspended</option><option>closed</option></select><button>Apply</button></form><div id="users-table" class="table"></div></section>
-      <section id="api-keys" class="view" hidden data-resource="api-keys"><resource-header></resource-header><div class="table resource-table"></div></section><section id="oauth-clients" class="view" hidden data-resource="oauth-clients"><resource-header></resource-header><div class="table resource-table"></div></section><section id="devices" class="view" hidden data-resource="devices"><resource-header></resource-header><div class="table resource-table"></div></section><section id="mcp-servers" class="view" hidden data-resource="mcp-servers"><resource-header></resource-header><div class="table resource-table"></div></section><section id="mcp-tools" class="view" hidden data-resource="mcp-tools"><resource-header></resource-header><div class="table resource-table"></div></section><section id="named-queries" class="view" hidden data-resource="named-queries"><resource-header></resource-header><div class="table resource-table"></div></section>
-      <section id="content" class="view" hidden><header><div><span class="kicker">CONTENT GOVERNANCE</span><h1>Content records</h1><p>Inspect citations, taxonomy, and review history before changing verification state.</p></div></header><form class="filter" data-filter="content"><input name="q" placeholder="Title, canonical ID, or legacy ID"><select name="status"><option value="">All statuses</option><option>pending</option><option>verified</option><option>rejected</option><option>deprecated</option></select><button>Apply</button></form><div id="content-table" class="table"></div></section>
-      <section id="sources" class="view" hidden><header><div><span class="kicker">PROVENANCE</span><h1>Sources</h1><p>Register editions, publishers, licenses, formats, and authenticity decisions.</p></div><button class="primary" data-new-source>Add source</button></header><form class="filter" data-filter="sources"><input name="q" placeholder="Title, publisher, or source ID"><select name="status"><option value="">All review states</option><option>unknown</option><option>reviewing</option><option>approved</option><option>restricted</option><option>unreviewed</option><option>trusted</option><option>rejected</option></select><button>Apply</button></form><div id="sources-table" class="table"></div></section>
-      <section id="taxonomy" class="view" hidden><header><div><span class="kicker">DISCOVERY METADATA</span><h1>Taxonomy</h1><p>Manage controlled categories, topics, tags, keywords, moods, and occasions.</p></div><button class="primary" data-new-term>Add term</button></header><form class="filter" data-filter="taxonomy"><input name="q" placeholder="Label or slug"><select name="type"><option value="">All types</option><option>category</option><option>topic</option><option>tag</option><option>keyword</option><option>mood</option><option>occasion</option></select><button>Apply</button></form><div id="taxonomy-table" class="table"></div></section>
-      <section id="services" class="view" hidden><header><div><span class="kicker">OPERATIONS</span><h1>Service control</h1><p>Place Worker-enforced services into maintenance or disabled state.</p></div></header><div class="warning"><strong>Recovery protection</strong><span>Identity and Admin cannot be disabled here. Static portals remain monitoring-only until they are placed behind an enforceable gateway.</span></div><div id="services-grid" class="service-grid"></div></section>
-      <section id="audit" class="view" hidden><header><div><span class="kicker">IMMUTABLE HISTORY</span><h1>Audit log</h1><p>Trace privileged changes by actor, target, request, and time.</p></div></header><form class="filter" data-filter="audit"><input name="q" placeholder="Action, target ID, or actor email"><button>Apply</button></form><div id="audit-table" class="table"></div></section>
+    <main class="workspace">
+      <div id="toast" class="toast" hidden></div>
+
+      <section id="overview" class="view">
+        <header><div><span class="kicker">CANONICAL CONTROL PLANE</span><h1>Platform overview</h1><p>Published content and editorial work are separated by a hard publication boundary.</p></div><button data-refresh>Refresh</button></header>
+        <div id="metrics" class="metrics"></div>
+        <div class="split"><section><h2>Editorial queues</h2><div id="overview-queues"></div></section><section><h2>Service health</h2><div id="overview-services"></div></section></div>
+      </section>
+
+      <section id="search" class="view" hidden>
+        <header><div><span class="kicker">CROSS-PLATFORM LOOKUP</span><h1>Global search</h1><p>Find canonical records and platform resources without exposing acquisition metadata.</p></div></header>
+        <form id="search-form" class="filter"><input name="q" placeholder="Search by title, canonical ID, name, email, or slug" minlength="2" required><button class="primary">Search</button></form>
+        <div id="search-results" class="search-results"></div>
+      </section>
+
+      <section id="queue" class="view" hidden>
+        <header><div><span class="kicker">HUMAN VERIFICATION</span><h1>Review queue</h1><p>Every candidate remains private until two independent reviews, senior approval, and publication.</p></div></header>
+        <form class="filter" data-filter="queue">
+          <input name="q" placeholder="Title or canonical ID">
+          <input name="collection" placeholder="Collection slug">
+          <select name="state"><option value="">All states</option><option>pending_review</option><option>assigned</option><option>in_review</option><option>changes_requested</option><option>needs_second_review</option><option>needs_senior_approval</option><option>approved</option><option>published</option></select>
+          <button>Apply</button>
+        </form>
+        <div id="queue-table" class="table"></div>
+      </section>
+
+      <section id="assignments" class="view" hidden>
+        <header><div><span class="kicker">WORK DISTRIBUTION</span><h1>Assignments</h1><p>Assign a record, range, chapter, book, or collection to an editorial reviewer.</p></div></header>
+        <form id="assignment-form" class="editorial-form">
+          <label>Scope<select name="scopeType"><option value="record">Record</option><option value="record_range">Record range</option><option value="chapter">Chapter</option><option value="book">Book</option><option value="collection">Collection</option></select></label>
+          <label>Reviewer ID<input name="assignedTo" required></label>
+          <label>Canonical ID<input name="canonicalId"></label>
+          <label>Collection ID<input name="collectionId"></label>
+          <label>Book ID<input name="bookId"></label>
+          <label>Chapter ID<input name="chapterId"></label>
+          <label>Range start<input name="rangeStart" type="number" min="1"></label>
+          <label>Range end<input name="rangeEnd" type="number" min="1"></label>
+          <label class="wide">Notes<textarea name="notes" rows="2"></textarea></label>
+          <button class="primary" type="submit">Create assignment</button>
+        </form>
+        <div id="assignments-table" class="table"></div>
+      </section>
+
+      <section id="batches" class="view" hidden>
+        <header><div><span class="kicker">ATOMIC RELEASES</span><h1>Publication batches</h1><p>Validate approved revisions, approve the batch, then publish a new canonical dataset version.</p></div></header>
+        <form id="batch-form" class="filter"><input name="label" placeholder="Batch label" minlength="3" required><button class="primary">Create batch</button></form>
+        <div id="batches-table" class="table"></div>
+      </section>
+
+      <section id="roles" class="view" hidden>
+        <header><div><span class="kicker">SEPARATION OF DUTIES</span><h1>Editorial roles</h1><p>Manage reviewer, editor, publisher, and super administrator authority.</p></div></header>
+        <div id="roles-table" class="table"></div>
+      </section>
+
+      <section id="users" class="view" hidden>
+        <header><div><span class="kicker">IDENTITY</span><h1>Users</h1><p>Inspect access and suspend compromised or abusive accounts.</p></div></header>
+        <form class="filter" data-filter="users"><input name="q" placeholder="Name or email"><select name="status"><option value="">All statuses</option><option>active</option><option>suspended</option><option>closed</option></select><button>Apply</button></form>
+        <div id="users-table" class="table"></div>
+      </section>
+
+      <section id="api-keys" class="view" hidden data-resource="api-keys"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="oauth-clients" class="view" hidden data-resource="oauth-clients"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="devices" class="view" hidden data-resource="devices"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="mcp-servers" class="view" hidden data-resource="mcp-servers"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="mcp-tools" class="view" hidden data-resource="mcp-tools"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="named-queries" class="view" hidden data-resource="named-queries"><resource-header></resource-header><div class="table resource-table"></div></section>
+
+      <section id="taxonomy" class="view" hidden>
+        <header><div><span class="kicker">DISCOVERY METADATA</span><h1>Taxonomy</h1><p>Manage controlled categories, topics, tags, keywords, moods, and occasions.</p></div><button class="primary" data-new-term>Add term</button></header>
+        <form class="filter" data-filter="taxonomy"><input name="q" placeholder="Label or slug"><select name="type"><option value="">All types</option><option>category</option><option>topic</option><option>tag</option><option>keyword</option><option>mood</option><option>occasion</option></select><button>Apply</button></form>
+        <div id="taxonomy-table" class="table"></div>
+      </section>
+
+      <section id="services" class="view" hidden>
+        <header><div><span class="kicker">OPERATIONS</span><h1>Service control</h1><p>Place Worker-enforced services into maintenance or disabled state.</p></div></header>
+        <div id="services-grid" class="service-grid"></div>
+      </section>
+
+      <section id="audit" class="view" hidden>
+        <header><div><span class="kicker">IMMUTABLE HISTORY</span><h1>Audit log</h1><p>Trace privileged changes by actor, target, request, and time.</p></div></header>
+        <form class="filter" data-filter="audit"><input name="q" placeholder="Action, target ID, or actor email"><button>Apply</button></form>
+        <div id="audit-table" class="table"></div>
+      </section>
     </main>
   </div>
 
   <dialog id="confirm"><form method="dialog"><h2 data-confirm-title>Confirm change</h2><p data-confirm-copy></p><div><button value="cancel">Cancel</button><button value="confirm" class="danger">Confirm</button></div></form></dialog>
-  <dialog id="source-dialog" class="editor-dialog"><form id="source-form"><input name="id" type="hidden"><header><div><span class="kicker">SOURCE REGISTRY</span><h2 data-source-title>Add source</h2></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header><div class="form-grid"><label>Source type<select name="sourceType" required><option value="book">Book</option><option value="publication">Publication</option><option value="digital_library">Digital library</option><option value="api">API</option><option value="file">File</option><option value="dataset">Dataset</option></select></label><label>Title<input name="title" maxlength="200" required></label><label>Original title<input name="originalTitle" maxlength="200"></label><label>Publisher<input name="publisher" maxlength="160"></label><label>Edition<input name="edition" maxlength="120"></label><label>Publication year<input name="publicationYear" type="number" min="500"></label><label class="wide">Source URL<input name="sourceUrl" type="url" placeholder="https://..."></label><label>License<input name="licenseName" maxlength="160"></label><label>License status<select name="licenseStatus"><option>unknown</option><option>reviewing</option><option>approved</option><option>restricted</option></select></label><label class="wide">License URL<input name="licenseUrl" type="url" placeholder="https://..."></label><label>Authenticity<select name="authenticityStatus"><option>unreviewed</option><option>trusted</option><option>rejected</option></select></label><label>Machine format<input name="machineFormat" maxlength="80" placeholder="JSON, XML, EPUB..."></label><label class="wide">Editorial notes<textarea name="notes" maxlength="2000" rows="4"></textarea></label></div><p class="form-note">Trusted authenticity and approved licensing are independent decisions. Only a super administrator can grant either.</p><footer><button type="button" data-close-dialog>Cancel</button><button class="primary" type="submit">Save source</button></footer></form></dialog>
   <dialog id="term-dialog" class="editor-dialog"><form id="term-form"><header><div><span class="kicker">CONTROLLED VOCABULARY</span><h2>Add taxonomy term</h2></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header><div class="form-grid"><label>Type<select name="type" required><option>category</option><option>topic</option><option>tag</option><option>keyword</option><option>mood</option><option>occasion</option></select></label><label>Language<input name="languageCode" value="en" required></label><label>Label<input name="label" maxlength="100" required></label><label>Slug<input name="slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required></label><label class="wide">Description<textarea name="description" maxlength="500" rows="3"></textarea></label></div><footer><button type="button" data-close-dialog>Cancel</button><button class="primary" type="submit">Create term</button></footer></form></dialog>
-  <dialog id="content-dialog" class="editor-dialog content-dialog"><div id="content-detail"></div></dialog>
-  <dialog id="reference-dialog" class="editor-dialog"><form id="reference-form"><input name="recordId" type="hidden"><header><div><span class="kicker">RECORD EVIDENCE</span><h2>Add source reference</h2></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header><div class="form-grid"><label class="wide">Source<select name="sourceId" required></select></label><label>Reference type<select name="referenceType"><option>primary</option><option>supporting</option><option>grading</option><option value="cross_check">Cross-check</option></select></label><label>Locator<input name="locator" maxlength="240" placeholder="Page, chapter, hadith number..." required></label><label class="wide">Canonical URL<input name="canonicalUrl" type="url" placeholder="https://..."></label><label class="wide">Notes<textarea name="notes" maxlength="1000" rows="3"></textarea></label></div><footer><button type="button" data-close-dialog>Cancel</button><button class="primary" type="submit">Add reference</button></footer></form></dialog>
-</body></html>
+  <dialog id="record-dialog" class="editor-dialog content-dialog"><div id="record-detail"></div></dialog>
+  <dialog id="batch-dialog" class="editor-dialog"><form id="batch-action-form"><input name="batchId" type="hidden"><header><div><span class="kicker">PUBLICATION CONTENT</span><h2>Add approved records</h2></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header><label>Canonical IDs, one per line<textarea name="canonicalIds" rows="8" required></textarea></label><footer><button type="button" data-close-dialog>Cancel</button><button class="primary" type="submit">Add records</button></footer></form></dialog>
+</body>
+</html>

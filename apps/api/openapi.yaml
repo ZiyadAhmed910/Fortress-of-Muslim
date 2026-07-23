@@ -3,7 +3,7 @@ info:
   title: Fortress Platform API
   version: 1.0.0
   description: Public API for trusted, versioned Islamic knowledge data.
-  x-platform-version: 0.15.0
+  x-platform-version: 0.16.0
 servers:
   - url: https://api.fortressofmuslim.org/v1
     description: Production
@@ -227,10 +227,10 @@ paths:
         - in: path
           name: id
           required: true
-          description: Fortress logical ID or provider record ID
+          description: Fortress canonical record ID
           schema:
             type: string
-          example: bukhari:1
+          example: hadith.bukhari.1
       responses:
         '200':
           description: Complete Hadith, hierarchy, grading, text, and references
@@ -240,6 +240,36 @@ paths:
                 $ref: '#/components/schemas/HadithResponse'
         '404':
           description: Hadith not found
+  /hadith/resolve:
+    get:
+      operationId: resolveCanonicalHadithPath
+      summary: Resolve a sequential Fortress Hadith path
+      description: Resolves the published canonical record represented by a Fortress URL such as /bukhari/book1/1.
+      parameters:
+        - in: query
+          name: collection
+          required: true
+          schema: { type: string }
+          example: bukhari
+        - in: query
+          name: book
+          required: true
+          schema: { type: string }
+          example: '1'
+        - in: query
+          name: number
+          required: true
+          schema: { type: string }
+          example: '1'
+      responses:
+        '200':
+          description: Published canonical Hadith
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithResponse'
+        '404':
+          description: Published canonical record not found
   /ask:
     post:
       operationId: askFortress
@@ -364,7 +394,7 @@ components:
           type: string
     DuaSummary:
       type: object
-      required: [id, legacyId, sequence, title, partCount, verificationStatus]
+      required: [id, legacyId, sequence, title, partCount, verificationStatus, revisionNumber, publishedAt, canonicalUrl]
       properties:
         id:
           type: string
@@ -382,7 +412,16 @@ components:
           minimum: 0
         verificationStatus:
           type: string
-          enum: [pending, verified, rejected, deprecated]
+          enum: [verified]
+        revisionNumber:
+          type: integer
+          minimum: 1
+        publishedAt:
+          type: string
+          format: date-time
+        canonicalUrl:
+          type: string
+          format: uri
     Dua:
       allOf:
         - $ref: '#/components/schemas/DuaSummary'
@@ -454,20 +493,23 @@ components:
       properties:
         data:
           type: object
-          required: [recordId, dataset, sources, datasetSources, taxonomy, verificationHistory, corrections]
+          required: [recordId, canonicalUrl, revisionNumber, publishedAt, references, taxonomy, verificationHistory, corrections]
           properties:
             recordId:
               type: string
-            dataset:
-              type: object
+            canonicalUrl:
+              type: string
+              format: uri
+            revisionNumber:
+              type: integer
+              minimum: 1
+            publishedAt:
+              type: string
+              format: date-time
             collection:
               type: object
               nullable: true
-            sources:
-              type: array
-              items:
-                type: object
-            datasetSources:
+            references:
               type: array
               items:
                 type: object
@@ -497,10 +539,10 @@ components:
         recordCount: { type: integer, minimum: 0 }
         bookCount: { type: integer, minimum: 0 }
         chapterCount: { type: integer, minimum: 0 }
-        verificationStatus: { type: string, enum: [pending, verified, rejected, deprecated] }
+        verificationStatus: { type: string, enum: [verified] }
     HadithSummary:
       type: object
-      required: [id, sequence, displayNumber, title, collection, narrator, grade, verificationStatus]
+      required: [id, sequence, displayNumber, title, collection, narrator, grade, verificationStatus, revisionNumber, publishedAt, canonicalUrl]
       properties:
         id: { type: string, example: hadith.bukhari.1 }
         sequence: { type: integer, minimum: 1 }
@@ -511,7 +553,10 @@ components:
         chapter: { type: object, nullable: true }
         narrator: { type: string, nullable: true }
         grade: { type: object, nullable: true }
-        verificationStatus: { type: string, enum: [pending, verified, rejected, deprecated] }
+        verificationStatus: { type: string, enum: [verified] }
+        revisionNumber: { type: integer, minimum: 1 }
+        publishedAt: { type: string, format: date-time }
+        canonicalUrl: { type: string, format: uri }
     Hadith:
       allOf:
         - $ref: '#/components/schemas/HadithSummary'
@@ -560,7 +605,7 @@ components:
           maxLength: 500
     RagSource:
       type: object
-      required: [index, id, contentType, title, collection, reference, sourceUrl, verificationStatus, score]
+      required: [index, id, contentType, title, collection, reference, canonicalUrl, verificationStatus, score]
       properties:
         index: { type: integer, minimum: 1 }
         id: { type: string }
@@ -568,8 +613,8 @@ components:
         title: { type: string }
         collection: { type: string }
         reference: { type: string }
-        sourceUrl: { type: string, format: uri }
-        verificationStatus: { type: string, enum: [pending, verified, rejected, deprecated] }
+        canonicalUrl: { type: string, format: uri }
+        verificationStatus: { type: string, enum: [verified] }
         score: { type: number }
     AskResponse:
       type: object

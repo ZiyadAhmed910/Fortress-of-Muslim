@@ -19,6 +19,7 @@ import { exportUserData, importUserDataFile } from './userData.js';
 import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
 import { initContentModes } from './modes.js';
+import { openCanonicalRoute } from './routes.js';
 
 init();
 
@@ -36,6 +37,7 @@ async function init() {
     state.entries = data.entries;
     state.filtered = state.entries;
     filterList();
+    await openCanonicalRoute();
   } catch (error) {
     els.resultCount.textContent = 'Content did not load';
     els.duaList.innerHTML = `
@@ -47,6 +49,7 @@ async function init() {
   }
 
   setupServiceWorker();
+  window.addEventListener('popstate', () => openCanonicalRoute());
 }
 
 function renderLoadingSkeleton() {

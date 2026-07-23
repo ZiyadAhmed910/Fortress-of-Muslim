@@ -156,6 +156,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       collections: '/v1/collections',
       hadith: '/v1/hadith',
       hadithSearch: '/v1/hadith/search?q=intentions',
+      hadithCanonicalResolver: '/v1/hadith/resolve?collection=bukhari&book=1&number=1',
       ask: '/v1/ask',
       namedQuery: '/v1/queries/{id}',
     },
@@ -164,9 +165,15 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
   app.get('/v1/datasets/current', async (context) => {
     const dataset = await repositoryFactory(context.env).getCurrentDataset();
     return context.json({
-      ...dataset,
+      id: dataset.id,
+      version: dataset.sourceVersion,
+      publicationStatus: dataset.publicationStatus,
+      verificationStatus: dataset.verificationStatus,
+      recordCount: dataset.recordCount,
+      canonicalHash: dataset.contentHash || null,
+      publishedAt: dataset.importedAt,
       recordTypes: ['dua', 'hadith'],
-      warning: 'Published records may remain pending canonical editorial verification. Inspect record evidence before making authenticity claims.',
+      canonicalSource: 'Fortress Platform',
     });
   });
 
@@ -357,6 +364,24 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       if (error instanceof Error && error.message.includes('letters or numbers')) return invalidHadithRequest(context, error.message);
       throw error;
     }
+  });
+
+  app.get('/v1/hadith/resolve', async (context) => {
+    const collection = context.req.query('collection')?.trim() ?? '';
+    const book = context.req.query('book')?.trim() ?? '';
+    const number = context.req.query('number')?.trim() ?? '';
+    if (
+      !/^[a-z0-9-]{2,80}$/.test(collection)
+      || !/^[\p{L}\p{N}._-]{1,80}$/u.test(book)
+      || !/^[\p{L}\p{N}._:-]{1,120}$/u.test(number)
+    ) {
+      return invalidHadithRequest(context, 'Collection, book, and number are required canonical path components.');
+    }
+    const hadith = await repositoryFactory(context.env).resolveHadithPath(collection, book, number);
+    if (!hadith) {
+      return context.json({ error: { code: 'not_found', message: 'Published canonical Hadith was not found.', requestId: context.get('requestId') } }, 404);
+    }
+    return context.json({ data: hadith, meta: responseMeta(context) });
   });
 
   app.get('/v1/hadith/:id', async (context) => {

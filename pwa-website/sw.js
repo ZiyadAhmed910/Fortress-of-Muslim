@@ -25,6 +25,7 @@ const ASSETS = [
   './js/online.js',
   './js/pwa.js',
   './js/reader.js',
+  './js/routes.js',
   './js/settings.js',
   './js/state.js',
   './js/userData.js',
@@ -64,6 +65,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (new URL(event.request.url).origin !== self.location.origin) return;
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;

@@ -1,6 +1,6 @@
 {
   "name": "@fortress/api",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,19 +13,13 @@
     "db:migrate:test": "wrangler d1 migrations apply fortress-platform-test --remote --env test",
     "db:migrate:production": "wrangler d1 migrations apply fortress-platform-production --remote --env production",
     "openapi:verify": "node tools/verify-openapi.mjs",
-    "corpus:build": "node tools/import-sunnah-corpus.mjs build",
-    "corpus:verify:local": "node tools/verify-sunnah-import.mjs",
-    "corpus:import:test": "node tools/import-sunnah-corpus.mjs apply --env=test",
-    "corpus:verify:test": "node tools/import-sunnah-corpus.mjs verify-remote --env=test",
-    "corpus:import:production": "node tools/import-sunnah-corpus.mjs apply --env=production",
-    "corpus:verify:production": "node tools/import-sunnah-corpus.mjs verify-remote --env=production",
     "rag:index:test": "node tools/index-rag.mjs test",
     "rag:index:production": "node tools/index-rag.mjs production",
     "test": "vitest run && npm run db:verify && npm run editorial:verify && npm run openapi:verify",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fortress/contracts": "0.15.0",
+    "@fortress/contracts": "0.16.0",
     "hono": "^4.8.0"
   },
   "devDependencies": {

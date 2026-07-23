@@ -17,14 +17,14 @@ export function setContentMode(mode) {
   els.contentModeButtons.forEach((button) => button.classList.toggle('active', button.dataset.contentMode === mode));
   if (mode === 'duas') {
     els.screenTitle.textContent = 'Fortress of Muslim';
-    els.screenSubtitle.textContent = '132 source-backed chapters · available offline';
+    els.screenSubtitle.textContent = 'Verified canonical chapters available offline';
   } else if (mode === 'hadith') {
     els.screenTitle.textContent = 'Hadith Library';
-    els.screenSubtitle.textContent = 'Bukhari, Muslim, and Tirmidhi · online';
+    els.screenSubtitle.textContent = 'Bukhari, Muslim, and Tirmidhi - online';
     activateHadith();
   } else {
     els.screenTitle.textContent = 'Ask Fortress';
-    els.screenSubtitle.textContent = 'Source-grounded answers · online';
+    els.screenSubtitle.textContent = 'Source-grounded answers - online';
   }
   window.scrollTo({ top: 0, behavior: 'instant' });
 }

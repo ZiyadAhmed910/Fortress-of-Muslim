@@ -23,7 +23,7 @@ export function initAssistant() {
 function renderAnswer(data) {
   const answer = escapeHtml(data.answer).replace(/\n/g, '<br>');
   const sources = data.sources.map((source) => `
-    <a class="assistant-source" href="${escapeHtml(source.sourceUrl)}" target="_blank" rel="noopener noreferrer">
+    <a class="assistant-source" href="${escapeHtml(source.canonicalUrl)}">
       <span>[${source.index}] ${escapeHtml(source.collection)}</span>
       <strong>${escapeHtml(source.reference)}</strong>
       <small>${escapeHtml(source.verificationStatus)} verification</small>

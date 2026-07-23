@@ -16,7 +16,6 @@ type IndexRow = {
   narrator: string | null;
   translation: string | null;
   arabic: string | null;
-  providerId: string | null;
   datasetId: string;
 };
 
@@ -27,7 +26,7 @@ export type RagSource = {
   title: string;
   collection: string;
   reference: string;
-  sourceUrl: string;
+  canonicalUrl: string;
   verificationStatus: string;
   score: number;
 };
@@ -36,19 +35,17 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
   const rows = await env.CONTENT_DB.prepare(`
     SELECT COALESCE(record.logical_id, record.id) AS recordId,
            record.content_type AS contentType, collection.slug AS collectionSlug,
-           record.title, metadata.narrator, record.dataset_id AS datasetId,
-           identity.provider_record_id AS providerId,
+           record.title, metadata.narrator, publication.dataset_version_id AS datasetId,
            GROUP_CONCAT(CASE WHEN segment.kind = 'translation' THEN segment.text END, '\n') AS translation,
            GROUP_CONCAT(CASE WHEN segment.kind = 'arabic' THEN segment.text END, '\n') AS arabic
     FROM content_records record
-    JOIN dataset_versions dataset ON dataset.id = record.dataset_id
+    JOIN canonical_publications publication ON publication.record_id = record.id
     JOIN record_placements placement ON placement.record_id = record.id
     JOIN collections collection ON collection.id = placement.collection_id
     JOIN content_parts part ON part.record_id = record.id
     JOIN content_segments segment ON segment.part_id = part.id
     LEFT JOIN hadith_metadata metadata ON metadata.record_id = record.id
-    LEFT JOIN source_record_identities identity ON identity.record_id = record.id
-    WHERE dataset.publication_status = 'active'
+    WHERE publication.publication_status = 'published'
     GROUP BY record.id
     ORDER BY record.content_type, record.sequence
     LIMIT ? OFFSET ?
@@ -67,7 +64,6 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
       contentType: row.contentType,
       collection: row.collectionSlug,
       title: row.title.slice(0, 300),
-      providerId: row.providerId ?? '',
     },
   })));
   return { indexed: rows.results.length, nextCursor: cursor + rows.results.length, complete: rows.results.length < limit };
@@ -103,7 +99,7 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
     messages: [
       {
         role: 'system',
-        content: 'You are the Fortress of Muslim source assistant. Answer only from the numbered source contexts. Cite every factual or religious claim with [n]. Never invent a ruling, grading, attribution, or quotation. If the contexts are insufficient, say so. Mention when records are pending verification. Keep the answer concise and do not provide medical, legal, or religious verdicts.',
+        content: 'You are the Fortress of Muslim canonical source assistant. Answer only from the numbered published contexts. Cite every factual or religious claim with [n]. Never invent a ruling, grading, attribution, or quotation. If the contexts are insufficient, say so. Keep the answer concise and do not provide medical, legal, or religious verdicts.',
       },
       { role: 'user', content: `Question: ${question}\n\nSource contexts:\n${contexts}` },
     ],
@@ -152,7 +148,6 @@ function contextBlock(record: Dua | Hadith, contentType: 'dua' | 'hadith', index
 }
 
 function sourceFrom(record: Dua | Hadith, contentType: 'dua' | 'hadith', score: number, metadata: Record<string, string> | undefined, index: number): RagSource {
-  const providerId = metadata?.providerId || providerIdFrom(record.id);
   const collection = contentType === 'hadith' ? (record as Hadith).collection.title : 'Hisn al-Muslim';
   return {
     index,
@@ -160,8 +155,8 @@ function sourceFrom(record: Dua | Hadith, contentType: 'dua' | 'hadith', score: 
     contentType,
     title: record.title,
     collection,
-    reference: contentType === 'hadith' ? hadithReference(record as Hadith) : providerId,
-    sourceUrl: `https://sunnah.com/${providerId}`,
+    reference: contentType === 'hadith' ? hadithReference(record as Hadith) : record.title,
+    canonicalUrl: record.canonicalUrl,
     verificationStatus: record.verificationStatus,
     score: Number(score.toFixed(4)),
   };
@@ -169,11 +164,6 @@ function sourceFrom(record: Dua | Hadith, contentType: 'dua' | 'hadith', score: 
 
 function hadithReference(record: Hadith) {
   return `${record.collection.title} ${record.displayNumber}`;
-}
-
-function providerIdFrom(id: string) {
-  const parts = id.split('.');
-  return parts[0] === 'dua' ? `hisn:${Number(parts.at(-1))}` : `${parts[1]}:${parts.slice(2).join('.')}`;
 }
 
 export class RagRateLimitError extends Error {

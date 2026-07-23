@@ -41,7 +41,7 @@ pwa-website/        Existing static PWA, retained during migration
 
 The `dev` branch deploys test services. The `main` branch deploys production services. Test and production must use separate databases, buckets, queues, credentials and Worker names.
 
-The API reads published content from separate Cloudflare D1 databases in test and production. A repository boundary keeps route handlers and public contracts independent of the storage implementation. All initial imported records are explicitly marked as pending verification.
+The API reads published content from separate Cloudflare D1 databases in test and production. A repository boundary keeps route handlers and public contracts independent of the storage implementation. All initial candidates are unpublished and pending human verification; public services read only through canonical publication pointers.
 
 Identity and platform ownership use separate `fortress-identity-test` and `fortress-identity-production` D1 databases. Better Auth owns users, sessions, organizations, hashed API keys, OAuth clients, JWKS, consent and tokens. Fortress-owned control tables add plans, approval requests, usage events, audit events and MCP registration drafts. Content and identity stores are intentionally separate.
 

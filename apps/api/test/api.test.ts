@@ -23,23 +23,33 @@ const authenticated = { headers: { Authorization: 'Bearer test-token' } };
 const records: Dua[] = [
   {
     id: 'dua.hisn.001', legacyId: 'dua-001', sequence: 1, title: 'When waking up',
-    partCount: 1, verificationStatus: 'pending',
+    partCount: 1, verificationStatus: 'verified', revisionNumber: 1,
+    publishedAt: '2026-07-23T00:00:00.000Z',
+    canonicalUrl: 'https://fortressofmuslim.org/hisn/chapter1',
     parts: [[{ kind: 'arabic', text: 'Arabic text' }, { kind: 'translation', text: 'Translation' }]],
   },
   {
     id: 'dua.hisn.002', legacyId: 'dua-002', sequence: 2, title: 'Upon wearing clothes',
-    partCount: 1, verificationStatus: 'pending', parts: [[{ kind: 'translation', text: 'Translation' }]],
+    partCount: 1, verificationStatus: 'verified', revisionNumber: 1,
+    publishedAt: '2026-07-23T00:00:00.000Z',
+    canonicalUrl: 'https://fortressofmuslim.org/hisn/chapter2',
+    parts: [[{ kind: 'translation', text: 'Translation' }]],
   },
   {
     id: 'dua.hisn.003', legacyId: 'dua-003', sequence: 3, title: 'Upon wearing new clothes',
-    partCount: 1, verificationStatus: 'pending', parts: [[{ kind: 'translation', text: 'Translation' }]],
+    partCount: 1, verificationStatus: 'verified', revisionNumber: 1,
+    publishedAt: '2026-07-23T00:00:00.000Z',
+    canonicalUrl: 'https://fortressofmuslim.org/hisn/chapter3',
+    parts: [[{ kind: 'translation', text: 'Translation' }]],
   },
 ];
 const hadith: Hadith = {
   id: 'hadith.bukhari.1', sequence: 1, displayNumber: '1', title: 'Sahih al-Bukhari 1',
   collection: { slug: 'bukhari', title: 'Sahih al-Bukhari' },
   book: { number: '1', title: 'Revelation' }, chapter: { number: '1', title: 'How revelation began' },
-  narrator: 'Umar bin Al-Khattab', grade: null, verificationStatus: 'pending',
+  narrator: 'Umar bin Al-Khattab', grade: null, verificationStatus: 'verified',
+  revisionNumber: 1, publishedAt: '2026-07-23T00:00:00.000Z',
+  canonicalUrl: 'https://fortressofmuslim.org/bukhari/book1/1',
   segments: [{ kind: 'arabic', text: 'Arabic Hadith' }, { kind: 'translation', text: 'Actions are by intentions.' }],
   references: [{ type: 'primary', locator: 'Sahih al-Bukhari 1' }],
 };
@@ -48,14 +58,14 @@ const repository: ContentRepository = {
   async getCurrentDataset(): Promise<DatasetSummary> {
     return {
       id: 'dataset.hisn.legacy.2026-07-11-v2', sourceName: 'Test dataset', sourceVersion: 'test',
-      publicationStatus: 'active', verificationStatus: 'pending', recordCount: records.length,
+      publicationStatus: 'active', verificationStatus: 'verified', recordCount: records.length,
       contentHash: 'test-hash', importedAt: '2026-07-18T00:00:00.000Z',
     };
   },
   async listCollections(contentType) {
     return [
-      { id: 'collection.hisn', slug: 'hisn', contentType: 'dua' as const, title: 'Hisn al-Muslim', titleArabic: null, recordCount: 3, bookCount: 1, chapterCount: 2, verificationStatus: 'pending' as const },
-      { id: 'collection.bukhari', slug: 'bukhari', contentType: 'hadith' as const, title: 'Sahih al-Bukhari', titleArabic: null, recordCount: 1, bookCount: 1, chapterCount: 1, verificationStatus: 'pending' as const },
+      { id: 'collection.hisn', slug: 'hisn', contentType: 'dua' as const, title: 'Hisn al-Muslim', titleArabic: null, recordCount: 3, bookCount: 1, chapterCount: 2, verificationStatus: 'verified' as const },
+      { id: 'collection.bukhari', slug: 'bukhari', contentType: 'hadith' as const, title: 'Sahih al-Bukhari', titleArabic: null, recordCount: 1, bookCount: 1, chapterCount: 1, verificationStatus: 'verified' as const },
     ].filter((collection) => !contentType || collection.contentType === contentType);
   },
   async countDuas() { return records.length; },
@@ -83,10 +93,11 @@ const repository: ContentRepository = {
     if (!record) return undefined;
     return {
       recordId: record.id,
-      dataset: await this.getCurrentDataset(),
-      collection: { id: 'collection.hisn.legacy', title: 'Fortress of Muslim (legacy import)', verificationStatus: 'pending' },
-      sources: [],
-      datasetSources: [{ id: 'source.legacy', title: 'Legacy source', importLocator: 'source.docx', licenseStatus: 'unknown', authenticityStatus: 'unreviewed' }],
+      canonicalUrl: record.canonicalUrl,
+      revisionNumber: record.revisionNumber,
+      publishedAt: record.publishedAt,
+      collection: { id: 'collection.hisn', title: 'Fortress of Muslim', verificationStatus: 'verified' },
+      references: [{ id: 'reference.1', referenceType: 'primary', locator: 'Hisn al-Muslim 1', verificationStatus: 'verified' }],
       taxonomy: [], verificationHistory: [], corrections: [],
     };
   },
@@ -100,6 +111,9 @@ const repository: ContentRepository = {
     const matches = (!collection || collection === 'bukhari') && text.includes(query.toLocaleLowerCase()) ? [hadith] : [];
     return { items: matches.slice(offset, offset + limit).map(({ segments: _segments, references: _references, ...summary }) => summary), total: matches.length };
   },
+  async resolveHadithPath(collection, book, number) {
+    return collection === 'bukhari' && book === '1' && number === '1' ? hadith : undefined;
+  },
   async getHadith(id) { return id === hadith.id || id === 'bukhari:1' ? hadith : undefined; },
 };
 const app = createApp(() => repository);
@@ -112,10 +126,10 @@ describe('Fortress Platform API', () => {
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(body.environment).toBe('test');
-    expect(body.version).toBe('0.15.0');
+    expect(body.version).toBe('0.16.0');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     expect(response.headers.get('X-Request-ID')).toBe('test-request-123');
-    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.15.0');
+    expect(response.headers.get('X-Fortress-Platform-Version')).toBe('0.16.0');
     expect(response.headers.get('Server-Timing')).toMatch(/^app;dur=\d+\.\d$/);
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
   });
@@ -126,7 +140,7 @@ describe('Fortress Platform API', () => {
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
-    expect(body.version).toBe('0.15.0');
+    expect(body.version).toBe('0.16.0');
     expect(body.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
     expect(body.recordCount).toBe(3);
   });
@@ -180,14 +194,14 @@ describe('Fortress Platform API', () => {
       id: string;
       verificationStatus: string;
       recordCount: number;
-      contentHash: string;
+      canonicalHash: string;
     };
 
     expect(response.status).toBe(200);
     expect(body.id).toBe('dataset.hisn.legacy.2026-07-11-v2');
-    expect(body.verificationStatus).toBe('pending');
+    expect(body.verificationStatus).toBe('verified');
     expect(body.recordCount).toBe(3);
-    expect(body.contentHash).toBe('test-hash');
+    expect(body.canonicalHash).toBe('test-hash');
   });
 
   it('retrieves a dua using its canonical ID', async () => {
@@ -248,11 +262,12 @@ describe('Fortress Platform API', () => {
 
   it('returns traceable evidence without requiring a user account', async () => {
     const response = await app.request('/v1/duas/dua.hisn.001/evidence', {}, env);
-    const body = await response.json() as { data: { recordId: string; datasetSources: Array<{ licenseStatus: string }> } };
+    const body = await response.json() as { data: { recordId: string; canonicalUrl: string; references: Array<{ verificationStatus: string }> } };
 
     expect(response.status).toBe(200);
     expect(body.data.recordId).toBe('dua.hisn.001');
-    expect(body.data.datasetSources[0]?.licenseStatus).toBe('unknown');
+    expect(body.data.canonicalUrl).toBe('https://fortressofmuslim.org/hisn/chapter1');
+    expect(body.data.references[0]?.verificationStatus).toBe('verified');
   });
 
   it('validates part positions', async () => {
@@ -306,12 +321,20 @@ describe('Fortress Platform API', () => {
     expect(searchBody.data[0]?.id).toBe('hadith.bukhari.1');
   });
 
-  it('retrieves complete Hadith by provider identity', async () => {
+  it('retrieves complete Hadith by canonical identity', async () => {
     const response = await app.request('/v1/hadith/bukhari:1', {}, env);
     const body = await response.json() as { data: Hadith };
     expect(response.status).toBe(200);
     expect(body.data.segments).toHaveLength(2);
     expect(body.data.references[0]?.locator).toBe('Sahih al-Bukhari 1');
+  });
+
+  it('resolves a sequential Fortress Hadith path', async () => {
+    const response = await app.request('/v1/hadith/resolve?collection=bukhari&book=1&number=1', {}, env);
+    const body = await response.json() as { data: Hadith };
+    expect(response.status).toBe(200);
+    expect(body.data.id).toBe('hadith.bukhari.1');
+    expect(body.data.canonicalUrl).toBe('https://fortressofmuslim.org/bukhari/book1/1');
   });
 
   it('answers from vector-retrieved records with citations', async () => {
@@ -323,12 +346,12 @@ describe('Fortress Platform API', () => {
       AI: {
         run: async (model: string) => model.includes('bge-base')
           ? { data: [[0.1, 0.2, 0.3]] }
-          : { response: 'Actions are judged by intentions [1]. This imported record is pending verification.' },
+          : { response: 'Actions are judged by intentions [1].' },
       },
       VECTOR_INDEX: {
         query: async () => ({ count: 1, matches: [{
           id: 'hadith.bukhari.1', score: 0.94,
-          metadata: { recordId: 'hadith.bukhari.1', contentType: 'hadith', collection: 'bukhari', providerId: 'bukhari:1' },
+          metadata: { recordId: 'hadith.bukhari.1', contentType: 'hadith', collection: 'bukhari' },
         }] }),
       },
     } as never;
@@ -337,11 +360,11 @@ describe('Fortress Platform API', () => {
       headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '203.0.113.4' },
       body: JSON.stringify({ question: 'What do the sources say about intentions?' }),
     }, ragEnv);
-    const body = await response.json() as { data: { answer: string; sources: Array<{ sourceUrl: string; verificationStatus: string }> } };
+    const body = await response.json() as { data: { answer: string; sources: Array<{ canonicalUrl: string; verificationStatus: string }> } };
     expect(response.status).toBe(200);
     expect(body.data.answer).toContain('[1]');
-    expect(body.data.sources[0]?.sourceUrl).toBe('https://sunnah.com/bukhari:1');
-    expect(body.data.sources[0]?.verificationStatus).toBe('pending');
+    expect(body.data.sources[0]?.canonicalUrl).toBe('https://fortressofmuslim.org/bukhari/book1/1');
+    expect(body.data.sources[0]?.verificationStatus).toBe('verified');
     expect(response.headers.get('Cache-Control')).toBe('no-store');
   });
 

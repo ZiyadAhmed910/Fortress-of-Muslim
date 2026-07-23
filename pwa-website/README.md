@@ -1,6 +1,6 @@
 # Fortress of Muslim PWA
 
-Responsive offline-first PWA backed by a validated Hisn al-Muslim source corpus.
+Responsive offline-first reader backed by Fortress Platform's published canonical dua snapshot.
 
 ## Local preview
 
@@ -16,7 +16,7 @@ Service workers require `localhost` or HTTPS, so opening `index.html` directly w
 
 ## Current features
 
-- 132 local chapters containing all 268 source recitations, available offline.
+- Published canonical Fortress chapters available offline after snapshot generation.
 - Search across Arabic, transliteration, translation, categories, tags, and moods.
 - Add/remove favourites and open the favourites list from the center button.
 - Detail reader with swipe left/right navigation.
@@ -31,10 +31,10 @@ Hadith and Ask are intentionally online-only. The service worker never caches AP
 
 ## Local data build
 
-The approved raw corpus is local-only and ignored by Git. Rebuild the committed PWA artifact with:
+Rebuild the committed PWA artifact from the public test API with:
 
 ```powershell
 npm run pwa:data:build
 ```
 
-The builder fails unless the result contains exactly 132 chapters, 268 source records, stable `dua-001` through `dua-132` identifiers, and the required text and reference segments. Categories and moods are explicit curated chapter mappings rather than guesses from keyword matching.
+Set `FORTRESS_API_URL` to use another Fortress environment. The builder follows pagination, retrieves each complete published dua, and writes the active canonical dataset ID, verification state, revision numbers, and Fortress URLs. Editorial candidates are not accessible to the builder and cannot enter the offline snapshot.

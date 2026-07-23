@@ -83,7 +83,7 @@ async function loadHadith(reset) {
   }
 }
 
-async function openHadith(id) {
+export async function openHadith(id, updateHistory = true) {
   els.hadithBrowse.hidden = true;
   els.hadithDetail.hidden = false;
   els.hadithDetail.innerHTML = loadingRows(3);
@@ -91,9 +91,30 @@ async function openHadith(id) {
   try {
     const body = await apiRequest(`/v1/hadith/${encodeURIComponent(id)}`);
     const hadith = body.data;
-    const sourceId = providerId(hadith.id);
-    const segments = hadith.segments.map((segment) => `<p class="segment ${segment.kind}" ${segment.kind === 'arabic' ? 'dir="rtl" lang="ar"' : ''}>${escapeHtml(segment.text)}</p>`).join('');
-    els.hadithDetail.innerHTML = `
+    renderHadith(hadith);
+    if (updateHistory) history.pushState({ canonicalRecord: hadith.id }, '', new URL(hadith.canonicalUrl).pathname);
+  } catch (error) {
+    els.hadithDetail.innerHTML = `<button class="inline-back" data-close-hadith type="button">Results</button><div class="empty-state">${escapeHtml(error.message)}</div>`;
+  }
+}
+
+export async function openCanonicalHadith(collection, book, number) {
+  els.hadithBrowse.hidden = true;
+  els.hadithDetail.hidden = false;
+  els.hadithDetail.innerHTML = loadingRows(3);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  try {
+    const params = new URLSearchParams({ collection, book, number });
+    const body = await apiRequest(`/v1/hadith/resolve?${params}`);
+    renderHadith(body.data);
+  } catch (error) {
+    els.hadithDetail.innerHTML = `<button class="inline-back" data-close-hadith type="button">Results</button><div class="empty-state">${escapeHtml(error.message)}</div>`;
+  }
+}
+
+function renderHadith(hadith) {
+  const segments = hadith.segments.map((segment) => `<p class="segment ${segment.kind}" ${segment.kind === 'arabic' ? 'dir="rtl" lang="ar"' : ''}>${escapeHtml(segment.text)}</p>`).join('');
+  els.hadithDetail.innerHTML = `
       <button class="inline-back" data-close-hadith type="button" aria-label="Back to Hadith results">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>Results</span>
       </button>
@@ -105,16 +126,14 @@ async function openHadith(id) {
         <div><dt>Verification</dt><dd>${escapeHtml(hadith.verificationStatus)}</dd></div>
       </dl>
       <div class="hadith-text">${segments}</div>
-      <a class="source-link" href="https://sunnah.com/${encodeURIComponent(sourceId)}" target="_blank" rel="noopener noreferrer">Open source record</a>
+      <a class="source-link" href="${escapeHtml(hadith.canonicalUrl)}">Open canonical record</a>
     `;
-  } catch (error) {
-    els.hadithDetail.innerHTML = `<button class="inline-back" data-close-hadith type="button">Results</button><div class="empty-state">${escapeHtml(error.message)}</div>`;
-  }
 }
 
-function showBrowse() {
+function showBrowse(updateHistory = true) {
   els.hadithDetail.hidden = true;
   els.hadithBrowse.hidden = false;
+  if (updateHistory && location.pathname !== '/') history.pushState({}, '', '/');
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
@@ -126,11 +145,6 @@ function hadithRow(item) {
     <small>${escapeHtml(location || item.narrator || '')}</small>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
   </button>`;
-}
-
-function providerId(id) {
-  const parts = id.split('.');
-  return `${parts[1]}:${parts.slice(2).join('.')}`;
 }
 
 function loadingRows(count = 6) {

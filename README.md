@@ -117,45 +117,37 @@ Useful verification endpoints:
 /v1/collections?type=hadith
 /v1/hadith?collection=bukhari&limit=2
 /v1/hadith/search?q=intentions&collection=bukhari
-/v1/hadith/bukhari:1
+/v1/hadith/hadith.bukhari.1
+/v1/hadith/resolve?collection=bukhari&book=1&number=1
 /v1/ask
 /v1/queries/{named-query-id}
 ```
 
-Canonical IDs and legacy IDs are both accepted by detail and part routes. List and search responses return lightweight summaries; detail and random routes return the complete ordered content record.
+Canonical IDs and retained Fortress legacy dua IDs are accepted by detail and part routes. List and search responses return lightweight summaries; detail and random routes return the complete ordered published revision.
 
-The PWA keeps the complete Fortress of Muslim collection local: 132 chapters containing 268 ordered source recitations. Hadith browse/search and the source-grounded assistant are API-based and are not stored for offline use.
+The PWA snapshot contains only published canonical Fortress of Muslim chapters. Candidate records under editorial review are never included. Hadith browse/search and the source-grounded assistant are API-based and are not stored for offline use.
 
-Published datasets and dua browse, search, detail, part, random, and evidence endpoints are public without login. Developer-owned named queries and management capabilities require a Fortress API key or OAuth 2.1 bearer token.
+Published datasets and browse, search, detail, part, random, and evidence endpoints are public without login. Developer-owned named queries and management capabilities require a Fortress API key or OAuth 2.1 bearer token.
 
-The API stores published content in Cloudflare D1. Generate and verify the deterministic migration from the current PWA dataset with:
+The API stores candidates, immutable revisions, editorial decisions, and published records in Cloudflare D1. Verify the public migration and governance invariants with:
 
 ```powershell
-npm run db:generate --workspace @fortress/api
 npm run db:verify --workspace @fortress/api
+npm run editorial:verify --workspace @fortress/api
 ```
 
-The generated migration preserves the source text exactly and must not be edited manually. Editorial corrections belong in the source dataset or the Admin editorial and publishing workflow.
+The public API, MCP, RAG index, and PWA snapshot all read through `canonical_publications`. A record cannot enter that table until its current immutable revision has complete field checks from two independent reviewers, separate senior approval, verified canonical references, and an approved publication batch.
 
-The approved Sunnah corpus is handled through a separate local-only pipeline. Raw artifacts and generated SQL are ignored by Git:
+Build the PWA's offline dua snapshot from the published API boundary:
 
 ```powershell
-npm run corpus:build --workspace @fortress/api
-npm run corpus:verify:local --workspace @fortress/api
-npm run corpus:import:test --workspace @fortress/api
-npm run corpus:verify:test --workspace @fortress/api
+npm run pwa:data:build
 ```
 
-Vector indexing is idempotent and can resume after a transient provider failure:
+Vector indexing is idempotent, resumable, and restricted to the current published canonical dataset:
 
 ```powershell
 node apps/api/tools/index-rag.mjs test --cursor=10050
-```
-
-Production import requires the exact validated dataset ID as an explicit confirmation:
-
-```powershell
-npm run corpus:import:production --workspace @fortress/api -- --confirm-production=dataset.sunnah.approved.YYYY-MM-DD-HASH
 ```
 
 The test API uses the `dev` branch and the production API uses `main`. Cloudflare deployment remains disabled until the repository variable `CLOUDFLARE_DEPLOY_ENABLED` is set to `true` and the required account secrets are configured. Setup is documented in `docs/cloudflare-setup.md`.
@@ -170,6 +162,16 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.16.0
+
+- Established Fortress Platform as the sole public canonical publication boundary.
+- Added immutable content revisions, 13-field reviews, two independent reviewer approvals, separate senior approval, disagreement tracking, scoped assignments, and atomic publication batches.
+- Added editorial roles for viewer, reviewer, senior reviewer, editor, publisher, and super administrator.
+- Rebuilt the Admin Console around queue, review, correction, evidence verification, batch publication, and role-management workflows.
+- Restricted REST, MCP, RAG, and PWA data to explicitly published canonical revisions.
+- Added sequential Fortress URLs such as `/bukhari/book1/1` and an exact API resolver for those routes.
+- Replaced the local data builder with a published-API snapshot builder and moved candidate-preparation tooling outside the public repository.
+
 ### 0.15.0
 
 - Replaced the legacy PWA export with a validated local corpus of 132 Fortress chapters and all 268 ordered recitations while preserving stable favourite IDs.
@@ -181,12 +183,8 @@ Every platform release must:
 
 ### 0.14.0
 
-- Added a local-only, deterministic importer for the approved 14,625-record Sunnah corpus; raw artifacts and generated SQL remain excluded from Git and deployments.
-- Added source acquisition, artifact, import-run, issue, source identity, numbering, grading, and FTS5 search storage.
-- Recovered source book/chapter hierarchy, repaired Hisn transliteration/translation boundaries, and retained unresolved source omissions as explicit import warnings.
-- Added collection discovery and paginated Hadith list, full-text search, and detail APIs.
-- Added standard MCP tools for collection discovery and Hadith list, search, and retrieval.
-- Added full local database import rehearsal, corpus boundary checks, API tests, OpenAPI coverage, and controlled test/production import commands.
+- Added the initial Hadith hierarchy, numbering, grading, search, API, and MCP capabilities.
+- This release's pre-canonical data flow is superseded by the 0.16.0 editorial and publication architecture.
 
 ### 0.13.0
 
@@ -206,11 +204,8 @@ Every platform release must:
 
 ### 0.11.0
 
-- Added an Admin source registry for editions, publishers, machine formats, licensing, authenticity, URLs, and editorial notes.
-- Added a content record inspector for citations, controlled taxonomy, verification eligibility, review history, and correction history.
-- Enforced trusted-source rules when approving references and content records; source trust elevation remains restricted to super administrators.
-- Added source records to global Admin search and surfaced source and pending-reference counts on the platform overview.
-- Added transactional content audit events and an automated editorial workflow verification check.
+- Added the first content-governance console, controlled taxonomy, review history, correction history, and content audit events.
+- These direct-editing controls are superseded by the immutable editorial workflow introduced in 0.16.0.
 
 ### 0.10.0
 
@@ -219,7 +214,7 @@ Every platform release must:
 - Added `GET /v1/duas/{id}/evidence` so clients can inspect source and editorial evidence without inferred or fabricated citations.
 - Added the read-only MCP tool `get_dua_evidence` for authenticity, attribution, and citation checks.
 - Opened core published read routes for anonymous access while keeping owner-scoped named queries authenticated.
-- Added a trusted-source verification gate and documented canonical publishing, public access, source acquisition, and evidence decisions in ADRs.
+- Added the first evidence gate and documented canonical publishing and public access decisions in ADRs.
 
 ### 0.9.0
 
@@ -417,8 +412,7 @@ docs/deployment.md
 Canonical data decisions and staged work are documented in:
 
 - `docs/canonical-data-roadmap.md`
-- `docs/sunnah-data-ingestion-design.md`
-- `docs/source-acquisition-policy.md`
+- `docs/canonical-editorial-architecture.md`
 - `docs/adr/0001-canonical-knowledge-and-snapshots.md`
 - `docs/adr/0002-public-read-api.md`
 - `docs/adr/0003-evidence-gated-verification.md`

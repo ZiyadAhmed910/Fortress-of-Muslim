@@ -26,12 +26,15 @@ for (const portal of ['developers', 'status', 'admin']) {
     if (/[ÃÂÆ]/.test(consoleScript)) throw new Error('Developer Console contains corrupted encoded text.');
   }
   if (portal === 'admin') {
-    for (const marker of ['id="sources"', 'id="taxonomy"', 'id="content-dialog"', 'id="reference-dialog"']) {
+    for (const marker of ['id="queue"', 'id="assignments"', 'id="batches"', 'id="roles"', 'id="record-dialog"']) {
       if (!html.includes(marker)) throw new Error(`Admin portal is missing ${marker}.`);
     }
     const script = await readFile(new URL('app.js', output), 'utf8');
-    for (const route of ['/v1/admin/sources', '/v1/admin/taxonomy', '/references']) {
+    for (const route of ['/v1/admin/editorial/queue', '/v1/admin/editorial/assignments', '/v1/admin/editorial/batches', '/field-reviews', '/references']) {
       if (!script.includes(route)) throw new Error(`Admin portal is missing editorial route ${route}.`);
+    }
+    for (const retiredRoute of ['/v1/admin/sources', '/v1/admin/content']) {
+      if (script.includes(retiredRoute)) throw new Error(`Admin portal still exposes retired route ${retiredRoute}.`);
     }
   }
   if (portal === 'status') {
