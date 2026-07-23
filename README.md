@@ -181,6 +181,7 @@ Every platform release must:
 - Unified identity and editorial events in the Admin audit history and protected the default and final active administrator.
 - Replaced positional lexical RAG scores with query-aware title and body relevance, then removed evidence that falls materially below the strongest match.
 - Normalized known legacy typography corruption in generated-answer context without changing canonical source records.
+- Required every generated-answer paragraph to carry a valid citation and prohibited inferred Quran or Hadith attribution.
 - Added an Admin RAG monitor with corpus-specific vector readiness, indexing progress, and failure diagnostics.
 - Added role-scoped editorial assignments with audited completion and cancellation controls.
 

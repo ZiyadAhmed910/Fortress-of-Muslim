@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { ContentRepository } from '../src/repositories/content-repository';
 import { answerQuestion } from '../src/rag';
 
-const exact = dua('dua.exact', 'Before entering the bathroom', 'Ë¹O Allah, I seek refuge in You.Ëº');
+const exact = dua(
+  'dua.exact',
+  'Before entering the bathroom',
+  '\u00c3\u008b\u00c2\u00b9O Allah, I seek refuge in You.\u00c3\u008b\u00c2\u00ba Al-\u00e1\u00b8\u00a5amdu lill\u00c4\u0081hi.',
+);
 const weak = dua('dua.weak', 'After leaving the bathroom', 'All praise is for Allah.');
 
 describe('Ask evidence quality', () => {
@@ -47,7 +51,8 @@ describe('Ask evidence quality', () => {
     expect(result.sources).toHaveLength(1);
     expect(result.sources[0]?.id).toBe(exact.id);
     expect(generationContext).toContain("'O Allah, I seek refuge in You.'");
-    expect(generationContext).not.toContain('Ë¹');
+    expect(generationContext).toContain('Al-\u1e25amdu lill\u0101hi.');
+    expect(generationContext).not.toContain('\u00e1\u00b8\u00a5');
     expect(generationContext).not.toContain(weak.title);
   });
 });
