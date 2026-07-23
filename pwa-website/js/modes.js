@@ -10,8 +10,11 @@ export function initContentModes() {
 export function setContentMode(mode) {
   if (!['duas', 'hadith', 'ask'].includes(mode)) return;
   state.contentMode = mode;
+  const showingDuas = mode === 'duas';
   els.app.classList.remove('is-reader', 'mode-hadith', 'mode-ask');
-  if (mode !== 'duas') els.app.classList.add(`mode-${mode}`);
+  if (!showingDuas) els.app.classList.add(`mode-${mode}`);
+  els.advancedHome.hidden = !showingDuas;
+  els.simpleHome.hidden = !showingDuas;
   els.hadithHome.hidden = mode !== 'hadith';
   els.assistantHome.hidden = mode !== 'ask';
   els.contentModeButtons.forEach((button) => button.classList.toggle('active', button.dataset.contentMode === mode));

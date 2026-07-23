@@ -48,6 +48,9 @@
 .mode-ask .advanced-bottom-nav,
 .mode-ask .favourites-fab { display: none; }
 
+.advanced-home[hidden],
+.simple-home[hidden] { display: none !important; }
+
 .online-home[hidden], .hadith-detail[hidden], #hadithBrowse[hidden] { display: none; }
 .online-home { max-width: 46rem; margin: 0 auto; padding: 0.2rem 0 1.5rem; }
 

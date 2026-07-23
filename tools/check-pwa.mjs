@@ -34,15 +34,20 @@ try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   await page.goto(origin, { waitUntil: 'networkidle' });
+  await page.evaluate(() => localStorage.setItem('advancedUi', 'true'));
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('[data-advanced-filter="all"]').click();
   await page.locator('.dua-row').first().waitFor();
   await page.screenshot({ path: join(output, 'pwa-mobile.png'), fullPage: true });
 
   await page.locator('[data-content-mode="hadith"]').click();
   await page.locator('.hadith-row').first().waitFor({ timeout: 20_000 });
+  await assertDuaContentHidden(page, 'Hadith');
   await page.screenshot({ path: join(output, 'pwa-hadith-mobile.png'), fullPage: true });
 
   await page.locator('[data-content-mode="ask"]').click();
   await page.locator('#assistantQuestion').waitFor();
+  await assertDuaContentHidden(page, 'Ask');
   await page.screenshot({ path: join(output, 'pwa-ask-mobile.png'), fullPage: true });
 
   await page.locator('[data-content-mode="duas"]').click();
@@ -52,11 +57,13 @@ try {
   ]));
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.locator('[data-advanced-filter="all"]').click();
   await page.locator('.dua-row').first().waitFor();
 
   await context.setOffline(false);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(origin, { waitUntil: 'networkidle' });
+  await page.locator('[data-advanced-filter="all"]').click();
   await page.locator('.dua-row').first().waitFor();
   await page.screenshot({ path: join(output, 'pwa-desktop.png'), fullPage: true });
   console.log('PWA mobile, desktop, Hadith, Ask, and offline checks passed.');
@@ -68,6 +75,13 @@ try {
 function respond(response, status, body) {
   response.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' });
   response.end(body);
+}
+
+async function assertDuaContentHidden(page, mode) {
+  const visibleDuaSections = await page.locator('#advancedHome:visible, #simpleHome:visible').count();
+  if (visibleDuaSections !== 0) {
+    throw new Error(`${mode} mode still shows content from the Duas section.`);
+  }
 }
 
 function contentType(file) {
