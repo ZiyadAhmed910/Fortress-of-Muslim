@@ -38,6 +38,8 @@ try {
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('[data-advanced-filter="all"]').click();
   await page.locator('.dua-row').first().waitFor();
+  await assertMobileAccessibility(page);
+  await assertPerformanceBudget(page);
   await page.screenshot({ path: join(output, 'pwa-mobile.png'), fullPage: true });
 
   await page.locator('[data-content-mode="hadith"]').click();
@@ -82,6 +84,40 @@ async function assertDuaContentHidden(page, mode) {
   if (visibleDuaSections !== 0) {
     throw new Error(`${mode} mode still shows content from the Duas section.`);
   }
+}
+
+async function assertMobileAccessibility(page) {
+  const audit = await page.evaluate(() => {
+    const interactive = [...document.querySelectorAll('button, a[href], input, select, textarea')]
+      .filter((element) => {
+        const style = getComputedStyle(element);
+        const box = element.getBoundingClientRect();
+        return style.display !== 'none' && style.visibility !== 'hidden' && box.width > 0 && box.height > 0;
+      });
+    const unnamed = interactive.filter((element) => {
+      const labels = 'labels' in element ? [...element.labels].map((label) => label.textContent).join(' ') : '';
+      return !(element.getAttribute('aria-label') || element.getAttribute('title') || labels || element.textContent?.trim());
+    }).map((element) => element.outerHTML.slice(0, 120));
+    const undersized = interactive.filter((element) => {
+      const box = element.getBoundingClientRect();
+      return box.width < 24 || box.height < 24;
+    }).map((element) => element.outerHTML.slice(0, 120));
+    return {
+      unnamed,
+      undersized,
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    };
+  });
+  if (audit.unnamed.length) throw new Error(`Visible controls without accessible names: ${audit.unnamed.join(', ')}`);
+  if (audit.undersized.length) throw new Error(`Visible controls smaller than 24px: ${audit.undersized.join(', ')}`);
+  if (audit.overflow > 1) throw new Error(`Mobile layout overflows horizontally by ${audit.overflow}px.`);
+}
+
+async function assertPerformanceBudget(page) {
+  const resources = await page.evaluate(() => performance.getEntriesByType('resource')
+    .filter((entry) => /\.(?:js|css)(?:\?|$)/.test(entry.name))
+    .reduce((total, entry) => total + (entry.decodedBodySize || entry.transferSize || 0), 0));
+  if (resources > 250_000) throw new Error(`Initial JavaScript and CSS exceeded 250 KB (${resources} bytes).`);
 }
 
 function contentType(file) {

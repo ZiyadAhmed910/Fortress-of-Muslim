@@ -178,6 +178,32 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       return result.meta.changes ? json({ data: { success: true } }) : json({ error: { code: 'not_found', message: 'Device was not found.' } }, 404);
     }
 
+    const oauthStatusMatch = url.pathname.match(/^\/v1\/control\/oauth-clients\/([^/]+)\/status$/);
+    if (oauthStatusMatch && request.method === 'POST') {
+      const status = String((await readJson(request)).status ?? '');
+      if (!['active', 'disabled'].includes(status)) return invalidControlStatus();
+      const clientId = decodeURIComponent(oauthStatusMatch[1]!);
+      const result = await this.env.IDENTITY_DB.prepare(`
+        UPDATE "oauthClient" SET disabled = ?, updatedAt = CURRENT_TIMESTAMP
+        WHERE "clientId" = ? AND "userId" = ?
+      `).bind(status === 'disabled' ? 1 : 0, clientId, user.id).run();
+      if (!result.meta.changes) return controlNotFound('Connected app');
+      if (status === 'disabled') {
+        await this.env.IDENTITY_DB.batch([
+          this.env.IDENTITY_DB.prepare(`
+            UPDATE "oauthAccessToken" SET revoked = CURRENT_TIMESTAMP
+            WHERE "clientId" = ? AND revoked IS NULL
+          `).bind(clientId),
+          this.env.IDENTITY_DB.prepare(`
+            UPDATE "oauthRefreshToken" SET revoked = CURRENT_TIMESTAMP
+            WHERE "clientId" = ? AND revoked IS NULL
+          `).bind(clientId),
+        ]);
+      }
+      await this.auditDeveloperAction(user.id, `developer.oauth_client_${status}`, 'oauth-client', clientId);
+      return json({ data: { clientId, status } });
+    }
+
     if (url.pathname === '/v1/control/named-queries' && request.method === 'GET') {
       const result = await this.env.IDENTITY_DB.prepare(`
         SELECT id, slug, name, description, operation, parameters_json AS parametersJson,
@@ -204,6 +230,20 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       return json({ data: { id, ...parsed.value, status: 'active' } }, 201);
     }
 
+    const queryStatusMatch = url.pathname.match(/^\/v1\/control\/named-queries\/([^/]+)\/status$/);
+    if (queryStatusMatch && request.method === 'POST') {
+      const status = String((await readJson(request)).status ?? '');
+      if (!['active', 'disabled'].includes(status)) return invalidControlStatus();
+      const id = decodeURIComponent(queryStatusMatch[1]!);
+      const result = await this.env.IDENTITY_DB.prepare(`
+        UPDATE named_queries SET status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND owner_user_id = ?
+      `).bind(status, id, user.id).run();
+      if (!result.meta.changes) return controlNotFound('Named query');
+      await this.auditDeveloperAction(user.id, `developer.named_query_${status}`, 'named-query', id);
+      return json({ data: { id, status } });
+    }
+
     if (url.pathname === '/v1/control/mcp/catalog' && request.method === 'GET') return json({ data: STANDARD_MCP_TOOLS });
 
     if (url.pathname === '/v1/control/mcp/toolsets' && request.method === 'GET') {
@@ -226,6 +266,20 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       return json({ data: { id, name, slug, description, status: 'active', tools: [] } }, 201);
     }
 
+    const toolsetStatusMatch = url.pathname.match(/^\/v1\/control\/mcp\/toolsets\/([^/]+)\/status$/);
+    if (toolsetStatusMatch && request.method === 'POST') {
+      const status = String((await readJson(request)).status ?? '');
+      if (!['active', 'disabled'].includes(status)) return invalidControlStatus();
+      const id = decodeURIComponent(toolsetStatusMatch[1]!);
+      const result = await this.env.IDENTITY_DB.prepare(`
+        UPDATE mcp_toolsets SET status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND owner_user_id = ?
+      `).bind(status, id, user.id).run();
+      if (!result.meta.changes) return controlNotFound('MCP toolset');
+      await this.auditDeveloperAction(user.id, `developer.mcp_toolset_${status}`, 'mcp-toolset', id);
+      return json({ data: { id, status } });
+    }
+
     const toolMatch = url.pathname.match(/^\/v1\/control\/mcp\/toolsets\/([^/]+)\/tools$/);
     if (toolMatch && request.method === 'POST') {
       const toolset = await this.env.IDENTITY_DB.prepare("SELECT 1 FROM mcp_toolsets WHERE id = ? AND owner_user_id = ? AND status = 'active'").bind(toolMatch[1], user.id).first();
@@ -239,6 +293,24 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
         .bind(id, toolMatch[1], parsed.value.name, parsed.value.description, parsed.value.toolType, parsed.value.standardToolName,
           parsed.value.namedQueryId, parsed.value.externalMethod, parsed.value.externalUrl, JSON.stringify(parsed.value.inputSchema), parsed.value.approvalStatus).run();
       return json({ data: { id, ...parsed.value, enabled: true } }, 201);
+    }
+
+    const toolStatusMatch = url.pathname.match(/^\/v1\/control\/mcp\/toolsets\/([^/]+)\/tools\/([^/]+)\/status$/);
+    if (toolStatusMatch && request.method === 'POST') {
+      const status = String((await readJson(request)).status ?? '');
+      if (!['active', 'disabled'].includes(status)) return invalidControlStatus();
+      const toolsetId = decodeURIComponent(toolStatusMatch[1]!);
+      const toolId = decodeURIComponent(toolStatusMatch[2]!);
+      const result = await this.env.IDENTITY_DB.prepare(`
+        UPDATE mcp_toolset_tools SET enabled = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND toolset_id = ? AND EXISTS (
+          SELECT 1 FROM mcp_toolsets
+          WHERE id = ? AND owner_user_id = ?
+        )
+      `).bind(status === 'active' ? 1 : 0, toolId, toolsetId, toolsetId, user.id).run();
+      if (!result.meta.changes) return controlNotFound('MCP tool');
+      await this.auditDeveloperAction(user.id, `developer.mcp_tool_${status}`, 'mcp-tool', toolId);
+      return json({ data: { id: toolId, status } });
     }
 
     return json({ error: { code: 'not_found', message: 'Control-plane route was not found.' } }, 404);
@@ -336,6 +408,21 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
     const profile = await this.env.IDENTITY_DB.prepare('SELECT status FROM developer_profiles WHERE user_id = ?').bind(userId).first<{ status: string }>();
     return !profile || profile.status === 'active';
   }
+
+  private async auditDeveloperAction(userId: string, action: string, targetType: string, targetId: string) {
+    await this.env.IDENTITY_DB.prepare(`
+      INSERT INTO audit_events (
+        id, actor_user_id, actor_type, action, target_type, target_id, details
+      ) VALUES (?, ?, 'developer', ?, ?, ?, ?)
+    `).bind(
+      `audit_${crypto.randomUUID()}`,
+      userId,
+      action,
+      targetType,
+      targetId,
+      JSON.stringify({ environment: this.env.PLATFORM_ENV }),
+    ).run();
+  }
 }
 
 function corsHeaders(origin: string | null) {
@@ -384,6 +471,14 @@ function isDeveloperManagementRoute(pathname: string) {
 
 function json(value: unknown, status = 200) {
   return Response.json(value, { status, headers: { 'Cache-Control': 'no-store' } });
+}
+
+function invalidControlStatus() {
+  return json({ error: { code: 'invalid_request', message: 'Choose active or disabled.' } }, 400);
+}
+
+function controlNotFound(resource: string) {
+  return json({ error: { code: 'not_found', message: `${resource} was not found.` } }, 404);
 }
 
 async function readJson(request: Request): Promise<Record<string, unknown>> {

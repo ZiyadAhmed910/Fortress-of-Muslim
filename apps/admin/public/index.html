@@ -52,6 +52,7 @@
         <a href="#queue" data-nav><span>Review queue</span></a>
         <a href="#books" data-nav><span>Hadith books</span></a>
         <a href="#assignments" data-nav><span>Assignments</span></a>
+        <a href="#workload" data-nav><span>Workload</span></a>
         <a href="#taxonomy" data-nav><span>Taxonomy</span></a>
         <p>PLATFORM</p>
         <a href="#users" data-nav><span>Users</span></a>
@@ -96,6 +97,12 @@
           <button>Apply</button>
         </form>
         <div id="queue-table" class="table"></div>
+        <div id="queue-bulk-actions" class="bulk-actions" hidden>
+          <strong><span data-queue-selected>0</span> selected</strong>
+          <button class="primary" data-bulk-decision="approved">Verify selected</button>
+          <button data-bulk-decision="changes_requested">Request changes</button>
+          <button data-clear-queue-selection>Clear</button>
+        </div>
         <div id="queue-pagination" class="pagination"></div>
       </section>
 
@@ -145,6 +152,12 @@
           <button class="primary" type="submit">Create assignment</button>
         </form>
         <div id="assignments-table" class="table"></div>
+      </section>
+
+      <section id="workload" class="view" hidden>
+        <header><div><span class="kicker">EDITORIAL OPERATIONS</span><h1>Verification workload</h1><p>Compare open assignments, pending records, completed work, and recent decisions by reviewer.</p></div><button data-refresh-workload>Refresh</button></header>
+        <div id="workload-metrics" class="metrics"></div>
+        <div id="workload-table" class="table"></div>
       </section>
 
       <section id="batches" class="view" hidden>

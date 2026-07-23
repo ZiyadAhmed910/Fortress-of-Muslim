@@ -52,6 +52,16 @@ export function setupServiceWorker() {
 
   navigator.serviceWorker.register('sw.js')
     .then((registration) => {
+      let lastUpdateCheck = 0;
+      const checkForUpdate = () => {
+        if (Date.now() - lastUpdateCheck < 60 * 60 * 1000) return;
+        lastUpdateCheck = Date.now();
+        registration.update().catch(() => {});
+      };
+      checkForUpdate();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkForUpdate();
+      });
       if (registration.waiting && navigator.serviceWorker.controller) {
         showUpdateBanner(registration.waiting);
       }

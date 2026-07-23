@@ -11,11 +11,12 @@ const state = {
   record: null,
   lookups: null,
   queue: { params: {}, offset: 0, limit: 50, total: 0 },
+  queueSelection: new Set(),
 };
 const roleViews = {
-  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'services', 'audit']),
-  editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'users', 'rag']),
-  reviewer: new Set(['overview', 'queue', 'books', 'assignments', 'rag']),
+  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'services', 'audit']),
+  editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'workload', 'users', 'rag']),
+  reviewer: new Set(['overview', 'queue', 'books', 'assignments', 'workload', 'rag']),
 };
 const resourceNames = {
   'api-keys': 'API keys',
@@ -144,6 +145,7 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'taxonomy') await loadTaxonomy(params);
     else if (id === 'services') await loadServices();
     else if (id === 'rag') await loadRag();
+    else if (id === 'workload') await loadWorkload();
     else if (id === 'audit') await loadAudit(params);
     else if (resourceNames[id]) await loadResources(id);
     state.loaded.add(id);
@@ -215,8 +217,9 @@ async function loadQueue(params = {}) {
     limit: response.pagination.limit,
     total: response.pagination.total,
   };
-  $('#queue-table').innerHTML = tableHead(['Record', 'Collection', 'Revision', 'State', ''])
-    + (rows.map((row) => `<div class="row"><span><strong>${esc(row.title)}</strong><small>${esc(row.canonicalId)}</small></span><span><strong>${esc(row.collection || 'Unassigned')}</strong><small>${esc(row.contentType)}${row.assignedTo ? ` &middot; assigned` : ''}</small></span><span>${row.revisionNumber}</span><span class="badge ${esc(row.workflowState)}">${esc(human(row.workflowState))}</span><span class="actions"><button data-record="${esc(row.canonicalId)}">Review</button></span></div>`).join('') || empty());
+  $('#queue-table').innerHTML = tableHead(['', 'Record', 'Collection', 'Revision', 'State', '']).replace('row head', 'row head queue-select-row')
+    + (rows.map((row) => `<div class="row queue-select-row"><span><input type="checkbox" data-queue-select="${esc(row.canonicalId)}" aria-label="Select ${esc(row.title)}" ${state.queueSelection.has(row.canonicalId) ? 'checked' : ''}></span><span><strong>${esc(row.title)}</strong><small>${esc(row.canonicalId)}</small></span><span><strong>${esc(row.collection || 'Unassigned')}</strong><small>${esc(row.contentType)}${row.assignedTo ? ` &middot; assigned` : ''}</small></span><span>${row.revisionNumber}</span><span class="badge ${esc(row.workflowState)}">${esc(human(row.workflowState))}</span><span class="actions"><button data-record="${esc(row.canonicalId)}">Review</button></span></div>`).join('') || empty());
+  updateQueueBulkActions();
   const start = rows.length ? offset + 1 : 0;
   const end = offset + rows.length;
   $('#queue-pagination').innerHTML = `<span>${start}-${end} of ${response.pagination.total}</span><div><button data-queue-page="${Math.max(0, offset - response.pagination.limit)}" ${offset === 0 ? 'disabled' : ''}>Previous</button><button data-queue-page="${offset + response.pagination.limit}" ${!response.pagination.hasMore ? 'disabled' : ''}>Next</button></div>`;
@@ -225,6 +228,47 @@ $('#queue-table').addEventListener('click', (event) => {
   const button = event.target.closest('[data-record]');
   if (button) showRecord(button.dataset.record);
 });
+$('#queue-table').addEventListener('change', (event) => {
+  const checkbox = event.target.closest('[data-queue-select]');
+  if (!checkbox) return;
+  if (checkbox.checked) state.queueSelection.add(checkbox.dataset.queueSelect);
+  else state.queueSelection.delete(checkbox.dataset.queueSelect);
+  updateQueueBulkActions();
+});
+$('[data-clear-queue-selection]').addEventListener('click', () => {
+  state.queueSelection.clear();
+  $$('[data-queue-select]').forEach((checkbox) => { checkbox.checked = false; });
+  updateQueueBulkActions();
+});
+$('#queue-bulk-actions').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-bulk-decision]');
+  if (!button) return;
+  const decision = button.dataset.bulkDecision;
+  const canonicalIds = [...state.queueSelection];
+  if (!canonicalIds.length) return;
+  const confirmed = await confirmChange(
+    decision === 'approved' ? 'Verify selected records?' : 'Request changes for selected records?',
+    `Fortress will process ${canonicalIds.length} record${canonicalIds.length === 1 ? '' : 's'} and report any record that could not be updated.`,
+  );
+  if (!confirmed) return;
+  try {
+    const result = (await api('/v1/admin/editorial/records/bulk-decision', {
+      method: 'POST',
+      body: { canonicalIds, decision },
+    })).data;
+    state.queueSelection.clear();
+    notify(`${result.succeeded} updated${result.failed ? `, ${result.failed} failed` : ''}.`, result.failed > 0);
+    await loadQueue(state.queue.params);
+    state.loaded.delete('overview');
+    state.loaded.delete('workload');
+  } catch (error) {
+    notify(error.message, true);
+  }
+});
+function updateQueueBulkActions() {
+  $('#queue-bulk-actions').hidden = state.queueSelection.size === 0;
+  $('[data-queue-selected]').textContent = state.queueSelection.size;
+}
 $('#queue-pagination').addEventListener('click', (event) => {
   const button = event.target.closest('[data-queue-page]');
   if (!button || button.disabled) return;
@@ -388,7 +432,7 @@ async function showRecord(id) {
     <div class="verification-banner"><strong>${esc(isVerified ? 'Verified' : human(data.record.workflowState))}</strong><span>${esc(data.record.collectionTitle || 'Collection pending editorial confirmation')}</span><small>${data.record.verifiedBy ? `Verified by ${esc(data.record.verifiedBy)} &middot; ${date(data.record.verifiedAt)}` : 'Not yet verified'}</small></div>
     <section class="editor-section"><header><div><h3>Record content</h3><p>Review the currently saved text for this record.</p></div></header>
       ${grouped.map((part) => `<div class="revision-part"><strong>Part ${part.position}</strong>${part.segments.map((segment) => `<label>${esc(human(segment.kind))}<textarea rows="${segment.kind === 'arabic' ? 4 : 3}" dir="${segment.kind === 'arabic' ? 'rtl' : 'ltr'}" data-segment="${part.position}:${segment.segmentPosition}">${esc(segment.text)}</textarea></label>`).join('')}</div>`).join('')}
-      ${canEdit ? `<form id="revision-form" class="inline-control"><input name="title" value="${esc(data.record.title)}" aria-label="Corrected title"><input name="reason" placeholder="Correction reason (required)" minlength="10"><button type="submit">Create correction revision</button></form>` : ''}
+      ${canEdit ? `<form id="revision-form" class="revision-correction-form"><div class="revision-metadata-grid"><label>Title<input name="title" value="${esc(data.record.title)}"></label><label>Display number<input name="displayNumber" value="${esc(data.record.displayNumber || '')}"></label><label>Narrator<input name="narrator" value="${esc(data.record.narrator || '')}"></label><label>Grade<input name="grade" value="${esc(data.record.grade || '')}"></label><label>Grading authority<input name="gradingAuthority" value="${esc(data.record.gradingAuthority || '')}"></label></div><label>Correction reason<input name="reason" placeholder="Describe what changed" minlength="10" required></label><button type="submit">Create correction revision</button></form>` : ''}
     </section>
     <section class="editor-section"><header><div><h3>Revision history</h3><p>Compare the current immutable snapshot with any earlier correction.</p></div></header>
       ${priorRevisions.map((revision) => `<div class="history-row"><span><strong>Revision ${revision.revisionNumber}</strong><small>${esc(revision.correctionReason || 'Imported candidate')} &middot; ${date(revision.createdAt)}</small></span><button data-compare-revision="${esc(revision.id)}">Compare</button></div>`).join('') || empty('This is the first revision.')}
@@ -418,7 +462,17 @@ $('#record-detail').addEventListener('submit', async (event) => {
       await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/references`, { method: 'POST', body: Object.fromEntries(new FormData(event.target)) });
       notify('Canonical reference added for independent verification.');
     } else if (event.target.id === 'revision-form') {
-      const body = Object.fromEntries(new FormData(event.target));
+      const values = Object.fromEntries(new FormData(event.target));
+      const body = {
+        title: values.title,
+        reason: values.reason,
+        metadata: {
+          displayNumber: values.displayNumber,
+          narrator: values.narrator,
+          grade: values.grade,
+          gradingAuthority: values.gradingAuthority,
+        },
+      };
       body.segments = $$('[data-segment]', $('#record-detail')).map((input) => {
         const [partPosition, segmentPosition] = input.dataset.segment.split(':').map(Number);
         return { partPosition, segmentPosition, text: input.value };
@@ -509,6 +563,25 @@ async function loadAssignments() {
   $('#assignments-table').innerHTML = tableHead(['Scope', 'Target', 'Reviewer', 'Status', ''])
     + rows.map((row) => `<div class="row"><span><strong>${esc(human(row.scopeType))}</strong><small>${esc(row.id)} &middot; ${date(row.createdAt)}</small></span><span>${esc(row.canonicalId || row.chapterId || row.bookId || row.collectionId || `${row.rangeStart || ''}-${row.rangeEnd || ''}`)}</span><code>${esc(row.assignedTo)}</code><span class="badge ${esc(row.status)}">${esc(row.status)}</span><span class="actions">${row.status === 'active' ? `<button class="primary" data-assignment-status="completed" data-assignment="${esc(row.id)}">Complete</button>${state.session.role !== 'reviewer' ? `<button data-assignment-status="cancelled" data-assignment="${esc(row.id)}">Cancel</button>` : ''}` : `<small>${date(row.completedAt)}</small>`}</span></div>`).join('');
 }
+
+async function loadWorkload() {
+  const rows = (await api('/v1/admin/editorial/workload')).data;
+  const totals = rows.reduce((summary, row) => ({
+    active: summary.active + row.activeAssignments,
+    pending: summary.pending + row.pendingRecords,
+    completed: summary.completed + row.completedAssignments,
+    decisions: summary.decisions + row.decisionsLast30Days,
+  }), { active: 0, pending: 0, completed: 0, decisions: 0 });
+  $('#workload-metrics').innerHTML = [
+    ['Active assignments', totals.active],
+    ['Pending records', totals.pending],
+    ['Completed assignments', totals.completed],
+    ['Decisions in 30 days', totals.decisions],
+  ].map(([label, value]) => `<div class="metric"><span>${esc(label)}</span><strong>${value}</strong></div>`).join('');
+  $('#workload-table').innerHTML = tableHead(['Reviewer', 'Open', 'Pending records', 'Completed', '30-day decisions'])
+    + (rows.map((row) => `<div class="row"><span><strong>${esc(row.name)}</strong><small>${esc(row.email || row.reviewerId)}</small></span><strong>${row.activeAssignments}</strong><strong>${row.pendingRecords}</strong><span>${row.completedAssignments}<small>${row.cancelledAssignments} cancelled</small></span><span>${row.decisionsLast30Days}<small>${row.lastDecisionAt ? `Last ${date(row.lastDecisionAt)}` : 'No recent decision'}</small></span></div>`).join('') || empty('No editorial workload has been assigned.'));
+}
+$('[data-refresh-workload]').addEventListener('click', () => loadWorkload().catch((error) => notify(error.message, true)));
 
 $('#assignments-table').addEventListener('click', async (event) => {
   const button = event.target.closest('[data-assignment-status]');
@@ -685,13 +758,16 @@ $('#roles-table').addEventListener('click', async (event) => {
   const button = event.target.closest('[data-save-role]');
   if (!button) return;
   const userId = button.dataset.saveRole;
+  const role = $(`[data-role-user="${CSS.escape(userId)}"]`).value;
+  const status = $(`[data-role-status="${CSS.escape(userId)}"]`).value;
+  if (!await confirmChange('Update platform access?', `This user will become an ${human(status)} ${human(role)}.`)) return;
   try {
     await api('/v1/admin/editorial/roles', {
       method: 'PATCH',
       body: {
         userId,
-        role: $(`[data-role-user="${CSS.escape(userId)}"]`).value,
-        status: $(`[data-role-status="${CSS.escape(userId)}"]`).value,
+        role,
+        status,
       },
     });
     notify('Platform role updated.');

@@ -159,6 +159,69 @@ describe('canonical editorial pilot', () => {
     ).pluck().get())).toBe('cancelled');
     expect(scalar(content, "SELECT COUNT(*) FROM content_audit_events WHERE target_type = 'assignment'")).toBe(2);
   });
+
+  it('bulk reviews selected records and reports reviewer workload', async () => {
+    const content = createContentDatabase();
+    const identity = createIdentityDatabase();
+    const env = { CONTENT_DB: d1(content), IDENTITY_DB: d1(identity) } as never;
+    const editor = context(env, 'bulk-editor', 'editor');
+    const reviewer = context(env, 'bulk-reviewer', 'reviewer');
+    seedIdentity(identity, [editor, reviewer]);
+    const canonicalIds: string[] = [];
+    for (const sequence of [1, 2]) {
+      const created = await post(editor, '/v1/admin/editorial/records', {
+        contentType: 'dua',
+        title: `Bulk review test ${sequence}`,
+        collectionId: 'collection.hisn.legacy',
+        referenceType: 'book_locator',
+        referenceLocator: `Bulk test reference ${sequence}`,
+        parts: [{ segments: [{ kind: 'translation', text: `Test translation ${sequence}` }] }],
+      }, 201);
+      canonicalIds.push(((await created.json()) as { data: { canonicalId: string } }).data.canonicalId);
+    }
+    content.prepare(`
+      UPDATE editorial_record_state SET assigned_to_external_id = ?
+      WHERE canonical_id IN (?, ?)
+    `).run(reviewer.user.id, ...canonicalIds);
+    content.prepare(`
+      INSERT INTO editorial_assignments (
+        id, scope_type, canonical_id, assigned_to_external_id, assigned_by_external_id
+      ) VALUES ('assignment.bulk.active', 'record', ?, ?, ?)
+    `).run(canonicalIds[0], reviewer.user.id, editor.user.id);
+    content.prepare(`
+      INSERT INTO editorial_assignments (
+        id, scope_type, canonical_id, assigned_to_external_id, assigned_by_external_id,
+        status, completed_at
+      ) VALUES ('assignment.bulk.complete', 'record', ?, ?, ?,
+        'completed', CURRENT_TIMESTAMP)
+    `).run(canonicalIds[1], reviewer.user.id, editor.user.id);
+
+    const bulk = await post(reviewer, '/v1/admin/editorial/records/bulk-decision', {
+      canonicalIds,
+      decision: 'approved',
+    });
+    expect((await bulk.json()) as { data: unknown }).toMatchObject({
+      data: { requested: 2, succeeded: 2, failed: 0, decision: 'approved' },
+    });
+    expect(Number(content.prepare(`SELECT COUNT(*) FROM editorial_record_state
+      WHERE canonical_id IN (?, ?) AND workflow_state = 'approved'
+        AND verified_by_external_id = ?`).pluck().get(...canonicalIds, reviewer.user.id))).toBe(2);
+
+    const workload = await request(reviewer, 'GET', '/v1/admin/editorial/workload');
+    const workloadBody = await workload.json() as {
+      data: Array<{
+        reviewerId: string;
+        activeAssignments: number;
+        completedAssignments: number;
+        decisionsLast30Days: number;
+      }>;
+    };
+    expect(workloadBody.data.find((row) => row.reviewerId === reviewer.user.id)).toMatchObject({
+      activeAssignments: 1,
+      completedAssignments: 1,
+      decisionsLast30Days: 2,
+    });
+  });
 });
 
 function createContentDatabase() {
@@ -232,13 +295,13 @@ async function request(
   editorialContext: ReturnType<typeof context>,
   method: string,
   path: string,
-  body: unknown,
+  body: unknown = undefined,
   expectedStatus = 200,
 ) {
   const httpRequest = new Request(`https://auth-test.fortressofmuslim.org${path}`, {
     method,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    ...(method === 'GET' || method === 'HEAD' ? {} : { body: JSON.stringify(body) }),
   });
   const response = await handleEditorialPlane(httpRequest, new URL(httpRequest.url), editorialContext);
   expect(response, path).not.toBeNull();

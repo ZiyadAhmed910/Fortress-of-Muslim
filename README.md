@@ -184,6 +184,15 @@ Every platform release must:
 - Required every generated-answer paragraph to carry a valid citation and prohibited inferred Quran or Hadith attribution.
 - Added an Admin RAG monitor with corpus-specific vector readiness, indexing progress, and failure diagnostics.
 - Added role-scoped editorial assignments with audited completion and cancellation controls.
+- Added selected-record bulk verification and change requests with bounded per-record outcomes.
+- Added a reviewer workload dashboard covering open work, pending records, completed assignments, and recent decisions.
+- Expanded correction revisions to include Hadith display number, narrator, grade, and grading authority.
+- Added reversible lifecycle controls for OAuth apps, named queries, MCP toolsets, and individual custom tools.
+- Revoked outstanding OAuth access and refresh tokens whenever a connected app is disabled.
+- Reconciled browser-remembered API keys with the authoritative server key list.
+- Added PWA cache-manifest, install metadata, accessibility, and shell-size checks to CI.
+- Added automated mobile target-size, overflow, online-mode, offline-cache, and update-flow browser checks.
+- Added a repeatable multi-surface test soak command for release promotion.
 
 ### 0.17.0
 
@@ -445,6 +454,7 @@ Canonical data decisions and staged work are documented in:
 
 - `docs/canonical-data-roadmap.md`
 - `docs/canonical-editorial-architecture.md`
+- `docs/release-readiness.md`
 - `docs/adr/0001-canonical-knowledge-and-snapshots.md`
 - `docs/adr/0002-public-read-api.md`
 - `docs/adr/0003-evidence-gated-verification.md`

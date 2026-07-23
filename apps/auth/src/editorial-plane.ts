@@ -28,6 +28,9 @@ export async function handleEditorialPlane(
   if (url.pathname === '/v1/admin/editorial/rag' && request.method === 'GET') {
     return ragOverview(context);
   }
+  if (url.pathname === '/v1/admin/editorial/workload' && request.method === 'GET') {
+    return workloadOverview(context);
+  }
   if (url.pathname === '/v1/admin/editorial/queue' && request.method === 'GET') {
     return queue(context, url);
   }
@@ -37,6 +40,10 @@ export async function handleEditorialPlane(
   if (url.pathname === '/v1/admin/editorial/records' && request.method === 'POST') {
     requireRole(context.role, ['editor', 'admin']);
     return createRecord(context, await readJson(request));
+  }
+  if (url.pathname === '/v1/admin/editorial/records/bulk-decision' && request.method === 'POST') {
+    requireRole(context.role, ['reviewer', 'editor', 'admin']);
+    return submitBulkDecision(context, await readJson(request));
   }
   if (url.pathname === '/v1/admin/editorial/books' && request.method === 'GET') {
     return listBooks(context, url);
@@ -243,6 +250,71 @@ async function ragOverview({ env }: EditorialContext) {
         hadith: contentCounts.hadith ?? 0,
       },
     },
+  });
+}
+
+async function workloadOverview(context: EditorialContext) {
+  const { env } = context;
+  const [assignments, decisions, queue] = await Promise.all([
+    env.CONTENT_DB.prepare(`
+      SELECT assigned_to_external_id AS reviewerId,
+             SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active,
+             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
+             SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled
+      FROM editorial_assignments
+      GROUP BY assigned_to_external_id
+    `).all<Record<string, unknown>>(),
+    env.CONTENT_DB.prepare(`
+      SELECT reviewer_external_id AS reviewerId,
+             COUNT(*) AS decisions,
+             MAX(decided_at) AS lastDecisionAt
+      FROM review_decisions
+      WHERE decided_at >= datetime('now', '-30 days')
+      GROUP BY reviewer_external_id
+    `).all<Record<string, unknown>>(),
+    env.CONTENT_DB.prepare(`
+      SELECT assigned_to_external_id AS reviewerId, COUNT(*) AS pendingRecords
+      FROM editorial_record_state
+      WHERE assigned_to_external_id IS NOT NULL
+        AND workflow_state NOT IN ('approved', 'published')
+      GROUP BY assigned_to_external_id
+    `).all<Record<string, unknown>>(),
+  ]);
+  const allReviewerIds = [...new Set([
+    ...assignments.results.map((row) => String(row.reviewerId)),
+    ...decisions.results.map((row) => String(row.reviewerId)),
+    ...queue.results.map((row) => String(row.reviewerId)),
+  ])];
+  const reviewerIds = context.role === 'reviewer'
+    ? allReviewerIds.filter((reviewerId) => reviewerId === context.user.id)
+    : allReviewerIds;
+  const users = reviewerIds.length
+    ? await env.IDENTITY_DB.prepare(`
+        SELECT id, name, email FROM "user"
+        WHERE id IN (${reviewerIds.map(() => '?').join(',')})
+      `).bind(...reviewerIds).all<{ id: string; name: string; email: string }>()
+    : { results: [] as Array<{ id: string; name: string; email: string }> };
+  const assignmentMap = new Map(assignments.results.map((row) => [String(row.reviewerId), row]));
+  const decisionMap = new Map(decisions.results.map((row) => [String(row.reviewerId), row]));
+  const queueMap = new Map(queue.results.map((row) => [String(row.reviewerId), row]));
+  return json({
+    data: reviewerIds.map((reviewerId) => {
+      const user = users.results.find((candidate) => candidate.id === reviewerId);
+      const assignment = assignmentMap.get(reviewerId);
+      const decision = decisionMap.get(reviewerId);
+      const pending = queueMap.get(reviewerId);
+      return {
+        reviewerId,
+        name: user?.name ?? 'Unknown reviewer',
+        email: user?.email ?? '',
+        activeAssignments: Number(assignment?.active ?? 0),
+        completedAssignments: Number(assignment?.completed ?? 0),
+        cancelledAssignments: Number(assignment?.cancelled ?? 0),
+        pendingRecords: Number(pending?.pendingRecords ?? 0),
+        decisionsLast30Days: Number(decision?.decisions ?? 0),
+        lastDecisionAt: decision?.lastDecisionAt ?? null,
+      };
+    }).sort((left, right) => right.pendingRecords - left.pendingRecords),
   });
 }
 
@@ -1229,6 +1301,46 @@ async function submitDecision(context: EditorialContext, canonicalId: string, bo
       workflowState: decision === 'approved' ? 'approved' : 'changes_requested',
       verifiedBy: decision === 'approved' ? context.user.id : null,
       verifiedAt: decision === 'approved' ? now : null,
+    },
+  });
+}
+
+async function submitBulkDecision(context: EditorialContext, body: Record<string, unknown>) {
+  const canonicalIds = Array.isArray(body.canonicalIds)
+    ? [...new Set(body.canonicalIds.map(String).map((id) => id.trim()).filter(Boolean))]
+    : [];
+  const decision = String(body.decision ?? '');
+  if (canonicalIds.length < 1 || canonicalIds.length > 25) {
+    return invalid('Choose between 1 and 25 records.');
+  }
+  if (!['approved', 'changes_requested'].includes(decision)) {
+    return invalid('Choose approved or changes requested.');
+  }
+  const outcomes: Array<{ canonicalId: string; ok: boolean; status: number; message?: string }> = [];
+  for (const canonicalId of canonicalIds) {
+    const response = await submitDecision(context, canonicalId, {
+      decision,
+      notes: optionalText(body.notes, 2000),
+    });
+    if (response.status >= 200 && response.status < 300) {
+      outcomes.push({ canonicalId, ok: true, status: response.status });
+      continue;
+    }
+    const payload = await response.json() as { error?: { message?: string } };
+    outcomes.push({
+      canonicalId,
+      ok: false,
+      status: response.status,
+      message: payload.error?.message ?? 'The record could not be updated.',
+    });
+  }
+  return json({
+    data: {
+      decision,
+      requested: canonicalIds.length,
+      succeeded: outcomes.filter((outcome) => outcome.ok).length,
+      failed: outcomes.filter((outcome) => !outcome.ok).length,
+      outcomes,
     },
   });
 }

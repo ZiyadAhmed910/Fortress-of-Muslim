@@ -66,3 +66,21 @@
 .oauth-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .oauth-client { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 .oauth-error { color: var(--danger); min-height: 22px; margin-top: 12px; }
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.chip-action {
+  border: 0;
+  border-left: 1px solid currentColor;
+  margin-left: 6px;
+  padding-left: 7px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}

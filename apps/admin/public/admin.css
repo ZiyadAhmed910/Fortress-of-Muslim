@@ -27,3 +27,38 @@
 .record-part-grid label:first-child{grid-column:1/-1}
 .record-part+.record-part{margin-top:10px}
 @media(max-width:760px){.record-create-form,.record-part-grid{grid-template-columns:1fr}.record-part-grid label:first-child{grid-column:auto}}
+.bulk-actions {
+  position: sticky;
+  bottom: 16px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(18, 27, 31, .12);
+}
+
+.bulk-actions[hidden] { display: none; }
+.bulk-actions strong { margin-right: auto; }
+.queue-select-row { grid-template-columns: 32px minmax(220px, 2fr) minmax(150px, 1fr) 80px 130px minmax(90px, auto); }
+
+.revision-correction-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.revision-metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .bulk-actions { flex-wrap: wrap; bottom: 8px; }
+  .bulk-actions strong { flex: 1 0 100%; }
+  .revision-metadata-grid { grid-template-columns: 1fr; }
+}
