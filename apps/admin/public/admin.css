@@ -12,3 +12,18 @@
 @media(max-width:760px){.console{padding-left:0}.topbar{padding:0 10px}.mobile-menu{display:block;padding:7px}.brand{min-width:0}.brand span{display:none}.env,.global-search{display:none}.sidebar{transform:translateX(-100%);transition:transform .18s}.console.nav-open .sidebar{transform:none}.console.nav-open .scrim{display:block;position:fixed;z-index:14;inset:62px 0 0;background:rgba(5,20,22,.5)}.workspace{padding:20px 12px 50px}.view h1{font-size:23px}.metrics{grid-template-columns:1fr 1fr}.filter{flex-wrap:wrap}.filter input{min-width:100%;max-width:none}.warning{display:grid}.service-grid{grid-template-columns:1fr}.search-item{grid-template-columns:90px 1fr}.search-item>*:last-child{display:none}.form-grid{grid-template-columns:1fr}.form-grid .wide{grid-column:auto}.evidence-row,.history-row{grid-template-columns:1fr}.inline-control{align-items:stretch;flex-direction:column}.editorial-form{grid-template-columns:1fr 1fr}.field-review-grid{grid-template-columns:1fr}.field-review-grid label{grid-template-columns:1fr}.editor-section{padding:16px}.editor-head{padding:16px}.evidence-row>span:last-child{align-items:flex-start;flex-wrap:wrap}}
 @media(max-width:760px){.comparison-grid{grid-template-columns:1fr}.comparison-grid>section+section{border-left:0;border-top:1px solid var(--line)}.pagination,.subheader{align-items:flex-start}.verification-banner small{grid-column:1;grid-row:auto}}
 .service-line strong,.service-line small{display:block}
+
+.badge.pending_review,.badge.indexing{background:#fbf1dc;color:var(--warn)}
+.badge.changes_requested{background:#f7e8e8;color:var(--bad)}
+.record-create-form{grid-template-columns:repeat(3,minmax(170px,1fr))}
+.record-parts-head{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.record-parts-head small{display:block;color:var(--muted);font-weight:400}
+.record-part{margin:0;padding:14px;border:1px solid var(--line);border-radius:5px;background:#f8faf9}
+.record-part header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.record-part header strong{font-size:14px}
+.record-part-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.record-part-grid label{display:grid;gap:5px}
+.record-part-grid textarea{resize:vertical;line-height:1.6}
+.record-part-grid label:first-child{grid-column:1/-1}
+.record-part+.record-part{margin-top:10px}
+@media(max-width:760px){.record-create-form,.record-part-grid{grid-template-columns:1fr}.record-part-grid label:first-child{grid-column:auto}}

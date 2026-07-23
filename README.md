@@ -144,7 +144,7 @@ Build the PWA's offline dua snapshot from the published API boundary:
 npm run pwa:data:build
 ```
 
-Vector indexing is idempotent, resumable, and restricted to the current published canonical dataset:
+Vector indexing is idempotent, resumable, and restricted to the current published canonical dataset. The API Worker checks for pending batches every minute; the command remains available for supervised recovery:
 
 ```powershell
 node apps/api/tools/index-rag.mjs test --cursor=10050
@@ -175,6 +175,10 @@ Every platform release must:
 - Restored the verified 132-chapter Hisn offline snapshot and prevented API publication state from emptying local PWA data.
 - Simplified visible editorial statuses to Pending Review, Verified, and Change Requested; publication batching is no longer part of the normal Admin Console flow.
 - Verified and published all 268 individual Hisn readings while leaving Hadith collections pending review.
+- Added Admin authoring for new Dua and Hadith records with ordered parts, metadata, and a required canonical reference.
+- Added one-action Hadith book verification that stamps every record, publishes a complete mixed-corpus snapshot, and queues it for RAG indexing.
+- Added resumable scheduled indexing for verified Hadith and Duas, with per-content-type readiness counts.
+- Unified identity and editorial events in the Admin audit history and protected the default and final active administrator.
 
 ### 0.17.0
 

@@ -13,9 +13,9 @@ const state = {
   queue: { params: {}, offset: 0, limit: 50, total: 0 },
 };
 const roleViews = {
-  admin: new Set(['overview', 'search', 'queue', 'assignments', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'services', 'audit']),
-  editor: new Set(['overview', 'queue', 'assignments', 'users']),
-  reviewer: new Set(['overview', 'queue']),
+  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'services', 'audit']),
+  editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'users']),
+  reviewer: new Set(['overview', 'queue', 'books']),
 };
 const resourceNames = {
   'api-keys': 'API keys',
@@ -136,7 +136,9 @@ async function loadView(id, force = false, params = {}) {
   if (state.loaded.has(id) && !force) return;
   try {
     if (id === 'overview') await loadOverview();
+    else if (id === 'content') await loadLookups();
     else if (id === 'queue') await loadQueue(params);
+    else if (id === 'books') await loadBooks(params);
     else if (id === 'assignments') await Promise.all([loadLookups(), loadAssignments()]);
     else if (id === 'users') await loadUsers(params);
     else if (id === 'taxonomy') await loadTaxonomy(params);
@@ -247,7 +249,131 @@ async function loadLookups() {
     value: row.id,
     label: `${row.bookTitle} / ${row.number} ${row.title}`,
   }));
+  refreshRecordLookups();
 }
+
+function refreshRecordLookups() {
+  const form = $('#record-create-form');
+  if (!form || !state.lookups) return;
+  const contentType = form.elements.contentType.value;
+  const selectedCollection = form.elements.collectionId.value;
+  const selectedBook = form.elements.bookId.value;
+  const collections = state.lookups.collections.filter((row) => row.contentType === contentType);
+  fillSelect(form.elements.collectionId, collections, (row) => ({ value: row.id, label: row.title }));
+  if (collections.some((row) => row.id === selectedCollection)) form.elements.collectionId.value = selectedCollection;
+  const books = state.lookups.books.filter((row) => row.collectionId === form.elements.collectionId.value);
+  fillSelect(form.elements.bookId, books, (row) => ({ value: row.id, label: `${row.number || ''} ${row.title}`.trim() }));
+  if (books.some((row) => row.id === selectedBook)) form.elements.bookId.value = selectedBook;
+  const chapters = state.lookups.chapters.filter((row) => row.bookId === form.elements.bookId.value);
+  fillSelect(form.elements.chapterId, chapters, (row) => ({ value: row.id, label: `${row.number || ''} ${row.title}`.trim() }));
+  form.elements.bookId.required = contentType === 'hadith';
+  form.elements.narrator.closest('label').hidden = contentType !== 'hadith';
+  form.elements.grade.closest('label').hidden = contentType !== 'hadith';
+  form.elements.gradingAuthority.closest('label').hidden = contentType !== 'hadith';
+}
+
+function addRecordPart(values = {}) {
+  const container = $('#record-parts');
+  const part = document.createElement('fieldset');
+  part.className = 'record-part';
+  part.dataset.recordPart = '';
+  part.innerHTML = `
+    <header><strong></strong><button type="button" data-remove-record-part>Remove</button></header>
+    <div class="record-part-grid">
+      <label>Arabic<textarea rows="4" dir="rtl" data-kind="arabic">${esc(values.arabic || '')}</textarea></label>
+      <label>Transliteration<textarea rows="3" data-kind="transliteration">${esc(values.transliteration || '')}</textarea></label>
+      <label>Translation<textarea rows="3" data-kind="translation">${esc(values.translation || '')}</textarea></label>
+      <label>Commentary<textarea rows="3" data-kind="comment">${esc(values.comment || '')}</textarea></label>
+    </div>`;
+  container.append(part);
+  renumberRecordParts();
+}
+
+function renumberRecordParts() {
+  const parts = $$('[data-record-part]', $('#record-parts'));
+  parts.forEach((part, index) => {
+    $('strong', part).textContent = `Part ${index + 1}`;
+    $('[data-remove-record-part]', part).hidden = parts.length === 1;
+  });
+}
+
+async function loadBooks(params = {}) {
+  const query = new URLSearchParams(Object.entries(params).filter(([, value]) => value));
+  const rows = (await api(`/v1/admin/editorial/books?${query}`)).data;
+  $('#books-table').innerHTML = tableHead(['Book', 'Records', 'Verified', 'Status', ''])
+    + rows.map((row) => `<div class="row">
+      <span><strong>${esc(row.number ? `${row.number}. ${row.title}` : row.title)}</strong><small>${esc(row.collectionTitle)}</small></span>
+      <strong>${Number(row.recordCount)}</strong>
+      <span>${Number(row.verifiedCount)}<small>${Number(row.changesRequestedCount)} change requested</small></span>
+      <span class="badge ${esc(row.editorialStatus)}">${esc(human(row.editorialStatus))}</span>
+      <span class="actions">${row.editorialStatus === 'verified'
+        ? `<small>${date(row.verifiedAt)}</small>`
+        : `<button class="primary" data-book-decision="verified" data-book="${esc(row.id)}">Verify book</button><button data-book-decision="changes_requested" data-book="${esc(row.id)}">Request changes</button>`}</span>
+    </div>`).join('') || empty('No Hadith books match this filter.');
+}
+
+$('#books-table').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-book-decision]');
+  if (!button) return;
+  const verifying = button.dataset.bookDecision === 'verified';
+  const confirmed = await confirmChange(
+    verifying ? 'Verify and publish this Hadith book?' : 'Request changes for this Hadith book?',
+    verifying
+      ? 'Every current Hadith record in this book will be stamped with your identity, published into a new canonical corpus, and queued for vector indexing.'
+      : 'All unverified records in this book will move to Change Requested.',
+  );
+  if (!confirmed) return;
+  try {
+    const response = await api(`/v1/admin/editorial/books/${encodeURIComponent(button.dataset.book)}/decision`, {
+      method: 'POST',
+      body: { decision: button.dataset.bookDecision },
+    });
+    notify(verifying
+      ? `${response.data.recordCount} Hadith records verified. RAG indexing is queued.`
+      : `${response.data.recordCount} Hadith records marked for changes.`);
+    await loadBooks();
+    state.loaded.delete('queue');
+    state.loaded.delete('overview');
+  } catch (error) {
+    notify(error.message, true);
+  }
+});
+
+$('#record-create-form').addEventListener('change', (event) => {
+  if (['contentType', 'collectionId', 'bookId'].includes(event.target.name)) refreshRecordLookups();
+});
+$('#record-create-form').addEventListener('click', (event) => {
+  if (event.target.closest('[data-add-record-part]')) addRecordPart();
+  const remove = event.target.closest('[data-remove-record-part]');
+  if (remove && $$('[data-record-part]', $('#record-parts')).length > 1) {
+    remove.closest('[data-record-part]').remove();
+    renumberRecordParts();
+  }
+});
+$('#record-create-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const body = compactForm(event.currentTarget);
+  body.parts = $$('[data-record-part]', $('#record-parts')).map((part) => ({
+    segments: $$('[data-kind]', part)
+      .map((input) => ({ kind: input.dataset.kind, text: input.value.trim() }))
+      .filter((segment) => segment.text),
+  }));
+  try {
+    const response = await api('/v1/admin/editorial/records', { method: 'POST', body });
+    event.currentTarget.reset();
+    $('#record-parts').replaceChildren();
+    addRecordPart();
+    refreshRecordLookups();
+    state.loaded.delete('queue');
+    state.loaded.delete('overview');
+    notify('Pending canonical record created.');
+    await showRecord(response.data.canonicalId);
+  } catch (error) {
+    notify(error.message, true);
+  }
+});
+
+addRecordPart();
 
 async function showRecord(id) {
   const data = (await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}`)).data;
@@ -634,7 +760,17 @@ $('#services-grid').addEventListener('click', async (event) => {
 async function loadAudit(params = {}) {
   const rows = (await api(`/v1/admin/audit?${new URLSearchParams(params)}`)).data;
   $('#audit-table').innerHTML = tableHead(['Action', 'Actor', 'Target', 'Time', 'Request'])
-    + rows.map((row) => `<div class="row"><span><strong>${esc(human(row.action))}</strong><small>${esc(row.action)}</small></span><span>${esc(row.actorName)}</span><span><strong>${esc(row.targetType)}</strong><small>${esc(row.targetId || '')}</small></span><span>${date(row.occurredAt)}</span><code>${esc(row.requestId || '')}</code></div>`).join('');
+    + rows.map((row) => `<div class="row"><span><strong>${esc(human(row.action))}</strong><small>${esc(auditDetails(row.details) || row.action)}</small></span><span>${esc(row.actorName || row.actorUserId || 'system')}<small>${esc(row.actorEmail || '')}</small></span><span><strong>${esc(human(row.targetType))}</strong><small>${esc(row.targetId || '')}</small></span><span>${date(row.occurredAt)}</span><code>${esc(row.requestId || '')}</code></div>`).join('');
+}
+
+function auditDetails(value) {
+  try {
+    const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+    return Object.entries(parsed || {}).slice(0, 3)
+      .map(([key, item]) => `${human(key)}: ${String(item)}`).join(' · ');
+  } catch {
+    return String(value || '');
+  }
 }
 
 document.addEventListener('click', (event) => {

@@ -702,10 +702,16 @@ components:
       properties:
         data:
           type: object
-          required: [datasetId, recordCount, status, indexedCount, expectedCount]
+          required: [datasetId, recordCount, contentCounts, status, indexedCount, expectedCount]
           properties:
             datasetId: { type: string }
             recordCount: { type: integer, minimum: 0 }
+            contentCounts:
+              type: object
+              required: [dua, hadith]
+              properties:
+                dua: { type: integer, minimum: 0 }
+                hadith: { type: integer, minimum: 0 }
             status: { type: string, enum: [empty, pending, indexing, ready, failed] }
             indexedCount: { type: integer, minimum: 0 }
             expectedCount: { type: integer, minimum: 0 }

@@ -1,12 +1,16 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { app } from './app';
 import { executeRecordQuery } from './lib/record-query';
-import { answerQuestion } from './rag';
+import { answerQuestion, indexNextPendingBatch } from './rag';
 import { D1ContentRepository } from './repositories/d1-content-repository';
 import type { Bindings } from './types';
 
 export default class ApiWorker extends WorkerEntrypoint<Bindings> {
   fetch(request: Request) { return app.fetch(request, this.env, this.ctx); }
+
+  scheduled() {
+    this.ctx.waitUntil(indexNextPendingBatch(this.env));
+  }
 
   async executeMcpTool(tool: { toolType: string; standardToolName?: string; namedQueryId?: string }, args: Record<string, unknown>, ownerUserId: string) {
     const repository = new D1ContentRepository(this.env.CONTENT_DB);

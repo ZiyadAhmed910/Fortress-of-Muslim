@@ -31,6 +31,13 @@ export async function handleEditorialPlane(
   if (url.pathname === '/v1/admin/editorial/lookups' && request.method === 'GET') {
     return lookups(context);
   }
+  if (url.pathname === '/v1/admin/editorial/records' && request.method === 'POST') {
+    requireRole(context.role, ['editor', 'admin']);
+    return createRecord(context, await readJson(request));
+  }
+  if (url.pathname === '/v1/admin/editorial/books' && request.method === 'GET') {
+    return listBooks(context, url);
+  }
   if (url.pathname === '/v1/admin/editorial/assignments' && request.method === 'GET') {
     return listAssignments(context);
   }
@@ -52,6 +59,16 @@ export async function handleEditorialPlane(
   if (url.pathname === '/v1/admin/editorial/roles' && request.method === 'PATCH') {
     requireRole(context.role, ['editor', 'admin']);
     return updateRole(context, await readJson(request));
+  }
+
+  const bookDecisionMatch = url.pathname.match(/^\/v1\/admin\/editorial\/books\/([^/]+)\/decision$/);
+  if (bookDecisionMatch && request.method === 'POST') {
+    requireRole(context.role, ['reviewer', 'editor', 'admin']);
+    return decideBook(
+      context,
+      decodeURIComponent(bookDecisionMatch[1]!),
+      await readJson(request),
+    );
   }
 
   const recordMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)$/);
@@ -243,19 +260,20 @@ async function lookups({ env }: EditorialContext) {
       ORDER BY user.name, user.email
     `).all(),
     env.CONTENT_DB.prepare(`
-      SELECT id, slug, title FROM collections ORDER BY content_type, title
+      SELECT id, slug, title, content_type AS contentType
+      FROM collections ORDER BY content_type, title
     `).all(),
     env.CONTENT_DB.prepare(`
       SELECT book.id, book.book_number AS number, book.title,
              collection.id AS collectionId, collection.title AS collectionTitle
       FROM books book JOIN collections collection ON collection.id = book.collection_id
-      ORDER BY collection.title, book.sequence LIMIT 1000
+      ORDER BY collection.title, book.position LIMIT 1000
     `).all(),
     env.CONTENT_DB.prepare(`
       SELECT chapter.id, chapter.chapter_number AS number, chapter.title,
              chapter.book_id AS bookId, book.title AS bookTitle
       FROM chapters chapter JOIN books book ON book.id = chapter.book_id
-      ORDER BY book.sequence, chapter.sequence LIMIT 2000
+      ORDER BY book.position, chapter.position LIMIT 2000
     `).all(),
   ]);
   return json({
@@ -266,6 +284,405 @@ async function lookups({ env }: EditorialContext) {
       chapters: chapters.results,
     },
   });
+}
+
+async function listBooks({ env }: EditorialContext, url: URL) {
+  const collection = optionalText(url.searchParams.get('collection'), 80);
+  const status = optionalText(url.searchParams.get('status'), 40);
+  const values: unknown[] = [];
+  const predicates = ["collection.content_type = 'hadith'"];
+  if (collection) {
+    predicates.push('collection.slug = ?');
+    values.push(collection);
+  }
+  if (status && ['pending_review', 'verified', 'changes_requested'].includes(status)) {
+    predicates.push('book.editorial_status = ?');
+    values.push(status);
+  }
+  const rows = await env.CONTENT_DB.prepare(`
+    SELECT book.id, book.book_number AS number, book.title,
+           collection.slug AS collection, collection.title AS collectionTitle,
+           book.editorial_status AS editorialStatus,
+           book.verified_by_external_id AS verifiedBy, book.verified_at AS verifiedAt,
+           COUNT(canonical.canonical_id) AS recordCount,
+           SUM(CASE WHEN state.verified_at IS NOT NULL
+                     AND state.workflow_state IN ('approved', 'published') THEN 1 ELSE 0 END) AS verifiedCount,
+           SUM(CASE WHEN state.workflow_state = 'changes_requested' THEN 1 ELSE 0 END) AS changesRequestedCount
+    FROM books book
+    JOIN collections collection ON collection.id = book.collection_id
+    LEFT JOIN revision_metadata metadata ON metadata.book_id = book.id
+    LEFT JOIN content_revisions revision ON revision.id = metadata.revision_id
+    LEFT JOIN canonical_records canonical
+      ON canonical.current_revision_id = revision.id AND canonical.content_type = 'hadith'
+    LEFT JOIN editorial_record_state state ON state.canonical_id = canonical.canonical_id
+    WHERE ${predicates.join(' AND ')}
+    GROUP BY book.id
+    ORDER BY collection.title, book.position
+    LIMIT 1000
+  `).bind(...values).all();
+  return json({ data: rows.results });
+}
+
+async function createRecord(context: EditorialContext, body: Record<string, unknown>) {
+  const contentType = String(body.contentType ?? '');
+  const title = String(body.title ?? '').trim();
+  const collectionId = optionalText(body.collectionId, 180);
+  const bookId = optionalText(body.bookId, 180);
+  const chapterId = optionalText(body.chapterId, 180);
+  const referenceType = optionalText(body.referenceType, 80);
+  const referenceLocator = optionalText(body.referenceLocator, 500);
+  const parts = Array.isArray(body.parts) ? body.parts : [];
+  if (!['dua', 'hadith'].includes(contentType)) return invalid('Choose Dua or Hadith content.');
+  if (title.length < 2 || title.length > 300) return invalid('Title must contain between 2 and 300 characters.');
+  if (!collectionId) return invalid('Choose a canonical collection.');
+  if (!referenceType || !referenceLocator) return invalid('A canonical reference is required.');
+  if (parts.length < 1 || parts.length > 8) return invalid('Add between 1 and 8 reading parts.');
+
+  const collection = await context.env.CONTENT_DB.prepare(
+    'SELECT content_type AS contentType FROM collections WHERE id = ?',
+  ).bind(collectionId).first<{ contentType: string }>();
+  if (!collection || collection.contentType !== contentType) {
+    return invalid('The selected collection does not match the content type.');
+  }
+  if (contentType === 'hadith' && !bookId) return invalid('Choose a book for a Hadith record.');
+  if (bookId) {
+    const book = await context.env.CONTENT_DB.prepare(
+      'SELECT collection_id AS collectionId FROM books WHERE id = ?',
+    ).bind(bookId).first<{ collectionId: string }>();
+    if (!book || book.collectionId !== collectionId) return invalid('The selected book does not belong to this collection.');
+  }
+  if (chapterId) {
+    const chapter = await context.env.CONTENT_DB.prepare(
+      'SELECT book_id AS bookId FROM chapters WHERE id = ?',
+    ).bind(chapterId).first<{ bookId: string }>();
+    if (!chapter || chapter.bookId !== bookId) return invalid('The selected chapter does not belong to this book.');
+  }
+
+  const normalizedParts: Array<Array<{ kind: string; text: string; languageCode: string; scriptCode: string }>> = [];
+  for (const rawPart of parts) {
+    if (!isObject(rawPart) || !Array.isArray(rawPart.segments)) return invalid('Every part must contain segments.');
+    const segments = rawPart.segments.map((raw) => {
+      if (!isObject(raw)) return null;
+      const kind = String(raw.kind ?? '');
+      const text = String(raw.text ?? '').trim();
+      if (!['arabic', 'transliteration', 'translation', 'comment'].includes(kind) || !text || text.length > 20_000) return null;
+      const languageCode = kind === 'arabic' ? 'ar' : kind === 'transliteration' ? 'ar-Latn' : 'en';
+      return { kind, text, languageCode, scriptCode: kind === 'arabic' ? 'Arab' : 'Latn' };
+    });
+    if (segments.length < 1 || segments.some((segment) => !segment)) return invalid('Every segment needs a supported type and text.');
+    normalizedParts.push(segments as Array<{ kind: string; text: string; languageCode: string; scriptCode: string }>);
+  }
+
+  const suffix = crypto.randomUUID();
+  const canonicalId = `${contentType}.fortress.${suffix}`;
+  const recordId = `record.${canonicalId}`;
+  const revisionId = `revision.${canonicalId}.1`;
+  const sequenceRow = await context.env.CONTENT_DB.prepare(`
+    SELECT COALESCE(MAX(sequence), 0) + 1 AS sequence
+    FROM content_records WHERE dataset_id = 'dataset.fortress.editorial.manual' AND content_type = ?
+  `).bind(contentType).first<{ sequence: number }>();
+  const sequence = Number(sequenceRow?.sequence ?? 1);
+  const now = new Date().toISOString();
+  const statements: D1PreparedStatement[] = [
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO content_records (
+        id, dataset_id, content_type, sequence, title, verification_status,
+        created_at, updated_at, logical_id
+      ) VALUES (?, 'dataset.fortress.editorial.manual', ?, ?, ?, 'pending', ?, ?, ?)
+    `).bind(recordId, contentType, sequence, title, now, now, canonicalId),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE dataset_versions SET record_count = record_count + 1
+      WHERE id = 'dataset.fortress.editorial.manual'
+    `),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_records (canonical_id, content_type, current_revision_id)
+      VALUES (?, ?, ?)
+    `).bind(canonicalId, contentType, revisionId),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO content_revisions (
+        id, canonical_id, record_id, revision_number, sequence, title,
+        created_by_external_id, correction_reason
+      ) VALUES (?, ?, ?, 1, ?, ?, ?, 'Created in Fortress Admin.')
+    `).bind(revisionId, canonicalId, recordId, sequence, title, context.user.id),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO revision_metadata (
+        revision_id, collection_id, book_id, chapter_id, display_number,
+        narrator, grade, grading_authority
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      revisionId, collectionId, bookId, chapterId,
+      optionalText(body.displayNumber, 120), optionalText(body.narrator, 1000),
+      optionalText(body.grade, 160), optionalText(body.gradingAuthority, 300),
+    ),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO record_placements (
+        record_id, collection_id, book_id, chapter_id, source_number
+      ) VALUES (?, ?, ?, ?, ?)
+    `).bind(recordId, collectionId, bookId, chapterId, optionalText(body.displayNumber, 120)),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO editorial_record_state (
+        canonical_id, revision_id, workflow_state, changed_by_external_id
+      ) VALUES (?, ?, 'pending_review', ?)
+    `).bind(canonicalId, revisionId, context.user.id),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_references (
+        id, canonical_id, revision_id, reference_type, locator,
+        verification_status, created_by_external_id
+      ) VALUES (?, ?, ?, ?, ?, 'pending', ?)
+    `).bind(`reference.${canonicalId}.1`, canonicalId, revisionId, referenceType, referenceLocator, context.user.id),
+  ];
+  normalizedParts.forEach((segments, partIndex) => {
+    const position = partIndex + 1;
+    const legacyPartId = `${recordId}.part.${position}`;
+    const revisionPartId = `${revisionId}.part.${position}`;
+    statements.push(
+      context.env.CONTENT_DB.prepare('INSERT INTO content_parts (id, record_id, position) VALUES (?, ?, ?)')
+        .bind(legacyPartId, recordId, position),
+      context.env.CONTENT_DB.prepare('INSERT INTO revision_parts (id, revision_id, position) VALUES (?, ?, ?)')
+        .bind(revisionPartId, revisionId, position),
+    );
+    segments.forEach((segment, segmentIndex) => {
+      const segmentPosition = segmentIndex + 1;
+      statements.push(
+        context.env.CONTENT_DB.prepare(`
+          INSERT INTO content_segments (
+            id, part_id, position, kind, language_code, script_code, text
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          `${legacyPartId}.segment.${segmentPosition}`, legacyPartId, segmentPosition,
+          segment.kind, segment.languageCode, segment.scriptCode, segment.text,
+        ),
+        context.env.CONTENT_DB.prepare(`
+          INSERT INTO revision_segments (
+            id, revision_part_id, position, kind, language_code, script_code, text
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          `${revisionPartId}.segment.${segmentPosition}`, revisionPartId, segmentPosition,
+          segment.kind, segment.languageCode, segment.scriptCode, segment.text,
+        ),
+      );
+    });
+  });
+  statements.push(auditStatement(context, 'editorial.record_created', 'record', canonicalId, {
+    contentType, collectionId, bookId, chapterId, partCount: normalizedParts.length,
+  }));
+  await context.env.CONTENT_DB.batch(statements);
+  return json({ data: { canonicalId, revisionId, workflowState: 'pending_review' } }, 201);
+}
+
+async function decideBook(context: EditorialContext, bookId: string, body: Record<string, unknown>) {
+  const decision = String(body.decision ?? '');
+  if (!['verified', 'changes_requested'].includes(decision)) {
+    return invalid('Choose verified or changes requested.');
+  }
+  const book = await context.env.CONTENT_DB.prepare(`
+    SELECT book.id, book.title, book.editorial_status AS editorialStatus,
+           collection.id AS collectionId, collection.title AS collectionTitle
+    FROM books book JOIN collections collection ON collection.id = book.collection_id
+    WHERE book.id = ? AND collection.content_type = 'hadith'
+  `).bind(bookId).first<{
+    id: string;
+    title: string;
+    editorialStatus: string;
+    collectionId: string;
+    collectionTitle: string;
+  }>();
+  if (!book) return notFound('Hadith book was not found.');
+  if (book.editorialStatus === 'verified') return conflict('This book is already verified.');
+  const recordCount = await count(context.env.CONTENT_DB, `
+    SELECT COUNT(*) AS count
+    FROM canonical_records canonical
+    JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+    JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    WHERE canonical.content_type = 'hadith' AND metadata.book_id = '${sqlLiteral(bookId)}'
+  `);
+  if (recordCount === 0) return invalid('This book has no Hadith records to review.');
+  const notes = optionalText(body.notes, 2000);
+  const now = new Date().toISOString();
+
+  if (decision === 'changes_requested') {
+    await context.env.CONTENT_DB.batch([
+      context.env.CONTENT_DB.prepare(`
+        UPDATE books SET editorial_status = 'changes_requested', editorial_notes = ?
+        WHERE id = ?
+      `).bind(notes, bookId),
+      context.env.CONTENT_DB.prepare(`
+        UPDATE editorial_record_state
+        SET workflow_state = 'changes_requested', verified_by_external_id = NULL,
+            verified_at = NULL, changed_by_external_id = ?, changed_at = ?
+        WHERE canonical_id IN (
+          SELECT canonical.canonical_id
+          FROM canonical_records canonical
+          JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+          JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+          WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
+        ) AND workflow_state NOT IN ('approved', 'published')
+      `).bind(context.user.id, now, bookId),
+      auditStatement(context, 'editorial.book_changes_requested', 'book', bookId, { recordCount, notes }),
+    ]);
+    return json({ data: { bookId, decision, recordCount } });
+  }
+
+  const missingReferences = await count(context.env.CONTENT_DB, `
+    SELECT COUNT(*) AS count
+    FROM canonical_records canonical
+    JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+    JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    WHERE canonical.content_type = 'hadith' AND metadata.book_id = '${sqlLiteral(bookId)}'
+      AND NOT EXISTS (
+        SELECT 1 FROM canonical_references reference
+        WHERE reference.revision_id = revision.id
+          AND reference.verification_status != 'rejected'
+      )
+  `);
+  if (missingReferences > 0) {
+    return invalid(`${missingReferences} Hadith record${missingReferences === 1 ? '' : 's'} need a canonical reference before this book can be verified.`);
+  }
+
+  const datasetId = `canonical.verified.${Date.now()}.${crypto.randomUUID().slice(0, 8)}`;
+  const historyPrefix = `publication-history.${datasetId}`;
+  await context.env.CONTENT_DB.batch([
+    context.env.CONTENT_DB.prepare(`
+      INSERT OR IGNORE INTO review_decisions (
+        id, revision_id, reviewer_external_id, review_stage, decision, notes, decided_at
+      )
+      SELECT 'review-decision.book.' || ? || '.' || canonical.canonical_id,
+             revision.id, ?, 'independent_review', 'approved', ?, ?
+      FROM canonical_records canonical
+      JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+      JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+      WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
+    `).bind(datasetId, context.user.id, notes ?? `Verified ${book.collectionTitle}: ${book.title}`, now, bookId),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE canonical_references
+      SET verification_status = 'verified', verified_by_external_id = ?, verified_at = ?
+      WHERE revision_id IN (
+        SELECT revision.id
+        FROM canonical_records canonical
+        JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+        JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+        WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
+      ) AND verification_status = 'pending'
+    `).bind(context.user.id, now, bookId),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE editorial_record_state
+      SET workflow_state = 'published', verified_by_external_id = ?, verified_at = ?,
+          changed_by_external_id = ?, changed_at = ?
+      WHERE canonical_id IN (
+        SELECT canonical.canonical_id
+        FROM canonical_records canonical
+        JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+        JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+        WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
+      )
+    `).bind(context.user.id, now, context.user.id, now, bookId),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE books
+      SET editorial_status = 'verified', verified_by_external_id = ?,
+          verified_at = ?, editorial_notes = ?
+      WHERE id = ?
+    `).bind(context.user.id, now, notes, bookId),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE collections
+      SET verification_status = CASE
+        WHEN NOT EXISTS (
+          SELECT 1 FROM books candidate
+          WHERE candidate.collection_id = collections.id
+            AND candidate.editorial_status != 'verified'
+        ) THEN 'verified' ELSE verification_status END,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(book.collectionId),
+    context.env.CONTENT_DB.prepare(`
+      UPDATE canonical_dataset_versions
+      SET publication_status = 'superseded'
+      WHERE publication_status = 'published'
+    `),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_dataset_versions (
+        id, version_label, publication_status, verification_status, record_count,
+        canonical_hash, published_by_external_id, published_at
+      )
+      SELECT ?, ?, 'published', 'verified', COUNT(*), ?, ?, ?
+      FROM editorial_record_state
+      WHERE verified_at IS NOT NULL AND workflow_state IN ('approved', 'published')
+    `).bind(
+      datasetId, `Verified corpus ${now}`, `verified-corpus-${now}`,
+      context.user.id, now,
+    ),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_publications (
+        canonical_id, revision_id, record_id, dataset_version_id, revision_number,
+        publication_status, published_by_external_id, published_at
+      )
+      SELECT canonical.canonical_id, revision.id, revision.record_id, ?,
+             revision.revision_number, 'published', ?, ?
+      FROM canonical_records canonical
+      JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+      JOIN editorial_record_state state ON state.canonical_id = canonical.canonical_id
+      WHERE state.verified_at IS NOT NULL AND state.workflow_state IN ('approved', 'published')
+      ON CONFLICT(canonical_id) DO UPDATE SET
+        revision_id = excluded.revision_id,
+        record_id = excluded.record_id,
+        dataset_version_id = excluded.dataset_version_id,
+        revision_number = excluded.revision_number,
+        publication_status = 'published',
+        published_by_external_id = excluded.published_by_external_id,
+        published_at = excluded.published_at,
+        superseded_at = NULL
+    `).bind(datasetId, context.user.id, now),
+    context.env.CONTENT_DB.prepare(`
+      INSERT OR IGNORE INTO canonical_publication_history (
+        id, canonical_id, revision_id, record_id, dataset_version_id,
+        revision_number, event_type, actor_external_id, occurred_at
+      )
+      SELECT ? || '.' || canonical.canonical_id, canonical.canonical_id,
+             revision.id, revision.record_id, ?, revision.revision_number,
+             'published', ?, ?
+      FROM canonical_records canonical
+      JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+      JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+      WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
+    `).bind(historyPrefix, datasetId, context.user.id, now, bookId),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_dataset_items (dataset_version_id, canonical_id, revision_id)
+      SELECT ?, canonical.canonical_id, revision.id
+      FROM canonical_records canonical
+      JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+      JOIN editorial_record_state state ON state.canonical_id = canonical.canonical_id
+      WHERE state.verified_at IS NOT NULL AND state.workflow_state IN ('approved', 'published')
+    `).bind(datasetId),
+    context.env.CONTENT_DB.prepare('DELETE FROM canonical_search_fts'),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO canonical_search_fts (
+        canonical_id, revision_id, content_type, collection_slug, title, body, narrator
+      )
+      SELECT canonical.canonical_id, revision.id, canonical.content_type,
+             COALESCE(collection.slug, CASE WHEN canonical.content_type = 'dua' THEN 'hisn' ELSE 'unknown' END),
+             revision.title, COALESCE(GROUP_CONCAT(segment.text, ' '), ''),
+             COALESCE(metadata.narrator, '')
+      FROM canonical_records canonical
+      JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+      JOIN editorial_record_state state ON state.canonical_id = canonical.canonical_id
+      LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+      LEFT JOIN collections collection ON collection.id = metadata.collection_id
+      LEFT JOIN revision_parts part ON part.revision_id = revision.id
+      LEFT JOIN revision_segments segment ON segment.revision_part_id = part.id
+      WHERE state.verified_at IS NOT NULL AND state.workflow_state IN ('approved', 'published')
+      GROUP BY canonical.canonical_id, revision.id
+    `),
+    context.env.CONTENT_DB.prepare(`
+      INSERT INTO rag_index_state (
+        dataset_version_id, expected_count, indexed_count, status, updated_at
+      )
+      SELECT ?, record_count, 0, CASE WHEN record_count = 0 THEN 'ready' ELSE 'pending' END, ?
+      FROM canonical_dataset_versions WHERE id = ?
+    `).bind(datasetId, now, datasetId),
+    auditStatement(context, 'editorial.book_verified', 'book', bookId, {
+      datasetId, recordCount, verifier: context.user.id, notes,
+    }),
+  ]);
+  return json({ data: { bookId, decision, recordCount, datasetId, ragStatus: 'pending' } });
 }
 
 async function getRecord({ env }: EditorialContext, canonicalId: string) {
@@ -1337,10 +1754,10 @@ async function updateRole(context: EditorialContext, body: Record<string, unknow
   }
   if (!['active', 'inactive'].includes(status)) return invalid('Choose active or inactive.');
   const target = await context.env.IDENTITY_DB.prepare(`
-    SELECT COALESCE(role.role, 'developer') AS role
+    SELECT COALESCE(role.role, 'developer') AS role, user.email
     FROM "user" user LEFT JOIN platform_role_grants role ON role.user_id = user.id
     WHERE user.id = ?
-  `).bind(userId).first<{ role: string }>();
+  `).bind(userId).first<{ role: string; email: string }>();
   if (!target) return notFound('User was not found.');
   if (context.role === 'editor') {
     if (userId === context.user.id) return invalid('Editors cannot change their own role.');
@@ -1350,6 +1767,21 @@ async function updateRole(context: EditorialContext, body: Record<string, unknow
   }
   if (userId === context.user.id && (role !== 'admin' || status !== 'active')) {
     return invalid('An administrator cannot remove their own active authority.');
+  }
+  if (
+    target.email.trim().toLowerCase() === 'ziyadahmed910@gmail.com'
+    && (role !== 'admin' || status !== 'active')
+  ) {
+    return invalid('The default Fortress administrator must remain an active administrator.');
+  }
+  if (target.role === 'admin' && (role !== 'admin' || status !== 'active')) {
+    const activeAdmins = await context.env.IDENTITY_DB.prepare(`
+      SELECT COUNT(*) AS count FROM platform_role_grants
+      WHERE role = 'admin' AND status = 'active'
+    `).first<{ count: number }>();
+    if (Number(activeAdmins?.count ?? 0) <= 1) {
+      return invalid('Promote another active administrator before removing the final administrator.');
+    }
   }
   await context.env.IDENTITY_DB.batch([
     context.env.IDENTITY_DB.prepare(`

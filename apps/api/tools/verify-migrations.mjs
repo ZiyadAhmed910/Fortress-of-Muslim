@@ -44,7 +44,7 @@ for (const migration of migrationFiles) {
 assertCount('content_records', legacy.records + 1);
 assertCount('content_parts', legacy.parts + 1);
 assertCount('content_segments', legacy.segments + 1);
-assertCount('dataset_versions', 2);
+assertCount('dataset_versions', 3);
 assertCount('languages', 3);
 assertCount('source_materials', 0);
 assertCount('dataset_sources', 0);
@@ -62,6 +62,7 @@ assertCount('editorial_record_state', legacy.records);
 assertCount('canonical_publications', legacy.records);
 assertCount('canonical_dataset_versions', 2);
 assertCount('canonical_references', 0);
+assertCount('books', 0);
 for (const retiredTable of [
   'source_acquisitions',
   'source_artifacts',

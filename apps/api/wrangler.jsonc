@@ -10,6 +10,9 @@
   "env": {
     "test": {
       "name": "fortress-platform-api-test",
+      "triggers": {
+        "crons": ["* * * * *"]
+      },
       "ai": {
         "binding": "AI"
       },
@@ -45,6 +48,9 @@
     },
     "production": {
       "name": "fortress-platform-api-production",
+      "triggers": {
+        "crons": ["* * * * *"]
+      },
       "ai": {
         "binding": "AI"
       },

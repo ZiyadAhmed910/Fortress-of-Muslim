@@ -36,9 +36,11 @@ A correction creates a new immutable revision, clears the prior verification sta
 
 ## Publication
 
-Editors group verified revisions into a publication batch and validate it against current workflow state, revision identity, one verification, and evidence requirements. An Admin approves and publishes the batch atomically, creating a canonical dataset version, publication history, current publication pointers, and search rows.
+Individual records can be verified without immediately becoming an Ask source. For Hadith, an authorized Admin, Editor, or Reviewer verifies a complete book after checking its source, numbering, text, grading, and references. The book action stamps each current revision, publishes a complete mixed Dua and Hadith dataset snapshot, updates canonical search rows, and marks the new vector namespace pending.
 
 Every published dataset also receives a complete immutable `canonical_dataset_items` snapshot. A rollback never mutates or reactivates an old version. It creates a new audited dataset from a complete prior snapshot, rebuilds current publication pointers and canonical search rows atomically, and marks its vector index pending.
+
+The API Worker incrementally indexes the pending active dataset through a Cron Trigger. Vector metadata retains content type, collection, canonical record ID, and dataset namespace. Unverified records never enter this namespace and cannot ground Ask responses.
 
 The automated editorial pilot uses separate synthetic Editor, Reviewer, and Admin identities to verify authorization and state transitions. It is a software rehearsal only and cannot substitute for qualified human editorial or scholarly judgment.
 

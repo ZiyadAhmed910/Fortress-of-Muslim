@@ -360,12 +360,41 @@ async function updateService(context: AdminContext, key: string, body: Record<st
 async function listAudit({ env }: AdminContext, url: URL) {
   const target = cleanQuery(url.searchParams.get('q'));
   const like = `%${target}%`;
-  const result = await env.IDENTITY_DB.prepare(`SELECT a.id, a.occurred_at AS occurredAt, a.actor_user_id AS actorUserId,
-    COALESCE(u.name, a.actor_type) AS actorName, a.action, a.target_type AS targetType, a.target_id AS targetId, a.request_id AS requestId, a.details
-    FROM audit_events a LEFT JOIN "user" u ON u.id = a.actor_user_id
-    WHERE (? = '' OR a.action LIKE ? OR a.target_id LIKE ? OR u.email LIKE ?)
-    ORDER BY a.occurred_at DESC LIMIT 200`).bind(target, like, like, like).all();
-  return json({ data: result.results });
+  const [identity, content, users] = await Promise.all([
+    env.IDENTITY_DB.prepare(`SELECT a.id, a.occurred_at AS occurredAt, a.actor_user_id AS actorUserId,
+      COALESCE(u.name, a.actor_type) AS actorName, a.action, a.target_type AS targetType,
+      a.target_id AS targetId, a.request_id AS requestId, a.details
+      FROM audit_events a LEFT JOIN "user" u ON u.id = a.actor_user_id
+      WHERE (? = '' OR a.action LIKE ? OR a.target_id LIKE ? OR u.email LIKE ?)
+      ORDER BY a.occurred_at DESC LIMIT 200`).bind(target, like, like, like).all<Record<string, unknown>>(),
+    env.CONTENT_DB.prepare(`
+      SELECT id, occurred_at AS occurredAt, actor_external_id AS actorUserId,
+             actor_type AS actorName, action, target_type AS targetType,
+             target_id AS targetId, request_id AS requestId, details_json AS details
+      FROM content_audit_events
+      WHERE (? = '' OR action LIKE ? OR target_id LIKE ? OR actor_external_id LIKE ?)
+      ORDER BY occurred_at DESC LIMIT 200
+    `).bind(target, like, like, like).all<Record<string, unknown>>(),
+    env.IDENTITY_DB.prepare('SELECT id, name, email FROM "user" LIMIT 1000').all<{
+      id: string;
+      name: string;
+      email: string;
+    }>(),
+  ]);
+  const identities = new Map(users.results.map((user) => [user.id, user]));
+  const rows = [...identity.results, ...content.results]
+    .map((row) => {
+      const actor = identities.get(String(row.actorUserId ?? ''));
+      return {
+        ...row,
+        occurredAt: String(row.occurredAt ?? ''),
+        actorName: actor?.name ?? row.actorName,
+        actorEmail: actor?.email ?? null,
+      };
+    })
+    .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt))
+    .slice(0, 200);
+  return json({ data: rows });
 }
 
 async function audit(context: AdminContext, action: string, targetType: string, targetId: string, details: unknown) {

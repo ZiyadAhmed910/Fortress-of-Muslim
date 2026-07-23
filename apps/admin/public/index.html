@@ -48,7 +48,9 @@
         <a href="#overview" data-nav><span>Overview</span></a>
         <a href="#search" data-nav><span>Global search</span></a>
         <p>EDITORIAL</p>
+        <a href="#content" data-nav><span>Create content</span></a>
         <a href="#queue" data-nav><span>Review queue</span></a>
+        <a href="#books" data-nav><span>Hadith books</span></a>
         <a href="#assignments" data-nav><span>Assignments</span></a>
         <a href="#taxonomy" data-nav><span>Taxonomy</span></a>
         <p>PLATFORM</p>
@@ -94,6 +96,37 @@
         </form>
         <div id="queue-table" class="table"></div>
         <div id="queue-pagination" class="pagination"></div>
+      </section>
+
+      <section id="content" class="view" hidden>
+        <header><div><span class="kicker">CANONICAL AUTHORING</span><h1>Create content</h1><p>Create a pending immutable revision with its source reference and reading parts.</p></div></header>
+        <form id="record-create-form" class="editorial-form record-create-form">
+          <label>Content type<select name="contentType" required><option value="dua">Dua</option><option value="hadith">Hadith</option></select></label>
+          <label class="wide">Title<input name="title" minlength="2" maxlength="300" required></label>
+          <label>Collection<select name="collectionId" required><option value="">Choose collection</option></select></label>
+          <label>Book<select name="bookId"><option value="">Choose book</option></select></label>
+          <label>Chapter<select name="chapterId"><option value="">Choose chapter</option></select></label>
+          <label>Display number<input name="displayNumber" maxlength="120"></label>
+          <label class="wide">Narrator<textarea name="narrator" rows="2"></textarea></label>
+          <label>Grade<input name="grade" maxlength="160"></label>
+          <label>Grading authority<input name="gradingAuthority" maxlength="300"></label>
+          <label>Reference type<input name="referenceType" value="primary" maxlength="80" required></label>
+          <label>Reference locator<input name="referenceLocator" maxlength="500" required></label>
+          <div class="wide record-parts-head"><div><strong>Reading parts</strong><small>Each part becomes one swipe unit.</small></div><button type="button" data-add-record-part>Add part</button></div>
+          <div id="record-parts" class="wide"></div>
+          <button class="primary" type="submit">Create pending record</button>
+        </form>
+      </section>
+
+      <section id="books" class="view" hidden>
+        <header><div><span class="kicker">BOOK VERIFICATION</span><h1>Hadith books</h1><p>Verify one complete book and publish its records into the indexed canonical corpus.</p></div></header>
+        <div class="warning"><strong>One-person verification</strong><span>Verification stamps your identity on every current record in the book. Only use this after checking the source, numbering, text, and grading.</span></div>
+        <form class="filter" data-filter="books">
+          <input name="collection" placeholder="Collection slug">
+          <select name="status"><option value="">All statuses</option><option value="pending_review">Pending Review</option><option value="verified">Verified</option><option value="changes_requested">Change Requested</option></select>
+          <button>Apply</button>
+        </form>
+        <div id="books-table" class="table"></div>
       </section>
 
       <section id="assignments" class="view" hidden>

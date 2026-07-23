@@ -102,9 +102,26 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
   };
 }
 
+export async function indexNextPendingBatch(env: Bindings, limit = 50) {
+  const dataset = await currentDatasetRow(env.CONTENT_DB);
+  const state = await env.CONTENT_DB.prepare(`
+    SELECT indexed_count AS indexedCount, status
+    FROM rag_index_state
+    WHERE dataset_version_id = ?
+  `).bind(dataset.id).first<{
+    indexedCount: number;
+    status: 'pending' | 'indexing' | 'ready' | 'failed';
+  }>();
+  if (dataset.recordCount === 0 || state?.status === 'ready') {
+    return { datasetId: dataset.id, skipped: true, reason: 'already_ready' };
+  }
+  return indexRecordBatch(env, state?.indexedCount ?? 0, limit);
+}
+
 export async function getRagStatus(env: Bindings, repository: ContentRepository) {
   const dataset = await repository.getCurrentDataset();
-  const state = await env.CONTENT_DB.prepare(`
+  const [state, counts] = await Promise.all([
+    env.CONTENT_DB.prepare(`
     SELECT expected_count AS expectedCount, indexed_count AS indexedCount, status,
            last_error AS lastError, updated_at AS updatedAt, completed_at AS completedAt
     FROM rag_index_state
@@ -116,10 +133,23 @@ export async function getRagStatus(env: Bindings, repository: ContentRepository)
     lastError: string | null;
     updatedAt: string;
     completedAt: string | null;
-  }>();
+    }>(),
+    env.CONTENT_DB.prepare(`
+      SELECT canonical.content_type AS contentType, COUNT(*) AS count
+      FROM canonical_dataset_items item
+      JOIN canonical_records canonical ON canonical.canonical_id = item.canonical_id
+      WHERE item.dataset_version_id = ?
+      GROUP BY canonical.content_type
+    `).bind(dataset.id).all<{ contentType: 'dua' | 'hadith'; count: number }>(),
+  ]);
+  const contentCounts = Object.fromEntries(counts.results.map((row) => [row.contentType, row.count]));
   return {
     datasetId: dataset.id,
     recordCount: dataset.recordCount,
+    contentCounts: {
+      dua: Number(contentCounts.dua ?? 0),
+      hadith: Number(contentCounts.hadith ?? 0),
+    },
     status: dataset.recordCount === 0 ? 'empty' : (state?.status ?? 'pending'),
     indexedCount: state?.indexedCount ?? 0,
     expectedCount: state?.expectedCount ?? dataset.recordCount,

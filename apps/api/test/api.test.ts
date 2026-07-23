@@ -502,7 +502,7 @@ describe('Fortress Platform API', () => {
     const statusEnv = {
       ...envConfig,
       CONTENT_DB: {
-        prepare: () => ({
+        prepare: (sql: string) => ({
           bind: () => ({
             first: async () => ({
               expectedCount: 3,
@@ -512,17 +512,25 @@ describe('Fortress Platform API', () => {
               updatedAt: '2026-07-23T00:00:00.000Z',
               completedAt: '2026-07-23T00:00:00.000Z',
             }),
+            all: async () => ({
+              results: sql.includes('canonical_dataset_items')
+                ? [{ contentType: 'dua', count: 2 }, { contentType: 'hadith', count: 1 }]
+                : [],
+            }),
           }),
         }),
       },
     } as never;
     const response = await app.request('/v1/ask/status', {}, statusEnv);
-    const body = await response.json() as { data: { datasetId: string; status: string; indexedCount: number } };
+    const body = await response.json() as {
+      data: { datasetId: string; status: string; indexedCount: number; contentCounts: { dua: number; hadith: number } };
+    };
 
     expect(response.status).toBe(200);
     expect(body.data.datasetId).toBe('dataset.hisn.legacy.2026-07-11-v2');
     expect(body.data.status).toBe('ready');
     expect(body.data.indexedCount).toBe(3);
+    expect(body.data.contentCounts).toEqual({ dua: 2, hadith: 1 });
   });
 
   it('validates assistant questions before invoking AI', async () => {

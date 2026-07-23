@@ -63,6 +63,68 @@ describe('canonical editorial pilot', () => {
     }, 409);
     expect(((await duplicate.json()) as { error: { code: string } }).error.code).toBe('conflict');
   });
+
+  it('creates a Hadith record and verifies its complete book into the RAG corpus', async () => {
+    const content = createContentDatabase();
+    const identity = createIdentityDatabase();
+    const env = { CONTENT_DB: d1(content), IDENTITY_DB: d1(identity) } as never;
+    const editor = context(env, 'book-editor', 'editor');
+    const reviewer = context(env, 'book-reviewer', 'reviewer');
+    seedIdentity(identity, [editor, reviewer]);
+    content.exec(`
+      INSERT INTO collections (
+        id, slug, content_type, title, default_language_code, verification_status
+      ) VALUES ('collection.test.hadith', 'test-hadith', 'hadith', 'Test Hadith', 'en', 'pending');
+      INSERT INTO books (
+        id, collection_id, book_number, title, position
+      ) VALUES ('book.test.hadith.1', 'collection.test.hadith', '1', 'Book of Testing', 1);
+      INSERT INTO chapters (
+        id, book_id, chapter_number, title, position
+      ) VALUES ('chapter.test.hadith.1', 'book.test.hadith.1', '1', 'Chapter One', 1);
+    `);
+
+    const created = await post(editor, '/v1/admin/editorial/records', {
+      contentType: 'hadith',
+      title: 'Intentions are the foundation of actions',
+      collectionId: 'collection.test.hadith',
+      bookId: 'book.test.hadith.1',
+      chapterId: 'chapter.test.hadith.1',
+      displayNumber: '1',
+      narrator: 'Test narrator',
+      grade: 'Sahih',
+      referenceType: 'collection_number',
+      referenceLocator: 'Test Hadith 1',
+      parts: [{
+        segments: [
+          { kind: 'arabic', text: 'Test Arabic text' },
+          { kind: 'translation', text: 'Actions are judged by intentions.' },
+        ],
+      }],
+    }, 201);
+    const canonicalId = ((await created.json()) as { data: { canonicalId: string } }).data.canonicalId;
+    expect(canonicalId).toMatch(/^hadith\.fortress\./);
+    expect(scalar(content, `SELECT COUNT(*) FROM editorial_record_state
+      WHERE canonical_id = '${canonicalId}' AND workflow_state = 'pending_review'`)).toBe(1);
+
+    const verified = await post(reviewer, '/v1/admin/editorial/books/book.test.hadith.1/decision', {
+      decision: 'verified',
+      notes: 'Verified against the test collection.',
+    });
+    const result = (await verified.json()) as {
+      data: { recordCount: number; datasetId: string; ragStatus: string };
+    };
+    expect(result.data).toMatchObject({ recordCount: 1, ragStatus: 'pending' });
+    expect(scalar(content, `SELECT COUNT(*) FROM editorial_record_state
+      WHERE canonical_id = '${canonicalId}' AND workflow_state = 'published'
+        AND verified_by_external_id = '${reviewer.user.id}'`)).toBe(1);
+    expect(scalar(content, `SELECT COUNT(*) FROM canonical_dataset_items
+      WHERE dataset_version_id = '${result.data.datasetId}'`)).toBe(136);
+    expect(scalar(content, `SELECT COUNT(*) FROM rag_index_state
+      WHERE dataset_version_id = '${result.data.datasetId}' AND status = 'pending'`)).toBe(1);
+    expect(String(content.prepare(
+      "SELECT editorial_status FROM books WHERE id = 'book.test.hadith.1'",
+    ).pluck().get())).toBe('verified');
+  });
 });
 
 function createContentDatabase() {
