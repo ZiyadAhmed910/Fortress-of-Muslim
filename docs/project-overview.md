@@ -210,9 +210,18 @@ Reliability and safety, not new features, before anything else ships. Status of 
    atomic counter and admin-update SQL exercised directly against live test D1, plus new automated
    tests covering allowed/anonymous/blocked paths (was previously silently masked by fail-open
    behavior against an incomplete test mock -- fixed alongside this).
-6. **Admin MFA enforcement + recovery codes + account recovery procedure** — infrastructure exists
-   (TOTP, passkeys, backup codes all wired via Better Auth) but nothing requires an Admin/Editor to
-   have MFA enabled before granting access — it's opt-in today. No documented recovery procedure.
+6. **Admin MFA enforcement + recovery codes + account recovery procedure** — done (2026-08-06).
+   `requiresMfaEnrollment` (`apps/auth/src/admin-plane.ts`, unit-tested in
+   `apps/auth/test/admin-mfa-gate.test.ts`) blocks every `/v1/admin/*` route for an Admin-role user
+   without TOTP enabled, except their own `GET /v1/admin/session` so the Admin Console can show a
+   clear "enable two-factor authentication" panel with a direct link instead of a broken console.
+   Editor/Reviewer stay optional, per explicit decision. Account recovery documented in
+   `docs/incident-response.md` (backup-code path is self-service; full lockout requires direct D1
+   access, documented with exact commands).
+   **Operationally important:** as of this review, the live test environment's actual owner account
+   (`ziyadahmed910@gmail.com`) does **not** have MFA enabled, so deploying this would lock the owner
+   out of their own Admin Console until they enable it via the Developer Portal first. Not fixed
+   automatically — this needs the account holder to actually do it.
 7. **Incident timeline + acknowledgement workflow** — not started. The audit log records privileged
    actions but isn't an incident-tracking workflow with states.
 8. **Soak, then promote the exact verified commit to production** — tooling and process are solid

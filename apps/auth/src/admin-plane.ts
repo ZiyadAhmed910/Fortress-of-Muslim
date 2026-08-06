@@ -16,6 +16,14 @@ type AdminContext = {
   requestId: string;
 };
 
+// Extracted as a pure function so this gate is directly unit-testable (see test/admin-mfa-gate.test.ts)
+// without needing a full D1/session harness -- the self-lockout risk of getting this wrong makes
+// that coverage worth having on its own, separate from the rest of handleAdminPlane's DB-backed flow.
+export function requiresMfaEnrollment(role: PlatformRole | null, twoFactorEnabled: boolean, pathname: string, method: string): boolean {
+  if (role !== 'admin' || twoFactorEnabled) return false;
+  return !(pathname === '/v1/admin/session' && method === 'GET');
+}
+
 export async function handleAdminPlane(
   request: Request,
   url: URL,
@@ -26,11 +34,11 @@ export async function handleAdminPlane(
 ): Promise<Response> {
   await bootstrapDefaultAdmin(env, user);
   const access = await env.IDENTITY_DB.prepare(`
-    SELECT role.role, role.status, identity.is_admin AS isAdmin
+    SELECT role.role, role.status, identity.is_admin AS isAdmin, identity.twoFactorEnabled AS twoFactorEnabled
     FROM "user" identity
     LEFT JOIN platform_role_grants role ON role.user_id = identity.id
     WHERE identity.id = ?
-  `).bind(user.id).first<{ role: PlatformRole | null; status: string | null; isAdmin: number }>();
+  `).bind(user.id).first<{ role: PlatformRole | null; status: string | null; isAdmin: number; twoFactorEnabled: number }>();
   if (
     !access
     || access.status !== 'active'
@@ -39,6 +47,16 @@ export async function handleAdminPlane(
     || (access.role === 'admin' && access.isAdmin !== 1)
   ) {
     return json({ error: { code: 'forbidden', message: 'An active Admin, Editor, or Reviewer role is required.' } }, 403);
+  }
+  // Admin role carries full platform authority (staff roles, service controls, publication,
+  // rollback), so MFA is mandatory for it -- editor/reviewer stay optional (0.20 item 6).
+  if (requiresMfaEnrollment(access.role, access.twoFactorEnabled === 1, url.pathname, request.method)) {
+    return json({
+      error: {
+        code: 'mfa_required',
+        message: 'Two-factor authentication is required for the Admin role. Enable it in the Developer Portal under Account security, then reload this page.',
+      },
+    }, 403);
   }
   const sessionStartedAt = new Date(currentSession.createdAt).getTime();
   if (Number.isFinite(sessionStartedAt) && Date.now() - sessionStartedAt > 12 * 60 * 60 * 1000) {

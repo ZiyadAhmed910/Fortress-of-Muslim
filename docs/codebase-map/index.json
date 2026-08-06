@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T12:18:08.415Z",
+  "generatedAt": "2026-08-06T12:23:29.136Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -207,9 +207,10 @@
     },
     {
       "path": "apps/auth/src/admin-plane.ts",
-      "lines": 753,
+      "lines": 771,
       "language": "ts",
       "exports": [
+        "function requiresMfaEnrollment",
         "function handleAdminPlane"
       ],
       "imports": [
@@ -301,6 +302,17 @@
       "routeCount": 0
     },
     {
+      "path": "apps/auth/test/admin-mfa-gate.test.ts",
+      "lines": 29,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/admin-plane"
+      ],
+      "routeCount": 0
+    },
+    {
       "path": "apps/auth/test/editorial-pilot.test.ts",
       "lines": 364,
       "language": "ts",
@@ -381,7 +393,7 @@
     },
     {
       "path": "apps/admin/public/app.js",
-      "lines": 1236,
+      "lines": 1247,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -969,7 +981,7 @@
       "path": "/v1/admin/session",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 62
+      "line": 80
     },
     {
       "style": "manual",
@@ -977,7 +989,7 @@
       "path": "/v1/admin/sources",
       "matchKind": "prefix",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 99
+      "line": 117
     },
     {
       "style": "manual",
@@ -985,7 +997,7 @@
       "path": "/v1/admin/references",
       "matchKind": "prefix",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 100
+      "line": 118
     },
     {
       "style": "manual",
@@ -993,7 +1005,7 @@
       "path": "/v1/admin/content",
       "matchKind": "prefix",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 101
+      "line": 119
     },
     {
       "style": "manual",
@@ -1001,7 +1013,7 @@
       "path": "/v1/admin/overview",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 106
+      "line": 124
     },
     {
       "style": "manual",
@@ -1009,7 +1021,7 @@
       "path": "/v1/admin/operations",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 107
+      "line": 125
     },
     {
       "style": "manual",
@@ -1017,7 +1029,7 @@
       "path": "/v1/admin/sessions",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 108
+      "line": 126
     },
     {
       "style": "manual",
@@ -1025,7 +1037,7 @@
       "path": "/v1/admin/search",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 109
+      "line": 127
     },
     {
       "style": "manual",
@@ -1033,7 +1045,7 @@
       "path": "/v1/admin/users",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 110
+      "line": 128
     },
     {
       "style": "manual",
@@ -1041,7 +1053,7 @@
       "path": "/v1/admin/resources",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 111
+      "line": 129
     },
     {
       "style": "manual",
@@ -1049,7 +1061,7 @@
       "path": "/v1/admin/taxonomy",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 112
+      "line": 130
     },
     {
       "style": "manual",
@@ -1057,7 +1069,7 @@
       "path": "/v1/admin/taxonomy",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 113
+      "line": 131
     },
     {
       "style": "manual",
@@ -1065,7 +1077,7 @@
       "path": "/v1/admin/services",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 117
+      "line": 135
     },
     {
       "style": "manual",
@@ -1073,7 +1085,7 @@
       "path": "/v1/admin/audit",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 118
+      "line": 136
     },
     {
       "style": "manual",
@@ -1081,7 +1093,7 @@
       "path": "/v1/admin/alerts",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 119
+      "line": 137
     },
     {
       "style": "manual",
@@ -1089,7 +1101,7 @@
       "path": "/v1/admin/rate-limits",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 120
+      "line": 138
     },
     {
       "style": "manual",
@@ -1097,7 +1109,7 @@
       "path": "/^\\/v1\\/admin\\/users\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 122
+      "line": 140
     },
     {
       "style": "manual",
@@ -1105,7 +1117,7 @@
       "path": "/^\\/v1\\/admin\\/sessions\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 129
+      "line": 147
     },
     {
       "style": "manual",
@@ -1113,7 +1125,7 @@
       "path": "/^\\/v1\\/admin\\/services\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 134
+      "line": 152
     },
     {
       "style": "manual",
@@ -1121,7 +1133,7 @@
       "path": "/^\\/v1\\/admin\\/rate-limits\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 140
+      "line": 158
     },
     {
       "style": "manual",
@@ -1129,7 +1141,7 @@
       "path": "\r",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 146
+      "line": 164
     },
     {
       "style": "manual",
@@ -1934,6 +1946,14 @@
       "referencedBy": []
     },
     {
+      "name": "every",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/auth/test/admin-mfa-gate.test.ts"
+      ]
+    },
+    {
       "name": "field_reviews",
       "kind": "table",
       "definedIn": [
@@ -2404,6 +2424,7 @@
       "referencedBy": [
         "apps/admin/public/app.js",
         "apps/api/src/rag.ts",
+        "apps/auth/src/admin-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts",
         "apps/status/public/app.js",
         "pwa-website/js/app.js"
