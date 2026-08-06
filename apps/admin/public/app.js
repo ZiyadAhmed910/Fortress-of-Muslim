@@ -256,9 +256,17 @@ async function loadOverview() {
     const critical = Number(alertsResponse.meta.activeCritical);
     const warning = Number(alertsResponse.meta.activeWarning);
     const count = critical + warning;
-    $('#overview-alerts-banner').innerHTML = count
-      ? `<div class="alert-banner"><span>${count} active alert${count === 1 ? '' : 's'} (${critical} critical, ${warning} warning)</span><a href="#alerts">Review alerts</a></div>`
-      : '';
+    const checkedAt = date(alertsResponse.meta.evaluatedAt);
+    if (!count) {
+      $('#overview-alerts-banner').innerHTML = `<div class="alert-banner ok"><span>All systems normal &middot; checked ${checkedAt}</span></div>`;
+    } else {
+      const unresolved = alertsResponse.data.filter((alert) => alert.status !== 'resolved');
+      const preview = unresolved.slice(0, 3)
+        .map((alert) => `<a class="alert-line" href="#alerts"><span class="badge ${esc(alert.severity)}">${esc(alert.severity)}</span><span>${esc(alert.message)}</span></a>`)
+        .join('');
+      const more = unresolved.length > 3 ? `<a href="#alerts" class="alert-more">+${unresolved.length - 3} more</a>` : '';
+      $('#overview-alerts-banner').innerHTML = `<div class="alert-banner"><div class="alert-banner-head"><span>${count} active alert${count === 1 ? '' : 's'} (${critical} critical, ${warning} warning) &middot; checked ${checkedAt}</span><a href="#alerts">Review alerts</a></div><div class="alert-banner-list">${preview}${more}</div></div>`;
+    }
   } else {
     $('#overview-alerts-banner').innerHTML = '';
   }
