@@ -178,9 +178,15 @@ Reliability and safety, not new features, before anything else ships. Status of 
 1. **D1 backup + Time Travel restore drill** — done and logged (`docs/incident-response.md` Drill
    Log, 2026-08-06). Only the content DB and the Time Travel path were exercised; identity-DB
    restore and the disaster-recovery SQL-export-rebuild path are still unverified in practice.
-2. **Automate FTS rebuild after disaster recovery** — not started. Currently documented as a manual
-   required step (search indexes are excluded from D1 exports because Cloudflare can't export
-   virtual tables).
+2. **Automate FTS rebuild after disaster recovery** — done (`tools/rebuild-fts.ps1`, 2026-08-06).
+   Reuses the exact rebuild SQL the application already runs during Hadith book verification
+   (`editorial-plane.ts`) rather than reinventing it, creates the FTS5 virtual table if missing,
+   and verifies the resulting row count against `editorial_record_state` before declaring success.
+   Live-run against test: it found and corrected a real 1-row drift between `canonical_search_fts`
+   (268 rows) and current editorial state (269 rows) — a record verified individually since the
+   last dataset publish wasn't in the search index. Root cause not yet identified; the bulk-decision
+   path correctly delegates to the same single-record path that does sync FTS, so the gap is
+   elsewhere (`createRecord` or a correction flow are the likely candidates) — worth a dedicated look.
 3. **Scheduled encrypted backups + retention** — not started. `backup-d1.ps1` is manual-only; no
    cron trigger references it anywhere.
 4. **Alerts for downtime/errors/queue failures/unusual API usage** — not started. The Status Portal
