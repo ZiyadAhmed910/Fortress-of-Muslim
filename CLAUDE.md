@@ -1,0 +1,101 @@
+# Working Guidelines for This Repository
+
+Fortress Platform is a live, deployed system, not a sandbox. Read this file before doing any
+work here, and follow it every session.
+
+## 1. This is live infrastructure
+
+- `dev` branch -> auto-deploys to the **live test environment** on every push: `test.fortressofmuslim.org`,
+  `api-test.fortressofmuslim.org`, `auth-test.fortressofmuslim.org`, `admin-test.fortressofmuslim.org`,
+  `developers-test.fortressofmuslim.org`, `mcp-test.fortressofmuslim.org`, `status-test.fortressofmuslim.org`,
+  plus two live Cloudflare D1 databases (`fortress-identity-test`, `fortress-platform-test`).
+- `main` branch -> auto-deploys to **production** the same way.
+- Both environments run on the user's real Cloudflare account (wrangler is authenticated to it) and
+  real Bluehost hosting. A push is a real deployment, not a dry run. D1 Time Travel restores, service
+  maintenance toggles, and session/key revocation act on real data.
+- Never push to `dev` or `main` without explicit confirmation in chat first, even though local commits
+  and merges are fine. Pushing is what triggers the live deployment.
+- Never run a destructive Cloudflare operation (D1 restore, service disable, bulk revocation) without
+  confirming first, and prefer testing against `test` before `production` every time — see
+  `docs/incident-response.md`.
+
+## 2. Read before you act
+
+Before touching an area, read what already governs it. This repo documents its own architecture
+and decisions; don't guess when a doc answers the question.
+
+- Always: `README.md` (features, project structure, release history, deployment workflow).
+- Architecture / boundaries: `docs/platform-architecture.md` (note: as of 0.19.0 this doc is stale —
+  it still lists Admin, Help, and MCP as "Future" even though Admin and MCP are live; verify against
+  code, not just this doc).
+- Editorial / content workflow: `docs/canonical-editorial-architecture.md`, `docs/canonical-data-roadmap.md`.
+- Operations / incidents / backup / restore: `docs/incident-response.md`, `docs/release-readiness.md`.
+- Cloudflare account setup: `docs/cloudflare-setup.md`.
+- Deployment mechanics and branch model: `docs/deployment.md`.
+- Past architectural decisions: `docs/adr/*.md`.
+- System purpose, current functionality, and active goals: `docs/project-overview.md` (create/update
+  this if it doesn't reflect current reality — see section 5).
+
+If a doc contradicts what the code actually does, trust the code, but flag the doc as stale rather
+than silently ignoring the conflict (e.g. `docs/platform-architecture.md`'s "Future" labels, or the
+README's "never hard-code a privileged email" line under Admin Console, which the actual bootstrap
+in `apps/auth/src/admin-plane.ts` does not follow).
+
+## 3. Git workflow
+
+Follow the workflow this repo already documents in `README.md` and `docs/deployment.md`:
+
+1. Create a feature branch off `dev`: `feature/name-of-feature`.
+2. Keep the branch focused on one change.
+3. Run the relevant checks (`npm run check`, or at minimum the affected workspace's
+   `npm run test --workspace @fortress/<app>` and `npm run typecheck --workspace @fortress/<app>`).
+4. Merge into `dev` locally (a real PR through GitHub is the normal path when working through
+   the GitHub UI; when committing directly through this tool, merge to `dev` locally after
+   verification and confirm with the user before pushing).
+5. `dev` promotes to `main` only after the `docs/release-readiness.md` checklist passes
+   (checks, PWA visual check, CI deploy, soak test, `/v1/ask/status` ready, Admin audit review).
+6. Never commit directly to `dev` or `main` for anything beyond trivial doc fixes — use a feature
+   branch even for small changes, since `dev` pushes deploy live.
+
+## 4. Version documentation
+
+The platform uses one shared version string across every workspace — bump all of these together,
+never just one:
+
+- `packages/contracts/src/index.ts` -> `PLATFORM_VERSION` constant (this is what actually renders
+  in `/health`, `X-Fortress-Platform-Version`, and what deployment smoke tests check post-deploy).
+- Root `package.json` and every `apps/*/package.json` + `packages/*/package.json` `"version"` field
+  (kept in lockstep with `PLATFORM_VERSION` by convention).
+- `README.md` under `## Platform Releases` — add a new dated entry describing what changed. This is
+  a required step per the README's own release checklist ("Update the platform release notes in this
+  README").
+
+Bump convention observed in the existing history (`README.md` Platform Releases section):
+- Minor (`0.X.0`): a batch of related features/hardening shipped together (the normal case).
+- Patch (`0.X.Y`): one small, isolated fix that doesn't warrant consuming the next minor number
+  (precedent: `0.1.1`). Use this for things like the kind of single-file bug fix pattern below.
+
+The `pwa-website/` static app has its own separate, git-commit-count-derived version scheme
+(`1.0XX`) stamped automatically at deploy time by `pwa-website/tools/stamp_version.py` — don't
+confuse it with `PLATFORM_VERSION`. It gets its own `## Release Notes` entries in the README.
+
+## 5. Keep `docs/project-overview.md` current
+
+This file exists to answer "what does this system actually do, and why" without re-deriving it
+from scratch every session. When functionality changes meaningfully (new app, new major feature,
+a goal completed or re-scoped), update it in the same change. Don't let it drift into fiction —
+verify claims against code the same way this file asks you to for everything else.
+
+## 6. Other lessons learned in this repo
+
+- Unit tests here sometimes mock the database completely (e.g. the original `record-query.test.ts`).
+  A passing mocked test does not prove the SQL references real tables/columns. When a fix touches
+  SQL, verify it against the real migrated schema (see `apps/api/tools/verify-migrations.mjs` for
+  the pattern: apply all migrations to an in-memory `node:sqlite` database, then run the real query).
+- Before "fixing" something that looks wrong, check whether a test name or comment already explains
+  it as intentional (e.g. `isTrustedBrowserMutation` in `apps/auth/src/security.ts` deliberately
+  treats a missing `Origin` header as trusted, to support non-browser API clients — a test named
+  "accepts trusted portal and non-browser requests" documents this on purpose).
+- The platform's own architectural rule: "Rate enforcement, exact quota accounting and analytics are
+  separate responsibilities" — telemetry existing (`usage_events`) does not mean enforcement exists.
+  Verify claims like this against actual route handlers, not just schema presence.
