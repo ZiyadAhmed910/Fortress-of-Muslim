@@ -183,12 +183,30 @@ function main() {
 
   mkdirSync(OUT_DIR, { recursive: true });
 
-  const jsonOut = { generatedAt: new Date().toISOString(), files, routes, schema: schemaOut };
-  writeFileSync(path.join(OUT_DIR, 'index.json'), JSON.stringify(jsonOut, null, 2) + '\n');
+  // Idempotent regen: reuse the previous timestamp when nothing substantive changed, so
+  // running this on a whim (as CLAUDE.md asks) doesn't produce a timestamp-only diff every time.
+  const payload = { files, routes, schema: schemaOut };
+  const payloadText = JSON.stringify(payload);
+  const jsonPath = path.join(OUT_DIR, 'index.json');
+  let generatedAt = new Date().toISOString();
+  let unchanged = false;
+  try {
+    const previous = JSON.parse(readFileSync(jsonPath, 'utf8'));
+    const { generatedAt: previousGeneratedAt, ...previousPayload } = previous;
+    if (JSON.stringify(previousPayload) === payloadText) {
+      generatedAt = previousGeneratedAt;
+      unchanged = true;
+    }
+  } catch {
+    // No previous file, or it didn't parse -- treat as a fresh generation.
+  }
 
+  const jsonOut = { generatedAt, ...payload };
+  writeFileSync(jsonPath, JSON.stringify(jsonOut, null, 2) + '\n');
   writeFileSync(path.join(OUT_DIR, 'README.md'), renderMarkdown(jsonOut, anomalies));
 
   console.log(`Mapped ${files.length} files (${tsFiles.length} ts, ${jsFiles.length} js, ${sqlFiles.length} sql), ${routes.length} routes, ${schemaOut.length} schema objects.`);
+  console.log(unchanged ? 'No structural changes since the last run.' : `Content changed -- generatedAt updated to ${generatedAt}.`);
   if (anomalies.length) console.log(`${anomalies.length} single-referencer table(s) flagged -- see docs/codebase-map/README.md.`);
 }
 
