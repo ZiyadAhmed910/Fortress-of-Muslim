@@ -170,6 +170,48 @@ directly, check whether it should be reading `api_current_content` / `canonical_
 - `docs/canonical-data-roadmap.md`'s "Platform Increments" list is effectively the source the 0.20
   Operations plan below was validated against — the two should be read together.
 
+## Known implementation gaps (full code read-through, 2026-08-06)
+
+Found by reading essentially the entire codebase end to end (`editorial-plane.ts` in full, the
+entire Developer Portal frontend, the entire PWA, the Status portal, the remaining `admin-plane.ts`
+handlers) rather than sampling. Ranked by how directly they block a feature the platform claims to
+support, not by severity.
+
+1. **Taxonomy term assignment does not exist.** Admins can create taxonomy terms — including
+   `mood` and `occasion` types, via `POST /v1/admin/taxonomy` (`apps/auth/src/admin-plane.ts`) — and
+   the system can count and display which records use a term. But there is no code path anywhere
+   that inserts into `record_taxonomy` (confirmed by grepping the entire `apps/api` and `apps/auth`
+   source: the table is only ever read, never written). There is no "attach this mood/category to
+   this record" action in the Admin Console UI either. This is the missing middle step of the
+   feature — creation and display exist, assignment doesn't — and it's why the roadmap's "moods,
+   Ruqyah" goal has no real editorial path today: there's no way to mark a record with a verified
+   mood even if an editor wanted to.
+2. **Named Queries can only target Duas, never Hadith.** `parseRecordQuery`
+   (`apps/auth/src/index.ts:657`) hardcodes `objectName: 'duas' as const` on every named query it
+   creates — there's no way to get a Hadith-backed named query even via a direct API call, let alone
+   through the Developer Portal UI, which doesn't offer the choice either. Hadith is a first-class
+   content type everywhere else (REST API, MCP tools, editorial workflow) except here.
+3. **The OAuth consent screen hardcodes "ChatGPT."** `apps/developers/public/oauth.js` shows
+   "ChatGPT" in its UI copy ("authorizing ChatGPT," "Denying access," "Return to ChatGPT...")
+   regardless of which client is actually connecting. The backend already has the real client name
+   available (`oauthClient.name`); the consent page just doesn't use it. Cosmetic today because
+   ChatGPT is presumably the only client exercised so far, but wrong for any other Connected App.
+4. **Minor: inconsistent SQL parameterization in `editorial-plane.ts`.** Three spots (`decideBook`
+   x2, `rollbackDataset`) interpolate a value via a `sqlLiteral()` escaping helper instead of the
+   `.bind()` parameterization used everywhere else in the file. Not currently exploitable — in all
+   three cases the interpolated value is system-generated or already fetched from a parameterized
+   lookup, not raw user input — but it's a style inconsistency worth cleaning up for defense in
+   depth rather than relying on "it happens to be safe today."
+
+**Explicitly checked and confirmed correct, so it doesn't need re-litigating:** Admin/Editor/
+Reviewer role gating including the developer-login-restriction question (`apps/auth/src/admin-plane.ts`
+rejects `role === 'developer'` server-side on every `/v1/admin/*` route); the mandatory-MFA gate;
+the IoT device-authorization login round-trip (`device.js` save-and-resume via `sessionStorage`);
+FTS index sync across all three publish paths (book verification, batch publish, rollback all
+correctly update `canonical_search_fts`); PWA offline/online mode isolation and service worker
+caching/update behavior; the browser-persisted API key convenience feature (correctly reconciled
+against server state on every load, not a stale-data risk).
+
 ## Goals — what's next
 
 ### 0.20 Operations (current priority, validated against code on 2026-08-06)
