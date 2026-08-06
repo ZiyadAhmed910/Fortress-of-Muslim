@@ -999,11 +999,34 @@ async function loadAlerts() {
     ['Shown (24h)', rows.length],
   ].map(([label, value]) => `<div class="metric"><span>${esc(label)}</span><strong>${value}</strong></div>`).join('');
   $('#alerts-table').innerHTML = rows.length
-    ? tableHead(['Alert', 'Severity', 'Status', 'First seen', 'Last seen'])
-      + rows.map((alert) => `<div class="row"><span><strong>${esc(human(alert.alertType))}</strong><small>${esc(alert.message)}</small></span><span class="badge ${esc(alert.severity)}">${esc(alert.severity)}</span><span class="badge ${esc(alert.status)}">${esc(alert.status)}${alert.acknowledgedByName ? ` &middot; ${esc(alert.acknowledgedByName)}` : ''}</span><span>${date(alert.firstDetectedAt)}</span><span>${date(alert.lastDetectedAt)}</span></div>`).join('')
+    ? tableHead(['Alert', 'Severity', 'Status', 'First seen', 'Last seen', ''])
+      + rows.map((alert) => {
+        const actions = alert.status === 'active'
+          ? `<button data-alert-action="acknowledge" data-alert-id="${esc(alert.id)}">Acknowledge</button><button data-alert-action="resolve" data-alert-id="${esc(alert.id)}">Resolve</button>`
+          : alert.status === 'acknowledged'
+            ? `<button data-alert-action="resolve" data-alert-id="${esc(alert.id)}">Resolve</button>`
+            : '';
+        return `<div class="row"><span><strong>${esc(human(alert.alertType))}</strong><small>${esc(alert.message)}</small></span><span class="badge ${esc(alert.severity)}">${esc(alert.severity)}</span><span class="badge ${esc(alert.status)}">${esc(alert.status)}${alert.acknowledgedByName ? ` &middot; ${esc(alert.acknowledgedByName)}` : ''}</span><span>${date(alert.firstDetectedAt)}</span><span>${date(alert.lastDetectedAt)}</span><span class="actions">${actions}</span></div>`;
+      }).join('')
     : empty('No active alerts. Everything monitored is within normal range.');
 }
 $('[data-refresh-alerts]').addEventListener('click', () => loadAlerts());
+$('#alerts-table').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-alert-action]');
+  if (!button) return;
+  const action = button.dataset.alertAction;
+  const alertId = button.dataset.alertId;
+  if (!await confirmChange(`${human(action)} this alert?`, action === 'resolve'
+    ? 'This marks it resolved now. If the underlying condition is still active, it will reopen the next time alerts are evaluated.'
+    : 'This records that you are aware of it. It stays visible until resolved.')) return;
+  try {
+    await api(`/v1/admin/alerts/${encodeURIComponent(alertId)}/${action}`, { method: 'POST' });
+    notify(`Alert ${action}d.`);
+    loadAlerts();
+  } catch (error) {
+    notify(error.message, true);
+  }
+});
 
 async function loadOperations() {
   const data = (await api('/v1/admin/operations')).data;

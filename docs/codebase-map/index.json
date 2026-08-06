@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T12:23:29.136Z",
+  "generatedAt": "2026-08-06T12:28:54.688Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -207,7 +207,7 @@
     },
     {
       "path": "apps/auth/src/admin-plane.ts",
-      "lines": 771,
+      "lines": 802,
       "language": "ts",
       "exports": [
         "function requiresMfaEnrollment",
@@ -217,7 +217,7 @@
         "./types",
         "./editorial-plane"
       ],
-      "routeCount": 21
+      "routeCount": 22
     },
     {
       "path": "apps/auth/src/auth.ts",
@@ -393,7 +393,7 @@
     },
     {
       "path": "apps/admin/public/app.js",
-      "lines": 1247,
+      "lines": 1270,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1142,6 +1142,14 @@
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
       "line": 164
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/alerts\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 172
     },
     {
       "style": "manual",
@@ -1986,6 +1994,14 @@
         "apps/auth/migrations/0001_identity.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "its",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
     },
     {
       "name": "jwks",
