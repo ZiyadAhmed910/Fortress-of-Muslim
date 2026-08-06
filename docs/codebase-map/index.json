@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T12:28:54.688Z",
+  "generatedAt": "2026-08-06T15:34:52.265Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -409,7 +409,7 @@
     },
     {
       "path": "apps/developers/public/console.js",
-      "lines": 497,
+      "lines": 528,
       "language": "js",
       "exports": [],
       "imports": [],

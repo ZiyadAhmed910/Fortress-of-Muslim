@@ -186,17 +186,30 @@ support, not by severity.
    feature — creation and display exist, assignment doesn't — and it's why the roadmap's "moods,
    Ruqyah" goal has no real editorial path today: there's no way to mark a record with a verified
    mood even if an editor wanted to.
-2. **Named Queries can only target Duas, never Hadith.** `parseRecordQuery`
+2. ~~**TOTP setup showed no QR code, just a raw `otpauth://` URI as text.**~~ Fixed 2026-08-06:
+   `apps/developers/public/console.js` rendered `result.totpURI` as plain text in a `<code>` tag --
+   almost no authenticator app accepts pasting a full URI, they expect a QR scan. Found by the user
+   actually trying to use it, not by this read-through (a miss worth naming: reading the line and
+   confirming it "renders something" isn't the same as confirming the UX is actually usable). Fixed
+   by vendoring `qrcode-generator` (Kazuhiko Arase, MIT) as static files in
+   `packages/portal-ui/assets/` -- rendered fully client-side as inline SVG, never sent anywhere,
+   since the URI contains the actual TOTP secret and the portal's CSP (`script-src 'self'`) wouldn't
+   have allowed an external QR API regardless. Also extracts just the base32 secret for a manual-entry
+   fallback. Verified structurally (not just "didn't throw"): the rendered module grid's finder
+   patterns at all three required corners exactly match the canonical QR pattern
+   (`1111111/1000001/1011101/1011101/1011101/1000001/1111111`), which is strong evidence a real
+   scanner would read it correctly.
+3. **Named Queries can only target Duas, never Hadith.** `parseRecordQuery`
    (`apps/auth/src/index.ts:657`) hardcodes `objectName: 'duas' as const` on every named query it
    creates — there's no way to get a Hadith-backed named query even via a direct API call, let alone
    through the Developer Portal UI, which doesn't offer the choice either. Hadith is a first-class
    content type everywhere else (REST API, MCP tools, editorial workflow) except here.
-3. **The OAuth consent screen hardcodes "ChatGPT."** `apps/developers/public/oauth.js` shows
+4. **The OAuth consent screen hardcodes "ChatGPT."** `apps/developers/public/oauth.js` shows
    "ChatGPT" in its UI copy ("authorizing ChatGPT," "Denying access," "Return to ChatGPT...")
    regardless of which client is actually connecting. The backend already has the real client name
    available (`oauthClient.name`); the consent page just doesn't use it. Cosmetic today because
    ChatGPT is presumably the only client exercised so far, but wrong for any other Connected App.
-4. **Minor: inconsistent SQL parameterization in `editorial-plane.ts`.** Three spots (`decideBook`
+5. **Minor: inconsistent SQL parameterization in `editorial-plane.ts`.** Three spots (`decideBook`
    x2, `rollbackDataset`) interpolate a value via a `sqlLiteral()` escaping helper instead of the
    `.bind()` parameterization used everywhere else in the file. Not currently exploitable — in all
    three cases the interpolated value is system-generated or already fetched from a parameterized

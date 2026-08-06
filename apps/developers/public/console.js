@@ -301,12 +301,43 @@ $('#totp-enable-form').addEventListener('submit', async (event) => {
       method: 'POST',
       body: { password: new FormData(form).get('password'), method: 'totp', issuer: 'Fortress Platform' },
     });
-    $('#totp-setup').innerHTML = `<strong>Authenticator setup</strong><code>${esc(result.totpURI)}</code><small>Recovery codes: ${esc((result.backupCodes || []).join('  '))}</small>`;
+    renderTotpSetup(result.totpURI, result.backupCodes || []);
     $('#totp-setup').hidden = false;
     $('#totp-confirm-form').hidden = false;
     form.reset();
-  }, 'Scan or copy the setup URI, then confirm a code.', form);
+  }, 'Scan the QR code (or enter the setup key manually), then confirm a code.', form);
 });
+
+function renderTotpSetup(totpURI, backupCodes) {
+  const secret = extractTotpSecret(totpURI);
+  const target = $('#totp-setup');
+  target.innerHTML = `<strong>Authenticator setup</strong><div class="totp-qr"></div><p>Scan with your authenticator app, or enter this key manually if it can't scan:</p><code>${esc(secret || totpURI)}</code><small>Recovery codes: ${esc(backupCodes.join('  '))}</small>`;
+  renderQrCode($('.totp-qr', target), totpURI);
+}
+
+function extractTotpSecret(totpURI) {
+  const match = String(totpURI).match(/[?&]secret=([^&]+)/);
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
+function renderQrCode(container, text) {
+  if (!container) return;
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    const count = qr.getModuleCount();
+    const cells = [];
+    for (let row = 0; row < count; row += 1) {
+      for (let col = 0; col < count; col += 1) {
+        if (qr.isDark(row, col)) cells.push(`<rect x="${col}" y="${row}" width="1" height="1"/>`);
+      }
+    }
+    container.innerHTML = `<svg viewBox="0 0 ${count} ${count}" role="img" aria-label="Authenticator app QR code">${cells.join('')}</svg>`;
+  } catch {
+    container.innerHTML = '<p class="empty-row">The QR code could not be generated. Use the setup key below.</p>';
+  }
+}
 $('#totp-confirm-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
