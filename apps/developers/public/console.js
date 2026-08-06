@@ -1,6 +1,6 @@
 const authBase = location.hostname.startsWith('developers-test.') ? 'https://auth-test.fortressofmuslim.org' : location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8788' : 'https://auth.fortressofmuslim.org';
 const apiBase = authBase.includes('auth-test.') ? 'https://api-test.fortressofmuslim.org/v1' : 'https://api.fortressofmuslim.org/v1';
-const state = { user: null, keys: [], apps: [], devices: [], mcp: [], queries: [], standardTools: [], passkeys: [] };
+const state = { user: null, keys: [], apps: [], devices: [], mcp: [], queries: [], standardTools: [], passkeys: [], usage: null };
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const REQUEST_TIMEOUT_MS = 12_000;
@@ -272,7 +272,7 @@ async function refreshSession() {
   $$('[data-profile-initials], [data-sidebar-initials]').forEach((node) => { node.textContent = initials; });
   $('[data-profile-name]').textContent = state.user.name || 'Developer'; $('[data-profile-email]').textContent = state.user.email;
   $('[data-sidebar-name]').textContent = state.user.name || 'Developer'; setView(location.hash.slice(1) || 'overview');
-  const resources = await Promise.allSettled([loadKeys(), loadApps(), loadDevices(), loadMcp(), loadQueries(), loadSecurity()]);
+  const resources = await Promise.allSettled([loadKeys(), loadApps(), loadDevices(), loadMcp(), loadQueries(), loadSecurity(), loadUsage()]);
   const failed = resources.filter((result) => result.status === 'rejected');
   if (failed.length) notify(`${failed.length} console section${failed.length === 1 ? '' : 's'} could not be loaded. Retry by refreshing the page.`, true);
   if (sessionStorage.getItem('fortress-device-code')) location.href = '/device.html';
@@ -388,6 +388,28 @@ async function loadApps() {
 async function loadDevices() {
   const result = await authJson('/v1/control/devices'); state.devices = result.data || []; $('#metric-devices').textContent = state.devices.length;
   render('#device-list', state.devices, (device) => `<div class="resource-row devices-grid"><span class="row-title"><strong>${esc(device.name)}</strong><small>${formatDate(device.createdAt)}</small></span><span>${esc(device.deviceType)}</span><span>${esc(methodLabel(device.authMethod))}</span><code>${esc(device.oauthClientId)}</code>${device.status === 'active' ? `<button class="button compact" data-revoke-device="${esc(device.id)}">Revoke</button>` : '<span class="status revoked">Revoked</span>'}</div>`);
+}
+async function loadUsage() {
+  const result = await authJson('/v1/control/usage');
+  state.usage = result.data || null;
+  renderUsage();
+}
+function renderUsage() {
+  const usage = state.usage;
+  const card = $('#usage-card');
+  if (!card) return;
+  if (!usage) { card.innerHTML = '<p class="empty-row">Usage is not available right now.</p>'; return; }
+  $('#usage-plan').textContent = `${usage.planCode} plan`;
+  const rows = [
+    { label: 'Per minute', used: usage.usage.perMinute, limit: usage.limit.perMinute, resetAt: usage.windowResetAt.minute },
+    { label: 'Per day', used: usage.usage.perDay, limit: usage.limit.perDay, resetAt: usage.windowResetAt.day },
+  ];
+  card.innerHTML = rows.map((row) => {
+    const ratio = row.limit > 0 ? row.used / row.limit : 0;
+    const fillClass = ratio >= 1 ? 'bad' : ratio >= 0.8 ? 'warn' : '';
+    const width = Math.min(100, Math.round(ratio * 100));
+    return `<div class="usage-row"><div class="usage-row-head"><span>${esc(row.label)}</span><strong>${row.used.toLocaleString()} / ${row.limit.toLocaleString()}</strong></div><div class="usage-bar-track"><div class="usage-bar-fill ${fillClass}" style="width:${width}%"></div></div><small>Resets ${formatDateTime(row.resetAt)}</small></div>`;
+  }).join('');
 }
 async function loadMcp() {
   const [result,catalog] = await Promise.all([authJson('/v1/control/mcp/toolsets'),authJson('/v1/control/mcp/catalog')]); state.mcp = result.data || []; state.standardTools=catalog.data||[]; $('#metric-mcp').textContent = state.mcp.length; updateStandardToolSelect();
@@ -535,6 +557,7 @@ function trapFocus(event, root) { const items = $$('button:not([disabled]), inpu
 function esc(value) { return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' })[character]); }
 function getInitials(value) { return String(value).split(/\s+/).map((part) => part[0]).join('').slice(0,2).toUpperCase(); }
 function formatDate(value) { if (!value) return 'Unknown'; const date = new Date(value); return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleDateString(); }
+function formatDateTime(value) { if (!value) return 'soon'; const date = new Date(value); return Number.isNaN(date.getTime()) ? 'soon' : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 function methodLabel(value) { return String(value || '').replaceAll('_',' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 function displayRedirect(value) { const first=arrayValue(value)[0]; return first?.includes('localhost.invalid/fortress-machine-client') ? 'Not required' : first || 'None'; }
 function arrayValue(value) { if (Array.isArray(value)) return value; try { return JSON.parse(value || '[]'); } catch { return []; } }
