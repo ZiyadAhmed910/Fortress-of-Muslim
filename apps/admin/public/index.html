@@ -45,6 +45,14 @@
     <button data-sign-out>Sign out</button>
   </div>
 
+  <div id="mfa-required" class="denied" hidden>
+    <img src="/assets/fortress-mark.svg" alt="">
+    <h1>Two-factor authentication required</h1>
+    <p>The Admin role requires two-factor authentication before this console will load. Enable it in the Developer Portal, then reload this page.</p>
+    <a id="mfa-required-link" class="button primary" href="#">Enable two-factor authentication</a>
+    <button data-sign-out>Sign out</button>
+  </div>
+
   <div id="console" class="console" hidden>
     <header class="topbar">
       <button class="icon-button mobile-menu" data-menu aria-label="Open navigation">&#9776;</button>

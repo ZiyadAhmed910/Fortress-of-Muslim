@@ -59,6 +59,23 @@ After restoration (and, if applicable, the FTS rebuild), run `npm run soak:test`
 - Rotate platform secrets through Cloudflare, never through Git.
 - Keep maintenance responses generic. Do not expose internal errors, database names, tokens, IP addresses, or recovery codes.
 
+## Account Recovery (MFA lockout)
+
+The Admin role requires two-factor authentication (0.20 item 6): `apps/auth/src/admin-plane.ts`'s `requiresMfaEnrollment` blocks every `/v1/admin/*` route except a caller's own `GET /v1/admin/session` for an Admin-role user without TOTP enabled. Editor and Reviewer stay optional. TOTP setup, passkeys, and one-time backup codes are managed in the Developer Portal under Account security -- this gate never touches that flow, so anyone who can still sign in can always reach it.
+
+Normal recovery -- lost TOTP device, backup codes still available: sign in, use a backup code at the 2FA challenge, then re-enroll a new authenticator immediately.
+
+Full lockout -- both the TOTP device and backup codes are lost: Better Auth's `twoFactor` plugin gates sign-in itself once enabled, so this is a platform-level lockout, not something this gate alone controls, and self-service recovery is not built (add it before there are non-owner Admins depending on this). Recovery requires direct D1 access:
+
+```powershell
+npx wrangler d1 execute fortress-identity-test --remote --env test --config apps/auth/wrangler.jsonc --command "UPDATE `"user`" SET twoFactorEnabled = 0 WHERE email = '<locked-out-admin-email>'"
+npx wrangler d1 execute fortress-identity-test --remote --env test --config apps/auth/wrangler.jsonc --command "DELETE FROM twoFactor WHERE userId = (SELECT id FROM `"user`" WHERE email = '<locked-out-admin-email>')"
+```
+
+Confirm the requester's identity out of band before running this (it disables their second factor). The affected admin must sign in and re-enroll MFA immediately afterward -- until they do, `requiresMfaEnrollment` blocks them from every admin route again on the next request. Record the action in the audit trail manually (this recovery path is outside the application, so it does not write an `audit_events` row itself).
+
+The platform owner (`ziyadahmed910@gmail.com`, `bootstrapDefaultAdmin`) is exempt from being removed as Admin, but is **not** exempt from this MFA gate -- they must enable MFA like any other Admin before this ships to an environment they use.
+
 ## Recovery Exit
 
 The incident can close after service health, authentication, editorial queues, API/MCP requests, and PWA update checks are green; monitoring remains stable for the agreed observation window; and the timeline, root cause, affected records, remediation, and follow-up owner are recorded.

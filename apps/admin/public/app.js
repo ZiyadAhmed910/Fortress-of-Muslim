@@ -182,8 +182,19 @@ async function bootstrap() {
     }
     throw error;
   }
+  if (state.session.role === 'admin' && !state.session.security?.twoFactorEnabled) {
+    $('#login').hidden = true;
+    $('#denied').hidden = true;
+    $('#console').hidden = true;
+    $('#mfa-required-link').href = authBase.includes('auth-test.')
+      ? 'https://developers-test.fortressofmuslim.org/console.html#security'
+      : 'https://developers.fortressofmuslim.org/console.html#security';
+    $('#mfa-required').hidden = false;
+    return;
+  }
   $('#login').hidden = true;
   $('#denied').hidden = true;
+  $('#mfa-required').hidden = true;
   $('#console').hidden = false;
   $('[data-user-name]').textContent = state.session.user.name;
   $('[data-user-email]').textContent = state.session.user.email;
