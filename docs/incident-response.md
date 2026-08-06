@@ -31,7 +31,18 @@ Always restore test first and run the full soak. Active databases are restored o
 .\tools\restore-d1.ps1 -Database identity -Environment production -Timestamp 2026-07-23T12:00:00Z -ProductionApproval RESTORE-PRODUCTION
 ```
 
-Never restore identity and content databases from unrelated timestamps without documenting why. Time Travel is retained by Cloudflare for a limited window. SQL exports are durable disaster-recovery artifacts and must be imported into a new replacement database, verified, have search indexes rebuilt, and then be rebound; they are never executed over an active database by this script. After restoration, run `npm run soak:test`, inspect editorial counts and authentication, and verify API/MCP reads before returning the service to active.
+Never restore identity and content databases from unrelated timestamps without documenting why. Time Travel is retained by Cloudflare for a limited window. SQL exports are durable disaster-recovery artifacts and must be imported into a new replacement database, verified, have search indexes rebuilt, and then be rebound; they are never executed over an active database by this script.
+
+After importing a SQL export into a replacement content database, rebuild `canonical_search_fts` before returning the database to active traffic:
+
+```powershell
+.\tools\rebuild-fts.ps1 -Environment test
+.\tools\rebuild-fts.ps1 -Environment production -ProductionApproval REBUILD-PRODUCTION-FTS
+```
+
+This creates the FTS5 virtual table if it is missing (D1 exports exclude virtual tables, so a fresh replacement database will not have it), then rebuilds it from `canonical_records`/`content_revisions`/`editorial_record_state` using the same SQL the application itself runs during Hadith book verification, and fails loudly if the resulting row count does not match the expected verified/approved-or-published editorial record count. A Time Travel restore does not need this step — Time Travel preserves FTS5 directly.
+
+After restoration (and, if applicable, the FTS rebuild), run `npm run soak:test`, inspect editorial counts and authentication, and verify API/MCP reads before returning the service to active.
 
 ## Deployment Rollback
 
@@ -58,4 +69,5 @@ Backup and restore must be exercised against test before they are trusted for a 
 
 | Date (UTC) | Environment | What was tested | Result |
 | --- | --- | --- | --- |
-| 2026-08-06 | test | Ran `backup-d1.ps1` for real against `fortress-identity-test` and `fortress-platform-test` (manifest + SHA-256 checksums verified against downloaded files). Created a throwaway marker table in `fortress-platform-test` after the backup bookmark, then ran `restore-d1.ps1 -Database content -Bookmark <backup bookmark>` to roll it back with D1 Time Travel. | Restore removed the marker table as expected; `npm run soak:test` passed 5/5 rounds across all 9 surfaces immediately after. Confirms the backup bookmark capture, restore script, and pre-restore rollback capture all work end-to-end. Identity-DB restore and disaster-recovery-style rebuild-from-SQL-export were not exercised in this drill — see the FTS rebuild automation work before relying on the SQL-export path. |
+| 2026-08-06 | test | Ran `backup-d1.ps1` for real against `fortress-identity-test` and `fortress-platform-test` (manifest + SHA-256 checksums verified against downloaded files). Created a throwaway marker table in `fortress-platform-test` after the backup bookmark, then ran `restore-d1.ps1 -Database content -Bookmark <backup bookmark>` to roll it back with D1 Time Travel. | Restore removed the marker table as expected; `npm run soak:test` passed 5/5 rounds across all 9 surfaces immediately after. Confirms the backup bookmark capture, restore script, and pre-restore rollback capture all work end-to-end. Identity-DB restore and disaster-recovery-style rebuild-from-SQL-export were not exercised in this drill — see the FTS rebuild automation entry below. |
+| 2026-08-06 | test | Ran the new `rebuild-fts.ps1` for real against `fortress-platform-test` (not a dry run) to validate the FTS-rebuild-after-DR automation. | Found and corrected a genuine 1-row drift: `canonical_search_fts` had 268 rows, current `editorial_record_state` (verified + approved/published) had 269. Rebuild brought it to 269 and the row-count verification passed. Confirmed the live API stayed healthy and search (`/v1/duas/search`) kept working immediately after. The virtual-table-recreation path (simulating a true post-SQL-export scenario where the table doesn't exist at all) was not exercised, since the table already existed on test — only the data-rebuild path was proven live. |
