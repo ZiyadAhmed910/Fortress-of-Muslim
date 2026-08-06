@@ -51,3 +51,11 @@ Never restore identity and content databases from unrelated timestamps without d
 ## Recovery Exit
 
 The incident can close after service health, authentication, editorial queues, API/MCP requests, and PWA update checks are green; monitoring remains stable for the agreed observation window; and the timeline, root cause, affected records, remediation, and follow-up owner are recorded.
+
+## Drill Log
+
+Backup and restore must be exercised against test before they are trusted for a real incident. Record each drill here.
+
+| Date (UTC) | Environment | What was tested | Result |
+| --- | --- | --- | --- |
+| 2026-08-06 | test | Ran `backup-d1.ps1` for real against `fortress-identity-test` and `fortress-platform-test` (manifest + SHA-256 checksums verified against downloaded files). Created a throwaway marker table in `fortress-platform-test` after the backup bookmark, then ran `restore-d1.ps1 -Database content -Bookmark <backup bookmark>` to roll it back with D1 Time Travel. | Restore removed the marker table as expected; `npm run soak:test` passed 5/5 rounds across all 9 surfaces immediately after. Confirms the backup bookmark capture, restore script, and pre-restore rollback capture all work end-to-end. Identity-DB restore and disaster-recovery-style rebuild-from-SQL-export were not exercised in this drill — see the FTS rebuild automation work before relying on the SQL-export path. |
