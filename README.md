@@ -162,6 +162,43 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.20.0
+
+0.20 Operations: production reliability and safety, deliberately shipped as one release with no new
+user-facing feature surface, per the release goal of proving the platform can be operated safely
+before growing it further. All eight items closed:
+
+- Ran and logged a real D1 backup + Time Travel restore drill against the test environment (not a
+  dry run): backed up both databases, created a throwaway marker, restored it away with Time Travel,
+  and confirmed the platform stayed healthy across all 9 monitored surfaces. See `docs/incident-response.md`
+  Drill Log.
+- Automated FTS index rebuild after disaster recovery (`tools/rebuild-fts.ps1`), reusing the exact
+  SQL the application already runs during Hadith book verification rather than a new implementation.
+  The first live run found and corrected a real 1-row drift between the search index and current
+  editorial state.
+- Added scheduled, genuinely encrypted D1 backups to Cloudflare R2 with a 30-day retention rule
+  (`.github/workflows/scheduled-backup.yml`, `tools/lib/backup-crypto.ps1`). `backup-d1.ps1` previously
+  wrote plain SQL while being documented as "encrypted-at-rest" -- that was never true; it now
+  actually encrypts (streamed AES-256-CBC + HMAC-SHA256, verified against the full 150MB+ content
+  export after an in-memory first attempt failed with an out-of-memory error on that exact file).
+- Added operational alerts to the Admin Console (service down/maintenance, elevated error rates,
+  indexing failures, unusual API usage), evaluated fresh on every view and surfaced as a dedicated
+  Alerts page plus an Overview banner -- Admin-Console-only by explicit choice, no external paging.
+- Added enforceable, admin-configurable per-plan API rate limits (basic/premium/enterprise), replacing
+  telemetry-only visibility with real enforcement on every credentialed request; anonymous public
+  reads remain unlimited by design.
+- Made two-factor authentication mandatory for the Admin role (Editor/Reviewer remain optional),
+  with a clear in-console enrollment prompt instead of a broken console, and documented the account
+  recovery procedure for a full MFA lockout.
+- Added incident acknowledgement (acknowledge/resolve) on top of the same alerts table, so an alert
+  and an incident are one system at different points in its lifecycle rather than two.
+- Confirmed release-readiness tooling (`npm run check`, soak test, smoke tests) is ready for the
+  promotion gate.
+
+Every item above was verified against live Cloudflare test infrastructure during development, not
+just against local mocks -- several of the fixes described (the FTS drift, the backup memory issue)
+were found by that verification, not anticipated in advance.
+
 ### 0.19.1
 
 - Fixed developer-created "record query" named queries (Developer Portal and the equivalent MCP tool
