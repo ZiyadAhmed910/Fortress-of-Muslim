@@ -115,18 +115,91 @@ result = requests.get(
         <section id="authentication" class="doc-section" data-search-title="Authentication"><h2>Authentication</h2><p>Published dataset, collection, dua, and Hadith read endpoints are public and require no account. Owner-scoped named queries, MCP, higher future limits, and management operations use <code>X-Fortress-API-Key</code> or an OAuth bearer token. API keys suit private server integrations; connected apps use OAuth 2.1 authorization code with PKCE or client credentials.</p><div class="scope-list"><code>content:read</code><code>content:search</code><code>dataset:read</code><code>mcp:connect</code><code>mcp:manage</code><code>apps:write</code><code>usage:read</code></div><div class="callout warning"><strong>Least privilege</strong><span>Request only the scopes your integration uses. Client secrets and API keys belong in server-side secret storage, never shipped JavaScript.</span></div></section>
 
         <section id="developer-console" class="doc-section" data-search-title="Developer Console"><div class="eyebrow">CONTROL PLANE</div><h2>Manage integrations in the console</h2><p>API keys, OAuth connected apps, device identities, MCP toolsets, and executable record queries live in a dedicated operational workspace. API keys remain persisted by the identity service; remembering the one-time value in the browser is optional and stale browser copies are removed when the server key is revoked or expires.</p><a class="button primary" href="/console.html">Open Developer Console</a></section>
-        <section id="oauth-clients" class="doc-section" data-search-title="OAuth connected apps"><h2>OAuth connected apps</h2><p>Public browser and native clients use authorization code with PKCE. Confidential applications can use a client secret, machine integrations use client credentials, and higher-assurance clients can authenticate with <code>private_key_jwt</code> and a registered JWKS URL. Callback URLs are exact-match allowlists for interactive Authorization Code clients and are not required for machine-to-machine clients. Disabling an app immediately blocks new use and revokes its outstanding access and refresh tokens; re-enabling it does not restore revoked tokens.</p><pre class="plain-code"><code>POST https://auth-test.fortressofmuslim.org/api/auth/oauth2/token
-Content-Type: application/x-www-form-urlencoded
+        <section id="oauth-clients" class="doc-section" data-search-title="OAuth connected apps"><h2>OAuth connected apps</h2><p>Public browser and native clients use authorization code with PKCE. Confidential applications can use a client secret, machine integrations use client credentials, and higher-assurance clients can authenticate with <code>private_key_jwt</code> and a registered JWKS URL. Callback URLs are exact-match allowlists for interactive Authorization Code clients and are not required for machine-to-machine clients. Disabling an app immediately blocks new use and revokes its outstanding access and refresh tokens; re-enabling it does not restore revoked tokens.</p><p>Machine integrations (client credentials grant) exchange a client ID and secret for a bearer token directly, with no user interaction:</p>
+          <div class="code-sample" data-code-group>
+            <div class="code-toolbar"><div class="code-tabs" role="tablist"><button class="active" data-code-tab="curl">cURL</button><button data-code-tab="javascript">JavaScript</button><button data-code-tab="python">Python</button></div><button class="copy-button" data-copy="#oauth-code .active-code" aria-label="Copy code"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+            <div id="oauth-code" class="code-panels"><pre class="active-code" data-code-panel="curl"><code>curl -X POST "https://auth-test.fortressofmuslim.org/api/auth/oauth2/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET"</code></pre><pre hidden data-code-panel="javascript"><code>const response = await fetch(
+  "https://auth-test.fortressofmuslim.org/api/auth/oauth2/token",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: process.env.FORTRESS_CLIENT_ID,
+      client_secret: process.env.FORTRESS_CLIENT_SECRET,
+    }),
+  }
+);
+const { access_token } = await response.json();</code></pre><pre hidden data-code-panel="python"><code>import requests
 
-grant_type=client_credentials&amp;client_id=CLIENT_ID&amp;client_secret=CLIENT_SECRET</code></pre></section>
+response = requests.post(
+    "https://auth-test.fortressofmuslim.org/api/auth/oauth2/token",
+    data={
+        "grant_type": "client_credentials",
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+    },
+)
+access_token = response.json()["access_token"]</code></pre></div>
+          </div>
+        </section>
         <section id="device-authorization" class="doc-section" data-search-title="Device Authorization"><h2>Device Authorization</h2><p>Limited-input devices request a code, show the returned user code, and poll the token endpoint while the user approves at <code>/device.html</code>. This implements the OAuth 2.0 Device Authorization Grant for user sign-in.</p><pre class="plain-code"><code>POST https://auth-test.fortressofmuslim.org/api/auth/device/code
 {"client_id":"YOUR_CLIENT_ID","scope":"openid profile"}</code></pre><div class="callout"><strong>API device profiles</strong><span>Trusted gateways call Fortress APIs with client credentials. Devices holding their own private key use private-key JWT and publish only their JWKS URL.</span></div></section>
-        <section id="mcp" class="doc-section" data-search-title="MCP tools"><h2>One MCP runtime, composable tools</h2><p>Fortress exposes one OAuth-protected MCP endpoint. The root endpoint includes reviewed standard tools. Use <code>find_dua</code> and <code>search_duas</code> for duas. Use <code>list_collections</code>, <code>list_hadith</code>, <code>search_hadith</code>, and <code>get_hadith</code> for the Hadith library. Use <code>ask_fortress</code> for semantic source retrieval with numbered citations. Use <code>get_dua_evidence</code> before making authenticity, attribution, or citation claims; pending evidence must be reported honestly. A custom toolset groups renamed standard tools, named-query APIs, and approved external API tools without creating another server. Disabled toolsets disappear from discovery, and disabled tools are omitted without deleting their configuration.</p><div class="data-table-wrap"><table><thead><tr><th>Tools</th><th>Endpoint</th></tr></thead><tbody><tr><td>Standard Fortress tools</td><td><code>https://mcp-test.fortressofmuslim.org/mcp</code></td></tr><tr><td>Custom toolset</td><td><code>https://mcp-test.fortressofmuslim.org/mcp?toolset={slug}</code></td></tr></tbody></table></div><pre class="plain-code"><code>Authorization: Bearer OAUTH_ACCESS_TOKEN
-Content-Type: application/json
+        <section id="mcp" class="doc-section" data-search-title="MCP tools"><h2>One MCP runtime, composable tools</h2><p>Fortress exposes one OAuth-protected MCP endpoint. The root endpoint includes reviewed standard tools. Use <code>find_dua</code> and <code>search_duas</code> for duas. Use <code>list_collections</code>, <code>list_hadith</code>, <code>search_hadith</code>, and <code>get_hadith</code> for the Hadith library. Use <code>ask_fortress</code> for semantic source retrieval with numbered citations. Use <code>get_dua_evidence</code> before making authenticity, attribution, or citation claims; pending evidence must be reported honestly. A custom toolset groups renamed standard tools, named-query APIs, and approved external API tools without creating another server. Disabled toolsets disappear from discovery, and disabled tools are omitted without deleting their configuration.</p><div class="data-table-wrap"><table><thead><tr><th>Tools</th><th>Endpoint</th></tr></thead><tbody><tr><td>Standard Fortress tools</td><td><code>https://mcp-test.fortressofmuslim.org/mcp</code></td></tr><tr><td>Custom toolset</td><td><code>https://mcp-test.fortressofmuslim.org/mcp?toolset={slug}</code></td></tr></tbody></table></div><p>Calling a tool (here, the standard <code>search_duas</code> tool) looks like this:</p>
+          <div class="code-sample" data-code-group>
+            <div class="code-toolbar"><div class="code-tabs" role="tablist"><button class="active" data-code-tab="curl">cURL</button><button data-code-tab="javascript">JavaScript</button><button data-code-tab="python">Python</button></div><button class="copy-button" data-copy="#mcp-code .active-code" aria-label="Copy code"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+            <div id="mcp-code" class="code-panels"><pre class="active-code" data-code-panel="curl"><code>curl -X POST "https://mcp-test.fortressofmuslim.org/mcp" \
+  -H "Authorization: Bearer $OAUTH_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search_duas","arguments":{"query":"morning"}}}'</code></pre><pre hidden data-code-panel="javascript"><code>const response = await fetch("https://mcp-test.fortressofmuslim.org/mcp", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    jsonrpc: "2.0",
+    id: 1,
+    method: "tools/call",
+    params: { name: "search_duas", arguments: { query: "morning" } },
+  }),
+});
+const result = await response.json();</code></pre><pre hidden data-code-panel="python"><code>import requests
 
-{"jsonrpc":"2.0","id":1,"method":"tools/list"}</code></pre></section>
-        <section id="named-queries" class="doc-section" data-search-title="Named query APIs"><h2>Named query APIs</h2><p>Named queries are declarative record queries: choose returned fields, allowlisted filters, endpoint parameters, sorting, and a maximum row count. Fortress compiles the definition into parameterized D1 statements, so callers get a stable API without receiving or submitting SQL. Disable a query to stop execution while preserving its definition and any custom MCP tool relationship.</p><pre class="plain-code"><code>GET https://api-test.fortressofmuslim.org/v1/queries/{QUERY_SLUG}?status=verified
-X-Fortress-API-Key: fom_test_...</code></pre></section>
+response = requests.post(
+    "https://mcp-test.fortressofmuslim.org/mcp",
+    headers={
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {"name": "search_duas", "arguments": {"query": "morning"}},
+    },
+)
+result = response.json()</code></pre></div>
+          </div>
+        </section>
+        <section id="named-queries" class="doc-section" data-search-title="Named query APIs"><h2>Named query APIs</h2><p>Named queries are declarative record queries: choose returned fields, allowlisted filters, endpoint parameters, sorting, and a maximum row count. Fortress compiles the definition into parameterized D1 statements, so callers get a stable API without receiving or submitting SQL. Disable a query to stop execution while preserving its definition and any custom MCP tool relationship.</p><div class="code-sample" data-code-group>
+            <div class="code-toolbar"><div class="code-tabs" role="tablist"><button class="active" data-code-tab="curl">cURL</button><button data-code-tab="javascript">JavaScript</button><button data-code-tab="python">Python</button></div><button class="copy-button" data-copy="#query-code .active-code" aria-label="Copy code"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+            <div id="query-code" class="code-panels"><pre class="active-code" data-code-panel="curl"><code>curl "https://api-test.fortressofmuslim.org/v1/queries/QUERY_SLUG?status=verified" \
+  -H "X-Fortress-API-Key: $FORTRESS_API_KEY"</code></pre><pre hidden data-code-panel="javascript"><code>const response = await fetch(
+  "https://api-test.fortressofmuslim.org/v1/queries/QUERY_SLUG?status=verified",
+  { headers: { "X-Fortress-API-Key": process.env.FORTRESS_API_KEY } }
+);
+const result = await response.json();</code></pre><pre hidden data-code-panel="python"><code>import requests
+
+result = requests.get(
+    "https://api-test.fortressofmuslim.org/v1/queries/QUERY_SLUG",
+    params={"status": "verified"},
+    headers={"X-Fortress-API-Key": FORTRESS_API_KEY},
+).json()</code></pre></div>
+          </div>
+        </section>
 
         <section id="data-model" class="doc-section" data-search-title="Content model"><h2>Content model</h2><p>Public read APIs expose the current immutable editorial revision, including material still under review. Consumers must inspect <code>verificationStatus</code> and <code>workflowState</code>; only records marked <code>verified</code> and <code>published</code> are trusted publication material. A dua contains ordered parts, and every part contains ordered typed segments.</p><div class="model-flow"><div><strong>Dataset</strong><span>Publication and provenance</span></div><b>&rsaquo;</b><div><strong>Dua</strong><span>Stable identity and title</span></div><b>&rsaquo;</b><div><strong>Part</strong><span>Swipe-sized reading unit</span></div><b>&rsaquo;</b><div><strong>Segment</strong><span>Arabic or translated text</span></div></div><div class="segment-grid"><div><code>arabic</code><span>Arabic script source text</span></div><div><code>transliteration</code><span>Arabic rendered in Latin script</span></div><div><code>translation</code><span>English meaning</span></div><div><code>comment</code><span>Context and narration text</span></div></div><div class="callout warning"><strong>Editorial status is part of the data contract</strong><span><code>verifiedBy</code>, <code>verifiedAt</code>, and <code>publishedAt</code> are nullable. Never present an unverified record as authenticated or reviewed.</span></div></section>
         <section id="identifiers" class="doc-section" data-search-title="Identifiers"><h2>Identifiers</h2><p>Fortress canonical IDs are readable and stable, such as <code>dua.hisn.001</code> and <code>hadith.bukhari.1</code>. Public sequential routes such as <code>/bukhari/book1/1</code> resolve to the same published canonical record. Existing Fortress PWA IDs such as <code>dua-001</code> remain accepted for dua compatibility.</p></section>
