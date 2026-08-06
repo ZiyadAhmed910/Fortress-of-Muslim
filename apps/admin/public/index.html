@@ -75,6 +75,7 @@
         <a href="#mcp-tools" data-nav><span>External tool review</span></a>
         <a href="#named-queries" data-nav><span>Named queries</span></a>
         <p>OPERATIONS</p>
+        <a href="#alerts" data-nav><span>Alerts</span></a>
         <a href="#operations" data-nav><span>Operations monitor</span></a>
         <a href="#rag" data-nav><span>RAG monitor</span></a>
         <a href="#services" data-nav><span>Service control</span></a>
@@ -90,6 +91,7 @@
 
       <section id="overview" class="view">
         <header><div><span class="kicker">CONTENT MANAGEMENT</span><h1>Platform overview</h1><p>Create, review, and verify Fortress content.</p></div><button data-refresh>Refresh</button></header>
+        <div id="overview-alerts-banner"></div>
         <div id="metrics" class="metrics"></div>
         <div class="split"><section><h2>Editorial queues</h2><div id="overview-queues"></div></section><section><h2>Service health</h2><div id="overview-services"></div></section></div>
       </section>
@@ -215,6 +217,12 @@
       <section id="services" class="view" hidden>
         <header><div><span class="kicker">OPERATIONS</span><h1>Service control</h1><p>Place Worker-enforced services into maintenance or disabled state.</p></div></header>
         <div id="services-grid" class="service-grid"></div>
+      </section>
+
+      <section id="alerts" class="view" hidden>
+        <header><div><span class="kicker">OPERATIONS</span><h1>Alerts</h1><p>Downtime, elevated error rates, indexing failures, and unusual API usage over the last 24 hours. Evaluated fresh each time you open this page.</p></div><button data-refresh-alerts>Refresh</button></header>
+        <div id="alerts-metrics" class="metrics"></div>
+        <div id="alerts-table" class="table"></div>
       </section>
 
       <section id="operations" class="view" hidden>

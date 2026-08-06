@@ -14,7 +14,7 @@ const state = {
   queueSelection: new Set(),
 };
 const roleViews = {
-  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'operations', 'services', 'security', 'audit']),
+  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'security', 'audit']),
   editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'workload', 'users', 'rag']),
   reviewer: new Set(['overview', 'queue', 'books', 'assignments', 'workload', 'rag']),
 };
@@ -223,6 +223,7 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'users') await loadUsers(params);
     else if (id === 'taxonomy') await loadTaxonomy(params);
     else if (id === 'services') await loadServices();
+    else if (id === 'alerts') await loadAlerts();
     else if (id === 'operations') await loadOperations();
     else if (id === 'security') await loadSecurity();
     else if (id === 'rag') await loadRag();
@@ -238,6 +239,17 @@ async function loadView(id, force = false, params = {}) {
 async function loadOverview() {
   const editorial = await api('/v1/admin/editorial/overview');
   const platform = state.session.role === 'admin' ? await api('/v1/admin/overview') : null;
+  if (state.session.role === 'admin') {
+    const alertsResponse = await api('/v1/admin/alerts');
+    const critical = Number(alertsResponse.meta.activeCritical);
+    const warning = Number(alertsResponse.meta.activeWarning);
+    const count = critical + warning;
+    $('#overview-alerts-banner').innerHTML = count
+      ? `<div class="alert-banner"><span>${count} active alert${count === 1 ? '' : 's'} (${critical} critical, ${warning} warning)</span><a href="#alerts">Review alerts</a></div>`
+      : '';
+  } else {
+    $('#overview-alerts-banner').innerHTML = '';
+  }
   const labels = {
     users: 'Users',
     apiKeys: 'Active API keys',
@@ -944,6 +956,21 @@ async function loadServices() {
   const rows = (await api('/v1/admin/services')).data;
   $('#services-grid').innerHTML = rows.map((service) => `<article class="service-card"><header><strong>${esc(service.displayName)}</strong><span class="badge ${esc(service.status)}">${esc(service.status)}</span></header><p>${esc(service.serviceType)} &middot; ${esc(service.enforcement)} enforcement</p><small>${esc(service.maintenanceMessage)}</small><footer><code>${esc(service.serviceKey)}</code><div>${service.enforcement === 'worker' && service.serviceKey !== 'admin' ? ['active', 'maintenance', 'disabled'].filter((item) => item !== service.status).map((status) => `<button class="${status === 'disabled' ? 'danger' : ''}" data-service="${esc(service.serviceKey)}" data-service-status="${status}">${human(status)}</button>`).join('') : '<span class="badge">monitor only</span>'}</div></footer></article>`).join('');
 }
+
+async function loadAlerts() {
+  const response = await api('/v1/admin/alerts');
+  const rows = response.data;
+  $('#alerts-metrics').innerHTML = [
+    ['Critical', response.meta.activeCritical],
+    ['Warning', response.meta.activeWarning],
+    ['Shown (24h)', rows.length],
+  ].map(([label, value]) => `<div class="metric"><span>${esc(label)}</span><strong>${value}</strong></div>`).join('');
+  $('#alerts-table').innerHTML = rows.length
+    ? tableHead(['Alert', 'Severity', 'Status', 'First seen', 'Last seen'])
+      + rows.map((alert) => `<div class="row"><span><strong>${esc(human(alert.alertType))}</strong><small>${esc(alert.message)}</small></span><span class="badge ${esc(alert.severity)}">${esc(alert.severity)}</span><span class="badge ${esc(alert.status)}">${esc(alert.status)}${alert.acknowledgedByName ? ` &middot; ${esc(alert.acknowledgedByName)}` : ''}</span><span>${date(alert.firstDetectedAt)}</span><span>${date(alert.lastDetectedAt)}</span></div>`).join('')
+    : empty('No active alerts. Everything monitored is within normal range.');
+}
+$('[data-refresh-alerts]').addEventListener('click', () => loadAlerts());
 
 async function loadOperations() {
   const data = (await api('/v1/admin/operations')).data;

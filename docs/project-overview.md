@@ -189,8 +189,15 @@ Reliability and safety, not new features, before anything else ships. Status of 
    elsewhere (`createRecord` or a correction flow are the likely candidates) — worth a dedicated look.
 3. **Scheduled encrypted backups + retention** — not started. `backup-d1.ps1` is manual-only; no
    cron trigger references it anywhere.
-4. **Alerts for downtime/errors/queue failures/unusual API usage** — not started. The Status Portal
-   and Admin Operations Monitor are both pull/on-demand; nothing pages anyone.
+4. **Alerts for downtime/errors/queue failures/unusual API usage** — done (2026-08-06), scoped to
+   Admin Console surfacing only (no external paging channel, by explicit choice). New `operational_alerts`
+   table (`apps/auth/migrations/0009_operational_alerts.sql`) and `GET /v1/admin/alerts` evaluate four
+   conditions fresh on every view (service down/maintenance, 24h 5xx error rate >=5%/20%, RAG indexing
+   failures, routes with >=50 rate-limited responses in 24h), upsert findings so they persist as
+   history, and auto-resolve anything that stops triggering. Surfaced as a dedicated Admin Console
+   "Alerts" view plus a banner on the Overview page. Schema and the full insert/auto-resolve lifecycle
+   verified live against the test identity DB, not just the in-memory migration check. Shares its table
+   with item 7 (incident acknowledgement) by design — no reason to model the same lifecycle twice.
 5. **Enforceable per-key/per-plan rate limits** — mostly not started. `usage_events` telemetry
    exists platform-wide; real enforcement exists only for `/v1/ask` (20/day per IP). No plan-limit
    table, nothing reads `developer_profiles.plan_code` to gate requests.
