@@ -117,6 +117,7 @@ export async function handleAdminPlane(
   if (url.pathname === '/v1/admin/services' && request.method === 'GET') return listServices(context);
   if (url.pathname === '/v1/admin/audit' && request.method === 'GET') return listAudit(context, url);
   if (url.pathname === '/v1/admin/alerts' && request.method === 'GET') return alerts(context);
+  if (url.pathname === '/v1/admin/rate-limits' && request.method === 'GET') return listRateLimits(context);
 
   const userMatch = url.pathname.match(/^\/v1\/admin\/users\/([^/]+)$/);
   if (userMatch && request.method === 'GET') return getUser(context, decodeURIComponent(userMatch[1]!));
@@ -134,6 +135,12 @@ export async function handleAdminPlane(
   if (serviceMatch && request.method === 'PATCH') {
     if (grant.role !== 'super_admin') return forbidden('Only a super administrator can change service state.');
     return updateService(context, serviceMatch[1]!, await readJson(request));
+  }
+
+  const rateLimitMatch = url.pathname.match(/^\/v1\/admin\/rate-limits\/([a-z-]+)$/);
+  if (rateLimitMatch && request.method === 'PATCH') {
+    if (!canWrite(grant.role)) return forbidden();
+    return updateRateLimit(context, rateLimitMatch[1]!, await readJson(request));
   }
 
   const actionMatch = url.pathname.match(
@@ -413,6 +420,43 @@ async function alerts(context: AdminContext) {
       activeWarning: findings.filter((finding) => finding.severity === 'warning').length,
     },
   });
+}
+
+async function listRateLimits({ env }: AdminContext) {
+  const rows = await env.IDENTITY_DB.prepare(`
+    SELECT limitRow.plan_code AS planCode, limitRow.requests_per_minute AS requestsPerMinute,
+           limitRow.requests_per_day AS requestsPerDay, limitRow.updated_at AS updatedAt,
+           updater.name AS updatedByName,
+           COUNT(profile.user_id) AS developerCount
+    FROM plan_limits limitRow
+    LEFT JOIN "user" updater ON updater.id = limitRow.updated_by
+    LEFT JOIN developer_profiles profile ON profile.plan_code = limitRow.plan_code
+    GROUP BY limitRow.plan_code
+    ORDER BY limitRow.requests_per_day
+  `).all();
+  return json({ data: rows.results });
+}
+
+async function updateRateLimit(context: AdminContext, planCode: string, body: Record<string, unknown>) {
+  const requestsPerMinute = Number(body.requestsPerMinute);
+  const requestsPerDay = Number(body.requestsPerDay);
+  if (!Number.isInteger(requestsPerMinute) || requestsPerMinute < 1 || requestsPerMinute > 100_000) {
+    return invalid('Requests per minute must be an integer between 1 and 100,000.');
+  }
+  if (!Number.isInteger(requestsPerDay) || requestsPerDay < 1 || requestsPerDay > 50_000_000) {
+    return invalid('Requests per day must be an integer between 1 and 50,000,000.');
+  }
+  if (requestsPerDay < requestsPerMinute) {
+    return invalid('Requests per day cannot be lower than requests per minute.');
+  }
+  const result = await context.env.IDENTITY_DB.prepare(`
+    UPDATE plan_limits SET requests_per_minute = ?, requests_per_day = ?,
+      updated_at = CURRENT_TIMESTAMP, updated_by = ?
+    WHERE plan_code = ?
+  `).bind(requestsPerMinute, requestsPerDay, context.user.id, planCode).run();
+  if (!result.meta.changes) return json({ error: { code: 'not_found', message: 'Plan was not found.' } }, 404);
+  await audit(context, 'platform.rate_limit_changed', 'plan_limits', planCode, { requestsPerMinute, requestsPerDay });
+  return json({ data: { planCode, requestsPerMinute, requestsPerDay } });
 }
 
 async function listSessions({ env }: AdminContext, userId: string, currentSessionId: string) {

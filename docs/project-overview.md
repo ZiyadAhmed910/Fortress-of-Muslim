@@ -198,9 +198,18 @@ Reliability and safety, not new features, before anything else ships. Status of 
    "Alerts" view plus a banner on the Overview page. Schema and the full insert/auto-resolve lifecycle
    verified live against the test identity DB, not just the in-memory migration check. Shares its table
    with item 7 (incident acknowledgement) by design — no reason to model the same lifecycle twice.
-5. **Enforceable per-key/per-plan rate limits** — mostly not started. `usage_events` telemetry
-   exists platform-wide; real enforcement exists only for `/v1/ask` (20/day per IP). No plan-limit
-   table, nothing reads `developer_profiles.plan_code` to gate requests.
+5. **Enforceable per-key/per-plan rate limits** — done (2026-08-06). New `plan_limits` (admin-
+   configurable via Admin Console -> Rate limits: basic 100/min+5,000/day, premium 500/min+50,000/day,
+   enterprise 2,000/min+200,000/day) and `rate_limit_counters` tables (`apps/auth/migrations/0010`),
+   enforced by a new `checkRateLimit` AUTH RPC using the same atomic UPSERT+RETURNING pattern already
+   proven by `/v1/ask`'s daily limiter, called from a new `apps/api` middleware on every `/v1/*`
+   request that carries a credential. Anonymous public reads are untouched by design (unlimited, as
+   the architecture already intends). Returns `X-RateLimit-*` headers and a `429` with `Retry-After`
+   when exceeded. `/v1/ask`'s existing IP-based 20/day limiter is separate and untouched -- it serves
+   a different purpose (anonymous AI-cost throttling) than per-developer plan enforcement. Verified:
+   atomic counter and admin-update SQL exercised directly against live test D1, plus new automated
+   tests covering allowed/anonymous/blocked paths (was previously silently masked by fail-open
+   behavior against an incomplete test mock -- fixed alongside this).
 6. **Admin MFA enforcement + recovery codes + account recovery procedure** — infrastructure exists
    (TOTP, passkeys, backup codes all wired via Better Auth) but nothing requires an Admin/Editor to
    have MFA enabled before granting access — it's opt-in today. No documented recovery procedure.

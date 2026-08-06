@@ -50,6 +50,18 @@ export type TokenVerification = {
   error?: string;
 };
 
+export type RateLimitResult =
+  | { valid: false }
+  | {
+      valid: true;
+      principalId: string;
+      planCode: string;
+      allowed: boolean;
+      limit: { perMinute: number; perDay: number };
+      remaining: { perMinute: number; perDay: number };
+      retryAfterSeconds?: number;
+    };
+
 export type NamedQueryDefinition = {
   id: string;
   ownerUserId: string;
