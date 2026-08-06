@@ -222,8 +222,18 @@ Reliability and safety, not new features, before anything else ships. Status of 
    (`ziyadahmed910@gmail.com`) does **not** have MFA enabled, so deploying this would lock the owner
    out of their own Admin Console until they enable it via the Developer Portal first. Not fixed
    automatically — this needs the account holder to actually do it.
-7. **Incident timeline + acknowledgement workflow** — not started. The audit log records privileged
-   actions but isn't an incident-tracking workflow with states.
+7. **Incident timeline + acknowledgement workflow** — done (2026-08-06). `POST /v1/admin/alerts/:id/acknowledge`
+   and `.../resolve` on the same `operational_alerts` table item 4 built (an "incident" is an alert
+   at a different point in its lifecycle, not a second system). Acknowledging only applies from
+   `active` and leaves an acknowledged-but-still-triggering alert alone on the next evaluation
+   (avoids repeat notifications for something already being worked); resolving applies from `active`
+   or `acknowledged` and will be correctly reopened to `active` by the next evaluation if the
+   underlying condition is still actually happening. Both actions are audited. Admin Console
+   Alerts view got per-row Acknowledge/Resolve buttons. Verified live against test: the full
+   active -> acknowledged -> (blocked re-acknowledge) -> resolved lifecycle, including the D1
+   foreign-key constraint on `acknowledged_by` correctly rejecting a bad user id during
+   verification (a testing artifact, not an application bug -- real calls always bind a real
+   session user id).
 8. **Soak, then promote the exact verified commit to production** — tooling and process are solid
    and documented (`docs/release-readiness.md`, `tools/test-environment-soak.mjs`); this is the
    gate everything else feeds into.

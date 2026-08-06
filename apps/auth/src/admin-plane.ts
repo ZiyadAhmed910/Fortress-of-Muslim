@@ -169,6 +169,12 @@ export async function handleAdminPlane(
     return updateResourceStatus(context, actionMatch[1]!, decodeURIComponent(actionMatch[2]!), await readJson(request));
   }
 
+  const alertActionMatch = url.pathname.match(/^\/v1\/admin\/alerts\/([^/]+)\/(acknowledge|resolve)$/);
+  if (alertActionMatch && request.method === 'POST') {
+    if (!canWrite(grant.role)) return forbidden();
+    return updateAlertStatus(context, decodeURIComponent(alertActionMatch[1]!), alertActionMatch[2] as 'acknowledge' | 'resolve');
+  }
+
   return json({ error: { code: 'not_found', message: 'Admin route was not found.' } }, 404);
 }
 
@@ -475,6 +481,31 @@ async function updateRateLimit(context: AdminContext, planCode: string, body: Re
   if (!result.meta.changes) return json({ error: { code: 'not_found', message: 'Plan was not found.' } }, 404);
   await audit(context, 'platform.rate_limit_changed', 'plan_limits', planCode, { requestsPerMinute, requestsPerDay });
   return json({ data: { planCode, requestsPerMinute, requestsPerDay } });
+}
+
+// Manual acknowledge/resolve on top of the same operational_alerts table item 4 evaluates into --
+// no reason to model an "incident" as a second system when an alert already is one at a different
+// point in its lifecycle. Acknowledging silences an ongoing condition without claiming it's fixed
+// (the next evaluation leaves an acknowledged-but-still-triggering alert alone rather than
+// resetting it to 'active', avoiding repeat notifications for something already being worked);
+// resolving is a manual "I've dealt with this" that the next evaluation will correctly reopen to
+// 'active' if the underlying condition is still actually triggering.
+async function updateAlertStatus(context: AdminContext, alertId: string, action: 'acknowledge' | 'resolve') {
+  const now = new Date().toISOString();
+  const result = action === 'acknowledge'
+    ? await context.env.IDENTITY_DB.prepare(`
+        UPDATE operational_alerts SET status = 'acknowledged', acknowledged_by = ?, acknowledged_at = ?
+        WHERE id = ? AND status = 'active'
+      `).bind(context.user.id, now, alertId).run()
+    : await context.env.IDENTITY_DB.prepare(`
+        UPDATE operational_alerts SET status = 'resolved', resolved_at = ?
+        WHERE id = ? AND status IN ('active', 'acknowledged')
+      `).bind(now, alertId).run();
+  if (!result.meta.changes) {
+    return json({ error: { code: 'invalid_request', message: `This alert cannot be ${action}d from its current state.` } }, 400);
+  }
+  await audit(context, `operations.alert_${action}d`, 'operational_alert', alertId, {});
+  return json({ data: { id: alertId, status: action === 'acknowledge' ? 'acknowledged' : 'resolved' } });
 }
 
 async function listSessions({ env }: AdminContext, userId: string, currentSessionId: string) {

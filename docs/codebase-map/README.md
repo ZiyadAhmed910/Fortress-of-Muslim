@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-06T12:23:29.136Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-06T12:28:54.688Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -43,7 +43,7 @@ Not all of these are bugs; verify before assuming.
 
 | File | Lang | Lines | Routes | Exports |
 | --- | --- | --- | --- | --- |
-| `apps/admin/public/app.js` | js | 1247 |  |  |
+| `apps/admin/public/app.js` | js | 1270 |  |  |
 | `apps/api/migrations/0001_content_schema.sql` | sql | 62 |  |  |
 | `apps/api/migrations/0002_import_legacy_dataset.sql` | sql | 1566 |  |  |
 | `apps/api/migrations/0003_canonical_knowledge.sql` | sql | 305 |  |  |
@@ -83,7 +83,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/migrations/0008_account_security.sql` | sql | 34 |  |  |
 | `apps/auth/migrations/0009_operational_alerts.sql` | sql | 21 |  |  |
 | `apps/auth/migrations/0010_rate_limits.sql` | sql | 26 |  |  |
-| `apps/auth/src/admin-plane.ts` | ts | 771 | 21 | function requiresMfaEnrollment, function handleAdminPlane |
+| `apps/auth/src/admin-plane.ts` | ts | 802 | 22 | function requiresMfaEnrollment, function handleAdminPlane |
 | `apps/auth/src/auth.ts` | ts | 114 |  | const FORTRESS_SCOPES, function createAuth |
 | `apps/auth/src/editorial-plane.ts` | ts | 2131 | 29 | type EditorialRole, function handleEditorialPlane, class EditorialForbiddenError |
 | `apps/auth/src/index.ts` | ts | 705 | 20 | class AuthWorker |
@@ -129,6 +129,7 @@ Not all of these are bugs; verify before assuming.
 | USE | `*` | hono | `apps/api/src/app.ts:39` |
 | GET | `/` | hono | `apps/api/src/app.ts:140` |
 | (any) | `/.well-known/oauth-protected-resource` | manual (exact) | `apps/mcp/src/index.ts:38` |
+| (any) | `/^\/v1\/admin\/alerts\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:172` |
 | (any) | `/^\/v1\/admin\/editorial\/assignments\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:58` |
 | (any) | `/^\/v1\/admin\/editorial\/batches\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:140` |
 | (any) | `/^\/v1\/admin\/editorial\/batches\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:149` |
@@ -269,6 +270,7 @@ Not all of these are bugs; verify before assuming.
 | hadith_grades | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | hadith_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | invitation | table | `apps/auth/migrations/0001_identity.sql` | (none) |
+| its | unknown | `(not defined in scanned files)` | `apps/auth/src/admin-plane.ts` |
 | jwks | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | languages | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/auth/src/admin-plane.ts` |
 | mcp_server_registrations | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/index.ts` |
