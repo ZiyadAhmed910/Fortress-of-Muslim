@@ -1,7 +1,7 @@
 const authBase = location.hostname.startsWith('developers-test.') ? 'https://auth-test.fortressofmuslim.org' : location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8788' : 'https://auth.fortressofmuslim.org';
 const apiBase = authBase.includes('auth-test.') ? 'https://api-test.fortressofmuslim.org/v1' : 'https://api.fortressofmuslim.org/v1';
 const mcpBase = authBase.includes('auth-test.') ? 'https://mcp-test.fortressofmuslim.org/mcp' : 'https://mcp.fortressofmuslim.org/mcp';
-const state = { user: null, keys: [], apps: [], devices: [], mcp: [], queries: [], standardTools: [], passkeys: [], usage: null };
+const state = { user: null, keys: [], apps: [], devices: [], mcp: [], queries: [], standardTools: [], passkeys: [], usage: null, webhooks: [] };
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 if ($('#mcp-endpoint')) $('#mcp-endpoint').textContent = mcpBase;
@@ -304,6 +304,41 @@ $('#query-list').addEventListener('click', async (event) => {
   sessionStorage.setItem('fortress-explorer-path', `/queries/${button.dataset.testQuery}`); location.href = '/#explorer';
 });
 
+$('#webhook-form').addEventListener('submit', async (event) => {
+  event.preventDefault(); const form = event.currentTarget; const data = new FormData(form);
+  const body = { url: data.get('url'), eventTypes: data.getAll('eventTypes') };
+  await action(async () => {
+    const webhook = await authJson('/v1/control/webhooks', { method: 'POST', body });
+    reveal('#webhook-reveal', 'Webhook created', webhook.secret, 'Copy this signing secret now -- it verifies the X-Fortress-Signature header on every delivery and is not shown again.');
+    form.reset(); closeDrawers(); await loadWebhooks();
+  }, 'Webhook created.', form);
+});
+$('#webhook-list').addEventListener('click', async (event) => {
+  const toggle = event.target.closest('[data-webhook-status]');
+  if (toggle) return action(async () => {
+    await authJson(`/v1/control/webhooks/${encodeURIComponent(toggle.dataset.webhook)}/status`, { method: 'POST', body: { status: toggle.dataset.webhookStatus } });
+    await loadWebhooks();
+  }, `Webhook ${toggle.dataset.webhookStatus}.`);
+  const deliveries = event.target.closest('[data-view-deliveries]'); if (!deliveries) return;
+  openDrawer('webhook-deliveries-drawer');
+  await loadWebhookDeliveries(deliveries.dataset.viewDeliveries);
+});
+$('#webhook-deliveries-list').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-redeliver]'); if (!button) return;
+  await action(async () => {
+    await authJson(`/v1/control/webhooks/deliveries/${encodeURIComponent(button.dataset.redeliver)}/redeliver`, { method: 'POST' });
+    await loadWebhookDeliveries(button.dataset.subscription);
+    await loadWebhooks();
+  }, 'Redelivered.');
+});
+async function loadWebhookDeliveries(subscriptionId) {
+  await withListState('#webhook-deliveries-list', async () => {
+    const result = await authJson(`/v1/control/webhooks/${encodeURIComponent(subscriptionId)}/deliveries`);
+    const deliveries = result.data || [];
+    $('#webhook-deliveries-list').innerHTML = deliveries.length ? deliveries.map((delivery) => `<div class="delivery-row"><span class="delivery-meta"><strong>${esc(delivery.eventType)}</strong><small>${formatDateTime(delivery.attemptedAt)} on ${formatDate(delivery.attemptedAt)}${delivery.responseStatus ? ` &middot; HTTP ${delivery.responseStatus}` : ''}${delivery.responseSnippet ? ` &middot; ${esc(delivery.responseSnippet.slice(0, 80))}` : ''}</small></span><span class="status ${delivery.status === 'success' ? '' : 'revoked'}">${esc(delivery.status)}</span>${delivery.status === 'failed' ? `<button class="button compact" data-redeliver="${esc(delivery.id)}" data-subscription="${esc(subscriptionId)}">Redeliver</button>` : '<span></span>'}</div>`).join('') : '<p class="empty-row">No deliveries yet.</p>';
+  });
+}
+
 async function refreshSession() {
   try { const session = await authJson('/api/auth/get-session'); state.user = session?.user || null; } catch { state.user = null; }
   setSessionView(Boolean(state.user));
@@ -313,7 +348,7 @@ async function refreshSession() {
   $$('[data-profile-initials], [data-sidebar-initials]').forEach((node) => { node.textContent = initials; });
   $('[data-profile-name]').textContent = state.user.name || 'Developer'; $('[data-profile-email]').textContent = state.user.email;
   $('[data-sidebar-name]').textContent = state.user.name || 'Developer'; setView(location.hash.slice(1) || 'overview');
-  const resources = await Promise.allSettled([loadKeys(), loadApps(), loadDevices(), loadMcp(), loadQueries(), loadSecurity(), loadUsage()]);
+  const resources = await Promise.allSettled([loadKeys(), loadApps(), loadDevices(), loadMcp(), loadQueries(), loadWebhooks(), loadSecurity(), loadUsage()]);
   const failed = resources.filter((result) => result.status === 'rejected');
   if (failed.length) notify(`${failed.length} console section${failed.length === 1 ? '' : 's'} could not be loaded. Use the Retry button in each affected section.`, true);
   if (sessionStorage.getItem('fortress-device-code')) location.href = '/device.html';
@@ -466,6 +501,16 @@ async function loadMcp() {
   await withListState('#mcp-list', async () => {
     const [result,catalog] = await Promise.all([authJson('/v1/control/mcp/toolsets'),authJson('/v1/control/mcp/catalog')]); state.mcp = result.data || []; state.standardTools=catalog.data||[]; $('#metric-mcp').textContent = state.mcp.length; updateStandardToolSelect();
     render('#mcp-list', state.mcp, (toolset) => `<section class="toolset-row"><header><span class="row-title"><strong>${esc(toolset.name)}</strong><small>${esc(toolset.description)} &middot; ${esc(toolset.status)}</small></span><span class="row-actions"><button class="button compact" data-toolset-status="${toolset.status === 'active' ? 'disabled' : 'active'}" data-toolset="${esc(toolset.id)}">${toolset.status === 'active' ? 'Disable' : 'Enable'}</button><button class="button compact" data-add-tool="${esc(toolset.id)}" ${toolset.status !== 'active' ? 'disabled' : ''}>Add tool</button></span></header><code>${mcpBase}?toolset=${esc(toolset.slug)}</code><div class="tool-chips">${toolset.tools.length?toolset.tools.map(tool=>`<span class="status">${esc(tool.name)} &middot; ${esc(tool.toolType)}${tool.approvalStatus!=='approved'?` &middot; ${esc(tool.approvalStatus)}`:''}<button class="chip-action" data-tool-status="${Number(tool.enabled) === 1 ? 'disabled' : 'active'}" data-tool="${esc(tool.id)}" data-toolset="${esc(toolset.id)}">${Number(tool.enabled) === 1 ? 'Disable' : 'Enable'}</button></span>`).join(''):'<small>No tools added.</small>'}</div></section>`);
+  });
+}
+async function loadWebhooks() {
+  await withListState('#webhook-list', async () => {
+    const result = await authJson('/v1/control/webhooks'); state.webhooks = result.data || [];
+    render('#webhook-list', state.webhooks, (webhook) => {
+      const disabled = webhook.status !== 'active';
+      const last = webhook.lastDelivery;
+      return `<div class="resource-row webhooks-grid"><span class="row-title"><code>${esc(webhook.url)}</code><small>${formatDate(webhook.createdAt)}</small></span><span>${webhook.eventTypes.map((type) => esc(type)).join(', ')}</span><span>${last ? `<span class="status ${last.status === 'success' ? '' : 'revoked'}">${esc(last.status)}</span> ${formatDateTime(last.attemptedAt)}` : 'Never'}</span><span class="status ${disabled ? 'disabled' : ''}">${disabled ? 'Disabled' : 'Active'}</span><span class="row-actions"><button class="button compact" data-view-deliveries="${esc(webhook.id)}">Deliveries</button><button class="button compact" data-webhook-status="${disabled ? 'active' : 'disabled'}" data-webhook="${esc(webhook.id)}">${disabled ? 'Enable' : 'Disable'}</button></span></div>`;
+    });
   });
 }
 async function loadQueries() {

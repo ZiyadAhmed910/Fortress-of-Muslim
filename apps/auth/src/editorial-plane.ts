@@ -1,4 +1,5 @@
 import type { Bindings } from './types';
+import { triggerWebhookEvent } from './webhooks';
 
 export type EditorialRole = 'admin' | 'editor' | 'reviewer';
 
@@ -671,6 +672,14 @@ async function decideBook(context: EditorialContext, bookId: string, body: Recor
     return invalid(`${missingReferences} Hadith record${missingReferences === 1 ? '' : 's'} need a canonical reference before this book can be verified.`);
   }
 
+  const affectedRecords = await context.env.CONTENT_DB.prepare(`
+    SELECT canonical.canonical_id AS canonicalId
+    FROM canonical_records canonical
+    JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+    JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
+  `).bind(bookId).all<{ canonicalId: string }>();
+
   const datasetId = `canonical.verified.${Date.now()}.${crypto.randomUUID().slice(0, 8)}`;
   const historyPrefix = `publication-history.${datasetId}`;
   await context.env.CONTENT_DB.batch([
@@ -814,6 +823,9 @@ async function decideBook(context: EditorialContext, bookId: string, body: Recor
       datasetId, recordCount, verifier: context.user.id, notes,
     }),
   ]);
+  const affectedIds = affectedRecords.results.map((row) => row.canonicalId);
+  await triggerWebhookEvent(context.env, 'record.verified', affectedIds, { triggeredBy: context.user.id });
+  await triggerWebhookEvent(context.env, 'record.published', affectedIds, { triggeredBy: context.user.id });
   return json({ data: { bookId, decision, recordCount, datasetId, ragStatus: 'pending' } });
 }
 
@@ -1233,7 +1245,8 @@ async function submitFieldReviews(context: EditorialContext, canonicalId: string
   return json({ data: { canonicalId, revisionId: current.revisionId, reviewedFields: reviews.length } }, 201);
 }
 
-async function submitDecision(context: EditorialContext, canonicalId: string, body: Record<string, unknown>) {
+async function submitDecision(context: EditorialContext, canonicalId: string, body: Record<string, unknown>, options: { fireWebhook?: boolean } = {}) {
+  const fireWebhook = options.fireWebhook ?? true;
   requireRole(context.role, ['reviewer', 'editor', 'admin']);
   const current = await currentRevision(context.env.CONTENT_DB, canonicalId);
   if (!current) return notFound('Canonical record was not found.');
@@ -1293,6 +1306,9 @@ async function submitDecision(context: EditorialContext, canonicalId: string, bo
     if (String(error).includes('UNIQUE')) return conflict('You already submitted an immutable verification for this revision.');
     throw error;
   }
+  if (decision === 'approved' && fireWebhook) {
+    await triggerWebhookEvent(context.env, 'record.verified', [canonicalId], { triggeredBy: context.user.id });
+  }
   return json({
     data: {
       canonicalId,
@@ -1318,10 +1334,13 @@ async function submitBulkDecision(context: EditorialContext, body: Record<string
   }
   const outcomes: Array<{ canonicalId: string; ok: boolean; status: number; message?: string }> = [];
   for (const canonicalId of canonicalIds) {
+    // fireWebhook: false -- one batched event covering the whole bulk action fires below instead
+    // of once per record, so a slow webhook receiver adds one bounded delay to this request
+    // rather than one per record in the batch.
     const response = await submitDecision(context, canonicalId, {
       decision,
       notes: optionalText(body.notes, 2000),
-    });
+    }, { fireWebhook: false });
     if (response.status >= 200 && response.status < 300) {
       outcomes.push({ canonicalId, ok: true, status: response.status });
       continue;
@@ -1333,6 +1352,10 @@ async function submitBulkDecision(context: EditorialContext, body: Record<string
       status: response.status,
       message: payload.error?.message ?? 'The record could not be updated.',
     });
+  }
+  if (decision === 'approved') {
+    const verifiedIds = outcomes.filter((outcome) => outcome.ok).map((outcome) => outcome.canonicalId);
+    if (verifiedIds.length) await triggerWebhookEvent(context.env, 'record.verified', verifiedIds, { triggeredBy: context.user.id });
   }
   return json({
     data: {
@@ -1791,6 +1814,7 @@ async function publishBatch(context: EditorialContext, batchId: string) {
     }),
   );
   await context.env.CONTENT_DB.batch(statements);
+  await triggerWebhookEvent(context.env, 'record.published', items.results.map((item) => item.canonicalId), { triggeredBy: context.user.id });
   return json({ data: { batchId, status: 'published', datasetId, canonicalHash, recordCount: totalPublishedCount } });
 }
 

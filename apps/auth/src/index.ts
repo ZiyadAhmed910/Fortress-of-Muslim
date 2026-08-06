@@ -5,6 +5,7 @@ import { createAuthClient } from 'better-auth/client';
 import { createAuth } from './auth';
 import { handleAdminPlane } from './admin-plane';
 import { hasOversizedBody, isMutation, isTrustedBrowserMutation } from './security';
+import { parseWebhookRegistration, redeliverWebhook } from './webhooks';
 import type { Bindings, KeyVerification, McpToolDefinition, NamedQueryDefinition, RateLimitResult, ServiceState, TokenVerification } from './types';
 
 const allowedMethods = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
@@ -358,6 +359,75 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       if (!result.meta.changes) return controlNotFound('MCP tool');
       await this.auditDeveloperAction(user.id, `developer.mcp_tool_${status}`, 'mcp-tool', toolId);
       return json({ data: { id: toolId, status } });
+    }
+
+    if (url.pathname === '/v1/control/webhooks' && request.method === 'GET') {
+      const subscriptions = await this.env.IDENTITY_DB.prepare(`
+        SELECT id, url, event_types_json AS eventTypesJson, status, created_at AS createdAt
+        FROM webhook_subscriptions WHERE owner_user_id = ? ORDER BY created_at DESC
+      `).bind(user.id).all<Record<string, unknown>>();
+      const lastDeliveries = await this.env.IDENTITY_DB.prepare(`
+        SELECT subscription_id AS subscriptionId, status, attempted_at AS attemptedAt
+        FROM webhook_deliveries WHERE subscription_id IN (
+          SELECT id FROM webhook_subscriptions WHERE owner_user_id = ?
+        ) GROUP BY subscription_id HAVING attempted_at = MAX(attempted_at)
+      `).bind(user.id).all<{ subscriptionId: string; status: string; attemptedAt: string }>();
+      const lastBySubscription = new Map(lastDeliveries.results.map((row) => [row.subscriptionId, row]));
+      return json({
+        data: subscriptions.results.map((row) => ({
+          ...row, eventTypes: JSON.parse(String(row.eventTypesJson)), eventTypesJson: undefined,
+          lastDelivery: lastBySubscription.get(String(row.id)) ?? null,
+        })),
+      });
+    }
+
+    if (url.pathname === '/v1/control/webhooks' && request.method === 'POST') {
+      const parsed = parseWebhookRegistration(await readJson(request));
+      if (!parsed.ok) return json({ error: { code: 'invalid_request', message: parsed.message } }, 400);
+      const id = `whk_${crypto.randomUUID()}`;
+      const secret = `whsec_${crypto.randomUUID().replaceAll('-', '')}`;
+      await this.env.IDENTITY_DB.prepare(`
+        INSERT INTO webhook_subscriptions (id, owner_user_id, url, secret, event_types_json)
+        VALUES (?, ?, ?, ?, ?)
+      `).bind(id, user.id, parsed.value.url, secret, JSON.stringify(parsed.value.eventTypes)).run();
+      await this.auditDeveloperAction(user.id, 'developer.webhook_created', 'webhook', id);
+      return json({ data: { id, url: parsed.value.url, eventTypes: parsed.value.eventTypes, secret, status: 'active' } }, 201);
+    }
+
+    const webhookStatusMatch = url.pathname.match(/^\/v1\/control\/webhooks\/([^/]+)\/status$/);
+    if (webhookStatusMatch && request.method === 'POST') {
+      const status = String((await readJson(request)).status ?? '');
+      if (!['active', 'disabled'].includes(status)) return invalidControlStatus();
+      const id = decodeURIComponent(webhookStatusMatch[1]!);
+      const result = await this.env.IDENTITY_DB.prepare(`
+        UPDATE webhook_subscriptions SET status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND owner_user_id = ?
+      `).bind(status, id, user.id).run();
+      if (!result.meta.changes) return controlNotFound('Webhook');
+      await this.auditDeveloperAction(user.id, `developer.webhook_${status}`, 'webhook', id);
+      return json({ data: { id, status } });
+    }
+
+    const webhookDeliveriesMatch = url.pathname.match(/^\/v1\/control\/webhooks\/([^/]+)\/deliveries$/);
+    if (webhookDeliveriesMatch && request.method === 'GET') {
+      const subscriptionId = decodeURIComponent(webhookDeliveriesMatch[1]!);
+      const owned = await this.env.IDENTITY_DB.prepare('SELECT 1 FROM webhook_subscriptions WHERE id = ? AND owner_user_id = ?').bind(subscriptionId, user.id).first();
+      if (!owned) return controlNotFound('Webhook');
+      const deliveries = await this.env.IDENTITY_DB.prepare(`
+        SELECT id, event_type AS eventType, status, response_status AS responseStatus,
+               response_snippet AS responseSnippet, attempted_at AS attemptedAt
+        FROM webhook_deliveries WHERE subscription_id = ? ORDER BY attempted_at DESC LIMIT 25
+      `).bind(subscriptionId).all();
+      return json({ data: deliveries.results });
+    }
+
+    const webhookRedeliverMatch = url.pathname.match(/^\/v1\/control\/webhooks\/deliveries\/([^/]+)\/redeliver$/);
+    if (webhookRedeliverMatch && request.method === 'POST') {
+      const deliveryId = decodeURIComponent(webhookRedeliverMatch[1]!);
+      const result = await redeliverWebhook(this.env, deliveryId, user.id);
+      if (!result.ok) return json({ error: { code: 'invalid_request', message: result.message } }, 400);
+      await this.auditDeveloperAction(user.id, 'developer.webhook_redelivered', 'webhook-delivery', deliveryId);
+      return json({ data: { redelivered: true } });
     }
 
     return json({ error: { code: 'not_found', message: 'Control-plane route was not found.' } }, 404);
