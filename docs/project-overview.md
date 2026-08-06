@@ -187,8 +187,26 @@ Reliability and safety, not new features, before anything else ships. Status of 
    last dataset publish wasn't in the search index. Root cause not yet identified; the bulk-decision
    path correctly delegates to the same single-record path that does sync FTS, so the gap is
    elsewhere (`createRecord` or a correction flow are the likely candidates) — worth a dedicated look.
-3. **Scheduled encrypted backups + retention** — not started. `backup-d1.ps1` is manual-only; no
-   cron trigger references it anywhere.
+3. **Scheduled encrypted backups + retention** — done (2026-08-06). `backup-d1.ps1` now actually
+   encrypts (it previously wrote plain SQL despite `docs/incident-response.md` calling it
+   "encrypted-at-rest" -- fixed honestly rather than left as a false claim): AES-256-CBC + a
+   separate HMAC-SHA256 integrity tag, fully streamed (`tools/lib/backup-crypto.ps1`) so it
+   handles the 150MB+ content export without loading it into memory -- the first, in-memory
+   version of this hit an `OutOfMemoryException` against the real export during live verification
+   and had to be rewritten. New `.github/workflows/scheduled-backup.yml` runs it daily for both
+   environments and uploads to a new `fortress-platform-backups` R2 bucket with a 30-day lifecycle
+   retention rule, gated behind the same `CLOUDFLARE_DEPLOY_ENABLED` switch every other deployment
+   job uses. New `tools/decrypt-backup.ps1` companion script verifies the integrity tag before
+   writing any plaintext.
+   Verified live end-to-end against test: real encrypted backup of both databases, confirmed no
+   plaintext SQL was left on disk, decrypted the result back, and confirmed a byte-for-byte SHA-256
+   match against the original 150MB export.
+   **Manual setup required before this actually runs** (documented in `docs/cloudflare-setup.md`
+   step 9, not done automatically): create the R2 bucket, add R2 permission to the existing
+   deployment token, set its lifecycle rule, generate a key, and add it as the `FORTRESS_BACKUP_KEY`
+   GitHub secret. This follows the same pattern every other piece of Cloudflare account setup in
+   this repo already uses (manual, operator-performed, documented) rather than provisioning new
+   billed cloud infrastructure unilaterally.
 4. **Alerts for downtime/errors/queue failures/unusual API usage** — done (2026-08-06), scoped to
    Admin Console surfacing only (no external paging channel, by explicit choice). New `operational_alerts`
    table (`apps/auth/migrations/0009_operational_alerts.sql`) and `GET /v1/admin/alerts` evaluate four

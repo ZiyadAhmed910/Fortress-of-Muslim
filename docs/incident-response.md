@@ -12,14 +12,20 @@ This runbook covers availability, authentication, data integrity, abusive traffi
 
 ## Backup
 
-Create an encrypted-at-rest local export outside Git:
+**Scheduled**: `.github/workflows/scheduled-backup.yml` runs `backup-d1.ps1` for both environments daily and uploads the encrypted result to the `fortress-platform-backups` R2 bucket, with a 30-day (adjustable) lifecycle-rule retention policy. See `docs/cloudflare-setup.md` step 9 for one-time setup (bucket, token permission, `FORTRESS_BACKUP_KEY` secret). It runs behind the same `CLOUDFLARE_DEPLOY_ENABLED` switch as every other deployment job.
+
+**Manual / ad hoc**: create a local export outside Git:
 
 ```powershell
+$env:FORTRESS_BACKUP_KEY = '<the same key from the FORTRESS_BACKUP_KEY secret, or a separate one for manual exports>'
 .\tools\backup-d1.ps1 -Environment test
 .\tools\backup-d1.ps1 -Environment production
 ```
 
-Each run captures exact D1 Time Travel bookmarks, exports the identity database, and exports all durable content application tables. FTS5 virtual and shadow tables are intentionally excluded because Cloudflare cannot export a database containing virtual tables; search indexes are derived data and must be rebuilt from canonical records after disaster recovery. The manifest records the export mode, Git commit, bookmarks, and SHA-256 checksums. `.fortress-backups/` is intentionally ignored by Git. Move production backups to an access-controlled encrypted store according to the operator retention policy.
+Each run captures exact D1 Time Travel bookmarks, exports the identity database, and exports all durable content application tables. FTS5 virtual and shadow tables are intentionally excluded because Cloudflare cannot export a database containing virtual tables; search indexes are derived data and must be rebuilt from canonical records after disaster recovery (`tools/rebuild-fts.ps1`). The manifest records the export mode, Git commit, bookmarks, and SHA-256 checksums (of the encrypted file, when a key is provided) and whether the export was actually encrypted. `.fortress-backups/` is intentionally ignored by Git.
+
+`-EncryptionKeyBase64` (or `$env:FORTRESS_BACKUP_KEY`) is optional but strongly recommended: without it, the export is written as **plain, unencrypted SQL** — the script warns loudly when this happens rather than silently claiming a guarantee it isn't providing. When a key is given, the plaintext export is deleted immediately after encryption; only the `.sql.enc` file (AES-256-CBC + a separate HMAC-SHA256 integrity tag, streamed so it handles the full-size content export without loading it into memory) ever touches disk. Generate a key with `. tools/lib/backup-crypto.ps1; New-FortressBackupKey`, and decrypt with `tools\decrypt-backup.ps1` — it verifies the integrity tag before writing any plaintext and refuses to decrypt on a mismatch (wrong key, corruption, or tampering all fail the same documented way, on purpose).
+
 The default per-database export timeout is 30 minutes and can be changed with `-ExportTimeoutMinutes`. A timed-out export is terminated, its incomplete file is removed, and no manifest is produced.
 
 ## Restore
@@ -31,7 +37,16 @@ Always restore test first and run the full soak. Active databases are restored o
 .\tools\restore-d1.ps1 -Database identity -Environment production -Timestamp 2026-07-23T12:00:00Z -ProductionApproval RESTORE-PRODUCTION
 ```
 
-Never restore identity and content databases from unrelated timestamps without documenting why. Time Travel is retained by Cloudflare for a limited window. SQL exports are durable disaster-recovery artifacts and must be imported into a new replacement database, verified, have search indexes rebuilt, and then be rebound; they are never executed over an active database by this script.
+Never restore identity and content databases from unrelated timestamps without documenting why. Time Travel is retained by Cloudflare for a limited window (this is why the scheduled R2 backups exist -- for recovery beyond that window, or if Time Travel itself is unavailable). SQL exports are durable disaster-recovery artifacts and must be imported into a new replacement database, verified, have search indexes rebuilt, and then be rebound; they are never executed over an active database by this script.
+
+Restoring from a scheduled R2 backup instead of Time Travel: download and decrypt it first.
+
+```powershell
+npx wrangler r2 object get fortress-platform-backups/<file>.sql.enc --file .fortress-backups/<file>.sql.enc --remote
+.\tools\decrypt-backup.ps1 -InputPath .fortress-backups\<file>.sql.enc
+```
+
+`decrypt-backup.ps1` verifies the integrity tag before writing anything and throws on any mismatch -- treat that as a real incident (wrong key, corrupted upload, or tampering), not a retry-and-move-on situation.
 
 After importing a SQL export into a replacement content database, rebuild `canonical_search_fts` before returning the database to active traffic:
 

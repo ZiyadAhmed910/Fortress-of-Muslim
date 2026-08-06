@@ -112,3 +112,47 @@ auth.fortressofmuslim.org      -> fortress-platform-auth-production
 The custom domains are declared in `apps/api/wrangler.jsonc`, allowing GitHub deployments to keep routing and Worker versions synchronized. The `workers.dev` hostname remains available for diagnostics.
 
 Static portal domains are provisioned once with an authenticated Wrangler session using each portal's `wrangler.jsonc`. Routine GitHub deployments use `wrangler.ci.jsonc`, which updates assets without requesting zone-route permissions. This keeps the repository deployment token limited to Worker uploads after bootstrap.
+
+## 9. Scheduled Encrypted Backups (R2)
+
+`tools/backup-d1.ps1` can encrypt its output (AES-256-CBC with a separate HMAC-SHA256 integrity tag, streamed so it handles the 150MB+ content export without loading it into memory) and `.github/workflows/scheduled-backup.yml` runs it daily and uploads the result to Cloudflare R2. Both are inert until this section's setup is done.
+
+**Extend the deployment token.** This is the moment `docs/cloudflare-setup.md` step 3 anticipated ("R2... permissions should be added only when those resources are introduced"). Reuse the existing `CLOUDFLARE_API_TOKEN` rather than creating a second one:
+
+```text
+My Profile > API Tokens > find the Fortress Platform deployment token > Edit
+Add permission: Account > Workers R2 Storage > Edit
+```
+
+**Create the bucket** (one time, via an authenticated Wrangler session):
+
+```powershell
+npx wrangler r2 bucket create fortress-platform-backups
+```
+
+**Set a retention policy on the bucket** so old backups don't accumulate forever. R2 supports object lifecycle rules natively -- configure one rather than scripting deletion into the workflow:
+
+```powershell
+npx wrangler r2 bucket lifecycle add fortress-platform-backups --name expire-old-backups --expire-days 30
+```
+
+Adjust `--expire-days` to the retention window the operator actually wants; 30 days is a starting point, not a requirement.
+
+**Generate and store the encryption key.** This key is the only thing that makes an R2 backup readable -- losing it makes every backup encrypted with it permanently unrecoverable, so it needs to live somewhere durable outside both Git and GitHub Actions (a password manager, at minimum):
+
+```powershell
+. tools/lib/backup-crypto.ps1
+New-FortressBackupKey
+```
+
+**Add the GitHub secret:**
+
+```text
+Settings > Secrets and variables > Actions > Secrets > New repository secret
+Name:  FORTRESS_BACKUP_KEY
+Value: <the base64 key from the previous step>
+```
+
+Never paste the key into a source file, issue, pull request, workflow log, or chat message. The scheduled workflow already runs behind the same `CLOUDFLARE_DEPLOY_ENABLED` safety switch as every other deployment job in this repository, so it will not run at all until that variable is `true`.
+
+**Restore path:** `tools/decrypt-backup.ps1 -InputPath <file>.sql.enc` decrypts a downloaded backup (`npx wrangler r2 object get fortress-platform-backups/<file> --file <local-path> --remote` first). It verifies the integrity tag before writing anything to disk and refuses to decrypt on a mismatch. See `docs/incident-response.md` for the full restore procedure.

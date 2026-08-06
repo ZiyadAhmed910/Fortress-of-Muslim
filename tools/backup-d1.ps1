@@ -3,16 +3,25 @@ param(
   [string]$Environment = 'test',
   [string]$OutputDirectory = '.fortress-backups',
   [ValidateRange(1, 120)]
-  [int]$ExportTimeoutMinutes = 30
+  [int]$ExportTimeoutMinutes = 30,
+  [string]$EncryptionKeyBase64 = $env:FORTRESS_BACKUP_KEY
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
+. (Join-Path $PSScriptRoot 'lib/backup-crypto.ps1')
 $target = Join-Path $root $OutputDirectory
 New-Item -ItemType Directory -Force -Path $target | Out-Null
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $npxCommand = Get-Command npx.cmd -ErrorAction SilentlyContinue
 if (-not $npxCommand) { $npxCommand = Get-Command npx -ErrorAction Stop }
+
+$encryptionKey = $null
+if ($EncryptionKeyBase64) {
+  $encryptionKey = Get-FortressBackupKeyBytes -Base64Key $EncryptionKeyBase64
+} else {
+  Write-Warning 'No encryption key was provided (-EncryptionKeyBase64 or $env:FORTRESS_BACKUP_KEY). This export will be written as PLAIN, UNENCRYPTED SQL. It is not actually "encrypted at rest" unless the disk or destination it lands on provides that separately. Generate a key with: . tools/lib/backup-crypto.ps1; New-FortressBackupKey'
+}
 
 $databases = @(
   @{ Name = "fortress-identity-$Environment"; Config = 'apps/auth/wrangler.jsonc'; Mode = 'full' },
@@ -48,13 +57,25 @@ foreach ($database in $databases) {
     Remove-Item -LiteralPath $output -Force -ErrorAction SilentlyContinue
     throw "Backup failed for $($database.Name)."
   }
-  $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $output).Hash.ToLowerInvariant()
+
+  $finalPath = $output
+  $encrypted = $false
+  if ($encryptionKey) {
+    $encryptedPath = "$output.enc"
+    Protect-FortressBackupFile -InputPath $output -OutputPath $encryptedPath -MasterKey $encryptionKey
+    Remove-Item -LiteralPath $output -Force
+    $finalPath = $encryptedPath
+    $encrypted = $true
+  }
+
+  $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $finalPath).Hash.ToLowerInvariant()
   $files += @{
     database = $database.Name
-    file = Split-Path $output -Leaf
+    file = Split-Path $finalPath -Leaf
     sha256 = $hash
     bookmark = $bookmark
     exportMode = $database.Mode
+    encrypted = $encrypted
   }
 }
 
@@ -62,6 +83,7 @@ $manifest = @{
   environment = $Environment
   createdAt = (Get-Date).ToUniversalTime().ToString('o')
   gitCommit = (git rev-parse HEAD)
+  encrypted = [bool]$encryptionKey
   files = $files
 } | ConvertTo-Json -Depth 4
 $manifestPath = Join-Path $target "manifest-$Environment-$stamp.json"
