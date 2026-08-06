@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-06T12:28:54.688Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-06T15:34:52.265Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -93,7 +93,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/test/editorial-pilot.test.ts` | ts | 364 |  |  |
 | `apps/auth/test/security.test.ts` | ts | 43 |  |  |
 | `apps/developers/public/app.js` | js | 63 |  |  |
-| `apps/developers/public/console.js` | js | 497 |  |  |
+| `apps/developers/public/console.js` | js | 528 |  |  |
 | `apps/developers/public/device.js` | js | 6 |  |  |
 | `apps/developers/public/oauth.js` | js | 104 |  |  |
 | `apps/mcp/src/index.ts` | ts | 74 | 2 | default export |

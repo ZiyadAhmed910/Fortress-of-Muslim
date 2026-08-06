@@ -20,10 +20,13 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = path.join(ROOT, 'docs', 'codebase-map');
 const EXCLUDE_DIRS = new Set(['node_modules', 'dist', '.git', 'coverage', '.wrangler', '.fortress-backups', 'private-acquisition-do-not-commit', 'sunnah-data-fast-do-not-deploy']);
 const SCAN_ROOTS = ['apps', 'packages', 'pwa-website', 'tools'];
+// Vendored third-party libraries, not first-party source -- indexing them as if they were app
+// code just adds noise (e.g. a 2000+ line QR encoder with no routes/exports worth surfacing).
+const EXCLUDE_FILES = new Set(['qrcode.js', 'qrcode-utf8.js']);
 
 function walk(dir, exts, results = []) {
   for (const entry of readdirSync(dir)) {
-    if (EXCLUDE_DIRS.has(entry)) continue;
+    if (EXCLUDE_DIRS.has(entry) || EXCLUDE_FILES.has(entry)) continue;
     const full = path.join(dir, entry);
     const info = statSync(full);
     if (info.isDirectory()) walk(full, exts, results);
