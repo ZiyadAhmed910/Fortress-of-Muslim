@@ -116,6 +116,7 @@ export async function handleAdminPlane(
   }
   if (url.pathname === '/v1/admin/services' && request.method === 'GET') return listServices(context);
   if (url.pathname === '/v1/admin/audit' && request.method === 'GET') return listAudit(context, url);
+  if (url.pathname === '/v1/admin/alerts' && request.method === 'GET') return alerts(context);
 
   const userMatch = url.pathname.match(/^\/v1\/admin\/users\/([^/]+)$/);
   if (userMatch && request.method === 'GET') return getUser(context, decodeURIComponent(userMatch[1]!));
@@ -270,6 +271,146 @@ async function operations({ env }: AdminContext) {
         editorial: editorialQueue.results,
       },
       deployments: services.results,
+    },
+  });
+}
+
+const ERROR_RATE_WARNING = 0.05;
+const ERROR_RATE_CRITICAL = 0.20;
+const ERROR_RATE_MIN_REQUESTS = 20;
+const UNUSUAL_RATE_LIMITED_THRESHOLD = 50;
+
+type AlertFinding = {
+  alertType: 'service_down' | 'service_maintenance' | 'error_rate' | 'queue_failure' | 'unusual_usage';
+  severity: 'warning' | 'critical';
+  scopeKey: string;
+  message: string;
+  details: Record<string, unknown>;
+};
+
+// Evaluated fresh on every request rather than on a schedule: alerts here are surfaced in the
+// Admin Console (pulled, not pushed -- see docs/project-overview.md 0.20 item 4), so there is no
+// need for a Worker cron just to keep a background evaluation loop warm. Findings are upserted
+// into operational_alerts so they persist as history and can be acknowledged (0.20 item 7) even
+// between admin visits; anything that stops triggering is auto-resolved.
+async function alerts(context: AdminContext) {
+  const { env } = context;
+  const findings: AlertFinding[] = [];
+
+  const [services, traffic, unusual, queueFailures] = await Promise.all([
+    env.IDENTITY_DB.prepare(`
+      SELECT service_key AS serviceKey, display_name AS displayName, status
+      FROM platform_services
+    `).all<{ serviceKey: string; displayName: string; status: string }>(),
+    env.IDENTITY_DB.prepare(`
+      SELECT service,
+        SUM(request_units) AS requests,
+        SUM(CASE WHEN status_code >= 500 THEN 1 ELSE 0 END) AS serverErrors
+      FROM usage_events
+      WHERE occurred_at >= datetime('now', '-24 hours') AND environment = ?
+      GROUP BY service
+    `).bind(env.PLATFORM_ENV).all<{ service: string; requests: number; serverErrors: number }>(),
+    env.IDENTITY_DB.prepare(`
+      SELECT route, SUM(request_units) AS requests,
+        SUM(CASE WHEN status_code = 429 THEN 1 ELSE 0 END) AS rateLimited
+      FROM usage_events
+      WHERE occurred_at >= datetime('now', '-24 hours') AND environment = ?
+      GROUP BY route HAVING rateLimited >= ?
+    `).bind(env.PLATFORM_ENV, UNUSUAL_RATE_LIMITED_THRESHOLD).all<{ route: string; requests: number; rateLimited: number }>(),
+    env.CONTENT_DB.prepare(`
+      SELECT dataset_version_id AS datasetVersionId, last_error AS lastError, updated_at AS updatedAt
+      FROM rag_index_state WHERE status = 'failed'
+    `).all<{ datasetVersionId: string; lastError: string | null; updatedAt: string }>(),
+  ]);
+
+  for (const service of services.results) {
+    if (service.status === 'disabled') {
+      findings.push({ alertType: 'service_down', severity: 'critical', scopeKey: service.serviceKey, message: `${service.displayName} is disabled.`, details: { status: service.status } });
+    } else if (service.status === 'maintenance') {
+      findings.push({ alertType: 'service_maintenance', severity: 'warning', scopeKey: service.serviceKey, message: `${service.displayName} is in maintenance mode.`, details: { status: service.status } });
+    }
+  }
+
+  for (const row of traffic.results) {
+    if (row.requests < ERROR_RATE_MIN_REQUESTS) continue;
+    const errorRate = row.serverErrors / row.requests;
+    if (errorRate < ERROR_RATE_WARNING) continue;
+    const severity = errorRate >= ERROR_RATE_CRITICAL ? 'critical' : 'warning';
+    findings.push({
+      alertType: 'error_rate',
+      severity,
+      scopeKey: row.service,
+      message: `${row.service} 5xx error rate is ${(errorRate * 100).toFixed(1)}% over the last 24h (${row.serverErrors}/${row.requests} requests).`,
+      details: { requests: row.requests, serverErrors: row.serverErrors, errorRate },
+    });
+  }
+
+  for (const row of queueFailures.results) {
+    findings.push({
+      alertType: 'queue_failure',
+      severity: 'critical',
+      scopeKey: row.datasetVersionId,
+      message: `Vector indexing failed for dataset ${row.datasetVersionId}: ${row.lastError ?? 'unknown error'}.`,
+      details: { lastError: row.lastError, updatedAt: row.updatedAt },
+    });
+  }
+
+  for (const row of unusual.results) {
+    findings.push({
+      alertType: 'unusual_usage',
+      severity: 'warning',
+      scopeKey: row.route,
+      message: `${row.route} received ${row.rateLimited} rate-limited requests in the last 24h (${row.requests} total).`,
+      details: { requests: row.requests, rateLimited: row.rateLimited },
+    });
+  }
+
+  const now = new Date().toISOString();
+  const statements = findings.map((finding) =>
+    env.IDENTITY_DB.prepare(`
+      INSERT INTO operational_alerts (id, alert_type, severity, scope_key, message, details_json, status, first_detected_at, last_detected_at)
+      VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?)
+      ON CONFLICT(alert_type, scope_key) DO UPDATE SET
+        severity = excluded.severity,
+        message = excluded.message,
+        details_json = excluded.details_json,
+        last_detected_at = excluded.last_detected_at,
+        status = CASE WHEN operational_alerts.status = 'resolved' THEN 'active' ELSE operational_alerts.status END,
+        resolved_at = CASE WHEN operational_alerts.status = 'resolved' THEN NULL ELSE operational_alerts.resolved_at END
+    `).bind(`alert_${crypto.randomUUID()}`, finding.alertType, finding.severity, finding.scopeKey, finding.message, JSON.stringify(finding.details), now, now),
+  );
+
+  const stillTriggering = findings.map((finding) => `${finding.alertType}::${finding.scopeKey}`);
+  const placeholders = stillTriggering.length ? stillTriggering.map(() => '?').join(',') : "''";
+  statements.push(
+    env.IDENTITY_DB.prepare(`
+      UPDATE operational_alerts SET status = 'resolved', resolved_at = ?
+      WHERE status IN ('active', 'acknowledged')
+        AND (alert_type || '::' || scope_key) NOT IN (${placeholders})
+    `).bind(now, ...stillTriggering),
+  );
+
+  if (statements.length) await env.IDENTITY_DB.batch(statements);
+
+  const current = await env.IDENTITY_DB.prepare(`
+    SELECT alert.id, alert.alert_type AS alertType, alert.severity, alert.scope_key AS scopeKey,
+           alert.message, alert.details_json AS detailsJson, alert.status,
+           alert.first_detected_at AS firstDetectedAt, alert.last_detected_at AS lastDetectedAt,
+           alert.resolved_at AS resolvedAt, alert.acknowledged_at AS acknowledgedAt,
+           acknowledger.name AS acknowledgedByName
+    FROM operational_alerts alert
+    LEFT JOIN "user" acknowledger ON acknowledger.id = alert.acknowledged_by
+    WHERE alert.status != 'resolved' OR alert.resolved_at >= datetime('now', '-24 hours')
+    ORDER BY (alert.status = 'active') DESC, (alert.severity = 'critical') DESC, alert.last_detected_at DESC
+    LIMIT 100
+  `).all<Record<string, unknown>>();
+
+  return json({
+    data: current.results.map((row) => ({ ...row, details: JSON.parse(String(row.detailsJson)), detailsJson: undefined })),
+    meta: {
+      evaluatedAt: now,
+      activeCritical: findings.filter((finding) => finding.severity === 'critical').length,
+      activeWarning: findings.filter((finding) => finding.severity === 'warning').length,
     },
   });
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T11:31:56.365Z",
+  "generatedAt": "2026-08-06T12:07:24.460Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -207,7 +207,7 @@
     },
     {
       "path": "apps/auth/src/admin-plane.ts",
-      "lines": 568,
+      "lines": 709,
       "language": "ts",
       "exports": [
         "function handleAdminPlane"
@@ -216,7 +216,7 @@
         "./types",
         "./editorial-plane"
       ],
-      "routeCount": 17
+      "routeCount": 18
     },
     {
       "path": "apps/auth/src/auth.ts",
@@ -380,7 +380,7 @@
     },
     {
       "path": "apps/admin/public/app.js",
-      "lines": 1187,
+      "lines": 1214,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -761,6 +761,14 @@
       "exports": [],
       "imports": [],
       "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0009_operational_alerts.sql",
+      "lines": 21,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
     }
   ],
   "routes": [
@@ -1053,11 +1061,19 @@
     },
     {
       "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/alerts",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 119
+    },
+    {
+      "style": "manual",
       "method": "(any)",
       "path": "/^\\/v1\\/admin\\/users\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 120
+      "line": 121
     },
     {
       "style": "manual",
@@ -1065,7 +1081,7 @@
       "path": "/^\\/v1\\/admin\\/sessions\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 127
+      "line": 128
     },
     {
       "style": "manual",
@@ -1073,7 +1089,7 @@
       "path": "/^\\/v1\\/admin\\/services\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 132
+      "line": 133
     },
     {
       "style": "manual",
@@ -2053,6 +2069,16 @@
       "referencedBy": []
     },
     {
+      "name": "operational_alerts",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0009_operational_alerts.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
       "name": "organization",
       "kind": "table",
       "definedIn": [
@@ -2155,6 +2181,7 @@
       ],
       "referencedBy": [
         "apps/api/src/rag.ts",
+        "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]

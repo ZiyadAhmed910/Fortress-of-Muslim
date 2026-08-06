@@ -15,6 +15,12 @@
 
 .badge.pending_review,.badge.indexing{background:#fbf1dc;color:var(--warn)}
 .badge.changes_requested{background:#f7e8e8;color:var(--bad)}
+.badge.critical{background:#f7e8e8;color:var(--bad)}
+.badge.warning{background:#fbf1dc;color:var(--warn)}
+.badge.acknowledged{background:#e7eef8;color:var(--brand)}
+.badge.resolved{background:#e6f3ed;color:var(--good)}
+.alert-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-radius:5px;margin-bottom:16px;background:#f7e8e8;color:var(--bad);border:1px solid #eecfcf}
+.alert-banner a{color:inherit;font-weight:700;text-decoration:underline}
 .record-create-form{grid-template-columns:repeat(3,minmax(170px,1fr))}
 .record-parts-head{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .record-parts-head small{display:block;color:var(--muted);font-weight:400}

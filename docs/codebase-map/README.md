@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-06T11:31:56.365Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-06T12:07:24.460Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -31,6 +31,7 @@ Not all of these are bugs; verify before assuming.
 - **mcp_server_registrations** (table) — defined in `apps/auth/migrations/0002_control_plane.sql`, only referenced by `apps/auth/src/index.ts`
 - **oauthAccessToken** (table) — defined in `apps/auth/migrations/0001_identity.sql`, only referenced by `apps/auth/src/index.ts`
 - **oauthRefreshToken** (table) — defined in `apps/auth/migrations/0001_identity.sql`, only referenced by `apps/auth/src/index.ts`
+- **operational_alerts** (table) — defined in `apps/auth/migrations/0009_operational_alerts.sql`, only referenced by `apps/auth/src/admin-plane.ts`
 - **publication_batch_items** (table) — defined in `apps/api/migrations/0006_canonical_editorial.sql`, only referenced by `apps/auth/src/editorial-plane.ts`
 - **publication_batches** (table) — defined in `apps/api/migrations/0006_canonical_editorial.sql`, only referenced by `apps/auth/src/editorial-plane.ts`
 - **rag_daily_usage** (table) — defined in `apps/api/migrations/0005_rag_usage.sql`, only referenced by `apps/api/src/rag.ts`
@@ -41,7 +42,7 @@ Not all of these are bugs; verify before assuming.
 
 | File | Lang | Lines | Routes | Exports |
 | --- | --- | --- | --- | --- |
-| `apps/admin/public/app.js` | js | 1187 |  |  |
+| `apps/admin/public/app.js` | js | 1214 |  |  |
 | `apps/api/migrations/0001_content_schema.sql` | sql | 62 |  |  |
 | `apps/api/migrations/0002_import_legacy_dataset.sql` | sql | 1566 |  |  |
 | `apps/api/migrations/0003_canonical_knowledge.sql` | sql | 305 |  |  |
@@ -79,7 +80,8 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/migrations/0006_editorial_roles.sql` | sql | 19 |  |  |
 | `apps/auth/migrations/0007_platform_roles.sql` | sql | 67 |  |  |
 | `apps/auth/migrations/0008_account_security.sql` | sql | 34 |  |  |
-| `apps/auth/src/admin-plane.ts` | ts | 568 | 17 | function handleAdminPlane |
+| `apps/auth/migrations/0009_operational_alerts.sql` | sql | 21 |  |  |
+| `apps/auth/src/admin-plane.ts` | ts | 709 | 18 | function handleAdminPlane |
 | `apps/auth/src/auth.ts` | ts | 114 |  | const FORTRESS_SCOPES, function createAuth |
 | `apps/auth/src/editorial-plane.ts` | ts | 2131 | 29 | type EditorialRole, function handleEditorialPlane, class EditorialForbiddenError |
 | `apps/auth/src/index.ts` | ts | 633 | 20 | class AuthWorker |
@@ -136,9 +138,9 @@ Not all of these are bugs; verify before assuming.
 | (any) | `/^\/v1\/admin\/editorial\/records\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:113` |
 | (any) | `/^\/v1\/admin\/editorial\/records\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:118` |
 | (any) | `/^\/v1\/admin\/editorial\/records\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:122` |
-| (any) | `/^\/v1\/admin\/services\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:132` |
-| (any) | `/^\/v1\/admin\/sessions\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:127` |
-| (any) | `/^\/v1\/admin\/users\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:120` |
+| (any) | `/^\/v1\/admin\/services\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:133` |
+| (any) | `/^\/v1\/admin\/sessions\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:128` |
+| (any) | `/^\/v1\/admin\/users\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:121` |
 | (any) | `/^\/v1\/control\/devices\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:172` |
 | (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:269` |
 | (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:283` |
@@ -154,6 +156,7 @@ Not all of these are bugs; verify before assuming.
 | (any) | `/v1/admin/` | manual (prefix) | `apps/auth/src/index.ts:67` |
 | (any) | `/v1/admin/` | manual (prefix) | `apps/auth/src/index.ts:78` |
 | (any) | `/v1/admin/` | manual (prefix) | `apps/auth/src/index.ts:81` |
+| GET | `/v1/admin/alerts` | manual (exact) | `apps/auth/src/admin-plane.ts:119` |
 | GET | `/v1/admin/audit` | manual (exact) | `apps/auth/src/admin-plane.ts:118` |
 | (any) | `/v1/admin/content` | manual (prefix) | `apps/auth/src/admin-plane.ts:101` |
 | (any) | `/v1/admin/editorial` | manual (prefix) | `apps/auth/src/editorial-plane.ts:23` |
@@ -273,6 +276,7 @@ Not all of these are bugs; verify before assuming.
 | oauthConsent | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | oauthRefreshToken | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/index.ts` |
 | oauthResource | table | `apps/auth/migrations/0001_identity.sql` | (none) |
+| operational_alerts | table | `apps/auth/migrations/0009_operational_alerts.sql` | `apps/auth/src/admin-plane.ts` |
 | organization | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | passkey | table | `apps/auth/migrations/0008_account_security.sql` | (none) |
 | platform | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
@@ -283,7 +287,7 @@ Not all of these are bugs; verify before assuming.
 | publication_batches | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts` |
 | publication_history | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | rag_daily_usage | table | `apps/api/migrations/0005_rag_usage.sql` | `apps/api/src/rag.ts` |
-| rag_index_state | table | `apps/api/migrations/0007_rag_index_state.sql` | `apps/api/src/rag.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| rag_index_state | table | `apps/api/migrations/0007_rag_index_state.sql` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | record_numberings | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | record_placements | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/auth/src/editorial-plane.ts` |
 | record_search_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
