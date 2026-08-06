@@ -199,17 +199,31 @@ support, not by severity.
    patterns at all three required corners exactly match the canonical QR pattern
    (`1111111/1000001/1011101/1011101/1011101/1000001/1111111`), which is strong evidence a real
    scanner would read it correctly.
-3. **Named Queries can only target Duas, never Hadith.** `parseRecordQuery`
+3. ~~**Passkey buttons could hang forever with zero feedback.**~~ Fixed 2026-08-06: reported by the
+   user as "click it, nothing happens, UI stuck" while actually using it. Every `fetch()` call in
+   `console.js` uses `AbortSignal.timeout(...)` -- a consistent, deliberate pattern throughout the
+   file -- except the two `navigator.credentials.get()`/`.create()` calls for passkey sign-in and
+   registration, which had no timeout at all. If the browser/OS fails to show the WebAuthn prompt
+   (common with cross-device/phone-QR passkey flows), that `await` never resolves or rejects, so the
+   button stays disabled indefinitely with no error and no way to retry -- indistinguishable from
+   "the click didn't register." Fixed with an explicit 60s `AbortSignal.timeout` on both calls (much
+   longer than the 12s used for network requests, since a WebAuthn ceremony waits on a human, not a
+   server) plus explicit `TimeoutError`/`AbortError` handling in `friendlyCredentialError` instead of
+   falling through to a generic browser string. Verified the mechanism itself, not just the code
+   shape: forced `AbortSignal.timeout(500)` against a real `navigator.credentials.get()` call in a
+   live browser and confirmed it rejects with `error.name === 'TimeoutError'` after the timeout --
+   the exact condition the new error handling checks for.
+4. **Named Queries can only target Duas, never Hadith.** `parseRecordQuery`
    (`apps/auth/src/index.ts:657`) hardcodes `objectName: 'duas' as const` on every named query it
    creates — there's no way to get a Hadith-backed named query even via a direct API call, let alone
    through the Developer Portal UI, which doesn't offer the choice either. Hadith is a first-class
    content type everywhere else (REST API, MCP tools, editorial workflow) except here.
-4. **The OAuth consent screen hardcodes "ChatGPT."** `apps/developers/public/oauth.js` shows
+5. **The OAuth consent screen hardcodes "ChatGPT."** `apps/developers/public/oauth.js` shows
    "ChatGPT" in its UI copy ("authorizing ChatGPT," "Denying access," "Return to ChatGPT...")
    regardless of which client is actually connecting. The backend already has the real client name
    available (`oauthClient.name`); the consent page just doesn't use it. Cosmetic today because
    ChatGPT is presumably the only client exercised so far, but wrong for any other Connected App.
-5. **Minor: inconsistent SQL parameterization in `editorial-plane.ts`.** Three spots (`decideBook`
+6. **Minor: inconsistent SQL parameterization in `editorial-plane.ts`.** Three spots (`decideBook`
    x2, `rollbackDataset`) interpolate a value via a `sqlLiteral()` escaping helper instead of the
    `.bind()` parameterization used everywhere else in the file. Not currently exploitable — in all
    three cases the interpolated value is system-generated or already fetched from a parameterized
