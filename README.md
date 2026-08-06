@@ -162,6 +162,18 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.19.1
+
+- Fixed developer-created "record query" named queries (Developer Portal and the equivalent MCP tool
+  path) reading from the retired `content_records`/`dataset_versions` tables instead of the current
+  canonical editorial schema. They were silently frozen on the original unverified 2026-07-18 DOCX
+  import (135 records) and could never reflect anything published since; every other read path
+  already used the canonical schema. Rewired to `api_current_content`/`canonical_records`/`content_revisions`,
+  the same join every other content route uses. Verified against the real migrated schema, not just
+  the existing mocked unit test.
+- Ran a real D1 backup and D1 Time Travel restore drill against the test environment end to end
+  (see `docs/incident-response.md` Drill Log) rather than relying on the scripts being untested.
+
 ### 0.19.0
 
 - Fixed Developer and Admin sign-out so sessions end cleanly and authenticated controls disappear immediately.
