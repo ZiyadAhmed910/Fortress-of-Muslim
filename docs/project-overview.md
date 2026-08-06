@@ -215,6 +215,9 @@ Editors and Reviewers" problem (`docs/canonical-data-roadmap.md` → Editorial O
 
 ## Where to look for more detail
 
+- `docs/codebase-map/README.md` — generated navigational index (files/exports/routes/schema
+  reverse-index); regenerate with `npm run map:build`. Start here to find *where* something lives
+  before grepping the repo by hand; it's not a substitute for reading the file itself.
 - `README.md` — features, full version history, local dev commands, contributing guide.
 - `docs/platform-architecture.md` — system boundaries and architectural rules (verify against code).
 - `docs/canonical-editorial-architecture.md` — record lifecycle, roles, publication mechanics.

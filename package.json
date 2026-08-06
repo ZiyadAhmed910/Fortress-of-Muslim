@@ -29,6 +29,7 @@
     "smoke:test:portals": "node tools/deployment-smoke.mjs test portals",
     "smoke:production:services": "node tools/deployment-smoke.mjs production services",
     "smoke:production:portals": "node tools/deployment-smoke.mjs production portals",
+    "map:build": "node tools/generate-codebase-map.mjs",
     "check": "npm run data:safety && npm run pwa:release-check && npm run typecheck && npm run test && npm run security:check"
   },
   "engines": {
