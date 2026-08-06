@@ -1,8 +1,10 @@
 const authBase = location.hostname.startsWith('developers-test.') ? 'https://auth-test.fortressofmuslim.org' : location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8788' : 'https://auth.fortressofmuslim.org';
 const apiBase = authBase.includes('auth-test.') ? 'https://api-test.fortressofmuslim.org/v1' : 'https://api.fortressofmuslim.org/v1';
+const mcpBase = authBase.includes('auth-test.') ? 'https://mcp-test.fortressofmuslim.org/mcp' : 'https://mcp.fortressofmuslim.org/mcp';
 const state = { user: null, keys: [], apps: [], devices: [], mcp: [], queries: [], standardTools: [], passkeys: [], usage: null };
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+if ($('#mcp-endpoint')) $('#mcp-endpoint').textContent = mcpBase;
 const REQUEST_TIMEOUT_MS = 12_000;
 // WebAuthn ceremonies wait on a human (touch a sensor, approve on a phone, scan a cross-device QR
 // code) and legitimately take much longer than a network request -- 12s would abort real, slow,
@@ -168,10 +170,49 @@ function updateOAuthForm() {
   $('#oauth-form [name="jwks_uri"]').required = privateJwt;
 }
 function updateToolForm() { const type=$('#tool-form [name="toolType"]').value; $('[data-standard-tool]').hidden=type!=='standard'; $('[data-query-tool]').hidden=type!=='named_query'; $('[data-external-tool]').hidden=type!=='external_api'; }
-$('[data-add-filter]').addEventListener('click',addQueryFilter);
-$('#query-filters').addEventListener('click',(event)=>{const button=event.target.closest('[data-remove-filter]');if(button)button.closest('.query-filter-row').remove();});
-function addQueryFilter(){ $('#query-filters').insertAdjacentHTML('beforeend',`<div class="query-filter-row"><select data-filter-field aria-label="Filter field"><option value="title">Title</option><option value="verificationStatus">Verification</option><option value="sequence">Sequence</option><option value="id">ID</option><option value="legacyId">Legacy ID</option></select><select data-filter-operator aria-label="Filter operator"><option value="eq">Equals</option><option value="contains">Contains</option><option value="starts_with">Starts with</option><option value="neq">Not equal</option><option value="gte">At least</option><option value="lte">At most</option><option value="in">In list</option></select><select data-filter-source aria-label="Filter value type"><option value="literal">Fixed value</option><option value="parameter">Endpoint parameter</option></select><input data-filter-value aria-label="Filter value or parameter name" placeholder="Value or parameter name" required><button type="button" class="icon-button" data-remove-filter aria-label="Remove filter"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button></div>`); }
+$('[data-add-filter]').addEventListener('click',()=>{addQueryFilter();updateQueryPreview();});
+$('#query-filters').addEventListener('click',(event)=>{const button=event.target.closest('[data-remove-filter]');if(button){button.closest('.query-filter-row').remove();updateQueryPreview();}});
+$('#query-filters').addEventListener('change',(event)=>{const select=event.target.closest('[data-filter-source]');if(select)applyFilterRowConstraints(select.closest('.query-filter-row'));});
+$('#query-filters').addEventListener('input',updateQueryPreview);
+function addQueryFilter(){ $('#query-filters').insertAdjacentHTML('beforeend',`<div class="query-filter-row"><select data-filter-field aria-label="Filter field"><option value="title">Title</option><option value="verificationStatus">Verification</option><option value="sequence">Sequence</option><option value="id">ID</option><option value="legacyId">Legacy ID</option></select><select data-filter-operator aria-label="Filter operator"><option value="eq">Equals</option><option value="contains">Contains</option><option value="starts_with">Starts with</option><option value="neq">Not equal</option><option value="gte">At least</option><option value="lte">At most</option><option value="in">In list</option></select><select data-filter-source aria-label="Filter value type"><option value="literal">Fixed value</option><option value="parameter">Endpoint parameter</option></select><input data-filter-value aria-label="Filter value or parameter name" placeholder="Value or parameter name" required><button type="button" class="icon-button" data-remove-filter aria-label="Remove filter"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button></div>`); applyFilterRowConstraints($('#query-filters').lastElementChild); }
 function readQueryFilters(){return $$('.query-filter-row').map(row=>({field:$('[data-filter-field]',row).value,operator:$('[data-filter-operator]',row).value,source:$('[data-filter-source]',row).value,value:$('[data-filter-value]',row).value.trim()})).filter(filter=>filter.value);}
+// The server (parseRecordQuery in apps/auth) rejects a parameter-sourced filter whose value isn't
+// [a-z][a-zA-Z0-9_]{0,39} -- mirrored here via the input's own pattern so the browser's native
+// validation bubble catches it before the round-trip, instead of only after a failed submit.
+function applyFilterRowConstraints(row){
+  if(!row)return;
+  const source=$('[data-filter-source]',row).value;
+  const valueInput=$('[data-filter-value]',row);
+  if(source==='parameter'){ valueInput.pattern='[a-z][a-zA-Z0-9_]{0,39}'; valueInput.title='Parameter names start with a lowercase letter and contain only letters, numbers, and underscores.'; valueInput.placeholder='parameterName'; }
+  else { valueInput.removeAttribute('pattern'); valueInput.removeAttribute('title'); valueInput.placeholder='Value or parameter name'; }
+}
+function updateQueryPreview(){
+  const form=$('#query-form'); const preview=$('[data-preview="query-form"]');
+  const slug=form.slug.value.trim().toLowerCase();
+  if(!slug){preview.hidden=true;return;}
+  const fieldCount=$$('input[name="selectedField"]:checked',form).length;
+  const filterCount=$$('.query-filter-row',form).length;
+  const maxRows=Number(form.maxRows.value)||50;
+  preview.hidden=false;
+  preview.innerHTML=`Will be callable at <code>${esc(apiBase)}/queries/${esc(slug)}</code> &middot; ${fieldCount} field${fieldCount===1?'':'s'} &middot; ${filterCount} filter${filterCount===1?'':'s'} &middot; up to ${maxRows} row${maxRows===1?'':'s'}`;
+}
+function updateMcpPreview(){
+  const form=$('#mcp-form'); const preview=$('[data-preview="mcp-form"]');
+  const slug=form.slug.value.trim().toLowerCase();
+  if(!slug){preview.hidden=true;return;}
+  preview.hidden=false;
+  preview.innerHTML=`MCP endpoint: <code>${esc(mcpBase)}?toolset=${esc(slug)}</code>`;
+}
+function updateToolPreview(){
+  const form=$('#tool-form'); const preview=$('[data-preview="tool-form"]');
+  const name=form.name.value.trim().toLowerCase();
+  if(!name){preview.hidden=true;return;}
+  preview.hidden=false;
+  preview.innerHTML=`Agents will call this tool as <strong><code>${esc(name)}</code></strong>`;
+}
+$('#query-form').addEventListener('input',updateQueryPreview);
+$('#mcp-form').addEventListener('input',updateMcpPreview);
+$('#tool-form').addEventListener('input',updateToolPreview);
 
 $('#api-key-form').addEventListener('submit', async (event) => {
   event.preventDefault(); const formElement = event.currentTarget; const form = new FormData(formElement); let expiresIn;
@@ -230,7 +271,7 @@ $('#device-list').addEventListener('click', async (event) => {
 
 $('#mcp-form').addEventListener('submit', async (event) => {
   event.preventDefault(); const form = event.currentTarget; const body = Object.fromEntries(new FormData(form));
-  await action(async () => { await authJson('/v1/control/mcp/toolsets', { method: 'POST', body }); form.reset(); closeDrawers(); await loadMcp(); }, 'Toolset created.', form);
+  await action(async () => { await authJson('/v1/control/mcp/toolsets', { method: 'POST', body }); form.reset(); updateMcpPreview(); closeDrawers(); await loadMcp(); }, 'Toolset created.', form);
 });
 
 $('#mcp-list').addEventListener('click', async (event) => {
@@ -247,11 +288,11 @@ $('#mcp-list').addEventListener('click', async (event) => {
     await loadMcp();
   }, `Tool ${tool.dataset.toolStatus}.`);
 });
-$('#tool-form').addEventListener('submit', async (event) => { event.preventDefault(); const form=event.currentTarget; const body=Object.fromEntries(new FormData(form)); const toolsetId=body.toolsetId; delete body.toolsetId; await action(async()=>{await authJson(`/v1/control/mcp/toolsets/${encodeURIComponent(toolsetId)}/tools`,{method:'POST',body});form.reset();updateToolForm();closeDrawers();await loadMcp();},'Tool added to toolset.',form); });
+$('#tool-form').addEventListener('submit', async (event) => { event.preventDefault(); const form=event.currentTarget; const body=Object.fromEntries(new FormData(form)); const toolsetId=body.toolsetId; delete body.toolsetId; await action(async()=>{await authJson(`/v1/control/mcp/toolsets/${encodeURIComponent(toolsetId)}/tools`,{method:'POST',body});form.reset();updateToolForm();updateToolPreview();closeDrawers();await loadMcp();},'Tool added to toolset.',form); });
 
 $('#query-form').addEventListener('submit', async (event) => {
   event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const body = { name:data.get('name'),slug:data.get('slug'),description:data.get('description'),selectedFields:data.getAll('selectedField'),filters:readQueryFilters(),sort:{field:data.get('sortField'),direction:data.get('sortDirection')},maxRows:Number(data.get('maxRows')) };
-  await action(async () => { await authJson('/v1/control/named-queries', { method: 'POST', body }); form.reset(); $('#query-filters').innerHTML=''; addQueryFilter(); closeDrawers(); await loadQueries(); }, 'Named query endpoint created.', form);
+  await action(async () => { await authJson('/v1/control/named-queries', { method: 'POST', body }); form.reset(); $('#query-filters').innerHTML=''; addQueryFilter(); updateQueryPreview(); closeDrawers(); await loadQueries(); }, 'Named query endpoint created.', form);
 });
 $('#query-list').addEventListener('click', async (event) => {
   const toggle = event.target.closest('[data-query-status]');
@@ -413,7 +454,7 @@ function renderUsage() {
 }
 async function loadMcp() {
   const [result,catalog] = await Promise.all([authJson('/v1/control/mcp/toolsets'),authJson('/v1/control/mcp/catalog')]); state.mcp = result.data || []; state.standardTools=catalog.data||[]; $('#metric-mcp').textContent = state.mcp.length; updateStandardToolSelect();
-  render('#mcp-list', state.mcp, (toolset) => `<section class="toolset-row"><header><span class="row-title"><strong>${esc(toolset.name)}</strong><small>${esc(toolset.description)} &middot; ${esc(toolset.status)}</small></span><span class="row-actions"><button class="button compact" data-toolset-status="${toolset.status === 'active' ? 'disabled' : 'active'}" data-toolset="${esc(toolset.id)}">${toolset.status === 'active' ? 'Disable' : 'Enable'}</button><button class="button compact" data-add-tool="${esc(toolset.id)}" ${toolset.status !== 'active' ? 'disabled' : ''}>Add tool</button></span></header><code>https://mcp-test.fortressofmuslim.org/mcp?toolset=${esc(toolset.slug)}</code><div class="tool-chips">${toolset.tools.length?toolset.tools.map(tool=>`<span class="status">${esc(tool.name)} &middot; ${esc(tool.toolType)}${tool.approvalStatus!=='approved'?` &middot; ${esc(tool.approvalStatus)}`:''}<button class="chip-action" data-tool-status="${Number(tool.enabled) === 1 ? 'disabled' : 'active'}" data-tool="${esc(tool.id)}" data-toolset="${esc(toolset.id)}">${Number(tool.enabled) === 1 ? 'Disable' : 'Enable'}</button></span>`).join(''):'<small>No tools added.</small>'}</div></section>`);
+  render('#mcp-list', state.mcp, (toolset) => `<section class="toolset-row"><header><span class="row-title"><strong>${esc(toolset.name)}</strong><small>${esc(toolset.description)} &middot; ${esc(toolset.status)}</small></span><span class="row-actions"><button class="button compact" data-toolset-status="${toolset.status === 'active' ? 'disabled' : 'active'}" data-toolset="${esc(toolset.id)}">${toolset.status === 'active' ? 'Disable' : 'Enable'}</button><button class="button compact" data-add-tool="${esc(toolset.id)}" ${toolset.status !== 'active' ? 'disabled' : ''}>Add tool</button></span></header><code>${mcpBase}?toolset=${esc(toolset.slug)}</code><div class="tool-chips">${toolset.tools.length?toolset.tools.map(tool=>`<span class="status">${esc(tool.name)} &middot; ${esc(tool.toolType)}${tool.approvalStatus!=='approved'?` &middot; ${esc(tool.approvalStatus)}`:''}<button class="chip-action" data-tool-status="${Number(tool.enabled) === 1 ? 'disabled' : 'active'}" data-tool="${esc(tool.id)}" data-toolset="${esc(toolset.id)}">${Number(tool.enabled) === 1 ? 'Disable' : 'Enable'}</button></span>`).join(''):'<small>No tools added.</small>'}</div></section>`);
 }
 async function loadQueries() {
   const result = await authJson('/v1/control/named-queries'); state.queries = result.data || []; updateQuerySelect();
@@ -562,4 +603,4 @@ function methodLabel(value) { return String(value || '').replaceAll('_',' ').rep
 function displayRedirect(value) { const first=arrayValue(value)[0]; return first?.includes('localhost.invalid/fortress-machine-client') ? 'Not required' : first || 'None'; }
 function arrayValue(value) { if (Array.isArray(value)) return value; try { return JSON.parse(value || '[]'); } catch { return []; } }
 
-addQueryFilter(); updateOAuthForm(); updateToolForm(); refreshSession();
+addQueryFilter(); updateOAuthForm(); updateToolForm(); updateQueryPreview(); updateMcpPreview(); updateToolPreview(); refreshSession();
