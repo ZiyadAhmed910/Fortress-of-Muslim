@@ -23,7 +23,7 @@ Two commitments shape every other decision in this codebase:
 
 ## Current version
 
-`0.19.1` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
+`0.21.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
 `package.json`). See `README.md` → `## Platform Releases` for the full version history — it is
 the closest thing this repo has to a changelog and should be treated as one.
 
@@ -331,8 +331,10 @@ Reliability and safety, not new features, before anything else ships. Status of 
 - **0.22 Search/RAG**: better Arabic normalization/stemming, exact-reference search, metadata-
   filtered retrieval, a permanent eval dataset, quality/cost dashboards, stricter refusal behavior,
   automatic vector reindex/recovery.
-- **0.23 Developer Platform**: usage/quota dashboards, real plan management, access-request
-  approval workflow, OAuth hardening, better named-query/MCP builders, SDK examples, webhooks.
+- **0.23 Developer Platform**: real plan management, access-request approval workflow, OAuth
+  hardening. Usage/quota dashboards, better named-query/MCP builders (inline validation + live
+  preview), SDK examples, and webhooks shipped early in 0.21.0 (2026-08-06) alongside a broader
+  Developer Portal/Admin Console UX pass — see `README.md` 0.21.0 release notes.
 - **0.24 User-Facing**: the Help Portal (doesn't exist yet), moods/Ruqyah/anxiety/gratitude content
   — **only after verified data backs them**, better PWA category discovery, real-device testing,
   native Android app.

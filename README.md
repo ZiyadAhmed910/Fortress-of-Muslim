@@ -162,6 +162,39 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.21.0
+
+Developer experience and Admin Console improvements, from a full-codebase review that looked for
+built-but-broken and built-but-unreachable functionality alongside genuinely new capability:
+
+- **Developer usage/quota dashboard**: `GET /v1/control/usage` (a non-incrementing peek at the
+  same plan limits and rate-limit counters `checkRateLimit` enforces) rendered as a usage card on
+  the Developer Console overview, so a developer can see how close they are to their per-minute/
+  per-day limit instead of only discovering it from a `429`.
+- **Inline validation and live preview for the named-query and MCP toolset/tool builders**: each
+  drawer now shows the resulting endpoint/connection URL or tool call name as you type, and the
+  filter-value field enforces the same parameter-name pattern the server does, so a mistake surfaces
+  before submit instead of after a round-trip failure. Also fixed the MCP connection URL (managed
+  endpoint banner and every custom toolset's URL) to derive from environment like the API base URL
+  already does, instead of being hardcoded to `mcp-test.fortressofmuslim.org` in all environments.
+- **Loading/empty/error states across the Developer Console**: every section fetches independently:
+  previously a failed fetch left that section exactly as blank as the static HTML defined it,
+  indistinguishable from "still loading" or "genuinely empty," with only one aggregate toast as any
+  signal. Each section now shows its own loading spinner while in flight and, on failure, an inline
+  error with a scoped Retry button.
+- **Admin Console health-first overview banner**: previously only rendered when there were active
+  alerts and showed just a count. Now always renders: a positive "All systems normal" state when
+  clear, or a severity breakdown plus the top 3 unresolved alert messages inline when not, so an
+  admin can see what's wrong without leaving Overview.
+- **JS/Python SDK examples** for OAuth client-credentials, named queries, and MCP tool calls in the
+  API docs, reusing the existing curl/JavaScript/Python tab component that was previously used only
+  for the single basic quickstart request.
+- **Webhooks for `record.published` and `record.verified`**: developer-registered, HMAC-signed
+  (`X-Fortress-Signature: sha256=...`), best-effort delivery (no Cloudflare Queues/cron, no new
+  billed infrastructure) fired from all four publish/verify paths in `editorial-plane.ts`. A failed
+  delivery is not retried automatically; the Developer Console's new Webhooks section shows a
+  per-subscription delivery log with a manual Redeliver action.
+
 ### 0.20.0
 
 0.20 Operations: production reliability and safety, deliberately shipped as one release with no new
