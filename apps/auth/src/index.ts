@@ -104,6 +104,53 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       return json({ data: { user, plan: profile ?? { planCode: 'basic', status: 'active' } } });
     }
 
+    if (url.pathname === '/v1/control/usage' && request.method === 'GET') {
+      const planRow = await this.env.IDENTITY_DB.prepare(`
+        SELECT COALESCE((SELECT plan_code FROM developer_profiles WHERE user_id = ?), 'basic') AS planCode
+      `).bind(user.id).first<{ planCode: string }>();
+      const planCode = planRow?.planCode ?? 'basic';
+      let limitRow = await this.env.IDENTITY_DB.prepare(`
+        SELECT requests_per_minute AS perMinute, requests_per_day AS perDay FROM plan_limits WHERE plan_code = ?
+      `).bind(planCode).first<{ perMinute: number; perDay: number }>();
+      if (!limitRow) {
+        limitRow = await this.env.IDENTITY_DB.prepare(`
+          SELECT requests_per_minute AS perMinute, requests_per_day AS perDay FROM plan_limits WHERE plan_code = 'basic'
+        `).first<{ perMinute: number; perDay: number }>();
+      }
+      const limit = { perMinute: limitRow?.perMinute ?? 100, perDay: limitRow?.perDay ?? 5000 };
+
+      // Reads the same counters checkRateLimit increments, without incrementing them --
+      // a dashboard peek must never itself count as a request against the limit it displays.
+      const now = new Date();
+      const minuteStart = new Date(Math.floor(now.getTime() / 60_000) * 60_000).toISOString();
+      const dayStart = now.toISOString().slice(0, 10);
+      const [minuteRow, dayRow] = await Promise.all([
+        this.env.IDENTITY_DB.prepare(
+          `SELECT request_count AS count FROM rate_limit_counters WHERE credential_id = ? AND window_kind = 'minute' AND window_start = ?`,
+        ).bind(user.id, minuteStart).first<{ count: number }>(),
+        this.env.IDENTITY_DB.prepare(
+          `SELECT request_count AS count FROM rate_limit_counters WHERE credential_id = ? AND window_kind = 'day' AND window_start = ?`,
+        ).bind(user.id, dayStart).first<{ count: number }>(),
+      ]);
+      const usage = { perMinute: minuteRow?.count ?? 0, perDay: dayRow?.count ?? 0 };
+
+      return json({
+        data: {
+          planCode,
+          limit,
+          usage,
+          remaining: {
+            perMinute: Math.max(0, limit.perMinute - usage.perMinute),
+            perDay: Math.max(0, limit.perDay - usage.perDay),
+          },
+          windowResetAt: {
+            minute: new Date(new Date(minuteStart).getTime() + 60_000).toISOString(),
+            day: new Date(new Date(`${dayStart}T00:00:00Z`).getTime() + 86_400_000).toISOString(),
+          },
+        },
+      });
+    }
+
     if (url.pathname === '/v1/control/mcp-servers' && request.method === 'GET') {
       const result = await this.env.IDENTITY_DB.prepare(`
         SELECT id, slug, name, description, upstream_base_url AS upstreamBaseUrl,
