@@ -1,0 +1,2389 @@
+{
+  "generatedAt": "2026-08-06T11:31:56.365Z",
+  "files": [
+    {
+      "path": "apps/api/src/app.ts",
+      "lines": 584,
+      "language": "ts",
+      "exports": [
+        "function createApp",
+        "const app"
+      ],
+      "imports": [
+        "@fortress/contracts",
+        "hono",
+        "hono/cors",
+        "./lib/pagination",
+        "./lib/record-query",
+        "./rag",
+        "./repositories/content-repository",
+        "./repositories/d1-content-repository",
+        "./types"
+      ],
+      "routeCount": 25
+    },
+    {
+      "path": "apps/api/src/index.ts",
+      "lines": 51,
+      "language": "ts",
+      "exports": [
+        "class ApiWorker"
+      ],
+      "imports": [
+        "cloudflare:workers",
+        "./app",
+        "./lib/record-query",
+        "./rag",
+        "./repositories/d1-content-repository",
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/lib/fuzzy-title.ts",
+      "lines": 75,
+      "language": "ts",
+      "exports": [
+        "type TitleCandidate",
+        "type RankedTitle",
+        "function rankDuaTitles"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/lib/pagination.ts",
+      "lines": 15,
+      "language": "ts",
+      "exports": [
+        "function encodeCursor",
+        "function decodeCursor"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/lib/record-query.ts",
+      "lines": 58,
+      "language": "ts",
+      "exports": [
+        "type RecordQueryDefinition",
+        "function executeRecordQuery"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/rag.ts",
+      "lines": 455,
+      "language": "ts",
+      "exports": [
+        "type RagSource",
+        "function indexRecordBatch",
+        "function indexNextPendingBatch",
+        "function getRagStatus",
+        "function answerQuestion",
+        "class RagRateLimitError"
+      ],
+      "imports": [
+        "@fortress/contracts",
+        "./repositories/content-repository",
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/repositories/content-repository.ts",
+      "lines": 57,
+      "language": "ts",
+      "exports": [
+        "type DatasetSummary",
+        "type DuaTitleMatch",
+        "type RagRecordMatch",
+        "type RecordEvidence",
+        "interface ContentRepository"
+      ],
+      "imports": [
+        "@fortress/contracts"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/repositories/d1-content-repository.ts",
+      "lines": 583,
+      "language": "ts",
+      "exports": [
+        "class D1ContentRepository"
+      ],
+      "imports": [
+        "@fortress/contracts",
+        "../lib/fuzzy-title",
+        "./content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/types.ts",
+      "lines": 58,
+      "language": "ts",
+      "exports": [
+        "type Bindings",
+        "type ApiVariables"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/api.test.ts",
+      "lines": 543,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "@fortress/contracts",
+        "../src/app",
+        "../src/repositories/content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/fuzzy-title.test.ts",
+      "lines": 30,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/lib/fuzzy-title"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/rag-index.test.ts",
+      "lines": 62,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/rag-quality.test.ts",
+      "lines": 77,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/repositories/content-repository",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/record-query.test.ts",
+      "lines": 27,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/lib/record-query"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/auth.config.ts",
+      "lines": 19,
+      "language": "ts",
+      "exports": [
+        "const auth",
+        "default export"
+      ],
+      "imports": [
+        "./src/auth",
+        "better-sqlite3"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/src/admin-plane.ts",
+      "lines": 568,
+      "language": "ts",
+      "exports": [
+        "function handleAdminPlane"
+      ],
+      "imports": [
+        "./types",
+        "./editorial-plane"
+      ],
+      "routeCount": 17
+    },
+    {
+      "path": "apps/auth/src/auth.ts",
+      "lines": 114,
+      "language": "ts",
+      "exports": [
+        "const FORTRESS_SCOPES",
+        "function createAuth"
+      ],
+      "imports": [
+        "@better-auth/api-key",
+        "@better-auth/oauth-provider",
+        "@better-auth/passkey",
+        "better-auth",
+        "better-auth/plugins",
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/src/editorial-plane.ts",
+      "lines": 2131,
+      "language": "ts",
+      "exports": [
+        "type EditorialRole",
+        "function handleEditorialPlane",
+        "class EditorialForbiddenError"
+      ],
+      "imports": [
+        "./types"
+      ],
+      "routeCount": 29
+    },
+    {
+      "path": "apps/auth/src/index.ts",
+      "lines": 633,
+      "language": "ts",
+      "exports": [
+        "class AuthWorker"
+      ],
+      "imports": [
+        "cloudflare:workers",
+        "@fortress/contracts",
+        "@better-auth/oauth-provider/resource-client",
+        "better-auth/client",
+        "./auth",
+        "./admin-plane",
+        "./security",
+        "./types"
+      ],
+      "routeCount": 20
+    },
+    {
+      "path": "apps/auth/src/security.ts",
+      "lines": 33,
+      "language": "ts",
+      "exports": [
+        "function isMutation",
+        "function isTrustedBrowserMutation",
+        "function hasOversizedBody"
+      ],
+      "imports": [
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/src/types.ts",
+      "lines": 66,
+      "language": "ts",
+      "exports": [
+        "type AuthEnvironment",
+        "type Bindings",
+        "type ServiceState",
+        "type McpToolDefinition",
+        "type KeyVerification",
+        "type TokenVerification",
+        "type NamedQueryDefinition"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/test/editorial-pilot.test.ts",
+      "lines": 364,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/editorial-plane"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/test/security.test.ts",
+      "lines": 43,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/security"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/mcp/src/index.ts",
+      "lines": 74,
+      "language": "ts",
+      "exports": [
+        "default export"
+      ],
+      "imports": [
+        "@fortress/contracts"
+      ],
+      "routeCount": 2
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "lines": 130,
+      "language": "ts",
+      "exports": [
+        "const API_VERSION",
+        "const PLATFORM_NAME",
+        "const PLATFORM_VERSION",
+        "const CURRENT_DATASET_ID",
+        "const contentSegmentSchema",
+        "const editorialWorkflowStateSchema",
+        "const recordVerificationStatusSchema",
+        "const duaSummarySchema",
+        "const duaSchema",
+        "const duaPartSchema",
+        "const paginationSchema",
+        "const searchSchema",
+        "const partPositionSchema",
+        "const contentTypeSchema",
+        "const collectionSummarySchema",
+        "const hadithSummarySchema",
+        "const hadithSchema",
+        "const hadithListSchema",
+        "const hadithSearchSchema",
+        "const askQuestionSchema",
+        "const vectorIndexBatchSchema",
+        "type ContentSegment",
+        "type DuaSummary",
+        "type Dua",
+        "type DuaPart",
+        "type Pagination",
+        "type ContentType",
+        "type CollectionSummary",
+        "type HadithSummary",
+        "type Hadith",
+        "type AskQuestion"
+      ],
+      "imports": [
+        "zod"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/admin/public/app.js",
+      "lines": 1187,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/developers/public/app.js",
+      "lines": 63,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/developers/public/console.js",
+      "lines": 497,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/developers/public/device.js",
+      "lines": 6,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/developers/public/oauth.js",
+      "lines": 104,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/status/public/app.js",
+      "lines": 131,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "packages/portal-ui/assets/portal.js",
+      "lines": 42,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/app.js",
+      "lines": 142,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/assistant.js",
+      "lines": 38,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/categories.js",
+      "lines": 144,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/constants.js",
+      "lines": 4,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/data.js",
+      "lines": 13,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/dom.js",
+      "lines": 60,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/filters.js",
+      "lines": 25,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/hadith.js",
+      "lines": 153,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/home.js",
+      "lines": 177,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/modes.js",
+      "lines": 34,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/online.js",
+      "lines": 21,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/pwa.js",
+      "lines": 101,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/reader.js",
+      "lines": 129,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/routes.js",
+      "lines": 29,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/settings.js",
+      "lines": 32,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/state.js",
+      "lines": 22,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/userData.js",
+      "lines": 74,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/utils.js",
+      "lines": 23,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/sw.js",
+      "lines": 99,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0001_content_schema.sql",
+      "lines": 62,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0002_import_legacy_dataset.sql",
+      "lines": 1566,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0003_canonical_knowledge.sql",
+      "lines": 305,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0004_corpus_ingestion.sql",
+      "lines": 45,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0005_rag_usage.sql",
+      "lines": 10,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0006_canonical_editorial.sql",
+      "lines": 427,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0007_rag_index_state.sql",
+      "lines": 20,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0008_publication_snapshots.sql",
+      "lines": 15,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0009_single_verification.sql",
+      "lines": 28,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0010_api_content_visibility.sql",
+      "lines": 32,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0011_public_read_indexes.sql",
+      "lines": 12,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0012_normalize_single_verification_states.sql",
+      "lines": 5,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0013_verify_and_publish_hisn.sql",
+      "lines": 152,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0014_book_editorial_and_manual_records.sql",
+      "lines": 31,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0001_identity.sql",
+      "lines": 81,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0002_control_plane.sql",
+      "lines": 89,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0003_developer_console.sql",
+      "lines": 51,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0004_admin_console.sql",
+      "lines": 34,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0005_query_and_mcp_toolsets.sql",
+      "lines": 43,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0006_editorial_roles.sql",
+      "lines": 19,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0007_platform_roles.sql",
+      "lines": 67,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0008_account_security.sql",
+      "lines": 34,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    }
+  ],
+  "routes": [
+    {
+      "style": "hono",
+      "method": "USE",
+      "path": "*",
+      "file": "apps/api/src/app.ts",
+      "line": 33
+    },
+    {
+      "style": "hono",
+      "method": "USE",
+      "path": "*",
+      "file": "apps/api/src/app.ts",
+      "line": 39
+    },
+    {
+      "style": "hono",
+      "method": "USE",
+      "path": "/v1/queries/*",
+      "file": "apps/api/src/app.ts",
+      "line": 107
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/",
+      "file": "apps/api/src/app.ts",
+      "line": 109
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/health",
+      "file": "apps/api/src/app.ts",
+      "line": 118
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/health/database",
+      "file": "apps/api/src/app.ts",
+      "line": 126
+    },
+    {
+      "style": "hono",
+      "method": "USE",
+      "path": "/v1/*",
+      "file": "apps/api/src/app.ts",
+      "line": 139
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1",
+      "file": "apps/api/src/app.ts",
+      "line": 164
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/datasets/current",
+      "file": "apps/api/src/app.ts",
+      "line": 183
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/collections",
+      "file": "apps/api/src/app.ts",
+      "line": 198
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas",
+      "file": "apps/api/src/app.ts",
+      "line": 208
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/search",
+      "file": "apps/api/src/app.ts",
+      "line": 241
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/random",
+      "file": "apps/api/src/app.ts",
+      "line": 272
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/:id/evidence",
+      "file": "apps/api/src/app.ts",
+      "line": 288
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/:id/parts",
+      "file": "apps/api/src/app.ts",
+      "line": 294
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/:id/parts/:position",
+      "file": "apps/api/src/app.ts",
+      "line": 308
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/:id",
+      "file": "apps/api/src/app.ts",
+      "line": 337
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/hadith",
+      "file": "apps/api/src/app.ts",
+      "line": 352
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/hadith/search",
+      "file": "apps/api/src/app.ts",
+      "line": 369
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/hadith/resolve",
+      "file": "apps/api/src/app.ts",
+      "line": 387
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/hadith/:id",
+      "file": "apps/api/src/app.ts",
+      "line": 405
+    },
+    {
+      "style": "hono",
+      "method": "POST",
+      "path": "/v1/ask",
+      "file": "apps/api/src/app.ts",
+      "line": 411
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/ask/status",
+      "file": "apps/api/src/app.ts",
+      "line": 432
+    },
+    {
+      "style": "hono",
+      "method": "POST",
+      "path": "/v1/internal/vector-index",
+      "file": "apps/api/src/app.ts",
+      "line": 438
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/queries/:id",
+      "file": "apps/api/src/app.ts",
+      "line": 449
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/session",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 62
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/sources",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 99
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/references",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 100
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/content",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 101
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/overview",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 106
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/operations",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 107
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/sessions",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 108
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/search",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 109
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/users",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 110
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/resources",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 111
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/taxonomy",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 112
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/taxonomy",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 113
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/services",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 117
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/audit",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 118
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/users\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 120
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/sessions\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 127
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/services\\/([a-z-]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 132
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/editorial",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 23
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/overview",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 25
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/rag",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 28
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/workload",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 31
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/queue",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 34
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/lookups",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 37
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/records",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 40
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/records/bulk-decision",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 44
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/books",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 48
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/assignments",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 51
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/assignments",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 54
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/assignments\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 58
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/batches",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 66
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/batches",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 69
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/roles",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 73
+    },
+    {
+      "style": "manual",
+      "method": "PATCH",
+      "path": "/v1/admin/editorial/roles",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 77
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/books\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 82
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 92
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 96
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 100
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 108
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 113
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 118
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 122
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 140
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 149
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 153
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/datasets",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 163
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/datasets\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 166
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/health",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 51
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/index.ts",
+      "line": 67
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/index.ts",
+      "line": 78
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/index.ts",
+      "line": 81
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/profile",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 100
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/mcp-servers",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 107
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/mcp-servers",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 117
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/devices",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 138
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/devices",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 148
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/devices\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 172
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/oauth-clients\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 181
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/named-queries",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 207
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/named-queries",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 219
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/named-queries\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 233
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/mcp/catalog",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 247
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/mcp/toolsets",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 249
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/mcp/toolsets",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 261
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 269
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 283
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 298
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/health",
+      "matchKind": "exact",
+      "file": "apps/mcp/src/index.ts",
+      "line": 37
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/.well-known/oauth-protected-resource",
+      "matchKind": "exact",
+      "file": "apps/mcp/src/index.ts",
+      "line": 38
+    }
+  ],
+  "schema": [
+    {
+      "name": "a",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "access_requests",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "account",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "api_current_content",
+      "kind": "view",
+      "definedIn": [
+        "apps/api/migrations/0010_api_content_visibility.sql",
+        "apps/api/migrations/0013_verify_and_publish_hisn.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/repositories/d1-content-repository.ts"
+      ]
+    },
+    {
+      "name": "api_published_content",
+      "kind": "view",
+      "definedIn": [
+        "apps/api/migrations/0010_api_content_visibility.sql",
+        "apps/api/migrations/0013_verify_and_publish_hisn.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "apikey",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "audit_events",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "books",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "canonical_dataset_items",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0008_publication_snapshots.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "canonical_dataset_versions",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "canonical_publication_history",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "canonical_publications",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/rag-index.test.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "canonical_records",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "canonical_references",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "canonical_search_fts",
+      "kind": "virtual_table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "chapters",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "collections",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "content_audit_events",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "content_parts",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0001_content_schema.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "content_records",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0001_content_schema.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "content_revisions",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "content_search_fts",
+      "kind": "virtual_table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/api/migrations/0004_corpus_ingestion.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "content_segments",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0001_content_schema.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "contributors",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "correction_history",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts"
+      ]
+    },
+    {
+      "name": "cross_references",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "dataset_sources",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "dataset_versions",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0001_content_schema.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "developer_profiles",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "device_registrations",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0003_developer_console.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "deviceCode",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0003_developer_console.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "disagreement_queue",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "dua_metadata",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "editorial_assignments",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "editorial_record_state",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "editorial_role_grants",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0006_editorial_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "field_reviews",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "hadith_grades",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0004_corpus_ingestion.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "hadith_metadata",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "invitation",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "jwks",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "languages",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "mcp_server_registrations",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "mcp_tool_definitions",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "mcp_toolset_tools",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0005_query_and_mcp_toolsets.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "mcp_toolsets",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0005_query_and_mcp_toolsets.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "member",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "named_queries",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0003_developer_console.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "natural",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/fuzzy-title.test.ts"
+      ]
+    },
+    {
+      "name": "oauthAccessToken",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "oauthClient",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/auth.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "oauthClientAssertion",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "oauthClientResource",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "oauthConsent",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "oauthRefreshToken",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "oauthResource",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "organization",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "passkey",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0008_account_security.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "platform",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js"
+      ]
+    },
+    {
+      "name": "platform_admins",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0004_admin_console.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "platform_role_grants",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/migrations/0007_platform_roles.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/src/index.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "platform_services",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0004_admin_console.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "publication_batch_items",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "publication_batches",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "publication_history",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "rag_daily_usage",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0005_rag_usage.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "rag_index_state",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0007_rag_index_state.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "record_numberings",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0004_corpus_ingestion.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "record_placements",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "record_search_metadata",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "record_taxonomy",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "review_decisions",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "revision_metadata",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "revision_parts",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "revision_segments",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "segment_translations",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "session",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "SET",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "source_materials",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "source_references",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "taxonomy_terms",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "the",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js",
+        "apps/api/src/rag.ts",
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/status/public/app.js",
+        "pwa-website/js/app.js"
+      ]
+    },
+    {
+      "name": "this",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts",
+        "apps/status/public/app.js"
+      ]
+    },
+    {
+      "name": "travel",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/fuzzy-title.test.ts"
+      ]
+    },
+    {
+      "name": "twoFactor",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0008_account_security.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "usage_events",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "user",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "vector",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/api.test.ts"
+      ]
+    },
+    {
+      "name": "verification",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "verification_records",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    }
+  ]
+}
