@@ -260,6 +260,26 @@ function createIdentityDatabase() {
       request_id TEXT,
       details TEXT
     );
+    CREATE TABLE webhook_subscriptions (
+      id TEXT PRIMARY KEY,
+      owner_user_id TEXT NOT NULL,
+      url TEXT NOT NULL,
+      secret TEXT NOT NULL,
+      event_types_json TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE webhook_deliveries (
+      id TEXT PRIMARY KEY,
+      subscription_id TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      status TEXT NOT NULL,
+      response_status INTEGER,
+      response_snippet TEXT,
+      attempted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
   `);
   return database;
 }
