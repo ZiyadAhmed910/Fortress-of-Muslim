@@ -14,7 +14,7 @@ describe('record query compiler', () => {
     const result = await executeRecordQuery(database, definition, { status: "verified' OR 1=1 --" });
 
     expect(sql).not.toContain("verified' OR 1=1");
-    expect(sql).toContain('record.verification_status = ?');
+    expect(sql).toContain('publication.verification_status = ?');
     expect(bindings).toEqual(["verified' OR 1=1 --", 25]);
     expect(result).toHaveLength(1);
   });

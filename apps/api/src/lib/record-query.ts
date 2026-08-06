@@ -10,12 +10,12 @@ export type RecordQueryDefinition = {
 };
 
 const fields: Record<string, { expression: string; type: 'string' | 'number' }> = {
-  id: { expression: 'record.id', type: 'string' },
-  legacyId: { expression: 'record.legacy_id', type: 'string' },
-  sequence: { expression: 'record.sequence', type: 'number' },
-  title: { expression: 'record.title', type: 'string' },
-  verificationStatus: { expression: 'record.verification_status', type: 'string' },
-  partCount: { expression: '(SELECT COUNT(*) FROM content_parts part WHERE part.record_id = record.id)', type: 'number' },
+  id: { expression: 'publication.canonical_id', type: 'string' },
+  legacyId: { expression: 'revision.legacy_id', type: 'string' },
+  sequence: { expression: 'revision.sequence', type: 'number' },
+  title: { expression: 'revision.title', type: 'string' },
+  verificationStatus: { expression: 'publication.verification_status', type: 'string' },
+  partCount: { expression: '(SELECT COUNT(*) FROM revision_parts part WHERE part.revision_id = revision.id)', type: 'number' },
 };
 
 export async function executeRecordQuery(database: D1Database, definition: RecordQueryDefinition, input: Record<string, string>) {
@@ -23,7 +23,7 @@ export async function executeRecordQuery(database: D1Database, definition: Recor
   const selected = (definition.selectedFields ?? []).filter((field) => fields[field]);
   if (!selected.length) throw new Error('The query has no valid selected fields.');
   const selectSql = selected.map((field) => `${fields[field]!.expression} AS "${field}"`).join(', ');
-  const predicates = ["dataset.publication_status = 'active'", "record.content_type = 'dua'"];
+  const predicates = ["canonical.content_type = 'dua'"];
   const bindings: unknown[] = [];
 
   for (const filter of definition.filters ?? []) {
@@ -46,8 +46,9 @@ export async function executeRecordQuery(database: D1Database, definition: Recor
   const sortField = fields[definition.sort?.field ?? 'sequence'] ?? fields.sequence!;
   const direction = definition.sort?.direction === 'desc' ? 'DESC' : 'ASC';
   const limit = Math.min(200, Math.max(1, definition.maxRows ?? 50));
-  const result = await database.prepare(`SELECT ${selectSql} FROM content_records record
-    JOIN dataset_versions dataset ON dataset.id = record.dataset_id
+  const result = await database.prepare(`SELECT ${selectSql} FROM api_current_content publication
+    JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
+    JOIN content_revisions revision ON revision.id = publication.revision_id
     WHERE ${predicates.join(' AND ')} ORDER BY ${sortField.expression} ${direction} LIMIT ?`)
     .bind(...bindings, limit).all<Record<string, unknown>>();
   return result.results;
