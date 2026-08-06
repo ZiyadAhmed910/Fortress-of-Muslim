@@ -315,7 +315,7 @@ async function refreshSession() {
   $('[data-sidebar-name]').textContent = state.user.name || 'Developer'; setView(location.hash.slice(1) || 'overview');
   const resources = await Promise.allSettled([loadKeys(), loadApps(), loadDevices(), loadMcp(), loadQueries(), loadSecurity(), loadUsage()]);
   const failed = resources.filter((result) => result.status === 'rejected');
-  if (failed.length) notify(`${failed.length} console section${failed.length === 1 ? '' : 's'} could not be loaded. Retry by refreshing the page.`, true);
+  if (failed.length) notify(`${failed.length} console section${failed.length === 1 ? '' : 's'} could not be loaded. Use the Retry button in each affected section.`, true);
   if (sessionStorage.getItem('fortress-device-code')) location.href = '/device.html';
 }
 
@@ -408,32 +408,42 @@ $('#totp-confirm-form').addEventListener('submit', async (event) => {
 });
 
 async function loadSecurity() {
-  const result = await authJson('/api/auth/passkey/list-user-passkeys');
-  state.passkeys = Array.isArray(result) ? result : [];
-  $('#security-metrics').innerHTML = `<div><span>Two-factor</span><strong>${state.user?.twoFactorEnabled ? 'Enabled' : 'Not enabled'}</strong></div><div><span>Passkeys</span><strong>${state.passkeys.length}</strong></div>`;
-  render('#passkey-list', state.passkeys, (passkeyItem) => `<div class="security-row"><span><strong>${esc(passkeyItem.name || 'Passkey')}</strong><small>${formatDate(passkeyItem.createdAt)} &middot; ${passkeyItem.backedUp ? 'Synced' : 'This authenticator'}</small></span><button class="button compact" data-delete-passkey="${esc(passkeyItem.id)}">Remove</button></div>`);
-  $('#totp-enable-form').hidden = Boolean(state.user?.twoFactorEnabled);
+  await withListState('#passkey-list', async () => {
+    const result = await authJson('/api/auth/passkey/list-user-passkeys');
+    state.passkeys = Array.isArray(result) ? result : [];
+    $('#security-metrics').innerHTML = `<div><span>Two-factor</span><strong>${state.user?.twoFactorEnabled ? 'Enabled' : 'Not enabled'}</strong></div><div><span>Passkeys</span><strong>${state.passkeys.length}</strong></div>`;
+    render('#passkey-list', state.passkeys, (passkeyItem) => `<div class="security-row"><span><strong>${esc(passkeyItem.name || 'Passkey')}</strong><small>${formatDate(passkeyItem.createdAt)} &middot; ${passkeyItem.backedUp ? 'Synced' : 'This authenticator'}</small></span><button class="button compact" data-delete-passkey="${esc(passkeyItem.id)}">Remove</button></div>`);
+    $('#totp-enable-form').hidden = Boolean(state.user?.twoFactorEnabled);
+  });
 }
 
 async function loadKeys() {
-  const result = await authJson('/api/auth/api-key/list'); state.keys = Array.isArray(result) ? result : result.apiKeys || [];
-  reconcileBrowserKeys(state.keys);
-  $('#metric-keys').textContent = state.keys.length;
-  render('#api-key-list', state.keys, (key) => `<div class="resource-row"><span class="row-title"><strong>${esc(key.name || 'Unnamed key')}</strong><small>${formatDate(key.createdAt)}</small></span><code>${esc(key.start || key.prefix || 'fom_')}...</code><span>${key.expiresAt ? formatDate(key.expiresAt) : 'Never'}</span><span class="status">Active</span><button class="button compact" data-revoke-key="${esc(key.id)}">Revoke</button></div>`);
+  await withListState('#api-key-list', async () => {
+    const result = await authJson('/api/auth/api-key/list'); state.keys = Array.isArray(result) ? result : result.apiKeys || [];
+    reconcileBrowserKeys(state.keys);
+    $('#metric-keys').textContent = state.keys.length;
+    render('#api-key-list', state.keys, (key) => `<div class="resource-row"><span class="row-title"><strong>${esc(key.name || 'Unnamed key')}</strong><small>${formatDate(key.createdAt)}</small></span><code>${esc(key.start || key.prefix || 'fom_')}...</code><span>${key.expiresAt ? formatDate(key.expiresAt) : 'Never'}</span><span class="status">Active</span><button class="button compact" data-revoke-key="${esc(key.id)}">Revoke</button></div>`);
+  });
 }
 async function loadApps() {
-  const result = await authJson('/api/auth/oauth2/get-clients'); state.apps = Array.isArray(result) ? result : result?.clients || [];
-  $('#metric-apps').textContent = state.apps.length; updateAppSelects();
-  render('#oauth-list', state.apps, (app) => { const id = app.client_id || app.clientId; const redirects = app.redirect_uris || app.redirectUris || []; const method = app.token_endpoint_auth_method || app.tokenEndpointAuthMethod || (app.public ? 'none' : 'client secret'); const disabled = Number(app.disabled ?? 0) === 1; return `<div class="resource-row apps-grid"><span class="row-title"><strong>${esc(app.client_name || app.name || 'Connected app')}</strong><small>${disabled ? 'Disabled' : formatDate(app.created_at || app.createdAt)}</small></span><code>${esc(id)}</code><span>${esc(methodLabel(method))}</span><span title="${esc(arrayValue(redirects).join('\n'))}">${esc(displayRedirect(redirects))}</span><span class="row-actions"><button class="button compact" data-app-status="${disabled ? 'active' : 'disabled'}" data-app="${esc(id)}">${disabled ? 'Enable' : 'Disable'}</button><button class="button compact" data-delete-app="${esc(id)}">Delete</button></span></div>`; });
+  await withListState('#oauth-list', async () => {
+    const result = await authJson('/api/auth/oauth2/get-clients'); state.apps = Array.isArray(result) ? result : result?.clients || [];
+    $('#metric-apps').textContent = state.apps.length; updateAppSelects();
+    render('#oauth-list', state.apps, (app) => { const id = app.client_id || app.clientId; const redirects = app.redirect_uris || app.redirectUris || []; const method = app.token_endpoint_auth_method || app.tokenEndpointAuthMethod || (app.public ? 'none' : 'client secret'); const disabled = Number(app.disabled ?? 0) === 1; return `<div class="resource-row apps-grid"><span class="row-title"><strong>${esc(app.client_name || app.name || 'Connected app')}</strong><small>${disabled ? 'Disabled' : formatDate(app.created_at || app.createdAt)}</small></span><code>${esc(id)}</code><span>${esc(methodLabel(method))}</span><span title="${esc(arrayValue(redirects).join('\n'))}">${esc(displayRedirect(redirects))}</span><span class="row-actions"><button class="button compact" data-app-status="${disabled ? 'active' : 'disabled'}" data-app="${esc(id)}">${disabled ? 'Enable' : 'Disable'}</button><button class="button compact" data-delete-app="${esc(id)}">Delete</button></span></div>`; });
+  });
 }
 async function loadDevices() {
-  const result = await authJson('/v1/control/devices'); state.devices = result.data || []; $('#metric-devices').textContent = state.devices.length;
-  render('#device-list', state.devices, (device) => `<div class="resource-row devices-grid"><span class="row-title"><strong>${esc(device.name)}</strong><small>${formatDate(device.createdAt)}</small></span><span>${esc(device.deviceType)}</span><span>${esc(methodLabel(device.authMethod))}</span><code>${esc(device.oauthClientId)}</code>${device.status === 'active' ? `<button class="button compact" data-revoke-device="${esc(device.id)}">Revoke</button>` : '<span class="status revoked">Revoked</span>'}</div>`);
+  await withListState('#device-list', async () => {
+    const result = await authJson('/v1/control/devices'); state.devices = result.data || []; $('#metric-devices').textContent = state.devices.length;
+    render('#device-list', state.devices, (device) => `<div class="resource-row devices-grid"><span class="row-title"><strong>${esc(device.name)}</strong><small>${formatDate(device.createdAt)}</small></span><span>${esc(device.deviceType)}</span><span>${esc(methodLabel(device.authMethod))}</span><code>${esc(device.oauthClientId)}</code>${device.status === 'active' ? `<button class="button compact" data-revoke-device="${esc(device.id)}">Revoke</button>` : '<span class="status revoked">Revoked</span>'}</div>`);
+  });
 }
 async function loadUsage() {
-  const result = await authJson('/v1/control/usage');
-  state.usage = result.data || null;
-  renderUsage();
+  await withListState('#usage-card', async () => {
+    const result = await authJson('/v1/control/usage');
+    state.usage = result.data || null;
+    renderUsage();
+  });
 }
 function renderUsage() {
   const usage = state.usage;
@@ -453,12 +463,16 @@ function renderUsage() {
   }).join('');
 }
 async function loadMcp() {
-  const [result,catalog] = await Promise.all([authJson('/v1/control/mcp/toolsets'),authJson('/v1/control/mcp/catalog')]); state.mcp = result.data || []; state.standardTools=catalog.data||[]; $('#metric-mcp').textContent = state.mcp.length; updateStandardToolSelect();
-  render('#mcp-list', state.mcp, (toolset) => `<section class="toolset-row"><header><span class="row-title"><strong>${esc(toolset.name)}</strong><small>${esc(toolset.description)} &middot; ${esc(toolset.status)}</small></span><span class="row-actions"><button class="button compact" data-toolset-status="${toolset.status === 'active' ? 'disabled' : 'active'}" data-toolset="${esc(toolset.id)}">${toolset.status === 'active' ? 'Disable' : 'Enable'}</button><button class="button compact" data-add-tool="${esc(toolset.id)}" ${toolset.status !== 'active' ? 'disabled' : ''}>Add tool</button></span></header><code>${mcpBase}?toolset=${esc(toolset.slug)}</code><div class="tool-chips">${toolset.tools.length?toolset.tools.map(tool=>`<span class="status">${esc(tool.name)} &middot; ${esc(tool.toolType)}${tool.approvalStatus!=='approved'?` &middot; ${esc(tool.approvalStatus)}`:''}<button class="chip-action" data-tool-status="${Number(tool.enabled) === 1 ? 'disabled' : 'active'}" data-tool="${esc(tool.id)}" data-toolset="${esc(toolset.id)}">${Number(tool.enabled) === 1 ? 'Disable' : 'Enable'}</button></span>`).join(''):'<small>No tools added.</small>'}</div></section>`);
+  await withListState('#mcp-list', async () => {
+    const [result,catalog] = await Promise.all([authJson('/v1/control/mcp/toolsets'),authJson('/v1/control/mcp/catalog')]); state.mcp = result.data || []; state.standardTools=catalog.data||[]; $('#metric-mcp').textContent = state.mcp.length; updateStandardToolSelect();
+    render('#mcp-list', state.mcp, (toolset) => `<section class="toolset-row"><header><span class="row-title"><strong>${esc(toolset.name)}</strong><small>${esc(toolset.description)} &middot; ${esc(toolset.status)}</small></span><span class="row-actions"><button class="button compact" data-toolset-status="${toolset.status === 'active' ? 'disabled' : 'active'}" data-toolset="${esc(toolset.id)}">${toolset.status === 'active' ? 'Disable' : 'Enable'}</button><button class="button compact" data-add-tool="${esc(toolset.id)}" ${toolset.status !== 'active' ? 'disabled' : ''}>Add tool</button></span></header><code>${mcpBase}?toolset=${esc(toolset.slug)}</code><div class="tool-chips">${toolset.tools.length?toolset.tools.map(tool=>`<span class="status">${esc(tool.name)} &middot; ${esc(tool.toolType)}${tool.approvalStatus!=='approved'?` &middot; ${esc(tool.approvalStatus)}`:''}<button class="chip-action" data-tool-status="${Number(tool.enabled) === 1 ? 'disabled' : 'active'}" data-tool="${esc(tool.id)}" data-toolset="${esc(toolset.id)}">${Number(tool.enabled) === 1 ? 'Disable' : 'Enable'}</button></span>`).join(''):'<small>No tools added.</small>'}</div></section>`);
+  });
 }
 async function loadQueries() {
-  const result = await authJson('/v1/control/named-queries'); state.queries = result.data || []; updateQuerySelect();
-  render('#query-list', state.queries, (query) => `<div class="resource-row query-grid"><span class="row-title"><strong>${esc(query.name)}</strong><small>${esc(query.description)}</small></span><span>${query.selectedFields?.length||0} fields &middot; ${query.filters?.length||0} filters</span><code>/queries/${esc(query.slug)}</code><span class="status">${esc(query.status)}</span><span class="row-actions"><button class="button compact" data-query-status="${query.status === 'active' ? 'disabled' : 'active'}" data-query="${esc(query.id)}">${query.status === 'active' ? 'Disable' : 'Enable'}</button><button class="button compact" data-test-query="${esc(query.slug)}" ${query.status !== 'active' ? 'disabled' : ''}>Test</button></span></div>`);
+  await withListState('#query-list', async () => {
+    const result = await authJson('/v1/control/named-queries'); state.queries = result.data || []; updateQuerySelect();
+    render('#query-list', state.queries, (query) => `<div class="resource-row query-grid"><span class="row-title"><strong>${esc(query.name)}</strong><small>${esc(query.description)}</small></span><span>${query.selectedFields?.length||0} fields &middot; ${query.filters?.length||0} filters</span><code>/queries/${esc(query.slug)}</code><span class="status">${esc(query.status)}</span><span class="row-actions"><button class="button compact" data-query-status="${query.status === 'active' ? 'disabled' : 'active'}" data-query="${esc(query.id)}">${query.status === 'active' ? 'Disable' : 'Enable'}</button><button class="button compact" data-test-query="${esc(query.slug)}" ${query.status !== 'active' ? 'disabled' : ''}>Test</button></span></div>`);
+  });
 }
 
 function updateAppSelects() { const activeApps=state.apps.filter((app)=>Number(app.disabled??0)!==1); $$('[data-oauth-client-select]').forEach((select) => { select.innerHTML = activeApps.length ? activeApps.map((app) => `<option value="${esc(app.client_id || app.clientId)}">${esc(app.client_name || app.name || app.client_id)}</option>`).join('') : '<option value="">Create or enable a connected app first</option>'; }); }
@@ -482,6 +496,26 @@ function reconcileBrowserKeys(serverKeys) {
 }
 function reveal(selector, title, secret, note) { const target = $(selector); target.innerHTML = `<strong>${esc(title)}</strong><button class="button compact" type="button" data-copy-secret>Copy</button><code>${esc(secret)}</code><small>${esc(note)}</small>`; target.hidden = false; $('[data-copy-secret]', target).addEventListener('click', async (event) => { await navigator.clipboard.writeText(secret); event.currentTarget.textContent = 'Copied'; }); }
 function render(selector, items, renderer) { $(selector).innerHTML = items.length ? items.map(renderer).join('') : '<p class="empty-row">Nothing created yet.</p>'; }
+function renderLoading(selector) { const node = $(selector); if (node) node.innerHTML = '<p class="empty-row loading">Loading&hellip;</p>'; }
+function renderLoadError(selector, retry) {
+  const node = $(selector);
+  if (!node) return;
+  node.innerHTML = '<p class="empty-row error">This section could not be loaded.<button type="button" class="button compact" data-retry-section>Retry</button></p>';
+  $('[data-retry-section]', node).addEventListener('click', () => withListState(selector, retry), { once: true });
+}
+// Every console section fetches independently (Promise.allSettled in refreshSession), so one
+// section failing must not leave it silently blank -- without this a slow/failed request left
+// the table exactly as static console.html defined it (nothing at all), indistinguishable from
+// "still loading" or "genuinely empty", with only a 5s toast as any signal.
+async function withListState(selector, loader) {
+  renderLoading(selector);
+  try {
+    await loader();
+  } catch (error) {
+    renderLoadError(selector, loader);
+    throw error;
+  }
+}
 async function action(work, success, form) { setFormBusy(form, true); try { await work(); notify(success); } catch (error) { notify(error.message, true); } finally { setFormBusy(form, false); } }
 function notify(message, error = false) { const node = $('#console-message'); node.textContent = message; node.setAttribute('role', error ? 'alert' : 'status'); node.style.borderLeftColor = error ? 'var(--bad)' : 'var(--brand)'; node.hidden = false; clearTimeout(notify.timer); notify.timer = setTimeout(() => { node.hidden = true; }, 5000); }
 async function authJson(path, options = {}) {
