@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@fortress/contracts": "0.19.0"
+    "@fortress/contracts": "0.19.1"
   },
   "scripts": {
     "dev": "wrangler dev --env test",
