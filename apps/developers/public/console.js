@@ -4,6 +4,12 @@ const state = { user: null, keys: [], apps: [], devices: [], mcp: [], queries: [
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const REQUEST_TIMEOUT_MS = 12_000;
+// WebAuthn ceremonies wait on a human (touch a sensor, approve on a phone, scan a cross-device QR
+// code) and legitimately take much longer than a network request -- 12s would abort real, slow,
+// successful flows. This is still bounded, unlike leaving it unset: without a signal, a stalled
+// browser/OS passkey prompt leaves the await pending forever with the button stuck disabled and no
+// feedback, which is indistinguishable from "the click didn't register."
+const PASSKEY_CEREMONY_TIMEOUT_MS = 60_000;
 let drawerReturnFocus = null;
 
 $$('[data-auth-tab]').forEach((tab) => tab.addEventListener('click', () => {
@@ -68,8 +74,12 @@ $('[data-cancel-two-factor]').addEventListener('click', resetAuthPanels);
 $('[data-passkey-sign-in]').addEventListener('click', async (event) => {
   event.currentTarget.disabled = true;
   try {
+    if (!window.PublicKeyCredential) throw new Error('This browser does not support passkeys.');
     const options = await authJson('/api/auth/passkey/generate-authenticate-options');
-    const credential = await navigator.credentials.get({ publicKey: decodeRequestOptions(options) });
+    const credential = await navigator.credentials.get({
+      publicKey: decodeRequestOptions(options),
+      signal: AbortSignal.timeout(PASSKEY_CEREMONY_TIMEOUT_MS),
+    });
     if (!credential) throw new Error('Passkey sign-in was cancelled.');
     await authJson('/api/auth/passkey/verify-authentication', {
       method: 'POST',
@@ -275,7 +285,10 @@ $('#passkey-form').addEventListener('submit', async (event) => {
     if (!window.PublicKeyCredential) throw new Error('This browser does not support passkeys.');
     const name = new FormData(form).get('name');
     const options = await authJson(`/api/auth/passkey/generate-register-options?name=${encodeURIComponent(name)}`);
-    const credential = await navigator.credentials.create({ publicKey: decodeCreationOptions(options) });
+    const credential = await navigator.credentials.create({
+      publicKey: decodeCreationOptions(options),
+      signal: AbortSignal.timeout(PASSKEY_CEREMONY_TIMEOUT_MS),
+    });
     if (!credential) throw new Error('Passkey setup was cancelled.');
     await authJson('/api/auth/passkey/verify-registration', {
       method: 'POST',
@@ -512,6 +525,8 @@ function toBase64Url(value) {
 function friendlyCredentialError(error) {
   if (error?.name === 'NotAllowedError') return 'Passkey use was cancelled or timed out.';
   if (error?.name === 'InvalidStateError') return 'That passkey is already registered.';
+  if (error?.name === 'TimeoutError') return `No response after ${PASSKEY_CEREMONY_TIMEOUT_MS / 1000} seconds. Your device or browser may not have shown the passkey prompt -- try again.`;
+  if (error?.name === 'AbortError') return 'Passkey request was cancelled.';
   return error?.message || 'The passkey operation could not be completed.';
 }
 function setFormBusy(form, busy) { if (!form) return; form.setAttribute('aria-busy', String(busy)); $$('button[type="submit"]', form).forEach((button) => { button.disabled = busy; }); }
