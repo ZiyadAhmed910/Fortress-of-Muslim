@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-06T12:07:24.460Z",
+  "generatedAt": "2026-08-06T12:18:08.415Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
-      "lines": 584,
+      "lines": 615,
       "language": "ts",
       "exports": [
         "function createApp",
@@ -20,7 +20,7 @@
         "./repositories/d1-content-repository",
         "./types"
       ],
-      "routeCount": 25
+      "routeCount": 26
     },
     {
       "path": "apps/api/src/index.ts",
@@ -124,7 +124,7 @@
     },
     {
       "path": "apps/api/src/types.ts",
-      "lines": 58,
+      "lines": 70,
       "language": "ts",
       "exports": [
         "type Bindings",
@@ -135,7 +135,7 @@
     },
     {
       "path": "apps/api/test/api.test.ts",
-      "lines": 543,
+      "lines": 589,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -207,7 +207,7 @@
     },
     {
       "path": "apps/auth/src/admin-plane.ts",
-      "lines": 709,
+      "lines": 753,
       "language": "ts",
       "exports": [
         "function handleAdminPlane"
@@ -216,7 +216,7 @@
         "./types",
         "./editorial-plane"
       ],
-      "routeCount": 18
+      "routeCount": 21
     },
     {
       "path": "apps/auth/src/auth.ts",
@@ -252,7 +252,7 @@
     },
     {
       "path": "apps/auth/src/index.ts",
-      "lines": 633,
+      "lines": 705,
       "language": "ts",
       "exports": [
         "class AuthWorker"
@@ -285,7 +285,7 @@
     },
     {
       "path": "apps/auth/src/types.ts",
-      "lines": 66,
+      "lines": 78,
       "language": "ts",
       "exports": [
         "type AuthEnvironment",
@@ -294,6 +294,7 @@
         "type McpToolDefinition",
         "type KeyVerification",
         "type TokenVerification",
+        "type RateLimitResult",
         "type NamedQueryDefinition"
       ],
       "imports": [],
@@ -380,7 +381,7 @@
     },
     {
       "path": "apps/admin/public/app.js",
-      "lines": 1214,
+      "lines": 1236,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -769,6 +770,14 @@
       "exports": [],
       "imports": [],
       "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0010_rate_limits.sql",
+      "lines": 26,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
     }
   ],
   "routes": [
@@ -795,157 +804,164 @@
     },
     {
       "style": "hono",
+      "method": "USE",
+      "path": "/v1/*",
+      "file": "apps/api/src/app.ts",
+      "line": 138
+    },
+    {
+      "style": "hono",
       "method": "GET",
       "path": "/",
       "file": "apps/api/src/app.ts",
-      "line": 109
+      "line": 140
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/health",
       "file": "apps/api/src/app.ts",
-      "line": 118
+      "line": 149
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/health/database",
       "file": "apps/api/src/app.ts",
-      "line": 126
+      "line": 157
     },
     {
       "style": "hono",
       "method": "USE",
       "path": "/v1/*",
       "file": "apps/api/src/app.ts",
-      "line": 139
+      "line": 170
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1",
       "file": "apps/api/src/app.ts",
-      "line": 164
+      "line": 195
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/datasets/current",
       "file": "apps/api/src/app.ts",
-      "line": 183
+      "line": 214
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/collections",
       "file": "apps/api/src/app.ts",
-      "line": 198
+      "line": 229
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas",
       "file": "apps/api/src/app.ts",
-      "line": 208
+      "line": 239
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/search",
       "file": "apps/api/src/app.ts",
-      "line": 241
+      "line": 272
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/random",
       "file": "apps/api/src/app.ts",
-      "line": 272
+      "line": 303
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/:id/evidence",
       "file": "apps/api/src/app.ts",
-      "line": 288
+      "line": 319
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/:id/parts",
       "file": "apps/api/src/app.ts",
-      "line": 294
+      "line": 325
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/:id/parts/:position",
       "file": "apps/api/src/app.ts",
-      "line": 308
+      "line": 339
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/:id",
       "file": "apps/api/src/app.ts",
-      "line": 337
+      "line": 368
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/hadith",
       "file": "apps/api/src/app.ts",
-      "line": 352
+      "line": 383
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/hadith/search",
       "file": "apps/api/src/app.ts",
-      "line": 369
+      "line": 400
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/hadith/resolve",
       "file": "apps/api/src/app.ts",
-      "line": 387
+      "line": 418
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/hadith/:id",
       "file": "apps/api/src/app.ts",
-      "line": 405
+      "line": 436
     },
     {
       "style": "hono",
       "method": "POST",
       "path": "/v1/ask",
       "file": "apps/api/src/app.ts",
-      "line": 411
+      "line": 442
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/ask/status",
       "file": "apps/api/src/app.ts",
-      "line": 432
+      "line": 463
     },
     {
       "style": "hono",
       "method": "POST",
       "path": "/v1/internal/vector-index",
       "file": "apps/api/src/app.ts",
-      "line": 438
+      "line": 469
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/queries/:id",
       "file": "apps/api/src/app.ts",
-      "line": 449
+      "line": 480
     },
     {
       "style": "manual",
@@ -1069,11 +1085,19 @@
     },
     {
       "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/rate-limits",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 120
+    },
+    {
+      "style": "manual",
       "method": "(any)",
       "path": "/^\\/v1\\/admin\\/users\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 121
+      "line": 122
     },
     {
       "style": "manual",
@@ -1081,7 +1105,7 @@
       "path": "/^\\/v1\\/admin\\/sessions\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 128
+      "line": 129
     },
     {
       "style": "manual",
@@ -1089,7 +1113,23 @@
       "path": "/^\\/v1\\/admin\\/services\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 133
+      "line": 134
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/rate-limits\\/([a-z-]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 140
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "\r",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 146
     },
     {
       "style": "manual",
@@ -1527,6 +1567,14 @@
         "apps/auth/migrations/0001_identity.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "any",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js"
+      ]
     },
     {
       "name": "api_current_content",
@@ -2095,6 +2143,17 @@
       "referencedBy": []
     },
     {
+      "name": "plan_limits",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0010_rate_limits.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
       "name": "platform",
       "kind": "unknown",
       "definedIn": [],
@@ -2184,6 +2243,16 @@
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "rate_limit_counters",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0010_rate_limits.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts"
       ]
     },
     {
@@ -2297,7 +2366,8 @@
       "referencedBy": [
         "apps/api/src/rag.ts",
         "apps/auth/src/admin-plane.ts",
-        "apps/auth/src/editorial-plane.ts"
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/src/index.ts"
       ]
     },
     {

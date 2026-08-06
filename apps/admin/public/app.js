@@ -14,7 +14,7 @@ const state = {
   queueSelection: new Set(),
 };
 const roleViews = {
-  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'security', 'audit']),
+  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'rate-limits', 'security', 'audit']),
   editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'workload', 'users', 'rag']),
   reviewer: new Set(['overview', 'queue', 'books', 'assignments', 'workload', 'rag']),
 };
@@ -223,6 +223,7 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'users') await loadUsers(params);
     else if (id === 'taxonomy') await loadTaxonomy(params);
     else if (id === 'services') await loadServices();
+    else if (id === 'rate-limits') await loadRateLimits();
     else if (id === 'alerts') await loadAlerts();
     else if (id === 'operations') await loadOperations();
     else if (id === 'security') await loadSecurity();
@@ -956,6 +957,27 @@ async function loadServices() {
   const rows = (await api('/v1/admin/services')).data;
   $('#services-grid').innerHTML = rows.map((service) => `<article class="service-card"><header><strong>${esc(service.displayName)}</strong><span class="badge ${esc(service.status)}">${esc(service.status)}</span></header><p>${esc(service.serviceType)} &middot; ${esc(service.enforcement)} enforcement</p><small>${esc(service.maintenanceMessage)}</small><footer><code>${esc(service.serviceKey)}</code><div>${service.enforcement === 'worker' && service.serviceKey !== 'admin' ? ['active', 'maintenance', 'disabled'].filter((item) => item !== service.status).map((status) => `<button class="${status === 'disabled' ? 'danger' : ''}" data-service="${esc(service.serviceKey)}" data-service-status="${status}">${human(status)}</button>`).join('') : '<span class="badge">monitor only</span>'}</div></footer></article>`).join('');
 }
+
+async function loadRateLimits() {
+  const rows = (await api('/v1/admin/rate-limits')).data;
+  $('#rate-limits-table').innerHTML = tableHead(['Plan', 'Requests / minute', 'Requests / day', 'Developers', 'Last updated', ''])
+    + rows.map((row) => `<div class="row"><strong>${esc(human(row.planCode))}</strong><input type="number" min="1" max="100000" value="${row.requestsPerMinute}" data-limit-minute="${esc(row.planCode)}"><input type="number" min="1" max="50000000" value="${row.requestsPerDay}" data-limit-day="${esc(row.planCode)}"><span>${row.developerCount}</span><span>${date(row.updatedAt)}${row.updatedByName ? ` &middot; ${esc(row.updatedByName)}` : ''}</span><button data-save-limit="${esc(row.planCode)}">Save</button></div>`).join('');
+}
+$('#rate-limits-table').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-save-limit]');
+  if (!button) return;
+  const planCode = button.dataset.saveLimit;
+  const perMinute = Number($(`[data-limit-minute="${CSS.escape(planCode)}"]`).value);
+  const perDay = Number($(`[data-limit-day="${CSS.escape(planCode)}"]`).value);
+  if (!await confirmChange(`Update ${human(planCode)} plan limits?`, `New limit: ${perMinute} requests/minute, ${perDay} requests/day. Takes effect on the next request from any credential on this plan.`)) return;
+  try {
+    await api(`/v1/admin/rate-limits/${planCode}`, { method: 'PATCH', body: { requestsPerMinute: perMinute, requestsPerDay: perDay } });
+    notify('Rate limit updated.');
+    loadRateLimits();
+  } catch (error) {
+    notify(error.message, true);
+  }
+});
 
 async function loadAlerts() {
   const response = await api('/v1/admin/alerts');

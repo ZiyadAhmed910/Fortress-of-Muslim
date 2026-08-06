@@ -16,6 +16,14 @@ const envConfig = {
     getNamedQuery: async (id: string, ownerUserId: string) => id === 'qry-test' && ownerUserId === 'user-test' ? ({
       id, ownerUserId, operation: 'search' as const, parameters: { query: 'waking', limit: 5 },
     }) : null,
+    checkRateLimit: async () => ({
+      valid: true as const,
+      principalId: 'user-test',
+      planCode: 'basic',
+      allowed: true,
+      limit: { perMinute: 100, perDay: 5000 },
+      remaining: { perMinute: 99, perDay: 4999 },
+    }),
   },
 };
 const env = envConfig as never;
@@ -284,6 +292,44 @@ describe('Fortress Platform API', () => {
     expect(body.data[0]?.id).toBe('dua.hisn.001');
     expect(body.meta.namedQueryId).toBe('qry-test');
     expect(body.meta.total).toBe(1);
+  });
+
+  it('reports rate-limit headers on a credentialed request under its plan limit', async () => {
+    const response = await app.request('/v1/duas', authenticated, env);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('X-RateLimit-Limit-Minute')).toBe('100');
+    expect(response.headers.get('X-RateLimit-Remaining-Minute')).toBe('99');
+    expect(response.headers.get('X-RateLimit-Limit-Day')).toBe('5000');
+  });
+
+  it('does not rate-limit anonymous requests', async () => {
+    const response = await app.request('/v1/duas', {}, env);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('X-RateLimit-Limit-Minute')).toBeNull();
+  });
+
+  it('rejects a credentialed request over its plan limit with 429 and Retry-After', async () => {
+    const limitedEnv = {
+      ...envConfig,
+      AUTH: {
+        ...envConfig.AUTH,
+        checkRateLimit: async () => ({
+          valid: true as const,
+          principalId: 'user-test',
+          planCode: 'basic',
+          allowed: false,
+          limit: { perMinute: 100, perDay: 5000 },
+          remaining: { perMinute: 0, perDay: 4000 },
+          retryAfterSeconds: 60,
+        }),
+      },
+    } as never;
+    const response = await app.request('/v1/duas', authenticated, limitedEnv);
+    const body = await response.json() as { error: { code: string; message: string } };
+    expect(response.status).toBe(429);
+    expect(response.headers.get('Retry-After')).toBe('60');
+    expect(body.error.code).toBe('rate_limited');
+    expect(body.error.message).toContain('basic');
   });
 
   it('returns ordered part resources', async () => {

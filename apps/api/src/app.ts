@@ -106,6 +106,37 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
 
   app.use('/v1/queries/*', authorize);
 
+  // Anonymous requests are untouched by design (public reads stay public); this only meters
+  // requests that present a credential, keyed by plan via the AUTH worker's exact atomic counter
+  // (usage_events is sampled telemetry, not precise enough to enforce against). Registered ahead
+  // of the service-state/dataset middleware below so a rate-limited request fails fast.
+  const rateLimit = async (context: ApiContext, next: () => Promise<void>) => {
+    const credential = readCredential(context);
+    if (!credential) return next();
+    try {
+      const result = await context.env.AUTH.checkRateLimit(credential);
+      if (!result.valid) return next();
+      context.header('X-RateLimit-Limit-Minute', String(result.limit.perMinute));
+      context.header('X-RateLimit-Remaining-Minute', String(result.remaining.perMinute));
+      context.header('X-RateLimit-Limit-Day', String(result.limit.perDay));
+      context.header('X-RateLimit-Remaining-Day', String(result.remaining.perDay));
+      if (!result.allowed) {
+        context.header('Retry-After', String(result.retryAfterSeconds ?? 60));
+        return context.json({
+          error: {
+            code: 'rate_limited',
+            message: `Plan "${result.planCode}" rate limit exceeded.`,
+            requestId: context.get('requestId'),
+          },
+        }, 429);
+      }
+    } catch (error) {
+      console.error('Rate limit check failed; request proceeds unmetered.', error);
+    }
+    await next();
+  };
+  app.use('/v1/*', rateLimit);
+
   app.get('/', (context) => context.json({
     name: PLATFORM_NAME,
     description: 'Open-source Islamic data and agent platform',

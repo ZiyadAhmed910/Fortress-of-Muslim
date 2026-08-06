@@ -5,7 +5,7 @@ import { createAuthClient } from 'better-auth/client';
 import { createAuth } from './auth';
 import { handleAdminPlane } from './admin-plane';
 import { hasOversizedBody, isMutation, isTrustedBrowserMutation } from './security';
-import type { Bindings, KeyVerification, McpToolDefinition, NamedQueryDefinition, ServiceState, TokenVerification } from './types';
+import type { Bindings, KeyVerification, McpToolDefinition, NamedQueryDefinition, RateLimitResult, ServiceState, TokenVerification } from './types';
 
 const allowedMethods = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
 const allowedHeaders = 'Content-Type, Authorization, X-Fortress-API-Key, X-Request-ID';
@@ -394,6 +394,78 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
     } catch (error) {
       return { valid: false, error: error instanceof Error ? error.message : 'Invalid access token.' };
     }
+  }
+
+  // Resolves the credential to a principal exactly like verifyApiKey/verifyBearerToken, then
+  // enforces a plan-based limit with an exact atomic counter (usage_events is sampled telemetry
+  // and is not precise enough to enforce against -- see the platform's own architectural rule
+  // that rate enforcement and analytics are separate responsibilities). Anonymous requests never
+  // reach this method; callers only invoke it when a credential is actually present.
+  async checkRateLimit(credential: string): Promise<RateLimitResult> {
+    let principalId: string | undefined;
+    if (credential.startsWith('fom_')) {
+      const result = await this.verifyApiKey(credential);
+      if (result.valid && result.key) principalId = result.key.referenceId;
+    } else {
+      const result = await this.verifyBearerToken(credential);
+      if (result.valid) principalId = result.ownerUserId ?? result.subject;
+    }
+    if (!principalId) return { valid: false };
+
+    const planRow = await this.env.IDENTITY_DB.prepare(`
+      SELECT COALESCE((SELECT plan_code FROM developer_profiles WHERE user_id = ?), 'basic') AS planCode
+    `).bind(principalId).first<{ planCode: string }>();
+    const planCode = planRow?.planCode ?? 'basic';
+
+    let limitRow = await this.env.IDENTITY_DB.prepare(`
+      SELECT requests_per_minute AS perMinute, requests_per_day AS perDay FROM plan_limits WHERE plan_code = ?
+    `).bind(planCode).first<{ perMinute: number; perDay: number }>();
+    if (!limitRow) {
+      limitRow = await this.env.IDENTITY_DB.prepare(`
+        SELECT requests_per_minute AS perMinute, requests_per_day AS perDay FROM plan_limits WHERE plan_code = 'basic'
+      `).first<{ perMinute: number; perDay: number }>();
+    }
+    const limit = { perMinute: limitRow?.perMinute ?? 100, perDay: limitRow?.perDay ?? 5000 };
+
+    const now = new Date();
+    const minuteStart = new Date(Math.floor(now.getTime() / 60_000) * 60_000).toISOString();
+    const dayStart = now.toISOString().slice(0, 10);
+
+    const [minuteResult, dayResult] = await Promise.all([
+      this.incrementRateLimitCounter(principalId, 'minute', minuteStart),
+      this.incrementRateLimitCounter(principalId, 'day', dayStart),
+    ]);
+
+    const allowed = minuteResult <= limit.perMinute && dayResult <= limit.perDay;
+    if (Math.random() < 0.01) {
+      await this.env.IDENTITY_DB.prepare(
+        "DELETE FROM rate_limit_counters WHERE (window_kind = 'minute' AND window_start < datetime('now', '-1 hour')) OR (window_kind = 'day' AND window_start < date('now', '-7 days'))",
+      ).run();
+    }
+
+    return {
+      valid: true,
+      principalId,
+      planCode,
+      allowed,
+      limit,
+      remaining: {
+        perMinute: Math.max(0, limit.perMinute - minuteResult),
+        perDay: Math.max(0, limit.perDay - dayResult),
+      },
+      retryAfterSeconds: allowed ? undefined : (minuteResult > limit.perMinute ? 60 : 86400),
+    };
+  }
+
+  private async incrementRateLimitCounter(credentialId: string, windowKind: 'minute' | 'day', windowStart: string): Promise<number> {
+    const row = await this.env.IDENTITY_DB.prepare(`
+      INSERT INTO rate_limit_counters (credential_id, window_kind, window_start, request_count)
+      VALUES (?, ?, ?, 1)
+      ON CONFLICT (credential_id, window_kind, window_start) DO UPDATE SET
+        request_count = request_count + 1
+      RETURNING request_count AS requestCount
+    `).bind(credentialId, windowKind, windowStart).first<{ requestCount: number }>();
+    return row?.requestCount ?? 1;
   }
 
   async getNamedQuery(id: string, ownerUserId: string): Promise<NamedQueryDefinition | null> {

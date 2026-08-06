@@ -79,6 +79,7 @@
         <a href="#operations" data-nav><span>Operations monitor</span></a>
         <a href="#rag" data-nav><span>RAG monitor</span></a>
         <a href="#services" data-nav><span>Service control</span></a>
+        <a href="#rate-limits" data-nav><span>Rate limits</span></a>
         <a href="#security" data-nav><span>Account security</span></a>
         <a href="#audit" data-nav><span>Audit log</span></a>
       </nav>
@@ -217,6 +218,11 @@
       <section id="services" class="view" hidden>
         <header><div><span class="kicker">OPERATIONS</span><h1>Service control</h1><p>Place Worker-enforced services into maintenance or disabled state.</p></div></header>
         <div id="services-grid" class="service-grid"></div>
+      </section>
+
+      <section id="rate-limits" class="view" hidden>
+        <header><div><span class="kicker">OPERATIONS</span><h1>Rate limits</h1><p>Per-plan request limits enforced on every credentialed API request. Anonymous public reads are never limited.</p></div></header>
+        <div id="rate-limits-table" class="table"></div>
       </section>
 
       <section id="alerts" class="view" hidden>

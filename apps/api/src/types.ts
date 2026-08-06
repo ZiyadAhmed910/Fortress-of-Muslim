@@ -46,6 +46,18 @@ export type Bindings = {
       message: string;
       enforcement: 'worker' | 'external' | 'none';
     }>;
+    checkRateLimit(credential: string): Promise<
+      | { valid: false }
+      | {
+          valid: true;
+          principalId: string;
+          planCode: string;
+          allowed: boolean;
+          limit: { perMinute: number; perDay: number };
+          remaining: { perMinute: number; perDay: number };
+          retryAfterSeconds?: number;
+        }
+    >;
   };
 };
 
