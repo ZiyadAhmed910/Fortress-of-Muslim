@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T02:55:32.627Z",
+  "generatedAt": "2026-08-07T04:05:36.792Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -64,7 +64,7 @@
     },
     {
       "path": "apps/api/src/lib/record-query.ts",
-      "lines": 58,
+      "lines": 88,
       "language": "ts",
       "exports": [
         "type RecordQueryDefinition",
@@ -121,7 +121,7 @@
     },
     {
       "path": "apps/api/src/repositories/d1-content-repository.ts",
-      "lines": 624,
+      "lines": 635,
       "language": "ts",
       "exports": [
         "class D1ContentRepository"
@@ -154,6 +154,20 @@
         "@fortress/contracts",
         "../src/app",
         "../src/repositories/content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/arabic-search.test.ts",
+      "lines": 133,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/repositories/d1-content-repository"
       ],
       "routeCount": 0
     },
@@ -204,10 +218,13 @@
     },
     {
       "path": "apps/api/test/record-query.test.ts",
-      "lines": 27,
+      "lines": 182,
       "language": "ts",
       "exports": [],
       "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
         "vitest",
         "../src/lib/record-query"
       ],
@@ -261,7 +278,7 @@
     },
     {
       "path": "apps/auth/src/editorial-plane.ts",
-      "lines": 2266,
+      "lines": 2340,
       "language": "ts",
       "exports": [
         "type EditorialRole",
@@ -271,13 +288,14 @@
       "imports": [
         "./types",
         "./webhooks",
-        "./taxonomy"
+        "./taxonomy",
+        "./notifications"
       ],
-      "routeCount": 31
+      "routeCount": 34
     },
     {
       "path": "apps/auth/src/index.ts",
-      "lines": 822,
+      "lines": 845,
       "language": "ts",
       "exports": [
         "class AuthWorker"
@@ -293,7 +311,23 @@
         "./webhooks",
         "./types"
       ],
-      "routeCount": 26
+      "routeCount": 27
+    },
+    {
+      "path": "apps/auth/src/notifications.ts",
+      "lines": 49,
+      "language": "ts",
+      "exports": [
+        "type NotificationType",
+        "function notificationStatement",
+        "function listNotifications",
+        "function markNotificationRead",
+        "function markAllNotificationsRead"
+      ],
+      "imports": [
+        "./types"
+      ],
+      "routeCount": 0
     },
     {
       "path": "apps/auth/src/security.ts",
@@ -367,7 +401,7 @@
     },
     {
       "path": "apps/auth/test/editorial-pilot.test.ts",
-      "lines": 463,
+      "lines": 641,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -459,7 +493,7 @@
     },
     {
       "path": "apps/admin/public/app.js",
-      "lines": 1300,
+      "lines": 1408,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -475,7 +509,7 @@
     },
     {
       "path": "apps/developers/public/console.js",
-      "lines": 686,
+      "lines": 711,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -491,7 +525,7 @@
     },
     {
       "path": "apps/developers/public/oauth.js",
-      "lines": 104,
+      "lines": 112,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -779,7 +813,15 @@
     },
     {
       "path": "apps/api/migrations/0015_taxonomy_seed.sql",
-      "lines": 19,
+      "lines": 23,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0016_editorial_notifications.sql",
+      "lines": 18,
       "language": "sql",
       "exports": [],
       "imports": [],
@@ -1239,7 +1281,7 @@
       "path": "/v1/admin/editorial",
       "matchKind": "prefix",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 55
+      "line": 56
     },
     {
       "style": "manual",
@@ -1247,7 +1289,7 @@
       "path": "/v1/admin/editorial/overview",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 57
+      "line": 58
     },
     {
       "style": "manual",
@@ -1255,7 +1297,7 @@
       "path": "/v1/admin/editorial/rag",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 60
+      "line": 61
     },
     {
       "style": "manual",
@@ -1263,7 +1305,7 @@
       "path": "/v1/admin/editorial/workload",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 63
+      "line": 64
     },
     {
       "style": "manual",
@@ -1271,7 +1313,7 @@
       "path": "/v1/admin/editorial/queue",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 66
+      "line": 67
     },
     {
       "style": "manual",
@@ -1279,7 +1321,7 @@
       "path": "/v1/admin/editorial/lookups",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 69
+      "line": 70
     },
     {
       "style": "manual",
@@ -1287,7 +1329,7 @@
       "path": "/v1/admin/editorial/records",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 72
+      "line": 73
     },
     {
       "style": "manual",
@@ -1295,7 +1337,7 @@
       "path": "/v1/admin/editorial/records/bulk-decision",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 76
+      "line": 77
     },
     {
       "style": "manual",
@@ -1303,7 +1345,7 @@
       "path": "/v1/admin/editorial/books",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 80
+      "line": 81
     },
     {
       "style": "manual",
@@ -1311,7 +1353,7 @@
       "path": "/v1/admin/editorial/assignments",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 83
+      "line": 84
     },
     {
       "style": "manual",
@@ -1319,7 +1361,7 @@
       "path": "/v1/admin/editorial/assignments",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 86
+      "line": 87
     },
     {
       "style": "manual",
@@ -1327,7 +1369,7 @@
       "path": "/^\\/v1\\/admin\\/editorial\\/assignments\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 90
+      "line": 91
     },
     {
       "style": "manual",
@@ -1335,7 +1377,7 @@
       "path": "/v1/admin/editorial/batches",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 98
+      "line": 99
     },
     {
       "style": "manual",
@@ -1343,7 +1385,7 @@
       "path": "/v1/admin/editorial/batches",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 101
+      "line": 102
     },
     {
       "style": "manual",
@@ -1351,7 +1393,7 @@
       "path": "/v1/admin/editorial/roles",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 105
+      "line": 106
     },
     {
       "style": "manual",
@@ -1359,7 +1401,31 @@
       "path": "/v1/admin/editorial/roles",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 109
+      "line": 110
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/notifications",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 114
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/notifications/read-all",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 117
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/notifications\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 120
     },
     {
       "style": "manual",
@@ -1367,7 +1433,7 @@
       "path": "/^\\/v1\\/admin\\/editorial\\/books\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 114
+      "line": 127
     },
     {
       "style": "manual",
@@ -1375,7 +1441,7 @@
       "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 124
+      "line": 137
     },
     {
       "style": "manual",
@@ -1383,23 +1449,7 @@
       "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 128
-    },
-    {
-      "style": "manual",
-      "method": "(any)",
-      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
-      "matchKind": "pattern",
-      "file": "apps/auth/src/editorial-plane.ts",
-      "line": 132
-    },
-    {
-      "style": "manual",
-      "method": "(any)",
-      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
-      "matchKind": "pattern",
-      "file": "apps/auth/src/editorial-plane.ts",
-      "line": 140
+      "line": 141
     },
     {
       "style": "manual",
@@ -1415,7 +1465,7 @@
       "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 150
+      "line": 153
     },
     {
       "style": "manual",
@@ -1431,7 +1481,23 @@
       "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 162
+      "line": 163
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 171
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 175
     },
     {
       "style": "manual",
@@ -1439,23 +1505,7 @@
       "path": "\r",
       "matchKind": "pattern",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 167
-    },
-    {
-      "style": "manual",
-      "method": "(any)",
-      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
-      "matchKind": "pattern",
-      "file": "apps/auth/src/editorial-plane.ts",
       "line": 180
-    },
-    {
-      "style": "manual",
-      "method": "(any)",
-      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
-      "matchKind": "pattern",
-      "file": "apps/auth/src/editorial-plane.ts",
-      "line": 189
     },
     {
       "style": "manual",
@@ -1467,11 +1517,27 @@
     },
     {
       "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 202
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 206
+    },
+    {
+      "style": "manual",
       "method": "GET",
       "path": "/v1/admin/editorial/datasets",
       "matchKind": "exact",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 203
+      "line": 216
     },
     {
       "style": "manual",
@@ -1479,7 +1545,7 @@
       "path": "/^\\/v1\\/admin\\/editorial\\/datasets\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/editorial-plane.ts",
-      "line": 206
+      "line": 219
     },
     {
       "style": "manual",
@@ -1491,19 +1557,11 @@
     },
     {
       "style": "manual",
-      "method": "(any)",
-      "path": "/v1/admin/",
-      "matchKind": "prefix",
+      "method": "GET",
+      "path": "/v1/oauth/client-name",
+      "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 68
-    },
-    {
-      "style": "manual",
-      "method": "(any)",
-      "path": "/v1/admin/",
-      "matchKind": "prefix",
-      "file": "apps/auth/src/index.ts",
-      "line": 79
+      "line": 71
     },
     {
       "style": "manual",
@@ -1515,11 +1573,27 @@
     },
     {
       "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/index.ts",
+      "line": 93
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/index.ts",
+      "line": 96
+    },
+    {
+      "style": "manual",
       "method": "GET",
       "path": "/v1/control/profile",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 101
+      "line": 115
     },
     {
       "style": "manual",
@@ -1527,7 +1601,7 @@
       "path": "/v1/control/usage",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 108
+      "line": 122
     },
     {
       "style": "manual",
@@ -1535,7 +1609,7 @@
       "path": "/v1/control/mcp-servers",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 155
+      "line": 169
     },
     {
       "style": "manual",
@@ -1543,7 +1617,7 @@
       "path": "/v1/control/mcp-servers",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 165
+      "line": 179
     },
     {
       "style": "manual",
@@ -1551,7 +1625,7 @@
       "path": "/v1/control/devices",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 186
+      "line": 200
     },
     {
       "style": "manual",
@@ -1559,7 +1633,7 @@
       "path": "/v1/control/devices",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 196
+      "line": 210
     },
     {
       "style": "manual",
@@ -1567,7 +1641,7 @@
       "path": "/^\\/v1\\/control\\/devices\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 220
+      "line": 234
     },
     {
       "style": "manual",
@@ -1575,7 +1649,7 @@
       "path": "/^\\/v1\\/control\\/oauth-clients\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 229
+      "line": 243
     },
     {
       "style": "manual",
@@ -1583,7 +1657,7 @@
       "path": "/v1/control/named-queries",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 255
+      "line": 269
     },
     {
       "style": "manual",
@@ -1591,7 +1665,7 @@
       "path": "/v1/control/named-queries",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 267
+      "line": 281
     },
     {
       "style": "manual",
@@ -1599,7 +1673,7 @@
       "path": "/^\\/v1\\/control\\/named-queries\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 281
+      "line": 295
     },
     {
       "style": "manual",
@@ -1607,7 +1681,7 @@
       "path": "/v1/control/mcp/catalog",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 295
+      "line": 309
     },
     {
       "style": "manual",
@@ -1615,7 +1689,7 @@
       "path": "/v1/control/mcp/toolsets",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 297
+      "line": 311
     },
     {
       "style": "manual",
@@ -1623,15 +1697,7 @@
       "path": "/v1/control/mcp/toolsets",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 309
-    },
-    {
-      "style": "manual",
-      "method": "(any)",
-      "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
-      "matchKind": "pattern",
-      "file": "apps/auth/src/index.ts",
-      "line": 317
+      "line": 323
     },
     {
       "style": "manual",
@@ -1647,7 +1713,15 @@
       "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 346
+      "line": 345
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 360
     },
     {
       "style": "manual",
@@ -1655,7 +1729,7 @@
       "path": "/v1/control/webhooks",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 364
+      "line": 378
     },
     {
       "style": "manual",
@@ -1663,15 +1737,7 @@
       "path": "/v1/control/webhooks",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 384
-    },
-    {
-      "style": "manual",
-      "method": "(any)",
-      "path": "/^\\/v1\\/control\\/webhooks\\/([^/]+",
-      "matchKind": "pattern",
-      "file": "apps/auth/src/index.ts",
-      "line": 397
+      "line": 398
     },
     {
       "style": "manual",
@@ -1684,10 +1750,18 @@
     {
       "style": "manual",
       "method": "(any)",
+      "path": "/^\\/v1\\/control\\/webhooks\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 425
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
       "path": "/^\\/v1\\/control\\/webhooks\\/deliveries\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 424
+      "line": 438
     },
     {
       "style": "manual",
@@ -1713,6 +1787,8 @@
       "definedIn": [],
       "referencedBy": [
         "apps/admin/public/app.js",
+        "apps/api/test/record-query.test.ts",
+        "apps/auth/src/editorial-plane.ts",
         "apps/auth/src/index.ts"
       ]
     },
@@ -1774,6 +1850,14 @@
       ]
     },
     {
+      "name": "Arabic",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js"
+      ]
+    },
+    {
       "name": "audit_events",
       "kind": "table",
       "definedIn": [
@@ -1793,7 +1877,9 @@
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]
@@ -1819,6 +1905,7 @@
       "referencedBy": [
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/arabic-search.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -1841,6 +1928,7 @@
       "referencedBy": [
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/arabic-search.test.ts",
         "apps/api/test/rag-index.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts"
@@ -1856,8 +1944,11 @@
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
-        "apps/auth/src/editorial-plane.ts"
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
       ]
     },
     {
@@ -1876,13 +1967,17 @@
       "name": "canonical_search_fts",
       "kind": "virtual_table",
       "definedIn": [
+        "apps/api/test/record-query.test.ts",
+        "apps/api/test/record-query.test.ts",
         "apps/auth/test/editorial-pilot.test.ts",
         "apps/auth/test/editorial-pilot.test.ts",
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
         "apps/api/src/repositories/d1-content-repository.ts",
-        "apps/auth/src/editorial-plane.ts"
+        "apps/api/test/arabic-search.test.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
       ]
     },
     {
@@ -1892,6 +1987,7 @@
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -1904,8 +2000,10 @@
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]
@@ -1939,6 +2037,8 @@
         "apps/api/migrations/0001_content_schema.sql"
       ],
       "referencedBy": [
+        "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -1952,14 +2052,19 @@
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
-        "apps/auth/src/editorial-plane.ts"
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
       ]
     },
     {
       "name": "content_search_fts",
       "kind": "virtual_table",
       "definedIn": [
+        "apps/api/test/record-query.test.ts",
+        "apps/api/test/record-query.test.ts",
         "apps/auth/test/editorial-pilot.test.ts",
         "apps/auth/test/editorial-pilot.test.ts",
         "apps/api/migrations/0004_corpus_ingestion.sql"
@@ -1991,7 +2096,9 @@
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": [
-        "apps/api/src/repositories/d1-content-repository.ts"
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
       ]
     },
     {
@@ -2080,12 +2187,23 @@
       ]
     },
     {
+      "name": "editorial_notifications",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0016_editorial_notifications.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/notifications.ts"
+      ]
+    },
+    {
       "name": "editorial_record_state",
       "kind": "table",
       "definedIn": [
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
+        "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -2528,8 +2646,10 @@
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2623,6 +2743,7 @@
         "apps/admin/public/app.js",
         "apps/api/src/rag.ts",
         "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts",
         "apps/developers/public/console.js",
         "apps/status/public/app.js",
@@ -2728,6 +2849,14 @@
         "apps/auth/src/index.ts",
         "apps/auth/src/webhooks.ts",
         "apps/auth/test/webhooks.test.ts"
+      ]
+    },
+    {
+      "name": "what",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/auth/test/editorial-pilot.test.ts"
       ]
     }
   ]

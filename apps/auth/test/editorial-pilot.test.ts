@@ -319,6 +319,70 @@ describe('canonical editorial pilot', () => {
         AND reviewer_external_id = '${reviewer.user.id}' AND decision = 'verified'`)).toBe(13);
   });
 
+  // Search normalization (see normalizeArabicSql in editorial-plane.ts) strips Arabic tashkeel and
+  // folds alef-hamza variants before writing canonical_search_fts, because SQLite FTS5's
+  // remove_diacritics tokenizer option does not cover Arabic combining marks -- verified empirically
+  // against a real FTS5 table before this fix (a diacritic-free query does not match diacritic-bearing
+  // stored text). This proves the real decideBook publish path leaves canonical_search_fts normalized,
+  // not just the isolated normalizeArabicSql/normalizeArabicJs functions in a unit test.
+  it('normalizes Arabic diacritics and alef-hamza variants when publishing a verified book into canonical_search_fts', async () => {
+    const content = createContentDatabase();
+    const identity = createIdentityDatabase();
+    const env = { CONTENT_DB: d1(content), IDENTITY_DB: d1(identity) } as never;
+    const editor = context(env, 'arabic-book-editor', 'editor');
+    const reviewer = context(env, 'arabic-book-reviewer', 'reviewer');
+    seedIdentity(identity, [editor, reviewer]);
+    content.exec(`
+      INSERT INTO collections (
+        id, slug, content_type, title, default_language_code, verification_status
+      ) VALUES ('collection.test.arabic', 'test-arabic', 'hadith', 'Test Arabic Hadith', 'en', 'pending');
+      INSERT INTO books (
+        id, collection_id, book_number, title, position
+      ) VALUES ('book.test.arabic.1', 'collection.test.arabic', '1', 'Book of Testing', 1);
+      INSERT INTO chapters (
+        id, book_id, chapter_number, title, position
+      ) VALUES ('chapter.test.arabic.1', 'book.test.arabic.1', '1', 'Chapter One', 1);
+    `);
+
+    const created = await post(editor, '/v1/admin/editorial/records', {
+      contentType: 'hadith',
+      title: 'Fasting is a shield',
+      collectionId: 'collection.test.arabic',
+      bookId: 'book.test.arabic.1',
+      chapterId: 'chapter.test.arabic.1',
+      displayNumber: '1',
+      narrator: 'أَبُو هُرَيْرَة',
+      grade: 'Sahih',
+      referenceType: 'collection_number',
+      referenceLocator: 'Test Arabic Hadith 1',
+      parts: [{
+        segments: [
+          { kind: 'arabic', text: 'الصِّيَامُ جُنَّةٌ' },
+          { kind: 'translation', text: 'Fasting is a shield.' },
+        ],
+      }],
+    }, 201);
+    const canonicalId = ((await created.json()) as { data: { canonicalId: string } }).data.canonicalId;
+
+    await post(reviewer, '/v1/admin/editorial/books/book.test.arabic.1/decision', {
+      decision: 'verified',
+      notes: 'Verified against the test collection.',
+    });
+
+    const row = content.prepare(
+      'SELECT body, narrator FROM canonical_search_fts WHERE canonical_id = ?',
+    ).get(canonicalId) as { body: string; narrator: string };
+    expect(row.body).toContain('الصيام جنة');
+    expect(row.narrator).toBe('ابو هريرة');
+    expect(row.body).not.toMatch(/\p{M}/u);
+    expect(row.narrator).not.toMatch(/\p{M}/u);
+    expect(row.narrator).not.toMatch(/[آأإٱ]/u);
+    // canonical_search_fts is downgraded to a plain table by withNodeSqliteCompatibility in this
+    // file's test harness (see below), so a real FTS5 MATCH query isn't exercised here -- that's
+    // covered against a real FTS5 table in apps/api/test/arabic-search.test.ts via the actual
+    // D1ContentRepository.searchForRag method this normalized data feeds.
+  });
+
   it('lets a reviewer complete their own assignment and lets an editor cancel work', async () => {
     const content = createContentDatabase();
     const identity = createIdentityDatabase();

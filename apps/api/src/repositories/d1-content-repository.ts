@@ -601,8 +601,19 @@ function escapeLike(value: string) {
   return value.replace(/[\\%_]/g, (character) => `\\${character}`);
 }
 
+// Arabic diacritics (tashkeel) and tatweel don't change a word's meaning or spelling for search
+// purposes, and the same word is commonly written with different alef-hamza forms (أ إ آ) across
+// sources -- without normalizing both the indexed text (see the matching SQL-side normalization
+// applied wherever canonical_search_fts is populated) and the search query the same way, FTS5's
+// exact-token matching means a diacritic or alef-form mismatch alone silently returns nothing.
+// Verified empirically, not assumed: FTS5's default tokenizer does not normalize Arabic
+// diacritics on its own (a word stored with a diacritic does not match a query without one).
+function normalizeArabic(value: string): string {
+  return value.normalize('NFKD').replace(/\p{M}/gu, '').replace(/ـ/g, '').replace(/[آأإٱ]/g, 'ا');
+}
+
 function toFtsQuery(value: string) {
-  const terms = value.normalize('NFKC').match(/[\p{L}\p{N}]+/gu)?.slice(0, 12) ?? [];
+  const terms = normalizeArabic(value).match(/[\p{L}\p{N}]+/gu)?.slice(0, 12) ?? [];
   if (terms.length === 0) throw new Error('Search requires letters or numbers.');
   return terms.map((term) => `"${term.replaceAll('"', '""')}"*`).join(' AND ');
 }
@@ -613,7 +624,7 @@ function toRagFtsQuery(value: string) {
     'say', 'should', 'sources', 'teach', 'that', 'their', 'there', 'these', 'this',
     'what', 'when', 'where', 'which', 'with', 'would',
   ]);
-  const terms = value.normalize('NFKC').toLocaleLowerCase()
+  const terms = normalizeArabic(value).toLocaleLowerCase()
     .match(/[\p{L}\p{N}]+/gu)
     ?.filter((term) => term.length >= 3 && !stopWords.has(term))
     .sort((left, right) => right.length - left.length)
