@@ -22,6 +22,7 @@ const login = document.querySelector('#oauth-login');
 const consent = document.querySelector('#oauth-consent');
 const message = document.querySelector('#oauth-message');
 document.querySelector('#oauth-client').textContent = query.get('client_id') ? `Client ${query.get('client_id')}` : '';
+let clientLabel = 'this application';
 
 login.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -39,13 +40,20 @@ document.querySelector('#oauth-allow').addEventListener('click', () => submitCon
 document.querySelector('#oauth-deny').addEventListener('click', () => submitConsent(false));
 
 async function initialize() {
-  if (!signedQuery || !query.get('client_id')) return fail('This authorization request is incomplete. Return to ChatGPT and try connecting again.');
+  if (!signedQuery || !query.get('client_id')) return fail('This authorization request is incomplete. Return to the application and try connecting again.');
+  try {
+    const nameResponse = await fetch(`${authBase}/v1/oauth/client-name?client_id=${encodeURIComponent(query.get('client_id'))}`);
+    const nameData = nameResponse.ok ? await nameResponse.json() : null;
+    if (nameData?.data?.name) clientLabel = nameData.data.name;
+  } catch {
+    // Falls back to the generic "this application" label -- not knowing the name yet isn't fatal.
+  }
   try {
     const response = await fetch(`${authBase}/api/auth/get-session`, { credentials: 'include' });
     const session = response.ok ? await response.json() : null;
     if (!session?.user) {
       document.querySelector('#oauth-title').textContent = 'Sign in to Fortress';
-      document.querySelector('#oauth-summary').textContent = 'Continue securely to review the access requested by ChatGPT.';
+      document.querySelector('#oauth-summary').textContent = `Continue securely to review the access requested by ${clientLabel}.`;
       login.hidden = false;
       return;
     }
@@ -63,7 +71,7 @@ function resumeAuthorization() {
 }
 
 async function submitConsent(accept) {
-  message.textContent = accept ? 'Authorizing ChatGPT...' : 'Denying access...';
+  message.textContent = accept ? `Authorizing ${clientLabel}...` : 'Denying access...';
   try {
     const result = await authJson('/api/auth/oauth2/consent', {
       accept,
