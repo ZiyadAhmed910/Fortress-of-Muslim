@@ -12,9 +12,10 @@ const state = {
   lookups: null,
   queue: { params: {}, offset: 0, limit: 50, total: 0 },
   queueSelection: new Set(),
+  resources: {},
 };
 const roleViews = {
-  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'rate-limits', 'security', 'audit']),
+  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'plan-requests', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'rate-limits', 'security', 'audit']),
   editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'workload', 'users', 'rag']),
   reviewer: new Set(['overview', 'queue', 'books', 'assignments', 'workload', 'rag']),
 };
@@ -28,7 +29,9 @@ const resourceNames = {
 };
 
 for (const section of $$('[data-resource]')) {
-  $('resource-header', section).outerHTML = `<header><div><span class="kicker">PLATFORM RESOURCES</span><h1>${resourceNames[section.dataset.resource]}</h1><p>Inspect ownership and change platform access state.</p></div></header>`;
+  const type = section.dataset.resource;
+  $('resource-header', section).outerHTML = `<header><div><span class="kicker">PLATFORM RESOURCES</span><h1>${resourceNames[type]}</h1><p>Inspect ownership and change platform access state.</p></div></header><form class="filter" data-filter="${type}"><input name="q" placeholder="Search by name or owner"><button>Search</button></form>`;
+  section.querySelector('.resource-table').insertAdjacentHTML('afterend', `<div class="pagination" data-resource-pagination="${type}"></div>`);
 }
 
 $('#login-form').addEventListener('submit', async (event) => {
@@ -266,6 +269,7 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'books') await loadBooks(params);
     else if (id === 'assignments') await Promise.all([loadLookups(), loadAssignments()]);
     else if (id === 'users') await loadUsers(params);
+    else if (id === 'plan-requests') await loadPlanRequests();
     else if (id === 'taxonomy') await loadTaxonomy(params);
     else if (id === 'services') await loadServices();
     else if (id === 'rate-limits') await loadRateLimits();
@@ -275,7 +279,7 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'rag') await loadRag();
     else if (id === 'workload') await loadWorkload();
     else if (id === 'audit') await loadAudit(params);
-    else if (resourceNames[id]) await loadResources(id);
+    else if (resourceNames[id]) await loadResources(id, params);
     state.loaded.add(id);
   } catch (error) {
     notify(error.message, true);
@@ -1025,23 +1029,76 @@ $('#users-table').addEventListener('click', async (event) => {
   }
 });
 async function showUser(id) {
-  const data = (await api(`/v1/admin/users/${encodeURIComponent(id)}`)).data;
+  const [data, plans] = await Promise.all([
+    api(`/v1/admin/users/${encodeURIComponent(id)}`).then((response) => response.data),
+    api('/v1/admin/rate-limits').then((response) => response.data),
+  ]);
   const dialog = document.createElement('dialog');
   dialog.className = 'detail-dialog';
-  dialog.innerHTML = `<form method="dialog"><h2>${esc(data.user.name)}</h2><p>${esc(data.user.email)} &middot; ${esc(data.user.status)} &middot; ${esc(data.user.planCode)}</p><div class="metrics"><div class="metric"><span>API keys</span><strong>${data.apiKeys.length}</strong></div><div class="metric"><span>Apps</span><strong>${data.oauthClients.length}</strong></div><div class="metric"><span>Devices</span><strong>${data.devices.length}</strong></div><div class="metric"><span>Sessions</span><strong>${data.sessions.length}</strong></div></div><code>${esc(data.user.id)}</code><section class="detail-sessions"><h3>Active sessions</h3>${data.sessions.length ? data.sessions.map((session) => `<div class="service-line"><span><strong>${esc(browserName(session.userAgent))}</strong><small>${date(session.updatedAt)} &middot; ${esc(session.ipAddress || 'Address unavailable')}</small></span><button type="button" class="danger" data-revoke-session="${esc(session.id)}">End</button></div>`).join('') : empty('No active sessions.')}</section><div><button>Close</button></div></form>`;
+  dialog.innerHTML = `<form method="dialog"><h2>${esc(data.user.name)}</h2><p>${esc(data.user.email)} &middot; ${esc(data.user.status)}</p><div class="plan-editor"><label>Plan<select data-plan-select>${plans.map((plan) => `<option value="${esc(plan.planCode)}" ${plan.planCode === data.user.planCode ? 'selected' : ''}>${esc(plan.planCode)}</option>`).join('')}</select></label><button type="button" class="button compact" data-save-plan="${esc(id)}">Save plan</button></div><div class="metrics"><div class="metric"><span>API keys</span><strong>${data.apiKeys.length}</strong></div><div class="metric"><span>Apps</span><strong>${data.oauthClients.length}</strong></div><div class="metric"><span>Devices</span><strong>${data.devices.length}</strong></div><div class="metric"><span>Sessions</span><strong>${data.sessions.length}</strong></div></div><code>${esc(data.user.id)}</code><section class="detail-sessions"><h3>Active sessions</h3>${data.sessions.length ? data.sessions.map((session) => `<div class="service-line"><span><strong>${esc(browserName(session.userAgent))}</strong><small>${date(session.updatedAt)} &middot; ${esc(session.ipAddress || 'Address unavailable')}</small></span><button type="button" class="danger" data-revoke-session="${esc(session.id)}">End</button></div>`).join('') : empty('No active sessions.')}</section><div><button>Close</button></div></form>`;
+  dialog.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-save-plan]');
+    if (!button) return;
+    const planCode = dialog.querySelector('[data-plan-select]').value;
+    try {
+      await api(`/v1/admin/users/${encodeURIComponent(button.dataset.savePlan)}`, { method: 'PATCH', body: { planCode } });
+      notify('Plan updated.');
+      state.loaded.delete('users');
+    } catch (error) {
+      notify(error.message, true);
+    }
+  });
   document.body.append(dialog);
   dialog.addEventListener('close', () => dialog.remove());
   dialog.showModal();
 }
 
-async function loadResources(type) {
-  const rows = (await api(`/v1/admin/resources?type=${encodeURIComponent(type)}`)).data;
+async function loadPlanRequests() {
+  const rows = (await api('/v1/admin/access-requests?status=pending')).data;
+  $('#plan-requests-table').innerHTML = tableHead(['Developer', 'Current plan', 'Requested', 'Reason', '', ''])
+    + (rows.map((row) => `<div class="row"><span><strong>${esc(row.userName)}</strong><small>${esc(row.userEmail)}</small></span><span>${esc(row.currentPlanCode)}</span><span>${esc(row.requestedValue)}</span><span>${esc(row.reason)}</span><span class="actions"><button data-request-decision="approved" data-id="${esc(row.id)}">Approve</button><button class="danger" data-request-decision="rejected" data-id="${esc(row.id)}">Deny</button></span></div>`).join('') || empty('No pending plan requests.'));
+}
+$('#plan-requests-table').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-request-decision]');
+  if (!button) return;
+  const decision = button.dataset.requestDecision;
+  if (!await confirmChange(`${human(decision)} plan request`, 'This updates the developer\'s plan immediately if approved.')) return;
+  try {
+    await api(`/v1/admin/access-requests/${encodeURIComponent(button.dataset.id)}/decision`, { method: 'POST', body: { decision } });
+    notify(`Request ${decision}.`);
+    loadPlanRequests();
+    state.loaded.delete('users');
+  } catch (error) {
+    notify(error.message, true);
+  }
+});
+
+async function loadResources(type, params = {}) {
+  const offset = Number(params.offset ?? 0);
+  const query = { type, offset, ...(params.q ? { q: params.q } : {}) };
+  const response = await api(`/v1/admin/resources?${new URLSearchParams(query)}`);
+  const rows = response.data;
+  state.resources[type] = {
+    params: Object.fromEntries(Object.entries(params).filter(([key]) => key !== 'offset')),
+    offset,
+    pageSize: response.pagination.pageSize,
+    total: response.pagination.total,
+  };
   $(`#${type} .resource-table`).innerHTML = tableHead(['Resource', 'Owner', 'Created', 'Status', ''])
-    + rows.map((row) => {
+    + (rows.map((row) => {
       const current = resourceStatus(type, row.status);
       return `<div class="row"><span><strong>${esc(row.name || row.start || row.id)}</strong><small>${esc(row.id)}</small></span><span><strong>${esc(row.ownerName || 'Unknown')}</strong><small>${esc(row.ownerEmail || '')}</small></span><span>${date(row.createdAt)}</span><span class="badge ${esc(current)}">${esc(current)}</span><span class="actions">${resourceActions(type, row.id, current)}</span></div>`;
-    }).join('');
+    }).join('') || empty());
+  const start = rows.length ? offset + 1 : 0;
+  const end = offset + rows.length;
+  $(`[data-resource-pagination="${type}"]`).innerHTML = `<span>${start}-${end} of ${response.pagination.total}</span><div><button data-resource-page="${type}:${Math.max(0, offset - response.pagination.pageSize)}" ${offset === 0 ? 'disabled' : ''}>Previous</button><button data-resource-page="${type}:${offset + response.pagination.pageSize}" ${!response.pagination.hasMore ? 'disabled' : ''}>Next</button></div>`;
 }
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-resource-page]');
+  if (!button || button.disabled) return;
+  const [type, offset] = button.dataset.resourcePage.split(':');
+  loadResources(type, { ...state.resources[type]?.params, offset: Number(offset) });
+});
 document.addEventListener('click', async (event) => {
   const button = event.target.closest('[data-resource-status]');
   if (!button) return;
