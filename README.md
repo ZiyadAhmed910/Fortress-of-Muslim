@@ -162,6 +162,29 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.23.0
+
+Search/RAG quality and PWA discovery, closing out the rest of the post-0.20 search roadmap:
+
+- **Arabic search normalization**: SQLite FTS5's `remove_diacritics 2` tokenizer (already set on
+  `canonical_search_fts`) does not strip Arabic tashkeel or fold alef-hamza variants (أ إ آ ٱ) --
+  verified empirically against the real schema before fixing it. Both the index-population side
+  (`apps/auth`, every `canonical_search_fts` write path) and the query side (`apps/api`,
+  `toFtsQuery`/`toRagFtsQuery`) now normalize identically, so a diacritic or alef-form mismatch
+  alone no longer causes a silent zero-result search.
+- **Exact-reference search for Ask**: a question that's essentially just a reference on its own
+  (`"Bukhari 52"`) resolves directly against the matching record instead of running the full
+  embedding/lexical/synonym-expansion retrieval pipeline -- collections are editor-created with no
+  fixed enum, so the hint is fuzzy-matched in JS against the real hadith collections. Falls through
+  to normal retrieval when the hint doesn't resolve.
+- **Metadata-filtered retrieval for Ask**: `POST /v1/ask` accepts an optional `filters` object
+  (`contentType`: `dua`/`hadith`, `collection`: slug) threaded through vector retrieval (Vectorize's
+  native metadata filter), lexical FTS retrieval, and the unverified-content fallback. The PWA Ask
+  UI got a content-type select wired to it.
+- **PWA category/mood discovery**: category and mood filter chips now show a live count of matching
+  duas, and the mood panel shows a short description of the selected feeling, computed from the
+  existing per-entry categories/moods with no new taxonomy to maintain.
+
 ### 0.22.0
 
 Editorial and Ask/AI improvements, from a working session focused on closing gaps a real user hit
