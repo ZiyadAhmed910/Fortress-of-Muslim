@@ -140,6 +140,57 @@ describe('canonical editorial pilot', () => {
     expect(scalar(content, `SELECT COUNT(*) FROM record_taxonomy WHERE term_id = '${morningTermId}'`)).toBe(0);
   });
 
+  it('records a correction_history row for each segment that actually changed, keyed to the stable record id', async () => {
+    const content = createContentDatabase();
+    const identity = createIdentityDatabase();
+    const env = { CONTENT_DB: d1(content), IDENTITY_DB: d1(identity) } as never;
+    const editor = context(env, 'correction-editor', 'editor');
+    seedIdentity(identity, [editor]);
+
+    const canonicalId = 'dua.hisn.001';
+    const before = await request(editor, 'GET', `/v1/admin/editorial/records/${canonicalId}`);
+    const beforeBody = (await before.json()) as {
+      data: { segments: Array<{ partPosition: number; segmentPosition: number; kind: string; text: string }> };
+    };
+    // getRecord's response exposes the revision id, not the stable content_records.id that
+    // correction_history keys on (the same identity backbone record_taxonomy uses) -- read it
+    // straight from the fixture the way the taxonomy test above does for the same reason.
+    const recordId = content.prepare(`
+      SELECT revision.record_id FROM canonical_records canonical
+      JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+      WHERE canonical.canonical_id = ?
+    `).pluck().get(canonicalId) as string;
+    const firstSegment = beforeBody.data.segments[0]!;
+    const untouchedSegment = beforeBody.data.segments[1];
+
+    await post(editor, `/v1/admin/editorial/records/${canonicalId}/revisions`, {
+      reason: 'Fixing a transliteration typo in the first segment.',
+      segments: [{ partPosition: firstSegment.partPosition, segmentPosition: firstSegment.segmentPosition, text: 'A corrected reading.' }],
+    }, 201);
+
+    expect(scalar(content, `SELECT COUNT(*) FROM correction_history WHERE record_id = '${recordId}'`)).toBe(1);
+    const row = content.prepare(
+      'SELECT field_path AS fieldPath, reason, previous_hash AS previousHash, replacement_hash AS replacementHash, changed_by_external_id AS changedBy FROM correction_history WHERE record_id = ?',
+    ).get(recordId) as { fieldPath: string; reason: string; previousHash: string; replacementHash: string; changedBy: string };
+    expect(row.fieldPath).toBe(`part.${firstSegment.partPosition}.segment.${firstSegment.segmentPosition}.${firstSegment.kind}`);
+    expect(row.reason).toBe('Fixing a transliteration typo in the first segment.');
+    expect(row.changedBy).toBe(editor.user.id);
+    expect(row.previousHash).not.toBe(row.replacementHash);
+
+    // Submitting the same (unchanged) text for a second segment must not create a correction row --
+    // only fields whose value actually differs from what was already there count as a correction.
+    if (untouchedSegment) {
+      const noopEditor = context(env, 'correction-editor-2', 'editor');
+      identity.prepare('INSERT INTO "user" (id, name, email, is_admin) VALUES (?, ?, ?, 0)').run(noopEditor.user.id, 'noop', 'noop@example.test');
+      identity.prepare('INSERT INTO platform_role_grants (user_id, role, status) VALUES (?, ?, ?)').run(noopEditor.user.id, 'editor', 'active');
+      await post(noopEditor, `/v1/admin/editorial/records/${canonicalId}/revisions`, {
+        reason: 'No actual change, just re-saving.',
+        segments: [{ partPosition: untouchedSegment.partPosition, segmentPosition: untouchedSegment.segmentPosition, text: untouchedSegment.text }],
+      }, 201);
+      expect(scalar(content, `SELECT COUNT(*) FROM correction_history WHERE record_id = '${recordId}'`)).toBe(1);
+    }
+  });
+
   it('creates a Hadith record and verifies its complete book into the RAG corpus', async () => {
     const content = createContentDatabase();
     const identity = createIdentityDatabase();

@@ -1520,6 +1520,24 @@ async function createRevision(context: EditorialContext, canonicalId: string, bo
   );
   if ([...corrections.values()].some((text) => !text)) return invalid('Corrected segment text cannot be empty.');
 
+  // Only segments the caller actually submitted a different value for count as a correction --
+  // everything else in `segments.results` just carries its existing text forward into the new
+  // revision unchanged, and isn't a correction of anything.
+  const changedFields = segments.results
+    .map((segment) => {
+      const partPosition = Number(segment.partPosition);
+      const segmentPosition = Number(segment.segmentPosition);
+      const newText = corrections.get(`${partPosition}:${segmentPosition}`);
+      const oldText = String(segment.text);
+      return newText && newText !== oldText ? { partPosition, segmentPosition, kind: String(segment.kind), oldText, newText } : null;
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
+  const changedFieldHashes = await Promise.all(changedFields.map(async (field) => ({
+    ...field,
+    previousHash: await sha256(field.oldText),
+    replacementHash: await sha256(field.newText),
+  })));
+
   const revisionNumber = current.revisionNumber + 1;
   const revisionId = `revision.${canonicalId}.${revisionNumber}`;
   const title = optionalText(body.title, 300) ?? current.title;
@@ -1553,6 +1571,17 @@ async function createRevision(context: EditorialContext, canonicalId: string, bo
       `${revisionId}.part.${partPosition}.segment.${segmentPosition}`,
       `${revisionId}.part.${partPosition}`, segmentPosition, segment.kind,
       segment.languageCode, segment.scriptCode, text,
+    ));
+  }
+  for (const field of changedFieldHashes) {
+    statements.push(context.env.CONTENT_DB.prepare(`
+      INSERT INTO correction_history (
+        id, record_id, field_path, previous_hash, replacement_hash, reason, changed_by_external_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      `correction.${revisionId}.part.${field.partPosition}.segment.${field.segmentPosition}`,
+      current.recordId, `part.${field.partPosition}.segment.${field.segmentPosition}.${field.kind}`,
+      field.previousHash, field.replacementHash, reason, context.user.id,
     ));
   }
   statements.push(context.env.CONTENT_DB.prepare(`
