@@ -33,7 +33,7 @@ export type Bindings = {
       operation: 'list' | 'search' | 'get_by_id';
       parameters: { query?: string; duaId?: string; limit?: number };
       queryKind?: 'legacy' | 'record_query';
-      objectName?: 'duas';
+      objectName?: 'duas' | 'hadith';
       selectedFields?: string[];
       filters?: Array<{ field: string; operator: string; source: 'literal' | 'parameter'; value: string }>;
       sort?: { field: string; direction: 'asc' | 'desc' };

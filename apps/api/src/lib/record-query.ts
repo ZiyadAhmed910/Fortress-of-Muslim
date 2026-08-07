@@ -1,7 +1,7 @@
 export type RecordQueryDefinition = {
   id: string;
   queryKind?: 'legacy' | 'record_query';
-  objectName?: 'duas';
+  objectName?: 'duas' | 'hadith';
   selectedFields?: string[];
   filters?: Array<{ field: string; operator: string; source: 'literal' | 'parameter'; value: string }>;
   sort?: { field: string; direction: 'asc' | 'desc' };
@@ -9,7 +9,11 @@ export type RecordQueryDefinition = {
   maxRows?: number;
 };
 
-const fields: Record<string, { expression: string; type: 'string' | 'number' }> = {
+type FieldDef = { expression: string; type: 'string' | 'number' };
+
+// Fields common to both content types -- every column here comes off canonical_records/
+// content_revisions, which both duas and hadith share.
+const sharedFields: Record<string, FieldDef> = {
   id: { expression: 'publication.canonical_id', type: 'string' },
   legacyId: { expression: 'revision.legacy_id', type: 'string' },
   sequence: { expression: 'revision.sequence', type: 'number' },
@@ -18,12 +22,37 @@ const fields: Record<string, { expression: string; type: 'string' | 'number' }> 
   partCount: { expression: '(SELECT COUNT(*) FROM revision_parts part WHERE part.revision_id = revision.id)', type: 'number' },
 };
 
+const OBJECT_CONFIG: Record<'duas' | 'hadith', { contentType: 'dua' | 'hadith'; fields: Record<string, FieldDef>; joins: string }> = {
+  duas: { contentType: 'dua', fields: sharedFields, joins: '' },
+  hadith: {
+    contentType: 'hadith',
+    fields: {
+      ...sharedFields,
+      narrator: { expression: 'metadata.narrator', type: 'string' },
+      grade: { expression: 'metadata.grade', type: 'string' },
+      gradingAuthority: { expression: 'metadata.grading_authority', type: 'string' },
+      displayNumber: { expression: 'metadata.display_number', type: 'string' },
+      collection: { expression: 'collection.slug', type: 'string' },
+      bookNumber: { expression: 'book.book_number', type: 'string' },
+      chapterNumber: { expression: 'chapter.chapter_number', type: 'string' },
+    },
+    joins: `
+      LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+      LEFT JOIN collections collection ON collection.id = metadata.collection_id
+      LEFT JOIN books book ON book.id = metadata.book_id
+      LEFT JOIN chapters chapter ON chapter.id = metadata.chapter_id`,
+  },
+};
+
 export async function executeRecordQuery(database: D1Database, definition: RecordQueryDefinition, input: Record<string, string>) {
-  if (definition.queryKind !== 'record_query' || definition.objectName !== 'duas') throw new Error('Unsupported record query definition.');
+  if (definition.queryKind !== 'record_query') throw new Error('Unsupported record query definition.');
+  const config = OBJECT_CONFIG[definition.objectName ?? 'duas'];
+  if (!config) throw new Error('Unsupported record query definition.');
+  const fields = config.fields;
   const selected = (definition.selectedFields ?? []).filter((field) => fields[field]);
   if (!selected.length) throw new Error('The query has no valid selected fields.');
   const selectSql = selected.map((field) => `${fields[field]!.expression} AS "${field}"`).join(', ');
-  const predicates = ["canonical.content_type = 'dua'"];
+  const predicates = [`canonical.content_type = '${config.contentType}'`];
   const bindings: unknown[] = [];
 
   for (const filter of definition.filters ?? []) {
@@ -49,6 +78,7 @@ export async function executeRecordQuery(database: D1Database, definition: Recor
   const result = await database.prepare(`SELECT ${selectSql} FROM api_current_content publication
     JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
     JOIN content_revisions revision ON revision.id = publication.revision_id
+    ${config.joins}
     WHERE ${predicates.join(' AND ')} ORDER BY ${sortField.expression} ${direction} LIMIT ?`)
     .bind(...bindings, limit).all<Record<string, unknown>>();
   return result.results;

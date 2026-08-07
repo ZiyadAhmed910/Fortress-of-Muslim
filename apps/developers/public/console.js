@@ -170,11 +170,36 @@ function updateOAuthForm() {
   $('#oauth-form [name="jwks_uri"]').required = privateJwt;
 }
 function updateToolForm() { const type=$('#tool-form [name="toolType"]').value; $('[data-standard-tool]').hidden=type!=='standard'; $('[data-query-tool]').hidden=type!=='named_query'; $('[data-external-tool]').hidden=type!=='external_api'; }
+// Kept in sync by hand with apps/auth/src/index.ts's RECORD_QUERY_FIELDS -- these are the fields
+// each content type actually supports server-side.
+const QUERY_FIELD_OPTIONS = {
+  duas: [['title','Title'],['verificationStatus','Verification'],['sequence','Sequence'],['id','ID'],['legacyId','Legacy ID']],
+  hadith: [['title','Title'],['verificationStatus','Verification'],['sequence','Sequence'],['id','ID'],['legacyId','Legacy ID'],['narrator','Narrator'],['grade','Grade'],['gradingAuthority','Grading authority'],['displayNumber','Display number'],['collection','Collection'],['bookNumber','Book number'],['chapterNumber','Chapter number']],
+};
+function currentQueryObjectType(){ return $('#query-form [data-object-type]').value === 'hadith' ? 'hadith' : 'duas'; }
+function fieldOptionsHtml(){ return QUERY_FIELD_OPTIONS[currentQueryObjectType()].map(([value,label])=>`<option value="${value}">${esc(label)}</option>`).join(''); }
+$('#query-form [data-object-type]').addEventListener('change', updateQueryObjectType);
+function updateQueryObjectType(){
+  const isHadith = currentQueryObjectType() === 'hadith';
+  $$('[data-hadith-field]', $('#query-form')).forEach((label) => {
+    label.hidden = !isHadith;
+    if (!isHadith) $('input', label).checked = false;
+  });
+  $$('.query-filter-row [data-filter-field]').forEach((select) => {
+    const current = select.value;
+    select.innerHTML = fieldOptionsHtml();
+    if (QUERY_FIELD_OPTIONS[currentQueryObjectType()].some(([value]) => value === current)) select.value = current;
+  });
+  const sortField = $('[data-sort-field]', $('#query-form'));
+  const currentSort = sortField.value;
+  sortField.innerHTML = fieldOptionsHtml();
+  if (QUERY_FIELD_OPTIONS[currentQueryObjectType()].some(([value]) => value === currentSort)) sortField.value = currentSort;
+}
 $('[data-add-filter]').addEventListener('click',()=>{addQueryFilter();updateQueryPreview();});
 $('#query-filters').addEventListener('click',(event)=>{const button=event.target.closest('[data-remove-filter]');if(button){button.closest('.query-filter-row').remove();updateQueryPreview();}});
 $('#query-filters').addEventListener('change',(event)=>{const select=event.target.closest('[data-filter-source]');if(select)applyFilterRowConstraints(select.closest('.query-filter-row'));});
 $('#query-filters').addEventListener('input',updateQueryPreview);
-function addQueryFilter(){ $('#query-filters').insertAdjacentHTML('beforeend',`<div class="query-filter-row"><select data-filter-field aria-label="Filter field"><option value="title">Title</option><option value="verificationStatus">Verification</option><option value="sequence">Sequence</option><option value="id">ID</option><option value="legacyId">Legacy ID</option></select><select data-filter-operator aria-label="Filter operator"><option value="eq">Equals</option><option value="contains">Contains</option><option value="starts_with">Starts with</option><option value="neq">Not equal</option><option value="gte">At least</option><option value="lte">At most</option><option value="in">In list</option></select><select data-filter-source aria-label="Filter value type"><option value="literal">Fixed value</option><option value="parameter">Endpoint parameter</option></select><input data-filter-value aria-label="Filter value or parameter name" placeholder="Value or parameter name" required><button type="button" class="icon-button" data-remove-filter aria-label="Remove filter"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button></div>`); applyFilterRowConstraints($('#query-filters').lastElementChild); }
+function addQueryFilter(){ $('#query-filters').insertAdjacentHTML('beforeend',`<div class="query-filter-row"><select data-filter-field aria-label="Filter field">${fieldOptionsHtml()}</select><select data-filter-operator aria-label="Filter operator"><option value="eq">Equals</option><option value="contains">Contains</option><option value="starts_with">Starts with</option><option value="neq">Not equal</option><option value="gte">At least</option><option value="lte">At most</option><option value="in">In list</option></select><select data-filter-source aria-label="Filter value type"><option value="literal">Fixed value</option><option value="parameter">Endpoint parameter</option></select><input data-filter-value aria-label="Filter value or parameter name" placeholder="Value or parameter name" required><button type="button" class="icon-button" data-remove-filter aria-label="Remove filter"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button></div>`); applyFilterRowConstraints($('#query-filters').lastElementChild); }
 function readQueryFilters(){return $$('.query-filter-row').map(row=>({field:$('[data-filter-field]',row).value,operator:$('[data-filter-operator]',row).value,source:$('[data-filter-source]',row).value,value:$('[data-filter-value]',row).value.trim()})).filter(filter=>filter.value);}
 // The server (parseRecordQuery in apps/auth) rejects a parameter-sourced filter whose value isn't
 // [a-z][a-zA-Z0-9_]{0,39} -- mirrored here via the input's own pattern so the browser's native
@@ -291,8 +316,8 @@ $('#mcp-list').addEventListener('click', async (event) => {
 $('#tool-form').addEventListener('submit', async (event) => { event.preventDefault(); const form=event.currentTarget; const body=Object.fromEntries(new FormData(form)); const toolsetId=body.toolsetId; delete body.toolsetId; await action(async()=>{await authJson(`/v1/control/mcp/toolsets/${encodeURIComponent(toolsetId)}/tools`,{method:'POST',body});form.reset();updateToolForm();updateToolPreview();closeDrawers();await loadMcp();},'Tool added to toolset.',form); });
 
 $('#query-form').addEventListener('submit', async (event) => {
-  event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const body = { name:data.get('name'),slug:data.get('slug'),description:data.get('description'),selectedFields:data.getAll('selectedField'),filters:readQueryFilters(),sort:{field:data.get('sortField'),direction:data.get('sortDirection')},maxRows:Number(data.get('maxRows')) };
-  await action(async () => { await authJson('/v1/control/named-queries', { method: 'POST', body }); form.reset(); $('#query-filters').innerHTML=''; addQueryFilter(); updateQueryPreview(); closeDrawers(); await loadQueries(); }, 'Named query endpoint created.', form);
+  event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const body = { name:data.get('name'),objectName:data.get('objectName'),slug:data.get('slug'),description:data.get('description'),selectedFields:data.getAll('selectedField'),filters:readQueryFilters(),sort:{field:data.get('sortField'),direction:data.get('sortDirection')},maxRows:Number(data.get('maxRows')) };
+  await action(async () => { await authJson('/v1/control/named-queries', { method: 'POST', body }); form.reset(); $('#query-filters').innerHTML=''; updateQueryObjectType(); addQueryFilter(); updateQueryPreview(); closeDrawers(); await loadQueries(); }, 'Named query endpoint created.', form);
 });
 $('#query-list').addEventListener('click', async (event) => {
   const toggle = event.target.closest('[data-query-status]');
@@ -516,7 +541,7 @@ async function loadWebhooks() {
 async function loadQueries() {
   await withListState('#query-list', async () => {
     const result = await authJson('/v1/control/named-queries'); state.queries = result.data || []; updateQuerySelect();
-    render('#query-list', state.queries, (query) => `<div class="resource-row query-grid"><span class="row-title"><strong>${esc(query.name)}</strong><small>${esc(query.description)}</small></span><span>${query.selectedFields?.length||0} fields &middot; ${query.filters?.length||0} filters</span><code>/queries/${esc(query.slug)}</code><span class="status">${esc(query.status)}</span><span class="row-actions"><button class="button compact" data-query-status="${query.status === 'active' ? 'disabled' : 'active'}" data-query="${esc(query.id)}">${query.status === 'active' ? 'Disable' : 'Enable'}</button><button class="button compact" data-test-query="${esc(query.slug)}" ${query.status !== 'active' ? 'disabled' : ''}>Test</button></span></div>`);
+    render('#query-list', state.queries, (query) => `<div class="resource-row query-grid"><span class="row-title"><strong>${esc(query.name)}</strong><small>${esc(query.objectName === 'hadith' ? 'Hadith' : 'Duas')} &middot; ${esc(query.description)}</small></span><span>${query.selectedFields?.length||0} fields &middot; ${query.filters?.length||0} filters</span><code>/queries/${esc(query.slug)}</code><span class="status">${esc(query.status)}</span><span class="row-actions"><button class="button compact" data-query-status="${query.status === 'active' ? 'disabled' : 'active'}" data-query="${esc(query.id)}">${query.status === 'active' ? 'Disable' : 'Enable'}</button><button class="button compact" data-test-query="${esc(query.slug)}" ${query.status !== 'active' ? 'disabled' : ''}>Test</button></span></div>`);
   });
 }
 

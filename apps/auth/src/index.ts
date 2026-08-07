@@ -285,8 +285,8 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       await this.env.IDENTITY_DB.prepare(`
         INSERT INTO named_queries (id, owner_user_id, slug, name, description, operation, parameters_json,
           query_kind, object_name, selected_fields_json, filters_json, sort_json, parameter_schema_json, max_rows)
-        VALUES (?, ?, ?, ?, ?, 'list', '{}', 'record_query', 'duas', ?, ?, ?, ?, ?)
-      `).bind(id, user.id, parsed.value.slug, parsed.value.name, parsed.value.description,
+        VALUES (?, ?, ?, ?, ?, 'list', '{}', 'record_query', ?, ?, ?, ?, ?, ?)
+      `).bind(id, user.id, parsed.value.slug, parsed.value.name, parsed.value.description, parsed.value.objectName,
         JSON.stringify(parsed.value.selectedFields), JSON.stringify(parsed.value.filters), JSON.stringify(parsed.value.sort),
         JSON.stringify(parsed.value.parameterSchema), parsed.value.maxRows).run();
       return json({ data: { id, ...parsed.value, status: 'active' } }, 201);
@@ -757,11 +757,20 @@ function parseDeviceRegistration(body: Record<string, unknown>) {
   return { ok: true as const, value: { name, deviceType, authMethod, oauthClientId, jwksUri } };
 }
 
+// Kept in sync by hand with the field maps in apps/api/src/lib/record-query.ts (separate Workers,
+// no shared module between them) -- these are the fields a named query is allowed to reference;
+// the executor has the actual SQL expression each one compiles to.
+const RECORD_QUERY_FIELDS: Record<'duas' | 'hadith', string[]> = {
+  duas: ['id', 'legacyId', 'sequence', 'title', 'verificationStatus', 'partCount'],
+  hadith: ['id', 'legacyId', 'sequence', 'title', 'verificationStatus', 'partCount', 'narrator', 'grade', 'gradingAuthority', 'displayNumber', 'collection', 'bookNumber', 'chapterNumber'],
+};
+
 function parseRecordQuery(body: Record<string, unknown>) {
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const slug = typeof body.slug === 'string' ? body.slug.trim().toLowerCase() : '';
   const description = typeof body.description === 'string' ? body.description.trim() : '';
-  const allowedFields = ['id', 'legacyId', 'sequence', 'title', 'verificationStatus', 'partCount'];
+  const objectName = body.objectName === 'hadith' ? 'hadith' as const : 'duas' as const;
+  const allowedFields = RECORD_QUERY_FIELDS[objectName];
   const selectedFields = Array.isArray(body.selectedFields) ? body.selectedFields.map(String).filter((field) => allowedFields.includes(field)) : [];
   const rawFilters = Array.isArray(body.filters) ? body.filters : [];
   const filters = rawFilters.slice(0, 10).map((item) => {
@@ -785,7 +794,7 @@ function parseRecordQuery(body: Record<string, unknown>) {
     type: filters.some((filter) => filter.value === parameterName && filter.field === 'sequence') ? 'number' as const : 'string' as const,
     required: true,
   }));
-  return { ok: true as const, value: { name, slug, description, objectName: 'duas' as const, selectedFields, filters, sort, parameterSchema, maxRows } };
+  return { ok: true as const, value: { name, slug, description, objectName, selectedFields, filters, sort, parameterSchema, maxRows } };
 }
 
 function toNamedQueryResponse(row: Record<string, unknown>) {
