@@ -472,6 +472,30 @@ export class D1ContentRepository implements ContentRepository {
     return row ? this.getHadith(row.id) : undefined;
   }
 
+  // Backs Ask's exact-reference fast path (see rag-reference.ts) for things like "Bukhari 52" --
+  // collections are editor-created with no fixed enum, so the hint is matched fuzzily in JS against
+  // the small set of real hadith collections rather than hardcoding known collection names in SQL.
+  async findHadithByReference(collectionHint: string, number: string): Promise<Hadith | undefined> {
+    const collections = await this.database.prepare(`
+      SELECT id, slug, title FROM collections WHERE content_type = 'hadith'
+    `).all<{ id: string; slug: string; title: string }>();
+    const collectionId = matchHadithCollection(collectionHint, collections.results);
+    if (!collectionId) return undefined;
+    const row = await this.database.prepare(`
+      SELECT publication.canonical_id AS id
+      FROM api_current_content publication
+      JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
+      JOIN content_revisions revision ON revision.id = publication.revision_id
+      JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+      WHERE canonical.content_type = 'hadith'
+        AND metadata.collection_id = ?
+        AND (metadata.display_number = ? OR CAST(revision.sequence AS TEXT) = ?)
+      ORDER BY CASE WHEN metadata.display_number = ? THEN 0 ELSE 1 END
+      LIMIT 1
+    `).bind(collectionId, number, number, number).first<{ id: string }>();
+    return row ? this.getHadith(row.id) : undefined;
+  }
+
   private async countRecords(contentType: 'dua' | 'hadith') {
     const row = await this.database.prepare(`
       SELECT COUNT(*) AS count
@@ -599,6 +623,44 @@ function canonicalHadithUrl(row: HadithRow) {
 
 function escapeLike(value: string) {
   return value.replace(/[\\%_]/g, (character) => `\\${character}`);
+}
+
+// Editors title collections inconsistently ("Bukhari", "Sahih al-Bukhari", "Sahih Bukhari"), so an
+// exact-reference hint like "Bukhari" needs to match a collection titled "Sahih al-Bukhari" without
+// a hardcoded name list. Strip common honorific/connector words and non-letters from both sides,
+// then require an exact or substring match -- deliberately conservative (no fuzzy/edit-distance
+// matching) so an ambiguous hint returns no match rather than the wrong collection.
+const COLLECTION_NAME_NOISE_WORDS = new Set([
+  'sahih', 'al', 'el', 'at', 'an', 'jami', 'sunan', 'musnad', 'imam', 'collection', 'hadith',
+]);
+
+function normalizeCollectionText(value: string): string {
+  return value
+    .toLocaleLowerCase()
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length > 0 && !COLLECTION_NAME_NOISE_WORDS.has(token))
+    .join('');
+}
+
+function matchHadithCollection(
+  hint: string,
+  collections: Array<{ id: string; slug: string; title: string }>,
+): string | undefined {
+  const normalizedHint = normalizeCollectionText(hint);
+  if (normalizedHint.length < 3) return undefined;
+  let best: { id: string; score: number } | undefined;
+  for (const collection of collections) {
+    for (const candidate of [normalizeCollectionText(collection.slug), normalizeCollectionText(collection.title)]) {
+      if (!candidate) continue;
+      const score = candidate === normalizedHint ? 2
+        : candidate.includes(normalizedHint) || normalizedHint.includes(candidate) ? 1
+        : 0;
+      if (score > 0 && (!best || score > best.score)) best = { id: collection.id, score };
+    }
+  }
+  return best?.id;
 }
 
 // Arabic diacritics (tashkeel) and tatweel don't change a word's meaning or spelling for search

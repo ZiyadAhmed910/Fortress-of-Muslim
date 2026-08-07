@@ -52,6 +52,7 @@ export interface ContentRepository {
   listHadith(collection: string | undefined, offset: number, limit: number): Promise<HadithSummary[]>;
   searchHadith(query: string, collection: string | undefined, offset: number, limit: number): Promise<{ items: HadithSummary[]; total: number }>;
   resolveHadithPath(collection: string, book: string, number: string): Promise<Hadith | undefined>;
+  findHadithByReference(collectionHint: string, number: string): Promise<Hadith | undefined>;
   getHadith(id: string): Promise<Hadith | undefined>;
   getPublishedHadith(id: string): Promise<Hadith | undefined>;
 }
