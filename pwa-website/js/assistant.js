@@ -3,6 +3,16 @@ import { apiRequest } from './online.js';
 import { escapeHtml } from './utils.js';
 
 export function initAssistant() {
+  // The question box is a <textarea> so a person can write a multi-part question -- plain Enter
+  // has to keep inserting a newline, not submit. Ctrl+Enter/Alt+Enter (Cmd+Enter on Mac) submits
+  // without reaching for the mouse, the same shortcut convention code editors and note apps use
+  // when Enter alone is reserved for line breaks.
+  els.assistantQuestion.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.ctrlKey || event.altKey || event.metaKey)) {
+      event.preventDefault();
+      els.assistantForm.requestSubmit();
+    }
+  });
   els.assistantForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const question = els.assistantQuestion.value.trim();
