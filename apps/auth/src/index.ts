@@ -534,12 +534,12 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
   // reach this method; callers only invoke it when a credential is actually present.
   async checkRateLimit(credential: string): Promise<RateLimitResult> {
     let principalId: string | undefined;
-    if (credential.startsWith('fom_')) {
-      const result = await this.verifyApiKey(credential);
-      if (result.valid && result.key) principalId = result.key.referenceId;
-    } else {
+    if (isJwtLike(credential)) {
       const result = await this.verifyBearerToken(credential);
       if (result.valid) principalId = result.ownerUserId ?? result.subject;
+    } else {
+      const result = await this.verifyApiKey(credential);
+      if (result.valid && result.key) principalId = result.key.referenceId;
     }
     if (!principalId) return { valid: false };
 
@@ -660,6 +660,13 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       JSON.stringify({ environment: this.env.PLATFORM_ENV }),
     ).run();
   }
+}
+
+// Fortress API keys carry no prefix (plain a-z/A-Z random string) -- OAuth/device bearer tokens
+// are always JWTs (header.payload.signature, so always contain '.'), which API keys never do.
+// That shape difference is what tells the two credential kinds apart at the door.
+function isJwtLike(credential: string): boolean {
+  return credential.includes('.');
 }
 
 function corsHeaders(origin: string | null) {

@@ -9,8 +9,8 @@ const envConfig = {
     getServiceState: async () => ({ serviceKey: 'api', status: 'active', message: '', enforcement: 'worker' }),
     verifyApiKey: async () => ({ valid: true, key: { id: 'key-test', referenceId: 'user-test' }, error: null }),
     verifyBearerToken: async (token: string) => ({
-      valid: token === 'test-token',
-      subject: token === 'test-token' ? 'user-test' : undefined,
+      valid: token === 'test.token.jwt',
+      subject: token === 'test.token.jwt' ? 'user-test' : undefined,
       scopes: ['content:read', 'content:search', 'dataset:read'],
     }),
     getNamedQuery: async (id: string, ownerUserId: string) => id === 'qry-test' && ownerUserId === 'user-test' ? ({
@@ -27,7 +27,7 @@ const envConfig = {
   },
 };
 const env = envConfig as never;
-const authenticated = { headers: { Authorization: 'Bearer test-token' } };
+const authenticated = { headers: { Authorization: 'Bearer test.token.jwt' } };
 const records: Dua[] = [
   {
     id: 'dua.hisn.001', legacyId: 'dua-001', sequence: 1, title: 'When waking up',
@@ -311,6 +311,29 @@ describe('Fortress Platform API', () => {
     expect(body.data[0]?.id).toBe('dua.hisn.001');
     expect(body.meta.namedQueryId).toBe('qry-test');
     expect(body.meta.total).toBe(1);
+  });
+
+  // API keys carry no prefix (see apps/auth/src/auth.ts) -- credential kind is dispatched purely
+  // by shape (a JWT bearer token always contains '.', a plain API key never does), so this proves
+  // an unprefixed, dotless credential in the X-Fortress-API-Key header actually reaches
+  // verifyApiKey and never verifyBearerToken, not just that the response happens to be a 200.
+  it('routes a dotless X-Fortress-API-Key credential to verifyApiKey, not verifyBearerToken', async () => {
+    let apiKeyCalls = 0;
+    let bearerCalls = 0;
+    const spyEnv = {
+      ...envConfig,
+      AUTH: {
+        ...envConfig.AUTH,
+        verifyApiKey: async () => { apiKeyCalls += 1; return { valid: true, key: { id: 'key-test', referenceId: 'user-test' }, error: null }; },
+        verifyBearerToken: async () => { bearerCalls += 1; return { valid: false }; },
+      },
+    } as never;
+    const response = await app.request('/v1/queries/qry-test', {
+      headers: { 'X-Fortress-API-Key': 'plainrandomkeynodotsnodashes' },
+    }, spyEnv);
+    expect(response.status).toBe(200);
+    expect(apiKeyCalls).toBe(1);
+    expect(bearerCalls).toBe(0);
   });
 
   it('reports rate-limit headers on a credentialed request under its plan limit', async () => {

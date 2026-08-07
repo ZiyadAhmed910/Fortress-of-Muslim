@@ -67,7 +67,10 @@ export function createAuth(env: Bindings) {
       }),
       apiKey({
         apiKeyHeaders: ['x-fortress-api-key'],
-        defaultPrefix: env.PLATFORM_ENV === 'test' ? 'fom_test_' : 'fom_live_',
+        // No defaultPrefix by design -- plain random key (a-z/A-Z, generateApiKey.ts's default
+        // length), no 'fom_test_'/'fom_live_' branding. Credentials are told apart by shape
+        // instead: OAuth bearer tokens are JWTs (always contain '.'), API keys never do (see
+        // isJwtLike() usages in apps/api/src/app.ts and this file's verifyBearerToken dispatch).
         rateLimit: { enabled: true, timeWindow: 60_000, maxRequests: 120 },
         permissions: {
           defaultPermissions: {
