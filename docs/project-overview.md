@@ -23,7 +23,7 @@ Two commitments shape every other decision in this codebase:
 
 ## Current version
 
-`0.22.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
+`0.23.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
 `package.json`). See `README.md` → `## Platform Releases` for the full version history — it is
 the closest thing this repo has to a changelog and should be treated as one.
 
@@ -69,10 +69,14 @@ list/search/detail/canonical-path-resolve, collections, current dataset metadata
 through `api_current_content` (current editorial state, including unverified candidates, always
 labeled with `verificationStatus`/`workflowState`) or `api_published_content` (verified + published
 only, used by RAG). `POST /v1/ask` is the source-grounded assistant: hybrid vector (Cloudflare
-Vectorize) + lexical (D1 FTS5) retrieval, 20 requests/day per client IP (hashed, D1-backed counter),
-citation-validated generated answers with a deterministic non-generated fallback when citations
-don't check out. `GET /v1/queries/:id` executes developer-owned named queries — the only
-credentialed route family on this Worker (Fortress API key or OAuth bearer token required).
+Vectorize) + lexical (D1 FTS5, Arabic-diacritic/alef-form normalized on both the index and query
+side) retrieval, synonym expansion + LLM query-expansion before retrieval, an exact-reference fast
+path for questions like `"Bukhari 52"`, optional `contentType`/`collection` metadata filters, a
+supplementary unverified-content fallback (clearly labeled) when verified results are thin, 20
+requests/day per client IP (hashed, D1-backed counter), citation-validated generated answers with a
+deterministic non-generated fallback when citations don't check out. `GET /v1/queries/:id` executes
+developer-owned named queries — the only credentialed route family on this Worker (Fortress API key
+or OAuth bearer token required).
 
 ### `apps/auth` — Identity, Control Plane, Admin Plane, Editorial Plane
 One Worker, several responsibilities:
@@ -326,18 +330,24 @@ Reliability and safety, not new features, before anything else ships. Status of 
    gate everything else feeds into.
 
 ### After 0.20 (from `docs/canonical-data-roadmap.md`, roughly matching the user's longer roadmap)
-- **0.21 Admin/Editorial**: step-by-step record editor, Arabic/transliteration preview+validation,
-  better verification workload tooling, editorial analytics, audit export, review notifications.
-- **0.22 Search/RAG**: better Arabic normalization/stemming, exact-reference search, metadata-
-  filtered retrieval, a permanent eval dataset, quality/cost dashboards, stricter refusal behavior,
-  automatic vector reindex/recovery.
+- **0.21 Admin/Editorial** — shipped in 0.21.0 (2026-08-06): step-by-step record editor,
+  Arabic/transliteration preview+validation, verification workload tooling assessed as already
+  adequate (no gap found), audit export, review notifications.
+- **0.22 Search/RAG** — shipped in 0.22.0 (curated synonym dictionary, LLM query expansion,
+  unverified-content fallback, Ctrl+Enter/Alt+Enter submit) and 0.23.0 (Arabic normalization/
+  diacritic+alef-form matching, exact-reference search, metadata-filtered retrieval). Still open:
+  a permanent eval dataset, quality/cost dashboards, stricter refusal behavior, automatic vector
+  reindex/recovery, and the embedding-model upgrade (deliberately deferred — the stronger Workers AI
+  options use a different vector dimension than the existing Vectorize index, which means recreating
+  real Cloudflare infrastructure, not just a code change; needs a separate explicit go/no-go).
 - **0.23 Developer Platform**: real plan management, access-request approval workflow, OAuth
   hardening. Usage/quota dashboards, better named-query/MCP builders (inline validation + live
   preview), SDK examples, and webhooks shipped early in 0.21.0 (2026-08-06) alongside a broader
   Developer Portal/Admin Console UX pass — see `README.md` 0.21.0 release notes.
-- **0.24 User-Facing**: the Help Portal (doesn't exist yet), moods/Ruqyah/anxiety/gratitude content
-  — **only after verified data backs them**, better PWA category discovery, real-device testing,
-  native Android app.
+- **0.24 User-Facing**: category/mood chip counts + descriptions shipped in 0.23.0. Still open: the
+  Help Portal (doesn't exist yet, no decision recorded on scope), moods/Ruqyah/anxiety/gratitude
+  content — **only after verified data backs them**, real-device testing, native Android app
+  (explicitly skipped for now per user decision).
 
 Human-reviewed content expansion (more duas, Hadith collections, moods, Ruqyah) is explicitly
 gated on qualified editorial review — it is not a data-import problem, it's a "find qualified
