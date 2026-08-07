@@ -135,7 +135,8 @@
 
 .assistant-form textarea:focus { border-color: var(--accent-strong); }
 .primary-action { display: inline-flex; gap: 0.45rem; align-items: center; justify-content: center; justify-self: end; min-width: 7rem; min-height: 2.7rem; border: 0; border-radius: 0.55rem; color: white; background: var(--accent-strong); font-weight: 850; }
-.assistant-note, .assistant-remaining { color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
+.assistant-note, .assistant-remaining, .assistant-hint { color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
+.assistant-hint { margin-top: -0.3rem; }
 .assistant-answer { margin-top: 1rem; border-block: 1px solid var(--line); padding: 0.85rem 0; line-height: 1.65; }
 .assistant-answer p { margin: 0; }
 .assistant-sources { display: grid; gap: 0.45rem; margin-top: 0.75rem; }
