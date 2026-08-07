@@ -162,6 +162,15 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.23.1
+
+- **Fixed TOTP QR code unscannable by Microsoft Authenticator**: the Developer Portal's
+  authenticator-app QR renderer (`apps/developers/public/console.js`) drew modules edge-to-edge
+  in the SVG with no quiet zone, relying only on a fixed CSS padding that didn't scale with the
+  QR's module count. Google Authenticator tolerates the missing margin; Microsoft Authenticator's
+  scanner does not, and would fail to locate the finder patterns. The 4-module quiet zone required
+  by the QR spec is now baked into the SVG's own coordinate system.
+
 ### 0.23.0
 
 Search/RAG quality and PWA discovery, closing out the rest of the post-0.20 search roadmap:
