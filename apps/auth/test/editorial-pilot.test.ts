@@ -57,11 +57,52 @@ describe('canonical editorial pilot', () => {
         AND reviewer_external_id = '${users.reviewer.user.id}' AND decision = 'approved'`)).toBe(1);
     expect(scalar(content, `SELECT COUNT(*) FROM canonical_references WHERE id = '${referenceId}' AND verification_status = 'verified'`)).toBe(1);
     expect(String(content.prepare(`SELECT verified_by_external_id FROM editorial_record_state WHERE canonical_id = ?`).pluck().get(canonicalId))).toBe(users.reviewer.user.id);
+    expect(scalar(content, `SELECT COUNT(*) FROM field_reviews
+      WHERE revision_id = (SELECT revision_id FROM editorial_record_state WHERE canonical_id = '${canonicalId}')
+        AND reviewer_external_id = '${users.reviewer.user.id}' AND decision = 'verified'`)).toBe(13);
 
     const duplicate = await post(users.reviewer, `/v1/admin/editorial/records/${canonicalId}/decision`, {
       decision: 'approved',
     }, 409);
     expect(((await duplicate.json()) as { error: { code: string } }).error.code).toBe('conflict');
+  });
+
+  it('an overall approval fills in unreviewed fields but never overwrites a field this reviewer already reviewed individually', async () => {
+    const content = createContentDatabase();
+    const identity = createIdentityDatabase();
+    const env = { CONTENT_DB: d1(content), IDENTITY_DB: d1(identity) } as never;
+    const editor = context(env, 'field-editor', 'editor');
+    const reviewer = context(env, 'field-reviewer', 'reviewer');
+    seedIdentity(identity, [editor, reviewer]);
+
+    const canonicalId = 'dua.hisn.002';
+    content.prepare(`
+      UPDATE editorial_record_state
+      SET workflow_state = 'pending_review', verified_by_external_id = NULL, verified_at = NULL
+      WHERE canonical_id = ?
+    `).run(canonicalId);
+    await post(editor, `/v1/admin/editorial/records/${canonicalId}/references`, {
+      referenceType: 'primary',
+      locator: 'Hisn al-Muslim 2',
+    }, 201);
+
+    await post(reviewer, `/v1/admin/editorial/records/${canonicalId}/field-reviews`, {
+      reviews: [{ field: 'arabic', decision: 'correction_required', notes: 'Missing a diacritic.' }],
+    }, 201);
+
+    await post(reviewer, `/v1/admin/editorial/records/${canonicalId}/decision`, { decision: 'approved' });
+
+    const revisionId = content.prepare(
+      'SELECT revision_id FROM editorial_record_state WHERE canonical_id = ?',
+    ).pluck().get(canonicalId) as string;
+    expect(scalar(content, `SELECT COUNT(*) FROM field_reviews
+      WHERE revision_id = '${revisionId}' AND reviewer_external_id = '${reviewer.user.id}'`)).toBe(13);
+    expect(String(content.prepare(`SELECT decision FROM field_reviews
+      WHERE revision_id = ? AND field_name = 'arabic' AND reviewer_external_id = ?`)
+      .pluck().get(revisionId, reviewer.user.id))).toBe('correction_required');
+    expect(String(content.prepare(`SELECT decision FROM field_reviews
+      WHERE revision_id = ? AND field_name = 'translation' AND reviewer_external_id = ?`)
+      .pluck().get(revisionId, reviewer.user.id))).toBe('verified');
   });
 
   it('creates a Hadith record and verifies its complete book into the RAG corpus', async () => {
@@ -124,6 +165,9 @@ describe('canonical editorial pilot', () => {
     expect(String(content.prepare(
       "SELECT editorial_status FROM books WHERE id = 'book.test.hadith.1'",
     ).pluck().get())).toBe('verified');
+    expect(scalar(content, `SELECT COUNT(*) FROM field_reviews
+      WHERE revision_id = (SELECT revision_id FROM editorial_record_state WHERE canonical_id = '${canonicalId}')
+        AND reviewer_external_id = '${reviewer.user.id}' AND decision = 'verified'`)).toBe(13);
   });
 
   it('lets a reviewer complete their own assignment and lets an editor cancel work', async () => {
