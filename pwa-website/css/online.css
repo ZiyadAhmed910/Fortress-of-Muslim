@@ -142,6 +142,8 @@
 .assistant-sources { display: grid; gap: 0.45rem; margin-top: 0.75rem; }
 .assistant-source { display: grid; gap: 0.1rem; border-left: 3px solid var(--accent-strong); padding: 0.5rem 0.7rem; color: var(--ink); background: color-mix(in srgb, var(--paper-strong) 88%, transparent); text-decoration: none; }
 .assistant-source span, .assistant-source small { color: var(--muted); font-size: 0.75rem; }
+.assistant-source--unverified { border-left-color: #b7791f; }
+.assistant-source--unverified small { color: #b7791f; font-weight: 700; }
 .assistant-thinking { display: flex; gap: 0.32rem; justify-content: center; padding: 2rem; }
 .assistant-thinking span { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--accent-strong); animation: assistant-pulse 0.9s ease-in-out infinite alternate; }
 .assistant-thinking span:nth-child(2) { animation-delay: 0.18s; }

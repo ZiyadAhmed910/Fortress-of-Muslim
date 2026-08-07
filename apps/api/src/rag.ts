@@ -1,11 +1,29 @@
 import type { Dua, Hadith } from '@fortress/contracts';
 import type { ContentRepository } from './repositories/content-repository';
+import { expandRetrievalQuery } from './rag-synonyms';
 import type { Bindings } from './types';
 
 const EMBEDDING_MODEL = '@cf/baai/bge-base-en-v1.5';
 const GENERATION_MODEL = '@cf/meta/llama-3.2-3b-instruct';
 const DAILY_ASK_LIMIT = 20;
 const MAX_CONTEXTS = 6;
+// Below this many verified/published sources, also try the unverified-content fallback --
+// verified is still the primary path, this only fills gaps when it's thin.
+const MIN_VERIFIED_SOURCES = 2;
+const GENERATION_SYSTEM_PROMPT = 'You are the Fortress of Muslim canonical source assistant. '
+  + 'Answer only from the numbered source contexts. Every non-empty paragraph must include a '
+  + 'citation such as [1]. Never invent a ruling, grading, source type, attribution, or quotation. '
+  + 'Do not identify text as Quran or Hadith unless the context explicitly does so. Each context '
+  + 'states its own Verification status; if a context you cite is not "verified", you must say so '
+  + 'explicitly in the sentence that cites it (for example, "this is not yet independently '
+  + 'verified") -- never present unverified material with the same confidence as verified material. '
+  + 'If the contexts are insufficient, say so. Keep the answer concise and do not provide medical, '
+  + 'legal, or religious verdicts.';
+const QUERY_EXPANSION_SYSTEM_PROMPT = 'Rewrite the user question into exactly 2 short alternate '
+  + 'search phrasings using different but related wording -- synonyms, alternate transliterations '
+  + 'of Islamic terms, or closely related concepts. Reply with exactly 2 lines, one phrasing per '
+  + 'line, nothing else. Do not answer the question. Do not add numbering or punctuation beyond the '
+  + 'phrasing itself.';
 
 type EmbeddingResponse = { data: number[][] };
 type GenerationResponse = { response?: string };
@@ -176,11 +194,31 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
   }
 
   const remaining = await consumeDailyAllowance(env.CONTENT_DB, clientAddress);
-  const [vectorResult, lexicalRecords] = await Promise.all([
-    retrieveVectorRecords(env, repository, dataset.id, question),
-    retrieveLexicalRecords(repository, question),
-  ]);
-  const grounded = mergeGrounded(vectorResult.records, lexicalRecords);
+
+  // Synonym expansion (deterministic, curated) always runs; LLM query expansion adds up to 2 more
+  // phrasings on top. Every variant is retrieved in parallel and merged -- this is deliberately the
+  // expensive option (extra Workers AI calls on every request) over a cheaper dictionary-only or
+  // embedding-only approach, so an unfamiliar transliteration or phrasing has more chances to match.
+  const expandedVariants = await expandQueryVariants(env, question);
+  const retrievalQueries = [question, ...expandedVariants].map(expandRetrievalQuery);
+  const retrievals = await Promise.all(retrievalQueries.map((retrievalQuery) => Promise.all([
+    retrieveVectorRecords(env, repository, dataset.id, retrievalQuery),
+    retrieveLexicalRecords(repository, retrievalQuery),
+  ])));
+  const vectorAvailable = retrievals.some(([vectorResult]) => vectorResult.available);
+  const vectorRecords = retrievals.flatMap(([vectorResult]) => vectorResult.records);
+  const lexicalRecords = retrievals.flatMap(([, lexical]) => lexical);
+  const grounded = mergeGrounded(vectorRecords, lexicalRecords);
+
+  let includesUnverifiedSource = false;
+  if (grounded.length < MIN_VERIFIED_SOURCES) {
+    const fallback = await retrieveUnverifiedFallback(repository, retrievalQueries[0]!, grounded, MAX_CONTEXTS - grounded.length);
+    if (fallback.length) {
+      includesUnverifiedSource = true;
+      grounded.push(...fallback);
+    }
+  }
+
   if (grounded.length === 0) {
     return {
       answer: 'I could not find a sufficiently grounded answer in the published Fortress sources.',
@@ -189,8 +227,8 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
         datasetId: dataset.id,
         model: null,
         remainingToday: remaining,
-        retrievalMode: vectorResult.available ? 'hybrid' : 'lexical',
-        vectorAvailable: vectorResult.available,
+        retrievalMode: vectorAvailable ? 'hybrid' : 'lexical',
+        vectorAvailable,
       },
     };
   }
@@ -203,10 +241,7 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
   try {
     const response = await env.AI.run(GENERATION_MODEL, {
       messages: [
-        {
-          role: 'system',
-          content: 'You are the Fortress of Muslim canonical source assistant. Answer only from the numbered published contexts. Every non-empty paragraph must include a citation such as [1]. Never invent a ruling, grading, source type, attribution, or quotation. Do not identify text as Quran or Hadith unless the context explicitly does so. If the contexts are insufficient, say so. Keep the answer concise and do not provide medical, legal, or religious verdicts.',
-        },
+        { role: 'system', content: GENERATION_SYSTEM_PROMPT },
         { role: 'user', content: `Question: ${question}\n\nSource contexts:\n${contexts}` },
       ],
       max_tokens: 650,
@@ -233,10 +268,64 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
       model,
       generated,
       remainingToday: remaining,
-      retrievalMode: vectorResult.available && lexicalRecords.length > 0 ? 'hybrid' : vectorResult.available ? 'vector' : 'lexical',
-      vectorAvailable: vectorResult.available,
+      retrievalMode: vectorAvailable && lexicalRecords.length > 0 ? 'hybrid' : vectorAvailable ? 'vector' : 'lexical',
+      vectorAvailable,
+      includesUnverifiedSource,
     },
   };
+}
+
+async function expandQueryVariants(env: Bindings, question: string): Promise<string[]> {
+  try {
+    const response = await env.AI.run(GENERATION_MODEL, {
+      messages: [
+        { role: 'system', content: QUERY_EXPANSION_SYSTEM_PROMPT },
+        { role: 'user', content: question },
+      ],
+      max_tokens: 80,
+      temperature: 0.4,
+    }) as GenerationResponse;
+    return (response.response ?? '')
+      .split('\n')
+      .map((line) => line.replace(/^[-*\d.\s]+/, '').trim())
+      .filter((line) => line.length >= 5 && line.length <= 200)
+      .slice(0, 2);
+  } catch (error) {
+    console.error(JSON.stringify({ event: 'rag_query_expansion_failed', message: errorMessage(error) }));
+    return [];
+  }
+}
+
+// The primary retrieval above (retrieveVectorRecords/retrieveLexicalRecords via searchForRag) only
+// ever considers published/verified content by design. When that comes up thin, this supplements
+// it with unverified current content instead of returning nothing -- but only ever adds records
+// that are NOT already verified (a verified match should already have surfaced via the primary
+// path; duplicating it in here with a fabricated score would be wrong) and every one it returns
+// still carries its real verificationStatus through to the generation context and the sources list,
+// so the generation prompt and the frontend can both show it isn't verified.
+async function retrieveUnverifiedFallback(
+  repository: ContentRepository,
+  question: string,
+  existing: GroundedRecord[],
+  limit: number,
+): Promise<GroundedRecord[]> {
+  if (limit <= 0) return [];
+  try {
+    const existingIds = new Set(existing.map((item) => item.record.id));
+    const candidates = await repository.searchCurrentForRag(question, limit + existingIds.size);
+    const records = await Promise.all(candidates.map(async (candidate) => {
+      if (existingIds.has(candidate.id)) return null;
+      const record = candidate.contentType === 'dua'
+        ? await repository.getDua(candidate.id)
+        : await repository.getHadith(candidate.id);
+      if (!record || record.verificationStatus === 'verified') return null;
+      return { record, contentType: candidate.contentType, score: candidate.score, retrieval: 'lexical' as const };
+    }));
+    return records.filter((item): item is NonNullable<typeof item> => Boolean(item)).slice(0, limit);
+  } catch (error) {
+    console.error(JSON.stringify({ event: 'rag_unverified_fallback_failed', message: errorMessage(error) }));
+    return [];
+  }
 }
 
 async function retrieveVectorRecords(env: Bindings, repository: ContentRepository, datasetId: string, question: string) {

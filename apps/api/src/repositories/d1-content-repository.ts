@@ -173,6 +173,47 @@ export class D1ContentRepository implements ContentRepository {
     }));
   }
 
+  // Ask's primary retrieval (searchForRag above) only ever considers published/verified content by
+  // design. This is the supplementary fallback for when that comes up thin: a plain LIKE search
+  // over api_current_content, which already includes unverified candidates. No FTS index needed --
+  // canonical_search_fts only ever gets populated at publish time, and this is a low-frequency
+  // fallback path, not the primary search, so a scan-based match is an acceptable tradeoff.
+  async searchCurrentForRag(query: string, limit: number): Promise<RagRecordMatch[]> {
+    const tokens = meaningfulTokens(query).slice(0, 6);
+    if (tokens.length === 0) return [];
+    const likeConditions = tokens.map(() => `(
+      LOWER(revision.title) LIKE ? OR LOWER(COALESCE(metadata.narrator, '')) LIKE ?
+      OR EXISTS (
+        SELECT 1 FROM revision_parts part
+        JOIN revision_segments segment ON segment.revision_part_id = part.id
+        WHERE part.revision_id = revision.id AND LOWER(segment.text) LIKE ?
+      )
+    )`).join(' OR ');
+    const bindings = tokens.flatMap((token) => [`%${token}%`, `%${token}%`, `%${token}%`]);
+    const result = await this.database.prepare(`
+      SELECT publication.canonical_id AS id, canonical.content_type AS contentType,
+             revision.title, COALESCE(metadata.narrator, '') AS narrator,
+             COALESCE((
+               SELECT GROUP_CONCAT(segment.text, ' ') FROM revision_parts part
+               JOIN revision_segments segment ON segment.revision_part_id = part.id
+               WHERE part.revision_id = revision.id
+             ), '') AS body
+      FROM api_current_content publication
+      JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
+      JOIN content_revisions revision ON revision.id = publication.revision_id
+      LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+      WHERE ${likeConditions}
+      LIMIT ?
+    `).bind(...bindings, limit).all<{
+      id: string; contentType: 'dua' | 'hadith'; title: string; narrator: string; body: string;
+    }>();
+    return result.results.map((row) => ({
+      id: row.id,
+      contentType: row.contentType,
+      score: lexicalRagScore(query, { title: row.title, body: row.body, narrator: row.narrator, rank: 0 }),
+    }));
+  }
+
   async findDuasByTitle(query: string, limit: number): Promise<DuaTitleMatch[]> {
     const result = await this.database.prepare(`
       SELECT publication.canonical_id AS id, revision.title, revision.sequence
