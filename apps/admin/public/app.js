@@ -534,8 +534,13 @@ $('#record-create-form').addEventListener('submit', async (event) => {
 addRecordPart();
 
 async function showRecord(id) {
-  const data = (await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}`)).data;
+  const [recordResponse, taxonomyResponse] = await Promise.all([
+    api(`/v1/admin/editorial/records/${encodeURIComponent(id)}`),
+    api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/taxonomy`),
+  ]);
+  const data = recordResponse.data;
   state.record = data;
+  state.recordTaxonomy = taxonomyResponse.data;
   const grouped = groupSegments(data.segments);
   const priorRevisions = data.revisions.filter((revision) => revision.id !== data.record.revisionId);
   const canEdit = ['admin', 'editor'].includes(state.session.role);
@@ -555,11 +560,22 @@ async function showRecord(id) {
       <div id="reference-list">${data.references.map(referenceRow).join('') || empty('No canonical references attached.')}</div>
       ${canEdit ? '<form id="reference-form" class="inline-control"><input name="referenceType" placeholder="Reference type" value="primary" required><input name="locator" placeholder="Canonical locator" required><button type="submit">Add reference</button></form>' : ''}
     </section>
+    <section class="editor-section"><header><div><h3>Mood &amp; occasion tags</h3><p>Suggestions are keyword matches only -- confirm or remove before saving. Nothing is assigned until you save.</p></div></header>
+      ${taxonomyChecklist(taxonomyResponse.data)}
+      <button type="button" data-save-taxonomy>Save tags</button>
+    </section>
     <section class="editor-section"><header><div><h3>Verification</h3><p>One authorized person verifies the complete revision. Their identity and timestamp are permanently recorded.</p></div></header>
       <div class="decision-bar"><button class="primary" data-decision="approved" ${isVerified ? 'disabled' : ''}>Verify record</button><button data-decision="changes_requested" ${isVerified ? 'disabled' : ''}>Request changes</button></div>
       ${data.decisions.map((item) => `<div class="history-row"><span><strong>${esc(item.decision === 'approved' ? 'Verified' : human(item.decision))}</strong><small>by ${esc(item.reviewerId)}</small></span><small>${date(item.decidedAt)}</small></div>`).join('') || empty('No verification recorded yet.')}
     </section>`;
   if (!$('#record-dialog').open) $('#record-dialog').showModal();
+}
+
+function taxonomyChecklist(taxonomy) {
+  const assignedIds = new Set(taxonomy.assigned.map((term) => term.id));
+  const terms = [...taxonomy.assigned, ...taxonomy.suggested];
+  if (!terms.length) return empty('No keyword-matched suggestions for this record. Terms can still be created under Taxonomy.');
+  return `<div class="checkbox-grid">${terms.map((term) => `<label><input type="checkbox" data-taxonomy-term="${esc(term.id)}" ${assignedIds.has(term.id) ? 'checked' : ''}> ${esc(term.label)} <small>${esc(human(term.type))}${assignedIds.has(term.id) ? '' : ' &middot; suggested'}</small></label>`).join('')}</div>`;
 }
 
 function referenceRow(reference) {
@@ -607,8 +623,14 @@ $('#record-detail').addEventListener('click', async (event) => {
   const reference = event.target.closest('[data-reference-decision]');
   const compare = event.target.closest('[data-compare-revision]');
   const duplicates = event.target.closest('[data-find-duplicates]');
+  const saveTaxonomy = event.target.closest('[data-save-taxonomy]');
   try {
-    if (compare) {
+    if (saveTaxonomy) {
+      const termIds = $$('[data-taxonomy-term]', $('#record-detail')).filter((input) => input.checked).map((input) => input.dataset.taxonomyTerm);
+      await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/taxonomy`, { method: 'POST', body: { termIds } });
+      notify('Tags saved.');
+      return showRecord(id);
+    } else if (compare) {
       return showRevisionComparison(id, compare.dataset.compareRevision);
     } else if (duplicates) {
       const rows = (await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/duplicates`)).data;

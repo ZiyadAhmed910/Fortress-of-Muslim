@@ -105,6 +105,41 @@ describe('canonical editorial pilot', () => {
       .pluck().get(revisionId, reviewer.user.id))).toBe('verified');
   });
 
+  it('suggests keyword-matched taxonomy terms and lets an editor confirm the assignment', async () => {
+    const content = createContentDatabase();
+    const identity = createIdentityDatabase();
+    const env = { CONTENT_DB: d1(content), IDENTITY_DB: d1(identity) } as never;
+    const editor = context(env, 'taxonomy-editor', 'editor');
+    seedIdentity(identity, [editor]);
+
+    const canonicalId = 'dua.hisn.001'; // seeded title: "When waking up"
+    const suggestion = await request(editor, 'GET', `/v1/admin/editorial/records/${canonicalId}/taxonomy`);
+    const suggestionBody = (await suggestion.json()) as {
+      data: { assigned: Array<{ slug: string }>; suggested: Array<{ id: string; slug: string }> };
+    };
+    expect(suggestionBody.data.assigned).toEqual([]);
+    expect(suggestionBody.data.suggested.map((term) => term.slug)).toContain('morning');
+    const morningTermId = suggestionBody.data.suggested.find((term) => term.slug === 'morning')!.id;
+
+    const assign = await post(editor, `/v1/admin/editorial/records/${canonicalId}/taxonomy`, {
+      termIds: [morningTermId],
+    });
+    expect(assign.status).toBe(200);
+    expect(scalar(content, `SELECT COUNT(*) FROM record_taxonomy
+      WHERE term_id = '${morningTermId}' AND assignment_source = 'editorial'`)).toBe(1);
+
+    const after = await request(editor, 'GET', `/v1/admin/editorial/records/${canonicalId}/taxonomy`);
+    const afterBody = (await after.json()) as {
+      data: { assigned: Array<{ id: string; slug: string }>; suggested: Array<{ slug: string }> };
+    };
+    expect(afterBody.data.assigned.map((term) => term.slug)).toEqual(['morning']);
+    expect(afterBody.data.suggested.some((term) => term.slug === 'morning')).toBe(false);
+
+    const cleared = await post(editor, `/v1/admin/editorial/records/${canonicalId}/taxonomy`, { termIds: [] });
+    expect(cleared.status).toBe(200);
+    expect(scalar(content, `SELECT COUNT(*) FROM record_taxonomy WHERE term_id = '${morningTermId}'`)).toBe(0);
+  });
+
   it('creates a Hadith record and verifies its complete book into the RAG corpus', async () => {
     const content = createContentDatabase();
     const identity = createIdentityDatabase();
