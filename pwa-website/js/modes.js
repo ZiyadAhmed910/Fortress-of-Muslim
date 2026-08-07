@@ -1,31 +1,38 @@
 import { els } from './dom.js';
 import { state } from './state.js';
 import { activateHadith } from './hadith.js';
-import { activatePrayer, deactivatePrayer } from './prayer.js';
+import { activatePrayerTimes, activateQibla, deactivatePrayerTimes, deactivateQibla } from './prayer.js';
 import { activateTasbih } from './tasbih.js';
+import { applyLayoutToNav, isTabVisible } from './layout.js';
 
-const MODES = ['duas', 'hadith', 'ask', 'prayer', 'tasbih'];
+const MODES = ['duas', 'hadith', 'ask', 'prayerTimes', 'qibla', 'tasbih'];
 
 export function initContentModes() {
   els.contentModeButtons.forEach((button) => button.addEventListener('click', () => setContentMode(button.dataset.contentMode)));
+  applyLayoutToNav();
   setContentMode('duas');
 }
 
-export function setContentMode(mode) {
-  if (!MODES.includes(mode)) return;
+export function setContentMode(requestedMode) {
+  // A disabled/hidden tab (per the layout config, or a Simple/Advanced UI mismatch) can still be
+  // requested indirectly (e.g. a stale notification link) -- fall back to Duas, the one tab that's
+  // always guaranteed reachable, rather than showing a tab the user chose to hide.
+  const mode = MODES.includes(requestedMode) && isTabVisible(requestedMode) ? requestedMode : 'duas';
   const previousMode = state.contentMode;
   state.contentMode = mode;
   const showingDuas = mode === 'duas';
-  els.app.classList.remove('is-reader', 'mode-hadith', 'mode-ask', 'mode-prayer', 'mode-tasbih');
+  els.app.classList.remove('is-reader', 'mode-hadith', 'mode-ask', 'mode-prayerTimes', 'mode-qibla', 'mode-tasbih');
   if (!showingDuas) els.app.classList.add(`mode-${mode}`);
   els.advancedHome.hidden = !showingDuas;
   els.simpleHome.hidden = !showingDuas;
   els.hadithHome.hidden = mode !== 'hadith';
   els.assistantHome.hidden = mode !== 'ask';
-  els.prayerHome.hidden = mode !== 'prayer';
+  els.prayerTimesHome.hidden = mode !== 'prayerTimes';
+  els.qiblaHome.hidden = mode !== 'qibla';
   els.tasbihHome.hidden = mode !== 'tasbih';
   els.contentModeButtons.forEach((button) => button.classList.toggle('active', button.dataset.contentMode === mode));
-  if (previousMode === 'prayer' && mode !== 'prayer') deactivatePrayer();
+  if (previousMode === 'prayerTimes' && mode !== 'prayerTimes') deactivatePrayerTimes();
+  if (previousMode === 'qibla' && mode !== 'qibla') deactivateQibla();
   if (mode === 'duas') {
     els.screenTitle.textContent = 'Fortress of Muslim';
     els.screenSubtitle.textContent = 'Verified canonical chapters available offline';
@@ -33,10 +40,14 @@ export function setContentMode(mode) {
     els.screenTitle.textContent = 'Hadith Library';
     els.screenSubtitle.textContent = 'Bukhari, Muslim, and Tirmidhi - online';
     activateHadith();
-  } else if (mode === 'prayer') {
-    els.screenTitle.textContent = 'Prayer Times & Qibla';
+  } else if (mode === 'prayerTimes') {
+    els.screenTitle.textContent = 'Prayer Times';
     els.screenSubtitle.textContent = 'Computed on this device - works offline';
-    activatePrayer();
+    activatePrayerTimes();
+  } else if (mode === 'qibla') {
+    els.screenTitle.textContent = 'Qibla Direction';
+    els.screenSubtitle.textContent = 'Computed on this device - works offline';
+    activateQibla();
   } else if (mode === 'tasbih') {
     els.screenTitle.textContent = 'Tasbih Counter';
     els.screenSubtitle.textContent = 'Offline dhikr counter';
@@ -46,4 +57,12 @@ export function setContentMode(mode) {
     els.screenSubtitle.textContent = 'Source-grounded answers - online';
   }
   window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+/** Re-applies the layout config to the nav and, if the currently active tab just became hidden
+ * (disabled, or a Simple/Advanced visibility mismatch after a toggle), falls back to Duas. Call
+ * this after any layout config change or Simple/Advanced UI toggle. */
+export function refreshLayoutVisibility() {
+  applyLayoutToNav();
+  if (!isTabVisible(state.contentMode)) setContentMode('duas');
 }

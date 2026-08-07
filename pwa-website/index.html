@@ -42,9 +42,13 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a7 7 0 0 0-4 12.7V20l4-2 4 2v-4.3A7 7 0 0 0 12 3Z"/><path d="M9.5 10a2.5 2.5 0 1 1 4.2 1.8c-.9.7-1.7 1.1-1.7 2.2M12 16h.01"/></svg>
               <span>Ask</span>
             </button>
-            <button data-content-mode="prayer" type="button">
+            <button data-content-mode="prayerTimes" type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
               <span>Prayer</span>
+            </button>
+            <button data-content-mode="qibla" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2Z"/></svg>
+              <span>Qibla</span>
             </button>
             <button data-content-mode="tasbih" type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="18" cy="9.5" r="2"/><circle cx="18" cy="16" r="2"/><circle cx="12" cy="20" r="2"/><circle cx="6" cy="16" r="2"/><circle cx="6" cy="9.5" r="2"/></svg>
@@ -127,7 +131,7 @@
             <div class="assistant-result" id="assistantResult" aria-live="polite"></div>
           </section>
 
-          <section class="online-home prayer-home" id="prayerHome" hidden>
+          <section class="online-home prayer-home" id="prayerTimesHome" hidden>
             <div class="prayer-next-card" id="prayerNextCard">
               <span class="prayer-next-label">Next prayer</span>
               <strong id="prayerNextName">&ndash;</strong>
@@ -136,22 +140,39 @@
             </div>
 
             <div class="prayer-location-row">
-              <span id="prayerLocationLabel">Locating...</span>
-              <button class="text-button" id="prayerLocationButton" type="button">Set location</button>
+              <span id="prayerTimesLocationLabel">Locating...</span>
+              <button class="text-button" id="prayerTimesLocationButton" type="button">Set location</button>
             </div>
-            <p class="prayer-timezone-note" id="prayerTimezoneNote" hidden>Times are shown in this device's own timezone, not the entered location's -- if you entered coordinates for a different timezone than this device is set to, clock times above will be off by that difference. The prayer angles themselves are still computed for the entered location.</p>
+            <p class="prayer-timezone-note" id="prayerTimesTimezoneNote" hidden>Times are shown in this device's own timezone, not the entered location's -- if you entered coordinates for a different timezone than this device is set to, clock times above will be off by that difference. The prayer angles themselves are still computed for the entered location.</p>
 
-            <form class="prayer-location-form" id="prayerLocationForm" hidden>
+            <form class="prayer-location-form" id="prayerTimesLocationForm" hidden>
               <label>Latitude<input name="latitude" type="number" step="0.0001" min="-90" max="90" placeholder="e.g. 21.4225" required></label>
               <label>Longitude<input name="longitude" type="number" step="0.0001" min="-180" max="180" placeholder="e.g. 39.8262" required></label>
               <div class="prayer-location-form-actions">
                 <button class="small-action-button" type="submit">Save location</button>
-                <button class="text-button" type="button" id="prayerLocationCancel">Cancel</button>
-                <button class="text-button" type="button" id="prayerLocationRetry">Try device location again</button>
+                <button class="text-button" type="button" id="prayerTimesLocationCancel">Cancel</button>
+                <button class="text-button" type="button" id="prayerTimesLocationRetry">Try device location again</button>
               </div>
             </form>
 
             <div class="prayer-times-list" id="prayerTimesList" aria-label="Today's prayer times" hidden></div>
+          </section>
+
+          <section class="online-home qibla-home" id="qiblaHome" hidden>
+            <div class="prayer-location-row">
+              <span id="qiblaLocationLabel">Locating...</span>
+              <button class="text-button" id="qiblaLocationButton" type="button">Set location</button>
+            </div>
+
+            <form class="prayer-location-form" id="qiblaLocationForm" hidden>
+              <label>Latitude<input name="latitude" type="number" step="0.0001" min="-90" max="90" placeholder="e.g. 21.4225" required></label>
+              <label>Longitude<input name="longitude" type="number" step="0.0001" min="-180" max="180" placeholder="e.g. 39.8262" required></label>
+              <div class="prayer-location-form-actions">
+                <button class="small-action-button" type="submit">Save location</button>
+                <button class="text-button" type="button" id="qiblaLocationCancel">Cancel</button>
+                <button class="text-button" type="button" id="qiblaLocationRetry">Try device location again</button>
+              </div>
+            </form>
 
             <div class="qibla-card" id="qiblaCard" hidden>
               <div class="qibla-heading">
@@ -326,6 +347,8 @@
             <h2>Settings</h2>
             <button class="icon-button" value="close" aria-label="Close">×</button>
           </div>
+
+          <h3 class="settings-section-heading">Appearance</h3>
           <label class="setting-row">
             <span>
               <strong>Dark mode</strong>
@@ -347,9 +370,11 @@
             </span>
             <input id="advancedUiToggle" type="checkbox">
           </label>
+
+          <h3 class="settings-section-heading">Prayer &amp; Qibla</h3>
           <div class="setting-row setting-row-stack">
             <span>
-              <strong>Prayer calculation method</strong>
+              <strong>Calculation method</strong>
               <small>Sets the Fajr/Isha angles used to compute your prayer times.</small>
             </span>
             <select id="calculationMethodSelect">
@@ -370,13 +395,8 @@
               <option value="hanafi">Hanafi</option>
             </select>
           </div>
-          <div class="setting-row install-row" id="installRow">
-            <span>
-              <strong>Install app</strong>
-              <small>Add this PWA to your device home screen.</small>
-            </span>
-            <button class="small-action-button" id="installButton" type="button">Install</button>
-          </div>
+
+          <h3 class="settings-section-heading">Reminders</h3>
           <label class="setting-row">
             <span>
               <strong>Prayer reminders</strong>
@@ -386,7 +406,7 @@
           </label>
           <p class="reminder-note reminder-note-warning" id="remindersUnsupportedNote" hidden>Notifications are not supported in this browser.</p>
           <p class="reminder-note reminder-note-warning" id="remindersBlockedNote" hidden>Notifications are blocked for this site -- allow them in your browser's site settings to use reminders.</p>
-          <p class="reminder-note reminder-note-warning" id="remindersLocationNote" hidden>Set your location on the Prayer tab first so reminders know when to fire.</p>
+          <p class="reminder-note reminder-note-warning" id="remindersLocationNote" hidden>Set your location on the Prayer Times or Qibla tab first so reminders know when to fire.</p>
           <label class="setting-row reminder-subrow">
             <span>
               <strong>Morning adhkar</strong>
@@ -401,6 +421,19 @@
             </span>
             <input id="eveningAdhkarToggle" type="checkbox">
           </label>
+
+          <h3 class="settings-section-heading">Customize layout</h3>
+          <p class="settings-section-note">Choose which tabs you want, and whether each shows in Simple UI, Advanced UI, or both. Duas always stays available as your home tab.</p>
+          <div class="layout-config-list" id="layoutConfigList"></div>
+
+          <h3 class="settings-section-heading">Data</h3>
+          <div class="setting-row install-row" id="installRow">
+            <span>
+              <strong>Install app</strong>
+              <small>Add this PWA to your device home screen.</small>
+            </span>
+            <button class="small-action-button" id="installButton" type="button">Install</button>
+          </div>
           <div class="setting-row setting-row-stack">
             <span>
               <strong>Backup</strong>
@@ -412,6 +445,8 @@
               <input id="importDataInput" type="file" accept="application/json,.json" hidden>
             </span>
           </div>
+
+          <h3 class="settings-section-heading">About</h3>
           <div class="settings-version" id="appVersion" aria-label="App version">Version 1.013</div>
         </form>
       </dialog>

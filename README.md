@@ -651,6 +651,15 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.014
+
+- Split the combined Prayer screen into independent Prayer Times and Qibla tabs, sharing the same resolved location.
+- Reorganized Settings into categorized sections (Appearance, Prayer & Qibla, Reminders, Customize Layout, Data, About) with a clear dimmed/disabled visual state for toggled-off rows.
+- Added a Customize Layout section in Settings letting you enable/disable Hadith, Ask, Prayer Times, Qibla, and Tasbih individually, and choose whether each shows in Simple UI, Advanced UI, or both; Duas always stays available.
+- Extended backup export/import and the offline cache manifest to cover the new layout configuration.
+- Fixed the live Qibla compass using a non-north-referenced heading on many Android/Chrome devices, causing an inaccurate direction.
+- Fixed the Qibla card being hidden in Simple UI; it now always shows there, while the full prayer times list is governed by the new layout config.
+
 ### 1.013
 
 - Fixed simple-home category pills so they open the same category/list flow as advanced cards.

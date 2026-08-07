@@ -54,10 +54,14 @@
 .mode-ask .simple-home,
 .mode-ask .advanced-bottom-nav,
 .mode-ask .favourites-fab,
-.mode-prayer .advanced-home,
-.mode-prayer .simple-home,
-.mode-prayer .advanced-bottom-nav,
-.mode-prayer .favourites-fab,
+.mode-prayerTimes .advanced-home,
+.mode-prayerTimes .simple-home,
+.mode-prayerTimes .advanced-bottom-nav,
+.mode-prayerTimes .favourites-fab,
+.mode-qibla .advanced-home,
+.mode-qibla .simple-home,
+.mode-qibla .advanced-bottom-nav,
+.mode-qibla .favourites-fab,
 .mode-tasbih .advanced-home,
 .mode-tasbih .simple-home,
 .mode-tasbih .advanced-bottom-nav,
@@ -225,10 +229,6 @@
 .prayer-row-sunrise { opacity: 0.75; border-style: dashed; }
 .prayer-row-active { border-color: var(--accent-strong); background: color-mix(in srgb, var(--accent-strong) 10%, var(--paper-strong)); }
 .prayer-row-active .prayer-row-time { color: var(--accent-strong); font-weight: 800; }
-
-/* The full five-times list stays Advanced-UI-only (that's the detailed view Simple UI is meant to
-   skip), but Qibla direction is core functionality, not an "advanced" extra -- it shows in both. */
-:root:not(.advanced-ui) .prayer-times-list { display: none; }
 
 .qibla-card { display: grid; gap: 0.6rem; padding: 1rem; border: 1px solid var(--line); border-radius: 0.7rem; background: var(--paper-strong); }
 .qibla-heading { display: flex; align-items: center; justify-content: space-between; }
