@@ -108,8 +108,14 @@ export const hadithSearchSchema = hadithListSchema.extend({
   q: z.string().trim().min(2).max(200),
 });
 
+export const askFiltersSchema = z.object({
+  contentType: contentTypeSchema.optional(),
+  collection: z.string().trim().min(1).max(80).optional(),
+});
+
 export const askQuestionSchema = z.object({
   question: z.string().trim().min(5).max(500),
+  filters: askFiltersSchema.optional(),
 });
 
 export const vectorIndexBatchSchema = z.object({
@@ -126,4 +132,5 @@ export type ContentType = z.infer<typeof contentTypeSchema>;
 export type CollectionSummary = z.infer<typeof collectionSummarySchema>;
 export type HadithSummary = z.infer<typeof hadithSummarySchema>;
 export type Hadith = z.infer<typeof hadithSchema>;
+export type AskFilters = z.infer<typeof askFiltersSchema>;
 export type AskQuestion = z.infer<typeof askQuestionSchema>;

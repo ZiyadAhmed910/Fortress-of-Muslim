@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-07T04:11:48.162Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-07T04:25:15.720Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -58,21 +58,22 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/migrations/0014_book_editorial_and_manual_records.sql` | sql | 31 |  |  |
 | `apps/api/migrations/0015_taxonomy_seed.sql` | sql | 23 |  |  |
 | `apps/api/migrations/0016_editorial_notifications.sql` | sql | 18 |  |  |
-| `apps/api/src/app.ts` | ts | 615 | 26 | function createApp, const app |
+| `apps/api/src/app.ts` | ts | 616 | 26 | function createApp, const app |
 | `apps/api/src/index.ts` | ts | 51 |  | class ApiWorker |
 | `apps/api/src/lib/fuzzy-title.ts` | ts | 75 |  | type TitleCandidate, type RankedTitle, function rankDuaTitles |
 | `apps/api/src/lib/pagination.ts` | ts | 15 |  | function encodeCursor, function decodeCursor |
 | `apps/api/src/lib/record-query.ts` | ts | 88 |  | type RecordQueryDefinition, function executeRecordQuery |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 41 |  | function expandRetrievalQuery |
-| `apps/api/src/rag.ts` | ts | 581 |  | type RagSource, function indexRecordBatch, function indexNextPendingBatch, function getRagStatus, function answerQuestion, class RagRateLimitError |
-| `apps/api/src/repositories/content-repository.ts` | ts | 59 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RecordEvidence, interface ContentRepository |
-| `apps/api/src/repositories/d1-content-repository.ts` | ts | 697 |  | class D1ContentRepository |
+| `apps/api/src/rag.ts` | ts | 602 |  | type RagSource, function indexRecordBatch, function indexNextPendingBatch, function getRagStatus, function answerQuestion, class RagRateLimitError |
+| `apps/api/src/repositories/content-repository.ts` | ts | 60 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
+| `apps/api/src/repositories/d1-content-repository.ts` | ts | 712 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
-| `apps/api/test/api.test.ts` | ts | 666 |  |  |
+| `apps/api/test/api.test.ts` | ts | 701 |  |  |
 | `apps/api/test/arabic-search.test.ts` | ts | 133 |  |  |
 | `apps/api/test/fuzzy-title.test.ts` | ts | 30 |  |  |
 | `apps/api/test/hadith-reference.test.ts` | ts | 127 |  |  |
+| `apps/api/test/rag-filters.test.ts` | ts | 208 |  |  |
 | `apps/api/test/rag-index.test.ts` | ts | 62 |  |  |
 | `apps/api/test/rag-quality.test.ts` | ts | 173 |  |  |
 | `apps/api/test/rag-reference.test.ts` | ts | 28 |  |  |
@@ -109,14 +110,14 @@ Not all of these are bugs; verify before assuming.
 | `apps/developers/public/oauth.js` | js | 112 |  |  |
 | `apps/mcp/src/index.ts` | ts | 74 | 2 | default export |
 | `apps/status/public/app.js` | js | 131 |  |  |
-| `packages/contracts/src/index.ts` | ts | 130 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +25 more |
+| `packages/contracts/src/index.ts` | ts | 137 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +27 more |
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
 | `pwa-website/js/app.js` | js | 142 |  |  |
-| `pwa-website/js/assistant.js` | js | 52 |  |  |
+| `pwa-website/js/assistant.js` | js | 54 |  |  |
 | `pwa-website/js/categories.js` | js | 144 |  |  |
 | `pwa-website/js/constants.js` | js | 4 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 60 |  |  |
+| `pwa-website/js/dom.js` | js | 61 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
 | `pwa-website/js/home.js` | js | 177 |  |  |
@@ -215,7 +216,7 @@ Not all of these are bugs; verify before assuming.
 | POST | `/v1/admin/taxonomy` | manual (exact) | `apps/auth/src/admin-plane.ts:131` |
 | GET | `/v1/admin/users` | manual (exact) | `apps/auth/src/admin-plane.ts:128` |
 | POST | `/v1/ask` | hono | `apps/api/src/app.ts:442` |
-| GET | `/v1/ask/status` | hono | `apps/api/src/app.ts:463` |
+| GET | `/v1/ask/status` | hono | `apps/api/src/app.ts:464` |
 | GET | `/v1/collections` | hono | `apps/api/src/app.ts:229` |
 | GET | `/v1/control/devices` | manual (exact) | `apps/auth/src/index.ts:200` |
 | POST | `/v1/control/devices` | manual (exact) | `apps/auth/src/index.ts:210` |
@@ -242,9 +243,9 @@ Not all of these are bugs; verify before assuming.
 | GET | `/v1/hadith/:id` | hono | `apps/api/src/app.ts:436` |
 | GET | `/v1/hadith/resolve` | hono | `apps/api/src/app.ts:418` |
 | GET | `/v1/hadith/search` | hono | `apps/api/src/app.ts:400` |
-| POST | `/v1/internal/vector-index` | hono | `apps/api/src/app.ts:469` |
+| POST | `/v1/internal/vector-index` | hono | `apps/api/src/app.ts:470` |
 | GET | `/v1/oauth/client-name` | manual (exact) | `apps/auth/src/index.ts:71` |
-| GET | `/v1/queries/:id` | hono | `apps/api/src/app.ts:480` |
+| GET | `/v1/queries/:id` | hono | `apps/api/src/app.ts:481` |
 | USE | `/v1/queries/*` | hono | `apps/api/src/app.ts:107` |
 
 ## Schema (tables/views -> referencing files)
@@ -263,18 +264,18 @@ Not all of these are bugs; verify before assuming.
 | books | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | both | unknown | `(not defined in scanned files)` | `apps/api/src/repositories/d1-content-repository.ts` |
 | canonical_dataset_items | table | `apps/api/migrations/0008_publication_snapshots.sql` | `apps/api/src/rag.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
-| canonical_dataset_versions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| canonical_dataset_versions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/auth/src/editorial-plane.ts` |
 | canonical_publication_history | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts` |
-| canonical_publications | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-index.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
-| canonical_records | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| canonical_publications | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/rag-index.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
+| canonical_records | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | canonical_references | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
-| canonical_search_fts | virtual_table | `apps/api/test/record-query.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| canonical_search_fts | virtual_table | `apps/api/test/record-query.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/auth/src/editorial-plane.ts` |
 | chapters | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
-| collections | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| collections | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | content_audit_events | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | content_parts | table | `apps/api/migrations/0001_content_schema.sql` | `apps/auth/src/editorial-plane.ts` |
-| content_records | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/arabic-search.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts` |
-| content_revisions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| content_records | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/arabic-search.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| content_revisions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | content_search_fts | virtual_table | `apps/api/test/record-query.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | content_segments | table | `apps/api/migrations/0001_content_schema.sql` | `apps/auth/src/editorial-plane.ts` |
 | contributors | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
@@ -289,7 +290,7 @@ Not all of these are bugs; verify before assuming.
 | dua_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | editorial_assignments | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | editorial_notifications | table | `apps/api/migrations/0016_editorial_notifications.sql` | `apps/auth/src/notifications.ts` |
-| editorial_record_state | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/test/hadith-reference.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| editorial_record_state | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | editorial_role_grants | table | `apps/auth/migrations/0006_editorial_roles.sql` | (none) |
 | either | unknown | `(not defined in scanned files)` | `apps/api/test/rag-synonyms.test.ts` |
 | every | unknown | `(not defined in scanned files)` | `apps/auth/test/admin-mfa-gate.test.ts` |
@@ -336,9 +337,9 @@ Not all of these are bugs; verify before assuming.
 | record_search_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | record_taxonomy | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | review_decisions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
-| revision_metadata | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts` |
-| revision_parts | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/editorial-plane.ts` |
-| revision_segments | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/editorial-plane.ts` |
+| revision_metadata | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| revision_parts | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/rag-filters.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| revision_segments | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/rag-filters.test.ts`, `apps/auth/src/editorial-plane.ts` |
 | segment_translations | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | session | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts` |
 | SET | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |

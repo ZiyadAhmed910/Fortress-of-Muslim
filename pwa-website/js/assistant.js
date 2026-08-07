@@ -19,8 +19,10 @@ export function initAssistant() {
     if (question.length < 5) return;
     els.assistantSubmit.disabled = true;
     els.assistantResult.innerHTML = '<div class="assistant-thinking"><span></span><span></span><span></span></div>';
+    const contentType = els.assistantContentType.value;
+    const filters = contentType ? { contentType } : undefined;
     try {
-      const body = await apiRequest('/v1/ask', { method: 'POST', body: JSON.stringify({ question }) });
+      const body = await apiRequest('/v1/ask', { method: 'POST', body: JSON.stringify({ question, filters }) });
       renderAnswer(body.data);
     } catch (error) {
       els.assistantResult.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;

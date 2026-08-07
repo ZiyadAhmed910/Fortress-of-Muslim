@@ -93,25 +93,27 @@ const repository: ContentRepository = {
     const items = matches.slice(offset, offset + limit).map(({ parts: _parts, ...summary }) => summary);
     return { items, total: matches.length };
   },
-  async searchForRag(query, limit) {
+  async searchForRag(query, limit, filters) {
     const terms = query.toLocaleLowerCase().match(/[a-z]+/g)?.filter((term) => term.length >= 5) ?? [];
     const matches = (text: string) => terms.some((term) => text.toLocaleLowerCase().includes(term));
     const candidates = [
-      ...records.filter((record) => matches(`${record.title} ${record.parts.flat().map((segment) => segment.text).join(' ')}`))
-        .map((record) => ({ id: record.id, contentType: 'dua' as const, score: 0.8 })),
-      ...(matches(`${hadith.title} ${hadith.segments.map((segment) => segment.text).join(' ')}`)
+      ...(filters?.contentType === 'hadith' || (filters?.collection && filters.collection !== 'hisn') ? [] : records
+        .filter((record) => matches(`${record.title} ${record.parts.flat().map((segment) => segment.text).join(' ')}`))
+        .map((record) => ({ id: record.id, contentType: 'dua' as const, score: 0.8 }))),
+      ...(filters?.contentType === 'dua' || (filters?.collection && filters.collection !== 'bukhari') ? [] : matches(`${hadith.title} ${hadith.segments.map((segment) => segment.text).join(' ')}`)
         ? [{ id: hadith.id, contentType: 'hadith' as const, score: 0.8 }]
         : []),
     ];
     return candidates.slice(0, limit);
   },
-  async searchCurrentForRag(query, limit) {
+  async searchCurrentForRag(query, limit, filters) {
     const terms = query.toLocaleLowerCase().match(/[a-z]+/g)?.filter((term) => term.length >= 5) ?? [];
     const matches = (text: string) => terms.some((term) => text.toLocaleLowerCase().includes(term));
     const candidates = [
-      ...records.filter((record) => matches(`${record.title} ${record.parts.flat().map((segment) => segment.text).join(' ')}`))
-        .map((record) => ({ id: record.id, contentType: 'dua' as const, score: 0.5 })),
-      ...(matches(`${hadith.title} ${hadith.segments.map((segment) => segment.text).join(' ')}`)
+      ...(filters?.contentType === 'hadith' || (filters?.collection && filters.collection !== 'hisn') ? [] : records
+        .filter((record) => matches(`${record.title} ${record.parts.flat().map((segment) => segment.text).join(' ')}`))
+        .map((record) => ({ id: record.id, contentType: 'dua' as const, score: 0.5 }))),
+      ...(filters?.contentType === 'dua' || (filters?.collection && filters.collection !== 'bukhari') ? [] : matches(`${hadith.title} ${hadith.segments.map((segment) => segment.text).join(' ')}`)
         ? [{ id: hadith.id, contentType: 'hadith' as const, score: 0.5 }]
         : []),
     ];
@@ -469,6 +471,39 @@ describe('Fortress Platform API', () => {
     expect(body.data.sources[0]?.canonicalUrl).toBe('https://fortressofmuslim.org/bukhari/book1/1');
     expect(body.data.sources[0]?.verificationStatus).toBe('verified');
     expect(response.headers.get('Cache-Control')).toBe('no-store');
+  });
+
+  it('passes structured filters through to vector retrieval and excludes non-matching lexical content', async () => {
+    const receivedQueryOptions: Array<Record<string, unknown>> = [];
+    const filteredEnv = {
+      ...envConfig,
+      CONTENT_DB: {
+        prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
+      },
+      AI: {
+        run: async (model: string) => model.includes('bge-base')
+          ? { data: [[0.1, 0.2, 0.3]] }
+          : { response: 'A reminder is beneficial [1].' },
+      },
+      VECTOR_INDEX: {
+        query: async (_vector: number[], options: Record<string, unknown>) => {
+          receivedQueryOptions.push(options);
+          return { count: 0, matches: [] };
+        },
+      },
+    } as never;
+    const response = await app.request('/v1/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '203.0.113.7' },
+      body: JSON.stringify({ question: 'What is recited upon waking up?', filters: { contentType: 'dua' } }),
+    }, filteredEnv);
+    const body = await response.json() as { data: { sources: Array<{ id: string; contentType: string }> } };
+
+    expect(response.status).toBe(200);
+    expect(receivedQueryOptions[0]?.filter).toEqual({ contentType: 'dua' });
+    expect(body.data.sources.length).toBeGreaterThan(0);
+    expect(body.data.sources.every((source) => source.contentType === 'dua')).toBe(true);
+    expect(body.data.sources.some((source) => source.id === 'dua.hisn.001')).toBe(true);
   });
 
   it('resolves an exact reference like "Bukhari 1" directly, skipping embedding retrieval', async () => {

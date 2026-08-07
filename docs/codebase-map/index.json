@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-07T04:11:48.162Z",
+  "generatedAt": "2026-08-07T04:25:15.720Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
-      "lines": 615,
+      "lines": 616,
       "language": "ts",
       "exports": [
         "function createApp",
@@ -96,7 +96,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 581,
+      "lines": 602,
       "language": "ts",
       "exports": [
         "type RagSource",
@@ -117,12 +117,13 @@
     },
     {
       "path": "apps/api/src/repositories/content-repository.ts",
-      "lines": 59,
+      "lines": 60,
       "language": "ts",
       "exports": [
         "type DatasetSummary",
         "type DuaTitleMatch",
         "type RagRecordMatch",
+        "type RagFilters",
         "type RecordEvidence",
         "interface ContentRepository"
       ],
@@ -133,7 +134,7 @@
     },
     {
       "path": "apps/api/src/repositories/d1-content-repository.ts",
-      "lines": 697,
+      "lines": 712,
       "language": "ts",
       "exports": [
         "class D1ContentRepository"
@@ -158,7 +159,7 @@
     },
     {
       "path": "apps/api/test/api.test.ts",
-      "lines": 666,
+      "lines": 701,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -197,6 +198,20 @@
     {
       "path": "apps/api/test/hadith-reference.test.ts",
       "lines": 127,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/repositories/d1-content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/rag-filters.test.ts",
+      "lines": 208,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -488,7 +503,7 @@
     },
     {
       "path": "packages/contracts/src/index.ts",
-      "lines": 130,
+      "lines": 137,
       "language": "ts",
       "exports": [
         "const API_VERSION",
@@ -510,6 +525,7 @@
         "const hadithSchema",
         "const hadithListSchema",
         "const hadithSearchSchema",
+        "const askFiltersSchema",
         "const askQuestionSchema",
         "const vectorIndexBatchSchema",
         "type ContentSegment",
@@ -521,6 +537,7 @@
         "type CollectionSummary",
         "type HadithSummary",
         "type Hadith",
+        "type AskFilters",
         "type AskQuestion"
       ],
       "imports": [
@@ -594,7 +611,7 @@
     },
     {
       "path": "pwa-website/js/assistant.js",
-      "lines": 52,
+      "lines": 54,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -626,7 +643,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 60,
+      "lines": 61,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1120,21 +1137,21 @@
       "method": "GET",
       "path": "/v1/ask/status",
       "file": "apps/api/src/app.ts",
-      "line": 463
+      "line": 464
     },
     {
       "style": "hono",
       "method": "POST",
       "path": "/v1/internal/vector-index",
       "file": "apps/api/src/app.ts",
-      "line": 469
+      "line": 470
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/queries/:id",
       "file": "apps/api/src/app.ts",
-      "line": 480
+      "line": 481
     },
     {
       "style": "manual",
@@ -1951,6 +1968,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -1974,6 +1992,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/api/test/rag-index.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts"
@@ -1991,6 +2010,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
@@ -2022,6 +2042,7 @@
       "referencedBy": [
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]
@@ -2050,6 +2071,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -2086,6 +2108,7 @@
       "referencedBy": [
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -2102,6 +2125,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
@@ -2253,6 +2277,7 @@
       ],
       "referencedBy": [
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
@@ -2700,6 +2725,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -2714,6 +2740,7 @@
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2726,6 +2753,7 @@
       "referencedBy": [
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/rag-filters.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
