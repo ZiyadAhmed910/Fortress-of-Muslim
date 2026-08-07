@@ -449,7 +449,7 @@ describe('Fortress Platform API', () => {
         prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
       },
       AI: {
-        run: async (model: string) => model.includes('bge-base')
+        run: async (model: string) => model.includes('bge')
           ? { data: [[0.1, 0.2, 0.3]] }
           : { response: 'Actions are judged by intentions [1].' },
       },
@@ -481,7 +481,7 @@ describe('Fortress Platform API', () => {
         prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
       },
       AI: {
-        run: async (model: string) => model.includes('bge-base')
+        run: async (model: string) => model.includes('bge')
           ? { data: [[0.1, 0.2, 0.3]] }
           : { response: 'A reminder is beneficial [1].' },
       },
@@ -514,7 +514,7 @@ describe('Fortress Platform API', () => {
       },
       AI: {
         run: async (model: string) => {
-          if (model.includes('bge-base')) throw new Error('Embedding retrieval must not run for an exact reference.');
+          if (model.includes('bge')) throw new Error('Embedding retrieval must not run for an exact reference.');
           return { response: 'Actions are judged by intentions [1].' };
         },
       },
@@ -545,7 +545,7 @@ describe('Fortress Platform API', () => {
         prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
       },
       AI: {
-        run: async (model: string) => model.includes('bge-base')
+        run: async (model: string) => model.includes('bge')
           ? { data: [[0.1, 0.2, 0.3]] }
           : { response: 'Actions are judged by intentions [1].' },
       },
@@ -603,7 +603,7 @@ describe('Fortress Platform API', () => {
       },
       AI: {
         run: async (model: string) => {
-          if (model.includes('bge-base')) throw new Error('Vector service unavailable');
+          if (model.includes('bge')) throw new Error('Vector service unavailable');
           return { response: 'Actions are judged by intentions [1].' };
         },
       },
@@ -632,7 +632,7 @@ describe('Fortress Platform API', () => {
         prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
       },
       AI: {
-        run: async (model: string) => model.includes('bge-base')
+        run: async (model: string) => model.includes('bge')
           ? { data: [[0.1, 0.2, 0.3]] }
           : { response: 'Actions are judged by intentions.' },
       },

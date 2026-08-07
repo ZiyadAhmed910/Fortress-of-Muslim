@@ -39,7 +39,7 @@ describe('Ask evidence quality', () => {
       },
       AI: {
         run: async (model: string, input: { messages?: Array<{ content: string }> }) => {
-          if (model.includes('bge-base')) throw new Error('Vector unavailable in quality test.');
+          if (model.includes('bge')) throw new Error('Vector unavailable in quality test.');
           generationContext = input.messages?.[1]?.content ?? '';
           return { response: 'Use the cited supplication [1].' };
         },
@@ -88,7 +88,7 @@ describe('Ask evidence quality', () => {
       CONTENT_DB: { prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }) },
       AI: {
         run: async (model: string, input: { messages?: Array<{ content: string }> }) => {
-          if (model.includes('bge-base')) throw new Error('Vector unavailable in quality test.');
+          if (model.includes('bge')) throw new Error('Vector unavailable in quality test.');
           const systemPrompt = input.messages?.[0]?.content ?? '';
           if (systemPrompt.startsWith('Rewrite the user question')) {
             return { response: 'alternate phrasing one\nalternate phrasing two' };
@@ -133,7 +133,7 @@ describe('Ask evidence quality', () => {
       CONTENT_DB: { prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }) },
       AI: {
         run: async (model: string, input: { messages?: Array<{ content: string }> }) => {
-          if (model.includes('bge-base')) throw new Error('Vector unavailable in quality test.');
+          if (model.includes('bge')) throw new Error('Vector unavailable in quality test.');
           const systemPrompt = input.messages?.[0]?.content ?? '';
           if (systemPrompt.startsWith('Rewrite the user question')) return { response: '' };
           generationContext = input.messages?.[1]?.content ?? '';

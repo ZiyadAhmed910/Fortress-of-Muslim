@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T04:29:02.018Z",
+  "generatedAt": "2026-08-07T07:04:43.598Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -96,7 +96,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 602,
+      "lines": 607,
       "language": "ts",
       "exports": [
         "type RagSource",

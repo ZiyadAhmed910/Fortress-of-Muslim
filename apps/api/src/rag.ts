@@ -4,7 +4,12 @@ import { parseExactHadithReference } from './rag-reference';
 import { expandRetrievalQuery } from './rag-synonyms';
 import type { Bindings } from './types';
 
-const EMBEDDING_MODEL = '@cf/baai/bge-base-en-v1.5';
+// bge-m3 (1024-dim, multilingual, 8192-token context) replaces bge-base-en-v1.5 (768-dim,
+// English-only, ~512-token context) -- this platform's content and questions mix Arabic, English
+// translation, and inconsistent transliteration (siwak/miswak, wudu/wudhu) in ways an English-only
+// embedding model can't represent well. Vectorize indexes are dimension-locked at creation, so this
+// requires a new index (fortress-rag-test-m3), not an in-place resize -- see wrangler.jsonc.
+const EMBEDDING_MODEL = '@cf/baai/bge-m3';
 const GENERATION_MODEL = '@cf/meta/llama-3.2-3b-instruct';
 const DAILY_ASK_LIMIT = 20;
 const MAX_CONTEXTS = 6;

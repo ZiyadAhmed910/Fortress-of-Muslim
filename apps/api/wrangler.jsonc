@@ -36,7 +36,7 @@
       "vectorize": [
         {
           "binding": "VECTOR_INDEX",
-          "index_name": "fortress-rag-test"
+          "index_name": "fortress-rag-test-m3"
         }
       ],
       "services": [
