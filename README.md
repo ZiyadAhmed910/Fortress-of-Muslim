@@ -162,6 +162,31 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.22.0
+
+Editorial and Ask/AI improvements, from a working session focused on closing gaps a real user hit
+while using the platform:
+
+- **Field-level verification linked to overall approval**: approving a whole record (single,
+  bulk, or Hadith book verification) now fills in a `verified` `field_reviews` row for every
+  reviewable field (arabic, translation, narrator, grading, ...) not already reviewed by that
+  same reviewer -- an individually-reviewed field's own decision is never overwritten. Field-level
+  data stays admin/editorial-only; the public API only ever exposes overall verification status.
+- **Taxonomy term assignment**: `record_taxonomy` had been read-only since it was created --
+  terms could be made and counted, but nothing could ever be assigned to a record. Seeded the same
+  mood/occasion vocabulary the offline PWA already uses, added keyword-derived suggestions (an
+  editor must still confirm before anything is assigned), and a checklist in the Admin Console
+  record dialog to do it.
+- **Smarter Ask retrieval**: a curated Islamic-terminology synonym dictionary (siwak/miswak, wudu/
+  wudhu, ...), an LLM query-expansion step before retrieval (2 alternate phrasings per question,
+  merged in), and a supplementary unverified-content fallback for when verified results come up
+  thin -- clearly labeled as not verified in both the generated answer and the sources list, never
+  presented with the same confidence as verified material. Deliberately deferred: swapping the
+  embedding model for a stronger multilingual one, since the only meaningfully better Workers AI
+  options use a different vector dimension than the existing Vectorize index, which would require
+  recreating real Cloudflare infrastructure rather than a code change.
+- **Ask now submits on Ctrl+Enter or Alt+Enter**, not just the button click, with a visible hint.
+
 ### 0.21.0
 
 Developer experience and Admin Console improvements, from a full-codebase review that looked for
