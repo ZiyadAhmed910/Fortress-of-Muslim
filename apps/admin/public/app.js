@@ -583,7 +583,7 @@ async function showRecord(id) {
     <header class="editor-head"><div><span class="kicker">CANONICAL RECORD</span><h2>${esc(data.record.title)}</h2><p>${esc(data.record.canonicalId)} &middot; revision ${data.record.revisionNumber}</p></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header>
     <div class="verification-banner"><strong>${esc(isVerified ? 'Verified' : human(data.record.workflowState))}</strong><span>${esc(data.record.collectionTitle || 'Collection pending editorial confirmation')}</span><small>${data.record.verifiedBy ? `Verified by ${esc(data.record.verifiedBy)} &middot; ${date(data.record.verifiedAt)}` : 'Not yet verified'}</small></div>
     <section class="editor-section"><header><div><h3>Record content</h3><p>Review the currently saved text for this record.</p></div></header>
-      ${grouped.map((part) => `<div class="revision-part"><strong>Part ${part.position}</strong>${part.segments.map((segment) => `<label>${esc(human(segment.kind))}<textarea rows="${segment.kind === 'arabic' ? 4 : 3}" dir="${segment.kind === 'arabic' ? 'rtl' : 'ltr'}" data-segment="${part.position}:${segment.segmentPosition}">${esc(segment.text)}</textarea></label>`).join('')}</div>`).join('')}
+      ${grouped.map((part) => `<div class="revision-part"><strong>Part ${part.position}</strong>${part.segments.map((segment) => `<label>${esc(human(segment.kind))}<textarea rows="${segment.kind === 'arabic' ? 4 : 3}" dir="${segment.kind === 'arabic' ? 'rtl' : 'ltr'}" class="${segment.kind === 'arabic' ? 'arabic-text' : ''}" data-segment="${part.position}:${segment.segmentPosition}" data-segment-kind="${esc(segment.kind)}">${esc(segment.text)}</textarea><small data-segment-warning hidden></small>${segment.kind === 'arabic' ? `<div class="arabic-preview" data-arabic-preview dir="rtl">${esc(segment.text)}</div>` : ''}</label>`).join('')}</div>`).join('')}
       ${canEdit ? `<form id="revision-form" class="revision-correction-form"><div class="revision-metadata-grid"><label>Title<input name="title" value="${esc(data.record.title)}"></label><label>Display number<input name="displayNumber" value="${esc(data.record.displayNumber || '')}"></label><label>Narrator<input name="narrator" value="${esc(data.record.narrator || '')}"></label><label>Grade<input name="grade" value="${esc(data.record.grade || '')}"></label><label>Grading authority<input name="gradingAuthority" value="${esc(data.record.gradingAuthority || '')}"></label></div><label>Correction reason<input name="reason" placeholder="Describe what changed" minlength="10" required></label><button type="submit">Create correction revision</button></form>` : ''}
     </section>
     <section class="editor-section"><header><div><h3>Revision history</h3><p>Compare the current immutable snapshot with any earlier correction.</p></div></header>
@@ -629,6 +629,34 @@ function taxonomyChecklist(taxonomy) {
 function referenceRow(reference) {
   return `<div class="evidence-row"><span><strong>${esc(human(reference.referenceType))}</strong><small>${esc(reference.locator)}</small></span><span class="badge ${esc(reference.verificationStatus)}">${esc(reference.verificationStatus)}</span></div>`;
 }
+
+const ARABIC_SCRIPT_PATTERN = /[؀-ۿݐ-ݿ]/;
+const LATIN_LETTER_PATTERN = /[a-zA-Z]/;
+// Catches the two most common editing mistakes: Arabic script that isn't actually Arabic (Latin
+// letters typed by accident, wrong keyboard layout) and a transliteration that's actually raw
+// Arabic script pasted into the wrong field -- not a full spelling/diacritic checker, just the
+// kind-mismatch class of error a reviewer would otherwise only notice after publishing.
+function validateSegmentText(kind, text) {
+  if (kind === 'arabic') {
+    if (!text.trim()) return null;
+    if (!ARABIC_SCRIPT_PATTERN.test(text)) return 'This field is marked Arabic but contains no Arabic script.';
+    if (LATIN_LETTER_PATTERN.test(text)) return 'Contains Latin letters mixed into Arabic script -- check for a typo.';
+  } else if (kind === 'transliteration' && ARABIC_SCRIPT_PATTERN.test(text)) {
+    return 'Contains Arabic script -- transliteration should be Latin letters only.';
+  }
+  return null;
+}
+$('#record-detail').addEventListener('input', (event) => {
+  const textarea = event.target.closest('[data-segment]');
+  if (!textarea) return;
+  const label = textarea.closest('label');
+  const warning = validateSegmentText(textarea.dataset.segmentKind, textarea.value);
+  const warningEl = $('[data-segment-warning]', label);
+  warningEl.hidden = !warning;
+  warningEl.textContent = warning || '';
+  const preview = $('[data-arabic-preview]', label);
+  if (preview) preview.textContent = textarea.value;
+});
 
 $('#record-detail').addEventListener('submit', async (event) => {
   event.preventDefault();
