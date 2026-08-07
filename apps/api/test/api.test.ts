@@ -158,6 +158,11 @@ const repository: ContentRepository = {
   async resolveHadithPath(collection, book, number) {
     return collection === 'bukhari' && book === '1' && number === '1' ? hadith : undefined;
   },
+  async findHadithByReference(collectionHint, number) {
+    const hint = collectionHint.toLocaleLowerCase();
+    return (hint === 'bukhari' || hint === 'sahih bukhari' || hadith.collection.title.toLocaleLowerCase().includes(hint))
+      && number === hadith.displayNumber ? hadith : undefined;
+  },
   async getHadith(id) { return id === hadith.id || id === 'bukhari:1' ? hadith : undefined; },
   async getPublishedHadith(id) { return id === hadith.id || id === 'bukhari:1' ? hadith : undefined; },
 };
@@ -464,6 +469,66 @@ describe('Fortress Platform API', () => {
     expect(body.data.sources[0]?.canonicalUrl).toBe('https://fortressofmuslim.org/bukhari/book1/1');
     expect(body.data.sources[0]?.verificationStatus).toBe('verified');
     expect(response.headers.get('Cache-Control')).toBe('no-store');
+  });
+
+  it('resolves an exact reference like "Bukhari 1" directly, skipping embedding retrieval', async () => {
+    const exactReferenceEnv = {
+      ...envConfig,
+      CONTENT_DB: {
+        prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
+      },
+      AI: {
+        run: async (model: string) => {
+          if (model.includes('bge-base')) throw new Error('Embedding retrieval must not run for an exact reference.');
+          return { response: 'Actions are judged by intentions [1].' };
+        },
+      },
+      VECTOR_INDEX: {
+        query: async () => { throw new Error('Vector search must not run for an exact reference.'); },
+      },
+    } as never;
+    const response = await app.request('/v1/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '203.0.113.5' },
+      body: JSON.stringify({ question: 'Bukhari 1' }),
+    }, exactReferenceEnv);
+    const body = await response.json() as {
+      data: { answer: string; sources: Array<{ id: string }>; meta: { retrievalMode: string; vectorAvailable: boolean } };
+    };
+    expect(response.status).toBe(200);
+    expect(body.data.answer).toContain('[1]');
+    expect(body.data.sources).toHaveLength(1);
+    expect(body.data.sources[0]?.id).toBe('hadith.bukhari.1');
+    expect(body.data.meta.retrievalMode).toBe('exact_reference');
+    expect(body.data.meta.vectorAvailable).toBe(false);
+  });
+
+  it('falls through to normal retrieval when an exact reference does not match a real record', async () => {
+    const noMatchEnv = {
+      ...envConfig,
+      CONTENT_DB: {
+        prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }),
+      },
+      AI: {
+        run: async (model: string) => model.includes('bge-base')
+          ? { data: [[0.1, 0.2, 0.3]] }
+          : { response: 'Actions are judged by intentions [1].' },
+      },
+      VECTOR_INDEX: {
+        query: async () => ({ count: 1, matches: [{
+          id: 'hadith.bukhari.1', score: 0.94,
+          metadata: { recordId: 'hadith.bukhari.1', contentType: 'hadith', collection: 'bukhari' },
+        }] }),
+      },
+    } as never;
+    const response = await app.request('/v1/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '203.0.113.6' },
+      body: JSON.stringify({ question: 'Nonexistent Collection 999' }),
+    }, noMatchEnv);
+    const body = await response.json() as { data: { meta: { retrievalMode: string } } };
+    expect(response.status).toBe(200);
+    expect(body.data.meta.retrievalMode).not.toBe('exact_reference');
   });
 
   it('does not consume quota or invoke AI when no records are published', async () => {

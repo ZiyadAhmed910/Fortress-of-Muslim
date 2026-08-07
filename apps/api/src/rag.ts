@@ -1,5 +1,6 @@
 import type { Dua, Hadith } from '@fortress/contracts';
 import type { ContentRepository } from './repositories/content-repository';
+import { parseExactHadithReference } from './rag-reference';
 import { expandRetrievalQuery } from './rag-synonyms';
 import type { Bindings } from './types';
 
@@ -195,6 +196,32 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
 
   const remaining = await consumeDailyAllowance(env.CONTENT_DB, clientAddress);
 
+  // Some users already know exactly what they want ("Bukhari 52") rather than asking a natural
+  // question -- for those, skip the multi-query embedding/lexical pipeline below and resolve the
+  // reference directly. Falls through to normal retrieval if the hint doesn't match a real record
+  // (it may just be an ordinary question that happens to end in a number).
+  const exactReference = parseExactHadithReference(question);
+  if (exactReference) {
+    const record = await repository.findHadithByReference(exactReference.collectionHint, exactReference.number);
+    if (record) {
+      const grounded: GroundedRecord[] = [{ record, contentType: 'hadith', score: 0.99, retrieval: 'lexical' }];
+      const { answer, sources, model, generated } = await generateGroundedAnswer(env, dataset, question, grounded);
+      return {
+        answer,
+        sources,
+        meta: {
+          datasetId: dataset.id,
+          model,
+          generated,
+          remainingToday: remaining,
+          retrievalMode: 'exact_reference' as const,
+          vectorAvailable: false,
+          includesUnverifiedSource: record.verificationStatus !== 'verified',
+        },
+      };
+    }
+  }
+
   // Synonym expansion (deterministic, curated) always runs; LLM query expansion adds up to 2 more
   // phrasings on top. Every variant is retrieved in parallel and merged -- this is deliberately the
   // expensive option (extra Workers AI calls on every request) over a cheaper dictionary-only or
@@ -233,6 +260,29 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
     };
   }
 
+  const { answer, sources, model, generated } = await generateGroundedAnswer(env, dataset, question, grounded);
+
+  return {
+    answer,
+    sources,
+    meta: {
+      datasetId: dataset.id,
+      model,
+      generated,
+      remainingToday: remaining,
+      retrievalMode: vectorAvailable && lexicalRecords.length > 0 ? 'hybrid' : vectorAvailable ? 'vector' : 'lexical',
+      vectorAvailable,
+      includesUnverifiedSource,
+    },
+  };
+}
+
+async function generateGroundedAnswer(
+  env: Bindings,
+  dataset: { id: string },
+  question: string,
+  grounded: GroundedRecord[],
+) {
   const contexts = grounded.map((item, index) => contextBlock(item.record, item.contentType, index + 1)).join('\n\n');
   const sources = grounded.map((item, index) => sourceFrom(item.record, item.contentType, item.score, index + 1));
   let answer: string;
@@ -259,20 +309,7 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
     generated = false;
     model = null;
   }
-
-  return {
-    answer,
-    sources,
-    meta: {
-      datasetId: dataset.id,
-      model,
-      generated,
-      remainingToday: remaining,
-      retrievalMode: vectorAvailable && lexicalRecords.length > 0 ? 'hybrid' : vectorAvailable ? 'vector' : 'lexical',
-      vectorAvailable,
-      includesUnverifiedSource,
-    },
-  };
+  return { answer, sources, model, generated };
 }
 
 async function expandQueryVariants(env: Bindings, question: string): Promise<string[]> {
