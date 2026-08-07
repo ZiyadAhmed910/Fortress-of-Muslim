@@ -451,13 +451,19 @@ function renderQrCode(container, text) {
     qr.addData(text);
     qr.make();
     const count = qr.getModuleCount();
+    // Standard QR quiet zone is 4 modules on every side -- without it, stricter scanners (Microsoft
+    // Authenticator in particular) can fail to locate the finder patterns and refuse to scan at all,
+    // even though the code itself decodes fine. A fixed CSS padding on the container doesn't scale
+    // with the module count, so the margin has to be baked into the SVG's own coordinate system.
+    const margin = 4;
+    const size = count + margin * 2;
     const cells = [];
     for (let row = 0; row < count; row += 1) {
       for (let col = 0; col < count; col += 1) {
-        if (qr.isDark(row, col)) cells.push(`<rect x="${col}" y="${row}" width="1" height="1"/>`);
+        if (qr.isDark(row, col)) cells.push(`<rect x="${col + margin}" y="${row + margin}" width="1" height="1"/>`);
       }
     }
-    container.innerHTML = `<svg viewBox="0 0 ${count} ${count}" role="img" aria-label="Authenticator app QR code">${cells.join('')}</svg>`;
+    container.innerHTML = `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Authenticator app QR code"><rect class="qr-bg" width="${size}" height="${size}"/><g class="qr-modules">${cells.join('')}</g></svg>`;
   } catch {
     container.innerHTML = '<p class="empty-row">The QR code could not be generated. Use the setup key below.</p>';
   }
