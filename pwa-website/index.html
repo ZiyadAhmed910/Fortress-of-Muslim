@@ -46,6 +46,10 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
               <span>Prayer</span>
             </button>
+            <button data-content-mode="tasbih" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="18" cy="9.5" r="2"/><circle cx="18" cy="16" r="2"/><circle cx="12" cy="20" r="2"/><circle cx="6" cy="16" r="2"/><circle cx="6" cy="9.5" r="2"/></svg>
+              <span>Tasbih</span>
+            </button>
           </nav>
 
           <section class="advanced-home" id="advancedHome" aria-label="Advanced home">
@@ -141,7 +145,7 @@
               <label>Latitude<input name="latitude" type="number" step="0.0001" min="-90" max="90" placeholder="e.g. 21.4225" required></label>
               <label>Longitude<input name="longitude" type="number" step="0.0001" min="-180" max="180" placeholder="e.g. 39.8262" required></label>
               <div class="prayer-location-form-actions">
-                <button class="button compact" type="submit">Save location</button>
+                <button class="small-action-button" type="submit">Save location</button>
                 <button class="text-button" type="button" id="prayerLocationCancel">Cancel</button>
                 <button class="text-button" type="button" id="prayerLocationRetry">Try device location again</button>
               </div>
@@ -164,6 +168,59 @@
               <p class="qibla-note" id="qiblaNote"></p>
             </div>
           </section>
+
+          <section class="online-home tasbih-home" id="tasbihHome" hidden>
+            <div class="tasbih-preset-tabs" id="tasbihPresetTabs" aria-label="Dhikr phrase"></div>
+
+            <button class="tasbih-tap-area" id="tasbihTapArea" type="button" aria-label="Tap to count">
+              <div class="tasbih-progress-ring">
+                <svg viewBox="0 0 120 120" aria-hidden="true">
+                  <circle class="tasbih-ring-track" cx="60" cy="60" r="52"></circle>
+                  <circle class="tasbih-ring-fill" id="tasbihRingFill" cx="60" cy="60" r="52"></circle>
+                </svg>
+                <div class="tasbih-count-display">
+                  <strong id="tasbihCount">0</strong>
+                  <span id="tasbihTarget">/ 33</span>
+                </div>
+              </div>
+              <p class="tasbih-arabic" id="tasbihArabicLabel" dir="rtl" lang="ar"></p>
+              <p class="tasbih-label" id="tasbihLabel">SubhanAllah</p>
+              <small class="tasbih-hint">Tap anywhere to count &middot; swipe to switch phrase</small>
+            </button>
+
+            <div class="tasbih-actions">
+              <button class="text-button" id="tasbihResetButton" type="button">Reset this count</button>
+              <button class="text-button" id="tasbihAddPresetButton" type="button">Add phrase</button>
+              <button class="text-button" id="tasbihDeletePresetButton" type="button" hidden>Delete phrase</button>
+            </div>
+
+            <p class="tasbih-lifetime" id="tasbihLifetime"></p>
+          </section>
+
+          <dialog class="settings-dialog tasbih-preset-dialog" id="tasbihPresetDialog">
+            <form method="dialog" id="tasbihPresetForm">
+              <div class="dialog-head">
+                <h2>Add a phrase</h2>
+                <button class="icon-button" value="cancel" aria-label="Close">×</button>
+              </div>
+              <label class="tasbih-preset-field">Label<input name="label" maxlength="60" required></label>
+              <label class="tasbih-preset-field">Arabic (optional)<input name="labelArabic" dir="rtl" lang="ar" maxlength="60"></label>
+              <label class="tasbih-preset-field">Target count<input name="target" type="number" min="1" max="9999" value="33"></label>
+              <div class="tasbih-preset-form-actions">
+                <button class="small-action-button" type="submit" value="save">Save</button>
+              </div>
+            </form>
+          </dialog>
+
+          <dialog class="settings-dialog tasbih-confirm-dialog" id="tasbihResetConfirmDialog">
+            <form method="dialog">
+              <p>Reset this count to 0? This can't be undone.</p>
+              <div class="tasbih-preset-form-actions">
+                <button class="small-action-button secondary" value="cancel" type="submit">Cancel</button>
+                <button class="small-action-button" value="confirm" type="submit">Reset</button>
+              </div>
+            </form>
+          </dialog>
 
           <div class="simple-home" id="simpleHome">
             <div class="search-wrap">

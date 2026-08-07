@@ -5,6 +5,7 @@ import { applySettings } from './settings.js';
 import { filterList } from './home.js';
 import { ASR_METHODS, CALCULATION_METHODS, DEFAULT_ASR_METHOD, DEFAULT_CALCULATION_METHOD } from './prayer-times.js';
 import { scheduleToday as scheduleRemindersToday } from './reminders.js';
+import { activateTasbih, TASBIH_STORAGE_KEY } from './tasbih.js';
 
 const BACKUP_KIND = 'fortress-of-muslim-user-data';
 
@@ -27,6 +28,10 @@ export function exportUserData() {
       morningAdhkarEnabled: state.morningAdhkarEnabled,
       eveningAdhkarEnabled: state.eveningAdhkarEnabled,
     },
+    // Tasbih keeps its own localStorage key (a structured {presets, activePresetId,
+    // totalLifetimeCount} object, not a handful of independent primitives like the settings
+    // above) -- read/written directly here rather than duplicating its shape into `settings`.
+    tasbih: readTasbihStorage(),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -88,11 +93,43 @@ function importUserData(payload) {
   localStorage.setItem('remindersEnabled', String(state.remindersEnabled));
   localStorage.setItem('morningAdhkarEnabled', String(state.morningAdhkarEnabled));
   localStorage.setItem('eveningAdhkarEnabled', String(state.eveningAdhkarEnabled));
+  writeTasbihStorage(payload.tasbih);
 
   applySettings();
   filterList();
   scheduleRemindersToday();
+  activateTasbih();
   toast('Backup imported.');
+}
+
+function readTasbihStorage() {
+  try {
+    return JSON.parse(localStorage.getItem(TASBIH_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+// Only overwrites the stored tasbih data when the backup actually has a recognizable one --
+// a backup from before this feature existed simply won't have a `tasbih` field, and the counter
+// should keep whatever's already on this device rather than being wiped by an old backup.
+function writeTasbihStorage(value) {
+  if (!value || !Array.isArray(value.presets) || value.presets.length === 0) return;
+  const presets = value.presets
+    .filter((preset) => preset && typeof preset.id === 'string' && typeof preset.label === 'string')
+    .map((preset) => ({
+      id: preset.id,
+      label: preset.label,
+      labelArabic: typeof preset.labelArabic === 'string' ? preset.labelArabic : '',
+      count: Number.isFinite(preset.count) && preset.count >= 0 ? Math.floor(preset.count) : 0,
+      target: Number.isFinite(preset.target) && preset.target > 0 ? Math.floor(preset.target) : 33,
+    }));
+  if (presets.length === 0) return;
+  localStorage.setItem(TASBIH_STORAGE_KEY, JSON.stringify({
+    presets,
+    activePresetId: presets.some((preset) => preset.id === value.activePresetId) ? value.activePresetId : presets[0].id,
+    totalLifetimeCount: Number.isFinite(value.totalLifetimeCount) && value.totalLifetimeCount >= 0 ? Math.floor(value.totalLifetimeCount) : 0,
+  }));
 }
 
 function clampNumber(value, min, max, fallback) {

@@ -21,6 +21,7 @@ import { initHadith } from './hadith.js';
 import { initContentModes } from './modes.js';
 import { initPrayer } from './prayer.js';
 import { initReminders, openAdhkarFromNotification } from './reminders.js';
+import { initTasbih } from './tasbih.js';
 import { openCanonicalRoute } from './routes.js';
 
 init();
@@ -33,6 +34,7 @@ async function init() {
   initAssistant();
   initPrayer();
   initReminders();
+  initTasbih();
   initContentModes();
   renderLoadingSkeleton();
 
