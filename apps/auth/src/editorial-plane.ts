@@ -853,8 +853,8 @@ async function decideBook(context: EditorialContext, bookId: string, body: Recor
       )
       SELECT canonical.canonical_id, revision.id, canonical.content_type,
              COALESCE(collection.slug, CASE WHEN canonical.content_type = 'dua' THEN 'hisn' ELSE 'unknown' END),
-             revision.title, COALESCE(GROUP_CONCAT(segment.text, ' '), ''),
-             COALESCE(metadata.narrator, '')
+             ${normalizeArabicSql('revision.title')}, ${normalizeArabicSql("COALESCE(GROUP_CONCAT(segment.text, ' '), '')")},
+             ${normalizeArabicSql('COALESCE(metadata.narrator, \'\')')}
       FROM canonical_records canonical
       JOIN content_revisions revision ON revision.id = canonical.current_revision_id
       JOIN editorial_record_state state ON state.canonical_id = canonical.canonical_id
@@ -1150,6 +1150,26 @@ async function createAssignment(context: EditorialContext, body: Record<string, 
 
 function human(value: string) {
   return value.replaceAll('_', ' ');
+}
+
+// Matches apps/api/src/repositories/d1-content-repository.ts's normalizeArabic() exactly (strip
+// tashkeel/tatweel, fold alef-hamza variants to plain alef) so canonical_search_fts stores text in
+// the same normalized form a search query gets reduced to -- see that function's comment for why
+// this is needed (verified empirically: FTS5's default tokenizer doesn't do this on its own).
+// Pure SQL (no Unicode regex support in SQLite), hence a REPLACE() chain instead of one regex.
+const ARABIC_SQL_NORMALIZE_MAP: Array<[string, string]> = [
+  ['ً', ''], ['ٌ', ''], ['ٍ', ''], ['َ', ''], ['ُ', ''],
+  ['ِ', ''], ['ّ', ''], ['ْ', ''], ['ٰ', ''], ['ـ', ''],
+  ['آ', 'ا'], ['أ', 'ا'], ['إ', 'ا'], ['ٱ', 'ا'],
+];
+function normalizeArabicSql(expression: string): string {
+  return ARABIC_SQL_NORMALIZE_MAP.reduce((sql, [from, to]) => `REPLACE(${sql}, '${from}', '${to}')`, expression);
+}
+
+// Same normalization, applied in JS instead of SQL for the one FTS write path (publishBatch) that
+// binds title/body/narrator as parameters rather than building them from a SQL expression.
+function normalizeArabicJs(value: string): string {
+  return value.normalize('NFKD').replace(/\p{M}/gu, '').replace(/ـ/g, '').replace(/[آأإٱ]/g, 'ا');
 }
 
 function assignmentStateStatement(
@@ -1958,7 +1978,7 @@ async function publishBatch(context: EditorialContext, batchId: string) {
         ) VALUES (?, ?, ?, ?, ?, ?, ?)
       `).bind(
         item.canonicalId, item.revisionId, item.contentType, item.collectionSlug,
-        item.title, item.body, item.narrator,
+        normalizeArabicJs(item.title), normalizeArabicJs(item.body), normalizeArabicJs(item.narrator),
       ),
     );
   }
@@ -2096,8 +2116,8 @@ async function rollbackDataset(context: EditorialContext, targetDatasetId: strin
         canonical_id, revision_id, content_type, collection_slug, title, body, narrator
       )
       SELECT item.canonical_id, item.revision_id, canonical.content_type,
-             COALESCE(collection.slug, ''), revision.title,
-             COALESCE(GROUP_CONCAT(segment.text, ' '), ''), COALESCE(metadata.narrator, '')
+             COALESCE(collection.slug, ''), ${normalizeArabicSql('revision.title')},
+             ${normalizeArabicSql("COALESCE(GROUP_CONCAT(segment.text, ' '), '')")}, ${normalizeArabicSql('COALESCE(metadata.narrator, \'\')')}
       FROM canonical_dataset_items item
       JOIN canonical_records canonical ON canonical.canonical_id = item.canonical_id
       JOIN content_revisions revision ON revision.id = item.revision_id
