@@ -10,6 +10,44 @@
     <link rel="stylesheet" href="styles.css?v=build-dev">
   </head>
   <body>
+    <div id="bootFallback" hidden style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:rgba(20,20,18,0.72);font-family:system-ui,sans-serif;">
+      <div style="max-width:22rem;padding:1.5rem;border-radius:0.9rem;background:#fff;color:#1a1a18;text-align:center;box-shadow:0 1rem 2.5rem rgba(0,0,0,0.35);">
+        <p style="margin:0 0 0.9rem;font-size:1rem;line-height:1.5;">This app didn't finish loading properly -- this can happen right after an update. Reloading with a fresh copy usually fixes it.</p>
+        <button id="bootFallbackReload" type="button" style="width:100%;padding:0.75rem 1rem;border:0;border-radius:0.6rem;background:#0b6f73;color:#fff;font-size:1rem;font-weight:700;">Reload app</button>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var shown = false;
+        function showFallback() {
+          if (shown || window.__fortressAppReady) return;
+          shown = true;
+          var el = document.getElementById('bootFallback');
+          if (el) el.hidden = false;
+        }
+        window.addEventListener('error', showFallback);
+        window.addEventListener('unhandledrejection', showFallback);
+        setTimeout(function () { if (!window.__fortressAppReady) showFallback(); }, 6000);
+        document.addEventListener('click', function (event) {
+          var button = event.target.closest && event.target.closest('#bootFallbackReload');
+          if (!button) return;
+          button.disabled = true;
+          button.textContent = 'Reloading...';
+          var cleanup = [];
+          if ('serviceWorker' in navigator) {
+            cleanup.push(navigator.serviceWorker.getRegistrations()
+              .then(function (regs) { return Promise.all(regs.map(function (reg) { return reg.unregister(); })); })
+              .catch(function () {}));
+          }
+          if ('caches' in window) {
+            cleanup.push(caches.keys()
+              .then(function (keys) { return Promise.all(keys.map(function (key) { return caches.delete(key); })); })
+              .catch(function () {}));
+          }
+          Promise.all(cleanup).finally(function () { location.reload(); });
+        });
+      })();
+    </script>
     <div id="app" class="app-shell">
       <header class="topbar">
         <button class="icon-button back-button" id="backButton" aria-label="Back">
@@ -344,110 +382,146 @@
       <dialog class="settings-dialog" id="settingsDialog">
         <form method="dialog">
           <div class="dialog-head">
-            <h2>Settings</h2>
+            <button class="icon-button settings-back-button" id="settingsBackButton" type="button" aria-label="Back to Settings" hidden>
+              <span aria-hidden="true">‹</span>
+            </button>
+            <h2 id="settingsTitle">Settings</h2>
             <button class="icon-button" value="close" aria-label="Close">×</button>
           </div>
 
-          <h3 class="settings-section-heading">Appearance</h3>
-          <label class="setting-row">
-            <span>
-              <strong>Dark mode</strong>
-              <small>Use a low-light reading theme.</small>
-            </span>
-            <input id="darkModeToggle" type="checkbox">
-          </label>
-          <label class="setting-row">
-            <span>
-              <strong>Large Arabic</strong>
-              <small>Make Arabic text more prominent.</small>
-            </span>
-            <input id="arabicSizeToggle" type="checkbox">
-          </label>
-          <label class="setting-row">
-            <span>
-              <strong>Advanced UI</strong>
-              <small>Use the graphic category home screen.</small>
-            </span>
-            <input id="advancedUiToggle" type="checkbox">
-          </label>
-
-          <h3 class="settings-section-heading">Prayer &amp; Qibla</h3>
-          <div class="setting-row setting-row-stack">
-            <span>
-              <strong>Calculation method</strong>
-              <small>Sets the Fajr/Isha angles used to compute your prayer times.</small>
-            </span>
-            <select id="calculationMethodSelect">
-              <option value="mwl">Muslim World League</option>
-              <option value="isna">Islamic Society of North America</option>
-              <option value="egyptian">Egyptian General Authority</option>
-              <option value="karachi">University of Islamic Sciences, Karachi</option>
-              <option value="ummalqura">Umm al-Qura, Makkah</option>
-            </select>
-          </div>
-          <div class="setting-row setting-row-stack">
-            <span>
-              <strong>Asr calculation</strong>
-              <small>Hanafi uses a longer shadow length, so Asr falls later.</small>
-            </span>
-            <select id="asrMethodSelect">
-              <option value="standard">Standard (Shafi, Maliki, Hanbali)</option>
-              <option value="hanafi">Hanafi</option>
-            </select>
+          <div class="settings-category-list" id="settingsCategoryList">
+            <button type="button" class="settings-category-row" data-settings-open="appearance">
+              <span><strong>Appearance</strong><small>Dark mode, Arabic text size, Advanced UI</small></span>
+              <span class="settings-category-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="settings-category-row" data-settings-open="prayer">
+              <span><strong>Prayer &amp; Qibla</strong><small>Calculation method, Asr method</small></span>
+              <span class="settings-category-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="settings-category-row" data-settings-open="reminders">
+              <span><strong>Reminders</strong><small>Prayer notifications, morning &amp; evening adhkar</small></span>
+              <span class="settings-category-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="settings-category-row" data-settings-open="layout">
+              <span><strong>Customize layout</strong><small>Choose what shows on each tab</small></span>
+              <span class="settings-category-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="settings-category-row" data-settings-open="data">
+              <span><strong>Data</strong><small>Install app, backup &amp; restore</small></span>
+              <span class="settings-category-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="settings-category-row" data-settings-open="about">
+              <span><strong>About</strong><small>Version info</small></span>
+              <span class="settings-category-chevron" aria-hidden="true">›</span>
+            </button>
           </div>
 
-          <h3 class="settings-section-heading">Reminders</h3>
-          <label class="setting-row">
-            <span>
-              <strong>Prayer reminders</strong>
-              <small>Local notifications for morning and evening adhkar, computed on this device -- no account, no push server. Only fires while this app/tab is open (even in the background); a fully closed app or browser can't reliably notify you on the web, this is a platform limit, not a bug here.</small>
-            </span>
-            <input id="remindersEnabledToggle" type="checkbox">
-          </label>
-          <p class="reminder-note reminder-note-warning" id="remindersUnsupportedNote" hidden>Notifications are not supported in this browser.</p>
-          <p class="reminder-note reminder-note-warning" id="remindersBlockedNote" hidden>Notifications are blocked for this site -- allow them in your browser's site settings to use reminders.</p>
-          <p class="reminder-note reminder-note-warning" id="remindersLocationNote" hidden>Set your location on the Prayer Times or Qibla tab first so reminders know when to fire.</p>
-          <label class="setting-row reminder-subrow">
-            <span>
-              <strong>Morning adhkar</strong>
-              <small>15 minutes after Fajr.</small>
-            </span>
-            <input id="morningAdhkarToggle" type="checkbox">
-          </label>
-          <label class="setting-row reminder-subrow">
-            <span>
-              <strong>Evening adhkar</strong>
-              <small>15 minutes after Asr.</small>
-            </span>
-            <input id="eveningAdhkarToggle" type="checkbox">
-          </label>
+          <section class="settings-panel" data-settings-panel="appearance" data-settings-title="Appearance" hidden>
+            <label class="setting-row">
+              <span>
+                <strong>Dark mode</strong>
+                <small>Use a low-light reading theme.</small>
+              </span>
+              <input id="darkModeToggle" type="checkbox">
+            </label>
+            <label class="setting-row">
+              <span>
+                <strong>Large Arabic</strong>
+                <small>Make Arabic text more prominent.</small>
+              </span>
+              <input id="arabicSizeToggle" type="checkbox">
+            </label>
+            <label class="setting-row">
+              <span>
+                <strong>Advanced UI</strong>
+                <small>Use the graphic category home screen.</small>
+              </span>
+              <input id="advancedUiToggle" type="checkbox">
+            </label>
+          </section>
 
-          <h3 class="settings-section-heading">Customize layout</h3>
-          <p class="settings-section-note">Choose which tabs you want, and whether each shows in Simple UI, Advanced UI, or both. Duas always stays available as your home tab.</p>
-          <div class="layout-config-list" id="layoutConfigList"></div>
+          <section class="settings-panel" data-settings-panel="prayer" data-settings-title="Prayer & Qibla" hidden>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>Calculation method</strong>
+                <small>Sets the Fajr/Isha angles used to compute your prayer times.</small>
+              </span>
+              <select id="calculationMethodSelect">
+                <option value="mwl">Muslim World League</option>
+                <option value="isna">Islamic Society of North America</option>
+                <option value="egyptian">Egyptian General Authority</option>
+                <option value="karachi">University of Islamic Sciences, Karachi</option>
+                <option value="ummalqura">Umm al-Qura, Makkah</option>
+              </select>
+            </div>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>Asr calculation</strong>
+                <small>Hanafi uses a longer shadow length, so Asr falls later.</small>
+              </span>
+              <select id="asrMethodSelect">
+                <option value="standard">Standard (Shafi, Maliki, Hanbali)</option>
+                <option value="hanafi">Hanafi</option>
+              </select>
+            </div>
+          </section>
 
-          <h3 class="settings-section-heading">Data</h3>
-          <div class="setting-row install-row" id="installRow">
-            <span>
-              <strong>Install app</strong>
-              <small>Add this PWA to your device home screen.</small>
-            </span>
-            <button class="small-action-button" id="installButton" type="button">Install</button>
-          </div>
-          <div class="setting-row setting-row-stack">
-            <span>
-              <strong>Backup</strong>
-              <small>Export or restore favourites and settings.</small>
-            </span>
-            <span class="backup-actions">
-              <button class="small-action-button" id="exportDataButton" type="button">Export</button>
-              <button class="small-action-button secondary" id="importDataButton" type="button">Import</button>
-              <input id="importDataInput" type="file" accept="application/json,.json" hidden>
-            </span>
-          </div>
+          <section class="settings-panel" data-settings-panel="reminders" data-settings-title="Reminders" hidden>
+            <label class="setting-row">
+              <span>
+                <strong>Prayer reminders</strong>
+                <small>Local notifications for morning and evening adhkar, computed on this device -- no account, no push server. Only fires while this app/tab is open (even in the background); a fully closed app or browser can't reliably notify you on the web, this is a platform limit, not a bug here.</small>
+              </span>
+              <input id="remindersEnabledToggle" type="checkbox">
+            </label>
+            <p class="reminder-note reminder-note-warning" id="remindersUnsupportedNote" hidden>Notifications are not supported in this browser.</p>
+            <p class="reminder-note reminder-note-warning" id="remindersBlockedNote" hidden>Notifications are blocked for this site -- allow them in your browser's site settings to use reminders.</p>
+            <p class="reminder-note reminder-note-warning" id="remindersLocationNote" hidden>Set your location on the Prayer Times or Qibla tab first so reminders know when to fire.</p>
+            <label class="setting-row reminder-subrow">
+              <span>
+                <strong>Morning adhkar</strong>
+                <small>15 minutes after Fajr.</small>
+              </span>
+              <input id="morningAdhkarToggle" type="checkbox">
+            </label>
+            <label class="setting-row reminder-subrow">
+              <span>
+                <strong>Evening adhkar</strong>
+                <small>15 minutes after Asr.</small>
+              </span>
+              <input id="eveningAdhkarToggle" type="checkbox">
+            </label>
+          </section>
 
-          <h3 class="settings-section-heading">About</h3>
-          <div class="settings-version" id="appVersion" aria-label="App version">Version 1.013</div>
+          <section class="settings-panel" data-settings-panel="layout" data-settings-title="Customize layout" hidden>
+            <p class="settings-section-note">Choose which tabs you want, and whether each shows in Simple UI, Advanced UI, or both. Duas always stays available as your home tab.</p>
+            <div class="layout-config-list" id="layoutConfigList"></div>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="data" data-settings-title="Data" hidden>
+            <div class="setting-row install-row" id="installRow">
+              <span>
+                <strong>Install app</strong>
+                <small>Add this PWA to your device home screen.</small>
+              </span>
+              <button class="small-action-button" id="installButton" type="button">Install</button>
+            </div>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>Backup</strong>
+                <small>Export or restore favourites and settings.</small>
+              </span>
+              <span class="backup-actions">
+                <button class="small-action-button" id="exportDataButton" type="button">Export</button>
+                <button class="small-action-button secondary" id="importDataButton" type="button">Import</button>
+                <input id="importDataInput" type="file" accept="application/json,.json" hidden>
+              </span>
+            </div>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="about" data-settings-title="About" hidden>
+            <div class="settings-version" id="appVersion" aria-label="App version">Version 1.013</div>
+          </section>
         </form>
       </dialog>
 

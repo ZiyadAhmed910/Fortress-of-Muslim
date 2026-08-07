@@ -660,6 +660,13 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.015
+
+- Reworked Settings from one long scrolling list into a category list that drills into a subscreen per category (Appearance, Prayer & Qibla, Reminders, Customize Layout, Data, About), with a back button, instead of everything shown at once.
+- The Prayer & Qibla settings category now disappears entirely from Settings when both those tabs are disabled via Customize Layout, instead of staying visible with nothing to apply to.
+- Morning/Evening adhkar rows now fully hide (not just dim) when the Reminders master toggle is off.
+- Added a bootstrap-level fallback that detects when the app fails to finish loading (e.g. right after a broken deploy) and offers a "Reload app" button that clears the service worker and caches for a clean retry -- previously a broken update could leave the app stuck with no way to recover.
+
 ### 1.014
 
 - Split the combined Prayer screen into independent Prayer Times and Qibla tabs, sharing the same resolved location.

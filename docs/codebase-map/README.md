@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-07T10:55:34.058Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-07T13:08:43.160Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -17,7 +17,6 @@ orphaned code paths reading from the wrong schema (this is exactly how the
 `record-query.ts` bug looked before it was fixed -- see `docs/project-overview.md`).
 Not all of these are bugs; verify before assuming.
 
-- **access_requests** (table) — defined in `apps/auth/migrations/0002_control_plane.sql`, only referenced by `apps/auth/src/admin-plane.ts`
 - **apikey** (table) — defined in `apps/auth/migrations/0001_identity.sql`, only referenced by `apps/auth/src/admin-plane.ts`
 - **canonical_publication_history** (table) — defined in `apps/api/migrations/0006_canonical_editorial.sql`, only referenced by `apps/auth/src/editorial-plane.ts`
 - **content_parts** (table) — defined in `apps/api/migrations/0001_content_schema.sql`, only referenced by `apps/auth/src/editorial-plane.ts`
@@ -41,7 +40,7 @@ Not all of these are bugs; verify before assuming.
 
 | File | Lang | Lines | Routes | Exports |
 | --- | --- | --- | --- | --- |
-| `apps/admin/public/app.js` | js | 1408 |  |  |
+| `apps/admin/public/app.js` | js | 1465 |  |  |
 | `apps/api/migrations/0001_content_schema.sql` | sql | 62 |  |  |
 | `apps/api/migrations/0002_import_legacy_dataset.sql` | sql | 1566 |  |  |
 | `apps/api/migrations/0003_canonical_knowledge.sql` | sql | 305 |  |  |
@@ -91,10 +90,10 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/migrations/0009_operational_alerts.sql` | sql | 21 |  |  |
 | `apps/auth/migrations/0010_rate_limits.sql` | sql | 26 |  |  |
 | `apps/auth/migrations/0011_webhooks.sql` | sql | 32 |  |  |
-| `apps/auth/src/admin-plane.ts` | ts | 802 | 22 | function requiresMfaEnrollment, function handleAdminPlane |
+| `apps/auth/src/admin-plane.ts` | ts | 938 | 24 | function requiresMfaEnrollment, function handleAdminPlane |
 | `apps/auth/src/auth.ts` | ts | 117 |  | const FORTRESS_SCOPES, function createAuth |
 | `apps/auth/src/editorial-plane.ts` | ts | 2340 | 34 | type EditorialRole, function handleEditorialPlane, class EditorialForbiddenError |
-| `apps/auth/src/index.ts` | ts | 852 | 27 | class AuthWorker |
+| `apps/auth/src/index.ts` | ts | 895 | 30 | class AuthWorker |
 | `apps/auth/src/notifications.ts` | ts | 49 |  | type NotificationType, function notificationStatement, function listNotifications, function markNotificationRead, function markAllNotificationsRead |
 | `apps/auth/src/security.ts` | ts | 33 |  | function isMutation, function isTrustedBrowserMutation, function hasOversizedBody |
 | `apps/auth/src/taxonomy.ts` | ts | 27 |  | const TAXONOMY_KEYWORD_GROUPS, function suggestTaxonomySlugs |
@@ -105,23 +104,23 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/test/security.test.ts` | ts | 43 |  |  |
 | `apps/auth/test/webhooks.test.ts` | ts | 195 |  |  |
 | `apps/developers/public/app.js` | js | 63 |  |  |
-| `apps/developers/public/console.js` | js | 733 |  |  |
+| `apps/developers/public/console.js` | js | 777 |  |  |
 | `apps/developers/public/device.js` | js | 6 |  |  |
 | `apps/developers/public/oauth.js` | js | 112 |  |  |
 | `apps/mcp/src/index.ts` | ts | 74 | 2 | default export |
 | `apps/status/public/app.js` | js | 131 |  |  |
 | `packages/contracts/src/index.ts` | ts | 137 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +27 more |
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
-| `pwa-website/js/app.js` | js | 159 |  |  |
+| `pwa-website/js/app.js` | js | 168 |  |  |
 | `pwa-website/js/assistant.js` | js | 54 |  |  |
 | `pwa-website/js/categories.js` | js | 160 |  |  |
 | `pwa-website/js/constants.js` | js | 4 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 110 |  |  |
+| `pwa-website/js/dom.js` | js | 114 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
 | `pwa-website/js/home.js` | js | 182 |  |  |
-| `pwa-website/js/layout-settings.js` | js | 44 |  |  |
+| `pwa-website/js/layout-settings.js` | js | 60 |  |  |
 | `pwa-website/js/layout.js` | js | 106 |  |  |
 | `pwa-website/js/modes.js` | js | 69 |  |  |
 | `pwa-website/js/online.js` | js | 21 |  |  |
@@ -131,7 +130,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/reader.js` | js | 129 |  |  |
 | `pwa-website/js/reminders.js` | js | 181 |  |  |
 | `pwa-website/js/routes.js` | js | 29 |  |  |
-| `pwa-website/js/settings.js` | js | 36 |  |  |
+| `pwa-website/js/settings.js` | js | 66 |  |  |
 | `pwa-website/js/state.js` | js | 34 |  |  |
 | `pwa-website/js/tasbih.js` | js | 194 |  |  |
 | `pwa-website/js/userData.js` | js | 157 |  |  |
@@ -142,13 +141,14 @@ Not all of these are bugs; verify before assuming.
 
 | Method | Path | Style | File:Line |
 | --- | --- | --- | --- |
-| (any) | `` | manual (pattern) | `apps/auth/src/admin-plane.ts:164` |
+| (any) | `` | manual (pattern) | `apps/auth/src/admin-plane.ts:165` |
 | (any) | `` | manual (pattern) | `apps/auth/src/editorial-plane.ts:180` |
 | USE | `*` | hono | `apps/api/src/app.ts:33` |
 | USE | `*` | hono | `apps/api/src/app.ts:39` |
 | GET | `/` | hono | `apps/api/src/app.ts:140` |
 | (any) | `/.well-known/oauth-protected-resource` | manual (exact) | `apps/mcp/src/index.ts:38` |
-| (any) | `/^\/v1\/admin\/alerts\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:172` |
+| (any) | `/^\/v1\/admin\/access-requests\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:179` |
+| (any) | `/^\/v1\/admin\/alerts\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:173` |
 | (any) | `/^\/v1\/admin\/editorial\/assignments\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:91` |
 | (any) | `/^\/v1\/admin\/editorial\/batches\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:193` |
 | (any) | `/^\/v1\/admin\/editorial\/batches\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:202` |
@@ -164,19 +164,19 @@ Not all of these are bugs; verify before assuming.
 | (any) | `/^\/v1\/admin\/editorial\/records\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:163` |
 | (any) | `/^\/v1\/admin\/editorial\/records\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:171` |
 | (any) | `/^\/v1\/admin\/editorial\/records\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:175` |
-| (any) | `/^\/v1\/admin\/rate-limits\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:158` |
-| (any) | `/^\/v1\/admin\/services\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:152` |
-| (any) | `/^\/v1\/admin\/sessions\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:147` |
-| (any) | `/^\/v1\/admin\/users\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:140` |
-| (any) | `/^\/v1\/control\/devices\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:234` |
-| (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:331` |
-| (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:345` |
-| (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:360` |
-| (any) | `/^\/v1\/control\/named-queries\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:295` |
-| (any) | `/^\/v1\/control\/oauth-clients\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:243` |
-| (any) | `/^\/v1\/control\/webhooks\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:411` |
-| (any) | `/^\/v1\/control\/webhooks\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:425` |
-| (any) | `/^\/v1\/control\/webhooks\/deliveries\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:438` |
+| (any) | `/^\/v1\/admin\/rate-limits\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:159` |
+| (any) | `/^\/v1\/admin\/services\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:153` |
+| (any) | `/^\/v1\/admin\/sessions\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:148` |
+| (any) | `/^\/v1\/admin\/users\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:141` |
+| (any) | `/^\/v1\/control\/devices\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:277` |
+| (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:374` |
+| (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:388` |
+| (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:403` |
+| (any) | `/^\/v1\/control\/named-queries\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:338` |
+| (any) | `/^\/v1\/control\/oauth-clients\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:286` |
+| (any) | `/^\/v1\/control\/webhooks\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:454` |
+| (any) | `/^\/v1\/control\/webhooks\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:468` |
+| (any) | `/^\/v1\/control\/webhooks\/deliveries\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:481` |
 | GET | `/health` | hono | `apps/api/src/app.ts:149` |
 | (any) | `/health` | manual (exact) | `apps/auth/src/index.ts:52` |
 | (any) | `/health` | manual (exact) | `apps/mcp/src/index.ts:37` |
@@ -187,6 +187,7 @@ Not all of these are bugs; verify before assuming.
 | (any) | `/v1/admin/` | manual (prefix) | `apps/auth/src/index.ts:82` |
 | (any) | `/v1/admin/` | manual (prefix) | `apps/auth/src/index.ts:93` |
 | (any) | `/v1/admin/` | manual (prefix) | `apps/auth/src/index.ts:96` |
+| GET | `/v1/admin/access-requests` | manual (exact) | `apps/auth/src/admin-plane.ts:139` |
 | GET | `/v1/admin/alerts` | manual (exact) | `apps/auth/src/admin-plane.ts:137` |
 | GET | `/v1/admin/audit` | manual (exact) | `apps/auth/src/admin-plane.ts:136` |
 | (any) | `/v1/admin/content` | manual (prefix) | `apps/auth/src/admin-plane.ts:119` |
@@ -224,19 +225,22 @@ Not all of these are bugs; verify before assuming.
 | POST | `/v1/ask` | hono | `apps/api/src/app.ts:442` |
 | GET | `/v1/ask/status` | hono | `apps/api/src/app.ts:464` |
 | GET | `/v1/collections` | hono | `apps/api/src/app.ts:229` |
-| GET | `/v1/control/devices` | manual (exact) | `apps/auth/src/index.ts:200` |
-| POST | `/v1/control/devices` | manual (exact) | `apps/auth/src/index.ts:210` |
-| GET | `/v1/control/mcp-servers` | manual (exact) | `apps/auth/src/index.ts:169` |
-| POST | `/v1/control/mcp-servers` | manual (exact) | `apps/auth/src/index.ts:179` |
-| GET | `/v1/control/mcp/catalog` | manual (exact) | `apps/auth/src/index.ts:309` |
-| GET | `/v1/control/mcp/toolsets` | manual (exact) | `apps/auth/src/index.ts:311` |
-| POST | `/v1/control/mcp/toolsets` | manual (exact) | `apps/auth/src/index.ts:323` |
-| GET | `/v1/control/named-queries` | manual (exact) | `apps/auth/src/index.ts:269` |
-| POST | `/v1/control/named-queries` | manual (exact) | `apps/auth/src/index.ts:281` |
+| GET | `/v1/control/access-requests` | manual (exact) | `apps/auth/src/index.ts:176` |
+| POST | `/v1/control/access-requests` | manual (exact) | `apps/auth/src/index.ts:185` |
+| GET | `/v1/control/devices` | manual (exact) | `apps/auth/src/index.ts:243` |
+| POST | `/v1/control/devices` | manual (exact) | `apps/auth/src/index.ts:253` |
+| GET | `/v1/control/mcp-servers` | manual (exact) | `apps/auth/src/index.ts:212` |
+| POST | `/v1/control/mcp-servers` | manual (exact) | `apps/auth/src/index.ts:222` |
+| GET | `/v1/control/mcp/catalog` | manual (exact) | `apps/auth/src/index.ts:352` |
+| GET | `/v1/control/mcp/toolsets` | manual (exact) | `apps/auth/src/index.ts:354` |
+| POST | `/v1/control/mcp/toolsets` | manual (exact) | `apps/auth/src/index.ts:366` |
+| GET | `/v1/control/named-queries` | manual (exact) | `apps/auth/src/index.ts:312` |
+| POST | `/v1/control/named-queries` | manual (exact) | `apps/auth/src/index.ts:324` |
+| GET | `/v1/control/plans` | manual (exact) | `apps/auth/src/index.ts:169` |
 | GET | `/v1/control/profile` | manual (exact) | `apps/auth/src/index.ts:115` |
 | GET | `/v1/control/usage` | manual (exact) | `apps/auth/src/index.ts:122` |
-| GET | `/v1/control/webhooks` | manual (exact) | `apps/auth/src/index.ts:378` |
-| POST | `/v1/control/webhooks` | manual (exact) | `apps/auth/src/index.ts:398` |
+| GET | `/v1/control/webhooks` | manual (exact) | `apps/auth/src/index.ts:421` |
+| POST | `/v1/control/webhooks` | manual (exact) | `apps/auth/src/index.ts:441` |
 | GET | `/v1/datasets/current` | hono | `apps/api/src/app.ts:214` |
 | GET | `/v1/duas` | hono | `apps/api/src/app.ts:239` |
 | GET | `/v1/duas/:id` | hono | `apps/api/src/app.ts:368` |
@@ -259,7 +263,7 @@ Not all of these are bugs; verify before assuming.
 | Name | Kind | Defined in | Referenced by (excl. definer) |
 | --- | --- | --- | --- |
 | a | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts`, `pwa-website/js/prayer.js`, `pwa-website/js/reminders.js` |
-| access_requests | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts` |
+| access_requests | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | account | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | an | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
 | any | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
@@ -332,6 +336,7 @@ Not all of these are bugs; verify before assuming.
 | oauthConsent | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | oauthRefreshToken | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/index.ts` |
 | oauthResource | table | `apps/auth/migrations/0001_identity.sql` | (none) |
+| one | unknown | `(not defined in scanned files)` | `pwa-website/js/settings.js` |
 | operational_alerts | table | `apps/auth/migrations/0009_operational_alerts.sql` | `apps/auth/src/admin-plane.ts` |
 | organization | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | passkey | table | `apps/auth/migrations/0008_account_security.sql` | (none) |
@@ -357,6 +362,7 @@ Not all of these are bugs; verify before assuming.
 | segment_translations | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | session | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts` |
 | SET | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
+| Settings | unknown | `(not defined in scanned files)` | `pwa-website/js/layout-settings.js` |
 | solar | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | source_materials | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | source_references | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
