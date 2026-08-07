@@ -77,7 +77,12 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
 
     const scopes = requiredScopes(context.req.path);
     try {
-      if (credential.startsWith('fom_')) {
+      if (isJwtLike(credential)) {
+        const result = await context.env.AUTH.verifyBearerToken(credential, scopes);
+        if (!result.valid || !result.subject) return unauthorized(context, result.error ?? 'Access token is invalid.');
+        context.set('principalId', result.ownerUserId ?? result.subject);
+        context.set('credentialId', result.clientId ?? result.subject);
+      } else {
         const permissions: Record<string, string[]> = scopes.includes('content:search')
           ? { content: ['search'] }
           : scopes.includes('dataset:read') ? { dataset: ['read'] } : { content: ['read'] };
@@ -85,11 +90,6 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
         if (!result.valid || !result.key) return unauthorized(context, result.error?.message ?? 'API key is invalid.');
         context.set('principalId', result.key.referenceId);
         context.set('credentialId', result.key.id);
-      } else {
-        const result = await context.env.AUTH.verifyBearerToken(credential, scopes);
-        if (!result.valid || !result.subject) return unauthorized(context, result.error ?? 'Access token is invalid.');
-        context.set('principalId', result.ownerUserId ?? result.subject);
-        context.set('credentialId', result.clientId ?? result.subject);
       }
     } catch (error) {
       console.error('Credential verification failed.', error);
@@ -568,6 +568,13 @@ function duaNotFound(requestId: string, context: ApiContext) {
       requestId,
     },
   }, 404);
+}
+
+// Fortress API keys carry no prefix (plain a-z/A-Z random string) -- OAuth/device bearer tokens
+// are always JWTs (header.payload.signature, so always contain '.'), which API keys never do.
+// That shape difference is what tells the two credential kinds apart at the door.
+function isJwtLike(credential: string): boolean {
+  return credential.includes('.');
 }
 
 function readCredential(context: ApiContext) {

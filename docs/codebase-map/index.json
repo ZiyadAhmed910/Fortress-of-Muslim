@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-07T07:04:43.598Z",
+  "generatedAt": "2026-08-07T08:30:46.571Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
-      "lines": 616,
+      "lines": 623,
       "language": "ts",
       "exports": [
         "function createApp",
@@ -159,7 +159,7 @@
     },
     {
       "path": "apps/api/test/api.test.ts",
-      "lines": 701,
+      "lines": 724,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -312,7 +312,7 @@
     },
     {
       "path": "apps/auth/src/auth.ts",
-      "lines": 114,
+      "lines": 117,
       "language": "ts",
       "exports": [
         "const FORTRESS_SCOPES",
@@ -347,7 +347,7 @@
     },
     {
       "path": "apps/auth/src/index.ts",
-      "lines": 845,
+      "lines": 852,
       "language": "ts",
       "exports": [
         "class AuthWorker"
@@ -563,7 +563,7 @@
     },
     {
       "path": "apps/developers/public/console.js",
-      "lines": 711,
+      "lines": 733,
       "language": "js",
       "exports": [],
       "imports": [],

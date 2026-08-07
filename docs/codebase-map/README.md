@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-07T07:04:43.598Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-07T08:30:46.571Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -58,7 +58,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/migrations/0014_book_editorial_and_manual_records.sql` | sql | 31 |  |  |
 | `apps/api/migrations/0015_taxonomy_seed.sql` | sql | 23 |  |  |
 | `apps/api/migrations/0016_editorial_notifications.sql` | sql | 18 |  |  |
-| `apps/api/src/app.ts` | ts | 616 | 26 | function createApp, const app |
+| `apps/api/src/app.ts` | ts | 623 | 26 | function createApp, const app |
 | `apps/api/src/index.ts` | ts | 51 |  | class ApiWorker |
 | `apps/api/src/lib/fuzzy-title.ts` | ts | 75 |  | type TitleCandidate, type RankedTitle, function rankDuaTitles |
 | `apps/api/src/lib/pagination.ts` | ts | 15 |  | function encodeCursor, function decodeCursor |
@@ -69,7 +69,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/repositories/content-repository.ts` | ts | 60 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 712 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
-| `apps/api/test/api.test.ts` | ts | 701 |  |  |
+| `apps/api/test/api.test.ts` | ts | 724 |  |  |
 | `apps/api/test/arabic-search.test.ts` | ts | 133 |  |  |
 | `apps/api/test/fuzzy-title.test.ts` | ts | 30 |  |  |
 | `apps/api/test/hadith-reference.test.ts` | ts | 127 |  |  |
@@ -92,9 +92,9 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/migrations/0010_rate_limits.sql` | sql | 26 |  |  |
 | `apps/auth/migrations/0011_webhooks.sql` | sql | 32 |  |  |
 | `apps/auth/src/admin-plane.ts` | ts | 802 | 22 | function requiresMfaEnrollment, function handleAdminPlane |
-| `apps/auth/src/auth.ts` | ts | 114 |  | const FORTRESS_SCOPES, function createAuth |
+| `apps/auth/src/auth.ts` | ts | 117 |  | const FORTRESS_SCOPES, function createAuth |
 | `apps/auth/src/editorial-plane.ts` | ts | 2340 | 34 | type EditorialRole, function handleEditorialPlane, class EditorialForbiddenError |
-| `apps/auth/src/index.ts` | ts | 845 | 27 | class AuthWorker |
+| `apps/auth/src/index.ts` | ts | 852 | 27 | class AuthWorker |
 | `apps/auth/src/notifications.ts` | ts | 49 |  | type NotificationType, function notificationStatement, function listNotifications, function markNotificationRead, function markAllNotificationsRead |
 | `apps/auth/src/security.ts` | ts | 33 |  | function isMutation, function isTrustedBrowserMutation, function hasOversizedBody |
 | `apps/auth/src/taxonomy.ts` | ts | 27 |  | const TAXONOMY_KEYWORD_GROUPS, function suggestTaxonomySlugs |
@@ -105,7 +105,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/test/security.test.ts` | ts | 43 |  |  |
 | `apps/auth/test/webhooks.test.ts` | ts | 195 |  |  |
 | `apps/developers/public/app.js` | js | 63 |  |  |
-| `apps/developers/public/console.js` | js | 711 |  |  |
+| `apps/developers/public/console.js` | js | 733 |  |  |
 | `apps/developers/public/device.js` | js | 6 |  |  |
 | `apps/developers/public/oauth.js` | js | 112 |  |  |
 | `apps/mcp/src/index.ts` | ts | 74 | 2 | default export |
