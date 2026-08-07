@@ -31,6 +31,7 @@ const ASSETS = [
   './js/routes.js',
   './js/settings.js',
   './js/state.js',
+  './js/tasbih.js',
   './js/userData.js',
   './js/utils.js',
   './manifest.json',

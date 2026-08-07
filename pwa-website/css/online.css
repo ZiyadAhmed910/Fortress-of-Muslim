@@ -57,7 +57,11 @@
 .mode-prayer .advanced-home,
 .mode-prayer .simple-home,
 .mode-prayer .advanced-bottom-nav,
-.mode-prayer .favourites-fab { display: none; }
+.mode-prayer .favourites-fab,
+.mode-tasbih .advanced-home,
+.mode-tasbih .simple-home,
+.mode-tasbih .advanced-bottom-nav,
+.mode-tasbih .favourites-fab { display: none; }
 
 .advanced-home[hidden],
 .simple-home[hidden] { display: none !important; }
@@ -258,6 +262,75 @@
 }
 
 @keyframes assistant-pulse { to { opacity: 0.25; transform: translateY(-0.25rem); } }
+
+/* Tasbih Counter -- fully offline, no dependency on Prayer Times or Reminders. */
+.tasbih-home { display: grid; gap: 1rem; }
+
+.tasbih-preset-tabs { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.1rem 0; scrollbar-width: none; }
+.tasbih-preset-tabs::-webkit-scrollbar { display: none; }
+.tasbih-preset-tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  color: var(--muted);
+  background: var(--paper-strong);
+  font-weight: 750;
+  white-space: nowrap;
+}
+.tasbih-preset-tab.active { border-color: var(--accent-strong); color: white; background: var(--accent-strong); }
+
+.tasbih-tap-area {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  min-height: min(56vh, 26rem);
+  padding: 1.5rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  background: var(--paper-strong);
+  text-align: center;
+  /* Removes the ~300ms tap delay some browsers use to disambiguate a tap from the start of a
+     double-tap-to-zoom gesture -- dhikr counting needs every tap to register immediately. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.tasbih-tap-area:active { background: color-mix(in srgb, var(--accent-strong) 6%, var(--paper-strong)); }
+.tasbih-tap-area.tasbih-target-reached { border-color: var(--accent-strong); background: color-mix(in srgb, var(--accent-strong) 9%, var(--paper-strong)); }
+
+.tasbih-progress-ring { position: relative; width: 11rem; height: 11rem; }
+.tasbih-progress-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.tasbih-ring-track { fill: none; stroke: var(--line); stroke-width: 8; }
+.tasbih-ring-fill {
+  fill: none;
+  stroke: var(--accent-strong);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.25s ease;
+}
+.tasbih-count-display {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  line-height: 1.1;
+}
+.tasbih-count-display strong { font-size: 2.6rem; }
+.tasbih-count-display span { color: var(--muted); font-size: 1rem; }
+
+.tasbih-arabic { margin: 0; font-family: "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", serif; font-size: calc(1.6rem * var(--arabic-scale)); line-height: 1.6; }
+.tasbih-label { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.tasbih-hint { color: var(--muted); }
+
+.tasbih-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 1.2rem; }
+.tasbih-lifetime { margin: 0; color: var(--muted); font-size: 0.8rem; text-align: center; }
+
+.tasbih-preset-field { display: grid; gap: 0.3rem; margin-bottom: 0.9rem; font-size: 0.82rem; color: var(--muted); font-weight: 700; }
+.tasbih-preset-field input { min-height: 2.6rem; padding: 0 0.7rem; border: 1px solid var(--line); border-radius: 0.5rem; background: var(--paper); color: var(--ink); font: inherit; }
+.tasbih-preset-form-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.4rem; }
+.tasbih-confirm-dialog p { margin: 0 0 1rem; }
 
 @media (min-width: 720px) {
   .hadith-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
