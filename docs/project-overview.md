@@ -23,7 +23,7 @@ Two commitments shape every other decision in this codebase:
 
 ## Current version
 
-`0.21.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
+`0.22.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
 `package.json`). See `README.md` → `## Platform Releases` for the full version history — it is
 the closest thing this repo has to a changelog and should be treated as one.
 
@@ -177,15 +177,15 @@ entire Developer Portal frontend, the entire PWA, the Status portal, the remaini
 handlers) rather than sampling. Ranked by how directly they block a feature the platform claims to
 support, not by severity.
 
-1. **Taxonomy term assignment does not exist.** Admins can create taxonomy terms — including
-   `mood` and `occasion` types, via `POST /v1/admin/taxonomy` (`apps/auth/src/admin-plane.ts`) — and
-   the system can count and display which records use a term. But there is no code path anywhere
-   that inserts into `record_taxonomy` (confirmed by grepping the entire `apps/api` and `apps/auth`
-   source: the table is only ever read, never written). There is no "attach this mood/category to
-   this record" action in the Admin Console UI either. This is the missing middle step of the
-   feature — creation and display exist, assignment doesn't — and it's why the roadmap's "moods,
-   Ruqyah" goal has no real editorial path today: there's no way to mark a record with a verified
-   mood even if an editor wanted to.
+1. ~~**Taxonomy term assignment does not exist.**~~ Fixed 2026-08-06: added the missing
+   `INSERT INTO record_taxonomy` path (`GET`/`POST /v1/admin/editorial/records/:id/taxonomy` in
+   `apps/auth/src/editorial-plane.ts`), keyword-derived suggestions (`apps/auth/src/taxonomy.ts`,
+   ported from `pwa-website/js/categories.js`'s existing offline logic) that an editor must still
+   confirm before anything is assigned, a seed migration giving the online taxonomy the same
+   starting mood/occasion vocabulary the offline PWA already uses, and an Admin Console checklist
+   in the record detail dialog. This still doesn't populate actual editorial content for moods/
+   Ruqyah (that's still gated on qualified editorial review, see Goals below) — it closes the
+   missing *mechanism*, not the missing *content*.
 2. ~~**TOTP setup showed no QR code, just a raw `otpauth://` URI as text.**~~ Fixed 2026-08-06:
    `apps/developers/public/console.js` rendered `result.totpURI` as plain text in a `<code>` tag --
    almost no authenticator app accepts pasting a full URI, they expect a QR scan. Found by the user
