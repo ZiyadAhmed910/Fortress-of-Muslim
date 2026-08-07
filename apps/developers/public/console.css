@@ -47,6 +47,12 @@
 .usage-row-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--muted); }
 .usage-row-head strong { color: var(--ink); font-size: 13px; }
 .usage-bar-track { height: 8px; border-radius: 999px; background: var(--surface-subtle); overflow: hidden; }
+.plan-request-status { margin-top: 12px; }
+.plan-request-status p { margin: 0; font-size: 13px; color: var(--muted); }
+.plan-request-pending { padding: 8px 12px; border: 1px solid var(--brand); border-radius: 6px; color: var(--ink) !important; }
+.plan-request-history summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--muted); }
+.plan-request-history p { padding: 4px 0; }
+.plan-request-form { margin-top: 12px; max-width: 420px; }
 .usage-bar-fill { height: 100%; border-radius: 999px; background: var(--brand); transition: width .3s ease; }
 .usage-bar-fill.warn { background: var(--warn); }
 .usage-bar-fill.bad { background: var(--bad); }

@@ -376,7 +376,7 @@ async function refreshSession() {
   $$('[data-profile-initials], [data-sidebar-initials]').forEach((node) => { node.textContent = initials; });
   $('[data-profile-name]').textContent = state.user.name || 'Developer'; $('[data-profile-email]').textContent = state.user.email;
   $('[data-sidebar-name]').textContent = state.user.name || 'Developer'; setView(location.hash.slice(1) || 'overview');
-  const resources = await Promise.allSettled([loadKeys(), loadApps(), loadDevices(), loadMcp(), loadQueries(), loadWebhooks(), loadSecurity(), loadUsage()]);
+  const resources = await Promise.allSettled([loadKeys(), loadApps(), loadDevices(), loadMcp(), loadQueries(), loadWebhooks(), loadSecurity(), loadUsage(), loadPlanRequest()]);
   const failed = resources.filter((result) => result.status === 'rejected');
   if (failed.length) notify(`${failed.length} console section${failed.length === 1 ? '' : 's'} could not be loaded. Use the Retry button in each affected section.`, true);
   if (sessionStorage.getItem('fortress-device-code')) location.href = '/device.html';
@@ -537,7 +537,45 @@ function renderUsage() {
     const width = Math.min(100, Math.round(ratio * 100));
     return `<div class="usage-row"><div class="usage-row-head"><span>${esc(row.label)}</span><strong>${row.used.toLocaleString()} / ${row.limit.toLocaleString()}</strong></div><div class="usage-bar-track"><div class="usage-bar-fill ${fillClass}" style="width:${width}%"></div></div><small>Resets ${formatDateTime(row.resetAt)}</small></div>`;
   }).join('');
+  renderPlanRequest();
 }
+async function loadPlanRequest() {
+  const [plansResult, requestsResult] = await Promise.all([authJson('/v1/control/plans'), authJson('/v1/control/access-requests')]);
+  state.plans = plansResult.data || [];
+  state.planRequests = requestsResult.data || [];
+  renderPlanRequest();
+}
+function renderPlanRequest() {
+  const select = $('#plan-select');
+  if (!select || !state.plans) return;
+  const currentPlan = state.usage?.planCode;
+  const pending = (state.planRequests || []).find((request) => request.status === 'pending');
+  select.innerHTML = state.plans
+    .filter((plan) => plan.planCode !== currentPlan)
+    .map((plan) => `<option value="${esc(plan.planCode)}">${esc(plan.planCode)} (${plan.requestsPerDay.toLocaleString()}/day)</option>`)
+    .join('');
+  $('#plan-request-form').hidden = Boolean(pending) || select.options.length === 0;
+  const history = (state.planRequests || []).slice(0, 3);
+  $('#plan-request-status').innerHTML = pending
+    ? `<p class="plan-request-pending">Requesting <strong>${esc(pending.requestedValue)}</strong> &middot; pending review.</p>`
+    : history.length
+      ? `<details class="plan-request-history"><summary>Past requests</summary>${history.map((request) => `<p><strong>${esc(request.requestedValue)}</strong> &middot; ${esc(request.status)}${request.reviewNotes ? ` (${esc(request.reviewNotes)})` : ''}</p>`).join('')}</details>`
+      : '';
+}
+$('#plan-request-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  await action(async () => {
+    const values = new FormData(form);
+    const result = await authJson('/v1/control/access-requests', {
+      method: 'POST',
+      body: { requestType: 'plan_upgrade', requestedValue: values.get('requestedValue'), reason: values.get('reason') },
+    });
+    state.planRequests = [result.data, ...(state.planRequests || [])];
+    form.reset();
+    renderPlanRequest();
+  }, 'Plan upgrade requested.', form);
+});
 async function loadMcp() {
   await withListState('#mcp-list', async () => {
     const [result,catalog] = await Promise.all([authJson('/v1/control/mcp/toolsets'),authJson('/v1/control/mcp/catalog')]); state.mcp = result.data || []; state.standardTools=catalog.data||[]; $('#metric-mcp').textContent = state.mcp.length; updateStandardToolSelect();

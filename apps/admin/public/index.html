@@ -81,6 +81,7 @@
         <a href="#taxonomy" data-nav><span>Taxonomy</span></a>
         <p>PLATFORM</p>
         <a href="#users" data-nav><span>Users</span></a>
+        <a href="#plan-requests" data-nav><span>Plan requests</span></a>
         <a href="#api-keys" data-nav><span>API keys</span></a>
         <a href="#oauth-clients" data-nav><span>Connected apps</span></a>
         <a href="#devices" data-nav><span>Devices</span></a>
@@ -213,6 +214,11 @@
           <form class="filter" data-filter="users"><input name="q" type="search" placeholder="Search name or email"><select name="status"><option value="">All statuses</option><option>active</option><option>suspended</option><option>closed</option></select><button>Search</button></form>
           <div id="users-table" class="table"></div>
         </div>
+      </section>
+
+      <section id="plan-requests" class="view" hidden>
+        <header><div><span class="kicker">ACCESS HIERARCHY</span><h1>Plan requests</h1><p>Developers can request a plan change; approving one updates their account immediately.</p></div></header>
+        <div id="plan-requests-table" class="table"></div>
       </section>
 
       <section id="api-keys" class="view" hidden data-resource="api-keys"><resource-header></resource-header><div class="table resource-table"></div></section>

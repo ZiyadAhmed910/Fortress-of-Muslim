@@ -166,6 +166,49 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       });
     }
 
+    if (url.pathname === '/v1/control/plans' && request.method === 'GET') {
+      const plans = await this.env.IDENTITY_DB.prepare(
+        'SELECT plan_code AS planCode, requests_per_minute AS requestsPerMinute, requests_per_day AS requestsPerDay FROM plan_limits ORDER BY requests_per_day',
+      ).all();
+      return json({ data: plans.results });
+    }
+
+    if (url.pathname === '/v1/control/access-requests' && request.method === 'GET') {
+      const result = await this.env.IDENTITY_DB.prepare(`
+        SELECT id, request_type AS requestType, requested_value AS requestedValue, reason, status,
+          created_at AS createdAt, reviewed_at AS reviewedAt, review_notes AS reviewNotes
+        FROM access_requests WHERE user_id = ? ORDER BY created_at DESC LIMIT 25
+      `).bind(user.id).all();
+      return json({ data: result.results });
+    }
+
+    if (url.pathname === '/v1/control/access-requests' && request.method === 'POST') {
+      const body = await readJson(request);
+      const requestType = String(body.requestType ?? '');
+      const requestedValue = String(body.requestedValue ?? '').trim();
+      const reason = String(body.reason ?? '').trim();
+      if (requestType !== 'plan_upgrade') return json({ error: { code: 'invalid_request', message: 'Choose a supported request type.' } }, 400);
+      const validPlan = await this.env.IDENTITY_DB.prepare('SELECT 1 FROM plan_limits WHERE plan_code = ?').bind(requestedValue).first();
+      if (!validPlan) return json({ error: { code: 'invalid_request', message: 'Choose a supported plan.' } }, 400);
+      if (reason.length < 5 || reason.length > 500) return json({ error: { code: 'invalid_request', message: 'Reason must be 5-500 characters.' } }, 400);
+      const currentPlan = await this.env.IDENTITY_DB.prepare(
+        'SELECT COALESCE(plan_code, \'basic\') AS planCode FROM developer_profiles WHERE user_id = ?',
+      ).bind(user.id).first<{ planCode: string }>();
+      if ((currentPlan?.planCode ?? 'basic') === requestedValue) {
+        return json({ error: { code: 'invalid_request', message: 'That is already this account\'s current plan.' } }, 400);
+      }
+      const pending = await this.env.IDENTITY_DB.prepare(
+        'SELECT 1 FROM access_requests WHERE user_id = ? AND request_type = \'plan_upgrade\' AND status = \'pending\'',
+      ).bind(user.id).first();
+      if (pending) return json({ error: { code: 'conflict', message: 'A plan upgrade request is already pending review.' } }, 409);
+      const id = `req_${crypto.randomUUID()}`;
+      await this.env.IDENTITY_DB.prepare(`
+        INSERT INTO access_requests (id, user_id, request_type, requested_value, reason)
+        VALUES (?, ?, 'plan_upgrade', ?, ?)
+      `).bind(id, user.id, requestedValue, reason).run();
+      return json({ data: { id, requestType: 'plan_upgrade', requestedValue, reason, status: 'pending' } }, 201);
+    }
+
     if (url.pathname === '/v1/control/mcp-servers' && request.method === 'GET') {
       const result = await this.env.IDENTITY_DB.prepare(`
         SELECT id, slug, name, description, upstream_base_url AS upstreamBaseUrl,

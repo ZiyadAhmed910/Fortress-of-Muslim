@@ -136,6 +136,7 @@ export async function handleAdminPlane(
   if (url.pathname === '/v1/admin/audit' && request.method === 'GET') return listAudit(context, url);
   if (url.pathname === '/v1/admin/alerts' && request.method === 'GET') return alerts(context);
   if (url.pathname === '/v1/admin/rate-limits' && request.method === 'GET') return listRateLimits(context);
+  if (url.pathname === '/v1/admin/access-requests' && request.method === 'GET') return listAccessRequests(context, url);
 
   const userMatch = url.pathname.match(/^\/v1\/admin\/users\/([^/]+)$/);
   if (userMatch && request.method === 'GET') return getUser(context, decodeURIComponent(userMatch[1]!));
@@ -173,6 +174,12 @@ export async function handleAdminPlane(
   if (alertActionMatch && request.method === 'POST') {
     if (!canWrite(grant.role)) return forbidden();
     return updateAlertStatus(context, decodeURIComponent(alertActionMatch[1]!), alertActionMatch[2] as 'acknowledge' | 'resolve');
+  }
+
+  const accessRequestMatch = url.pathname.match(/^\/v1\/admin\/access-requests\/([^/]+)\/decision$/);
+  if (accessRequestMatch && request.method === 'POST') {
+    if (!canWrite(grant.role)) return forbidden();
+    return decideAccessRequest(context, decodeURIComponent(accessRequestMatch[1]!), await readJson(request));
   }
 
   return json({ error: { code: 'not_found', message: 'Admin route was not found.' } }, 404);
@@ -604,16 +611,84 @@ async function getUser({ env }: AdminContext, id: string) {
 }
 
 async function updateUser(context: AdminContext, id: string, body: Record<string, unknown>) {
-  const status = String(body.status ?? '');
-  if (!['active', 'suspended', 'closed'].includes(status)) return invalid('Choose active, suspended, or closed.');
-  if (id === context.user.id && status !== 'active') return invalid('You cannot suspend or close your own administrator account.');
+  const hasStatus = body.status !== undefined;
+  const hasPlanCode = body.planCode !== undefined;
+  if (!hasStatus && !hasPlanCode) return invalid('Provide a status or planCode to update.');
+  const status = hasStatus ? String(body.status) : null;
+  if (hasStatus && !['active', 'suspended', 'closed'].includes(status!)) return invalid('Choose active, suspended, or closed.');
+  if (hasStatus && id === context.user.id && status !== 'active') return invalid('You cannot suspend or close your own administrator account.');
+  const planCode = hasPlanCode ? String(body.planCode) : null;
+  if (hasPlanCode) {
+    const validPlan = await context.env.IDENTITY_DB.prepare('SELECT 1 FROM plan_limits WHERE plan_code = ?').bind(planCode).first();
+    if (!validPlan) return invalid('Choose a supported plan.');
+  }
   const exists = await context.env.IDENTITY_DB.prepare('SELECT 1 FROM "user" WHERE id = ?').bind(id).first();
   if (!exists) return json({ error: { code: 'not_found', message: 'User was not found.' } }, 404);
-  await context.env.IDENTITY_DB.prepare(`INSERT INTO developer_profiles (user_id, status) VALUES (?, ?)
-    ON CONFLICT(user_id) DO UPDATE SET status = excluded.status, updated_at = CURRENT_TIMESTAMP`).bind(id, status).run();
-  if (status !== 'active') await context.env.IDENTITY_DB.prepare('DELETE FROM "session" WHERE "userId" = ?').bind(id).run();
-  await audit(context, 'user.status_changed', 'user', id, { status });
-  return json({ data: { id, status } });
+  // COALESCE against the excluded/existing row so a status-only or planCode-only PATCH doesn't
+  // clobber the field it wasn't asked to change.
+  await context.env.IDENTITY_DB.prepare(`
+    INSERT INTO developer_profiles (user_id, status, plan_code) VALUES (?, COALESCE(?, 'active'), COALESCE(?, 'basic'))
+    ON CONFLICT(user_id) DO UPDATE SET
+      status = COALESCE(?, developer_profiles.status),
+      plan_code = COALESCE(?, developer_profiles.plan_code),
+      updated_at = CURRENT_TIMESTAMP
+  `).bind(id, status, planCode, status, planCode).run();
+  if (hasStatus && status !== 'active') await context.env.IDENTITY_DB.prepare('DELETE FROM "session" WHERE "userId" = ?').bind(id).run();
+  if (hasStatus) await audit(context, 'user.status_changed', 'user', id, { status });
+  if (hasPlanCode) await audit(context, 'user.plan_changed', 'user', id, { planCode });
+  return json({ data: { id, status, planCode } });
+}
+
+async function listAccessRequests({ env }: AdminContext, url: URL) {
+  const status = url.searchParams.get('status') || 'pending';
+  if (!['pending', 'approved', 'rejected', 'cancelled'].includes(status)) return invalid('Choose a supported request status.');
+  const result = await env.IDENTITY_DB.prepare(`
+    SELECT r.id, r.request_type AS requestType, r.requested_value AS requestedValue, r.reason,
+      r.status, r.created_at AS createdAt, r.reviewed_at AS reviewedAt, r.review_notes AS reviewNotes,
+      u.id AS userId, u.name AS userName, u.email AS userEmail,
+      COALESCE(p.plan_code, 'basic') AS currentPlanCode
+    FROM access_requests r
+    JOIN "user" u ON u.id = r.user_id
+    LEFT JOIN developer_profiles p ON p.user_id = r.user_id
+    WHERE r.status = ?
+    ORDER BY r.created_at DESC LIMIT 100
+  `).bind(status).all();
+  return json({ data: result.results });
+}
+
+async function decideAccessRequest(context: AdminContext, id: string, body: Record<string, unknown>) {
+  const decision = String(body.decision ?? '');
+  if (!['approved', 'rejected'].includes(decision)) return invalid('Choose approved or rejected.');
+  const notes = optionalText(body.notes, 500);
+  const { env, user } = context;
+  const requestRow = await env.IDENTITY_DB.prepare(
+    'SELECT id, user_id AS userId, request_type AS requestType, requested_value AS requestedValue, status FROM access_requests WHERE id = ?',
+  ).bind(id).first<{ id: string; userId: string; requestType: string; requestedValue: string; status: string }>();
+  if (!requestRow) return json({ error: { code: 'not_found', message: 'Request was not found.' } }, 404);
+  if (requestRow.status !== 'pending') return invalid('This request has already been reviewed.');
+
+  // Apply the plan change (and validate it) before flipping the request to approved, so a request
+  // for a plan that's since been removed fails cleanly and stays pending/reviewable, rather than
+  // getting marked approved with no actual effect.
+  if (decision === 'approved' && requestRow.requestType === 'plan_upgrade') {
+    const validPlan = await env.IDENTITY_DB.prepare('SELECT 1 FROM plan_limits WHERE plan_code = ?').bind(requestRow.requestedValue).first();
+    if (!validPlan) return invalid('The requested plan no longer exists.');
+    await env.IDENTITY_DB.prepare(`
+      INSERT INTO developer_profiles (user_id, plan_code) VALUES (?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET plan_code = excluded.plan_code, updated_at = CURRENT_TIMESTAMP
+    `).bind(requestRow.userId, requestRow.requestedValue).run();
+  }
+
+  await env.IDENTITY_DB.prepare(`
+    UPDATE access_requests SET status = ?, reviewed_by = ?, review_notes = ?, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?
+  `).bind(decision, user.id, notes, id).run();
+
+  await audit(context, `access_request.${decision}`, 'access_request', id, {
+    requestType: requestRow.requestType,
+    requestedValue: requestRow.requestedValue,
+    targetUserId: requestRow.userId,
+  });
+  return json({ data: { id, status: decision } });
 }
 
 const RESOURCE_PAGE_SIZE = 50;
