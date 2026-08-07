@@ -191,6 +191,69 @@ describe('canonical editorial pilot', () => {
     }
   });
 
+  it('notifies a reviewer when assigned, and a record creator when changes are requested', async () => {
+    const content = createContentDatabase();
+    const identity = createIdentityDatabase();
+    const env = { CONTENT_DB: d1(content), IDENTITY_DB: d1(identity) } as never;
+    const editor = context(env, 'notify-editor', 'editor');
+    const reviewer = context(env, 'notify-reviewer', 'reviewer');
+    seedIdentity(identity, [editor, reviewer]);
+    // The seeded Hisn dataset ships already verified/published -- reopen this one record so it's
+    // an eligible ("open") assignment target, same as the first test in this file does.
+    content.prepare(`
+      UPDATE editorial_record_state
+      SET workflow_state = 'pending_review', verified_by_external_id = NULL, verified_at = NULL
+      WHERE canonical_id = 'dua.hisn.001'
+    `).run();
+
+    const assign = await post(editor, '/v1/admin/editorial/assignments', {
+      scopeType: 'record',
+      assignedTo: reviewer.user.id,
+      canonicalId: 'dua.hisn.001',
+    }, 201);
+    expect(((await assign.json()) as { data: { matchedRecords: number } }).data.matchedRecords).toBe(1);
+
+    const reviewerNotifications = await request(reviewer, 'GET', '/v1/admin/editorial/notifications');
+    const reviewerBody = (await reviewerNotifications.json()) as {
+      data: { unreadCount: number; notifications: Array<{ id: string; notificationType: string; message: string; readAt: string | null }> };
+    };
+    expect(reviewerBody.data.unreadCount).toBe(1);
+    expect(reviewerBody.data.notifications[0]).toMatchObject({ notificationType: 'assignment_created', readAt: null });
+    const notificationId = reviewerBody.data.notifications[0]!.id;
+
+    // The editor created the record (dua.hisn.001's seeded revision has no created_by_external_id,
+    // so use a freshly created record where the editor is the real creator).
+    const created = await post(editor, '/v1/admin/editorial/records', {
+      contentType: 'dua', title: 'Test dua for notification', collectionId: 'collection.hisn.legacy',
+      referenceType: 'primary', referenceLocator: 'Test 1',
+      parts: [{ segments: [{ kind: 'translation', text: 'Test translation.' }] }],
+    }, 201);
+    const newCanonicalId = ((await created.json()) as { data: { canonicalId: string } }).data.canonicalId;
+    await post(editor, `/v1/admin/editorial/records/${newCanonicalId}/references`, {
+      referenceType: 'primary', locator: 'Test ref',
+    }, 201);
+    await post(reviewer, `/v1/admin/editorial/records/${newCanonicalId}/decision`, {
+      decision: 'changes_requested', notes: 'Please fix the translation wording.',
+    });
+
+    const editorNotifications = await request(editor, 'GET', '/v1/admin/editorial/notifications');
+    const editorBody = (await editorNotifications.json()) as {
+      data: { unreadCount: number; notifications: Array<{ notificationType: string; message: string; targetId: string }> };
+    };
+    expect(editorBody.data.unreadCount).toBe(1);
+    expect(editorBody.data.notifications[0]).toMatchObject({ notificationType: 'changes_requested', targetId: newCanonicalId });
+    expect(editorBody.data.notifications[0]!.message).toContain('Please fix the translation wording.');
+
+    // Reading one notification clears only that one; read-all clears the rest.
+    await post(reviewer, `/v1/admin/editorial/notifications/${notificationId}/read`, {});
+    const afterRead = (await (await request(reviewer, 'GET', '/v1/admin/editorial/notifications')).json()) as { data: { unreadCount: number } };
+    expect(afterRead.data.unreadCount).toBe(0);
+
+    await post(editor, '/v1/admin/editorial/notifications/read-all', {});
+    const afterReadAll = (await (await request(editor, 'GET', '/v1/admin/editorial/notifications')).json()) as { data: { unreadCount: number } };
+    expect(afterReadAll.data.unreadCount).toBe(0);
+  });
+
   it('creates a Hadith record and verifies its complete book into the RAG corpus', async () => {
     const content = createContentDatabase();
     const identity = createIdentityDatabase();

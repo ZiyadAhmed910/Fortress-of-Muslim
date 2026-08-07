@@ -1,6 +1,7 @@
 import type { Bindings } from './types';
 import { triggerWebhookEvent } from './webhooks';
 import { suggestTaxonomySlugs } from './taxonomy';
+import { listNotifications, markAllNotificationsRead, markNotificationRead, notificationStatement } from './notifications';
 
 export type EditorialRole = 'admin' | 'editor' | 'reviewer';
 
@@ -109,6 +110,18 @@ export async function handleEditorialPlane(
   if (url.pathname === '/v1/admin/editorial/roles' && request.method === 'PATCH') {
     requireRole(context.role, ['editor', 'admin']);
     return updateRole(context, await readJson(request));
+  }
+  if (url.pathname === '/v1/admin/editorial/notifications' && request.method === 'GET') {
+    return json({ data: await listNotifications(context.env, context.user.id) });
+  }
+  if (url.pathname === '/v1/admin/editorial/notifications/read-all' && request.method === 'POST') {
+    return json({ data: { marked: await markAllNotificationsRead(context.env, context.user.id) } });
+  }
+  const notificationReadMatch = url.pathname.match(/^\/v1\/admin\/editorial\/notifications\/([^/]+)\/read$/);
+  if (notificationReadMatch && request.method === 'POST') {
+    const marked = await markNotificationRead(context.env, decodeURIComponent(notificationReadMatch[1]!), context.user.id);
+    if (!marked) return notFound('Notification was not found.');
+    return json({ data: { id: notificationReadMatch[1], read: true } });
   }
 
   const bookDecisionMatch = url.pathname.match(/^\/v1\/admin\/editorial\/books\/([^/]+)\/decision$/);
@@ -1125,9 +1138,18 @@ async function createAssignment(context: EditorialContext, body: Record<string, 
       assignedTo, context.user.id, optionalText(body.notes, 1000),
     ),
     assignmentTarget,
+    notificationStatement(
+      context.env, assignedTo, 'assignment_created',
+      `You were assigned ${matchedRecords} record${matchedRecords === 1 ? '' : 's'} to review (${human(scopeType)}).`,
+      'assignment', id,
+    ),
     auditStatement(context, 'editorial.assignment_created', 'assignment', id, { scopeType, assignedTo }),
   ]);
   return json({ data: { id, scopeType, assignedTo, matchedRecords } }, 201);
+}
+
+function human(value: string) {
+  return value.replaceAll('_', ' ');
 }
 
 function assignmentStateStatement(
@@ -1409,6 +1431,13 @@ async function submitDecision(context: EditorialContext, canonicalId: string, bo
         now,
         canonicalId,
       ),
+      ...(decision === 'changes_requested' && current.createdBy && current.createdBy !== context.user.id
+        ? [notificationStatement(
+            context.env, current.createdBy, 'changes_requested',
+            `Changes were requested on a record you created: ${optionalText(body.notes, 200) ?? 'see the record for details.'}`,
+            'record', canonicalId,
+          )]
+        : []),
       auditStatement(context, 'editorial.review_decided', 'record', canonicalId, {
         revisionId: current.revisionId, stage: 'single_verification', decision,
       }),
