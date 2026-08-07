@@ -1,25 +1,32 @@
 .content-mode-switch {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: min(100%, 24rem);
+  display: flex;
+  gap: 0.2rem;
+  width: min(100%, 30rem);
   margin: 0.25rem auto 0.75rem;
+  overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 0.75rem;
   padding: 0.25rem;
   background: color-mix(in srgb, var(--paper-strong) 92%, transparent);
+  scrollbar-width: none;
 }
+.content-mode-switch::-webkit-scrollbar { display: none; }
 
 .content-mode-switch button {
   display: inline-flex;
+  flex: 1 0 auto;
   gap: 0.4rem;
   align-items: center;
   justify-content: center;
+  min-width: 5.4rem;
   min-height: 2.55rem;
+  padding: 0 0.5rem;
   border: 0;
   border-radius: 0.5rem;
   color: var(--muted);
   background: transparent;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .content-mode-switch button.active { color: white; background: var(--accent-strong); }
@@ -46,7 +53,11 @@
 .mode-ask .advanced-home,
 .mode-ask .simple-home,
 .mode-ask .advanced-bottom-nav,
-.mode-ask .favourites-fab { display: none; }
+.mode-ask .favourites-fab,
+.mode-prayer .advanced-home,
+.mode-prayer .simple-home,
+.mode-prayer .advanced-bottom-nav,
+.mode-prayer .favourites-fab { display: none; }
 
 .advanced-home[hidden],
 .simple-home[hidden] { display: none !important; }
@@ -160,6 +171,91 @@
 .assistant-thinking span:nth-child(2) { animation-delay: 0.18s; }
 .assistant-thinking span:nth-child(3) { animation-delay: 0.36s; }
 .segment.reference { border-top: 1px solid var(--line); padding-top: 0.8rem; color: var(--muted); font-size: calc(0.78rem * var(--font-scale)); line-height: 1.5; }
+
+/* Prayer Times & Qibla -- computed entirely on-device, no network calls. */
+.prayer-home { display: grid; gap: 1rem; }
+
+.prayer-next-card {
+  display: grid;
+  gap: 0.2rem;
+  justify-items: center;
+  padding: 1.4rem 1rem;
+  border-radius: 0.9rem;
+  color: white;
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+  text-align: center;
+}
+.prayer-next-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; opacity: 0.85; }
+.prayer-next-card strong { font-size: 1.7rem; }
+.prayer-next-time { font-size: 1.1rem; font-weight: 700; }
+.prayer-next-countdown { font-size: 0.85rem; opacity: 0.9; }
+
+.prayer-location-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; font-size: 0.85rem; color: var(--muted); }
+.prayer-timezone-note { margin: -0.4rem 0 0; padding: 0.6rem 0.8rem; border-left: 3px solid #b7791f; border-radius: 0.3rem; background: color-mix(in srgb, #b7791f 10%, var(--paper-strong)); color: var(--muted); font-size: 0.76rem; line-height: 1.4; }
+
+.prayer-location-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: var(--paper-strong);
+}
+.prayer-location-form label { display: grid; gap: 0.3rem; font-size: 0.78rem; color: var(--muted); font-weight: 700; }
+.prayer-location-form input { min-height: 2.6rem; padding: 0 0.7rem; border: 1px solid var(--line); border-radius: 0.5rem; background: var(--paper); color: var(--ink); font: inherit; }
+.prayer-location-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; grid-column: 1 / -1; }
+
+.prayer-times-list { display: grid; gap: 0.4rem; }
+.prayer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--paper-strong);
+}
+.prayer-row-label { font-weight: 750; }
+.prayer-row-time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.prayer-row-sunrise { opacity: 0.75; border-style: dashed; }
+.prayer-row-active { border-color: var(--accent-strong); background: color-mix(in srgb, var(--accent-strong) 10%, var(--paper-strong)); }
+.prayer-row-active .prayer-row-time { color: var(--accent-strong); font-weight: 800; }
+
+:root:not(.advanced-ui) .prayer-times-list,
+:root:not(.advanced-ui) .qibla-card { display: none; }
+
+.qibla-card { display: grid; gap: 0.6rem; padding: 1rem; border: 1px solid var(--line); border-radius: 0.7rem; background: var(--paper-strong); }
+.qibla-heading { display: flex; align-items: center; justify-content: space-between; }
+.qibla-heading span { font-size: 1.2rem; font-weight: 800; color: var(--accent-strong); }
+.qibla-note { margin: 0; color: var(--muted); font-size: 0.78rem; line-height: 1.4; }
+
+.qibla-compass { display: flex; justify-content: center; padding: 0.6rem 0; }
+.qibla-compass-ring {
+  position: relative;
+  width: 9rem;
+  height: 9rem;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  /* Rotates the whole ring opposite the device heading so "true north" on the dial always points
+     at real north as the phone turns -- the needle drawn inside then only has to point at the
+     fixed Qibla bearing relative to that ring. */
+  transform: rotate(calc(-1 * var(--device-heading, 0deg)));
+  transition: transform 0.15s linear;
+}
+.qibla-compass-n { position: absolute; top: 0.35rem; left: 50%; color: var(--muted); font-size: 0.72rem; font-weight: 800; transform: translateX(-50%); }
+.qibla-needle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.22rem;
+  height: 3.6rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent-strong), transparent);
+  transform-origin: bottom center;
+  transform: translate(-50%, -100%) rotate(var(--qibla-bearing, 0deg));
+}
 
 @keyframes assistant-pulse { to { opacity: 0.25; transform: translateY(-0.25rem); } }
 

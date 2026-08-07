@@ -19,6 +19,7 @@ import { exportUserData, importUserDataFile } from './userData.js';
 import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
 import { initContentModes } from './modes.js';
+import { initPrayer } from './prayer.js';
 import { openCanonicalRoute } from './routes.js';
 
 init();
@@ -29,6 +30,7 @@ async function init() {
   bindEvents();
   initHadith();
   initAssistant();
+  initPrayer();
   initContentModes();
   renderLoadingSkeleton();
 

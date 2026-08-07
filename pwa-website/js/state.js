@@ -18,4 +18,13 @@ export const state = {
   waitingWorker: null,
   refreshing: false,
   contentMode: 'duas',
+  calculationMethod: localStorage.getItem('calculationMethod') || 'mwl',
+  asrMethod: localStorage.getItem('asrMethod') || 'standard',
+  manualLatitude: localStorage.getItem('manualLatitude') ? Number(localStorage.getItem('manualLatitude')) : null,
+  manualLongitude: localStorage.getItem('manualLongitude') ? Number(localStorage.getItem('manualLongitude')) : null,
+  lastKnownLatitude: localStorage.getItem('lastKnownLatitude') ? Number(localStorage.getItem('lastKnownLatitude')) : null,
+  lastKnownLongitude: localStorage.getItem('lastKnownLongitude') ? Number(localStorage.getItem('lastKnownLongitude')) : null,
+  prayerTimes: null,
+  prayerCountdownTimer: null,
+  deviceOrientationActive: false,
 };

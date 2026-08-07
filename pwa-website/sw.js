@@ -23,6 +23,8 @@ const ASSETS = [
   './js/hadith.js',
   './js/modes.js',
   './js/online.js',
+  './js/prayer.js',
+  './js/prayer-times.js',
   './js/pwa.js',
   './js/reader.js',
   './js/routes.js',
