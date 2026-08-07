@@ -203,7 +203,41 @@ async function bootstrap() {
   $('[data-initials]').textContent = initials(state.session.user.name || state.session.user.email);
   configureAccess();
   route();
+  loadNotifications().catch(() => {});
 }
+
+async function loadNotifications() {
+  const { notifications, unreadCount } = (await api('/v1/admin/editorial/notifications')).data;
+  state.notifications = notifications;
+  const badge = $('[data-notification-badge]');
+  badge.hidden = unreadCount === 0;
+  badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+  $('#notification-list').innerHTML = notifications.length
+    ? notifications.map((item) => `<div class="notification-row${item.readAt ? '' : ' unread'}" data-notification="${esc(item.id)}" data-notification-target="${esc(item.targetType)}"><strong>${esc(human(item.notificationType))}</strong><small>${esc(item.message)}</small><small>${date(item.createdAt)}</small></div>`).join('')
+    : empty('No notifications yet.');
+}
+$('[data-notifications-toggle]').addEventListener('click', () => {
+  const panel = $('[data-notifications-panel]');
+  panel.hidden = !panel.hidden;
+  $('[data-notifications-toggle]').setAttribute('aria-expanded', String(!panel.hidden));
+});
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('[data-notifications-toggle], [data-notifications-panel]')) $('[data-notifications-panel]').hidden = true;
+});
+$('[data-notifications-read-all]').addEventListener('click', async () => {
+  await api('/v1/admin/editorial/notifications/read-all', { method: 'POST', body: {} });
+  await loadNotifications();
+});
+$('#notification-list').addEventListener('click', async (event) => {
+  const row = event.target.closest('[data-notification]');
+  if (!row) return;
+  try {
+    await api(`/v1/admin/editorial/notifications/${encodeURIComponent(row.dataset.notification)}/read`, { method: 'POST', body: {} });
+  } catch { /* already read is fine */ }
+  await loadNotifications();
+  $('[data-notifications-panel]').hidden = true;
+  location.hash = row.dataset.notificationTarget === 'assignment' ? '#assignments' : '#queue';
+});
 
 function configureAccess() {
   const allowed = roleViews[state.session.role];

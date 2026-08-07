@@ -59,6 +59,11 @@
       <a class="brand" href="#overview"><img src="/assets/fortress-mark.svg" alt=""><span><strong>Fortress Platform</strong><small>Editorial Admin</small></span></a>
       <span class="env">BETA</span>
       <form id="global-search" class="global-search"><span>&#8981;</span><input name="q" placeholder="Find users, records, keys, apps, and tools" autocomplete="off"><kbd>/</kbd></form>
+      <button class="icon-button notification-bell" data-notifications-toggle aria-label="Notifications" aria-expanded="false">&#128276;<span data-notification-badge class="notification-badge" hidden>0</span></button>
+      <div class="notification-panel" data-notifications-panel hidden>
+        <header><strong>Notifications</strong><button data-notifications-read-all>Mark all read</button></header>
+        <div id="notification-list"></div>
+      </div>
       <button class="profile" data-profile aria-expanded="false"><span data-initials>FA</span></button>
       <div class="profile-menu" data-profile-menu hidden><strong data-user-name></strong><small data-user-email></small><span data-role></span><span data-editorial-role></span><button data-sign-out>Sign out</button></div>
     </header>
