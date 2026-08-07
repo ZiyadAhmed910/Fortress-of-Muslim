@@ -560,6 +560,10 @@ async function showRecord(id) {
       <div id="reference-list">${data.references.map(referenceRow).join('') || empty('No canonical references attached.')}</div>
       ${canEdit ? '<form id="reference-form" class="inline-control"><input name="referenceType" placeholder="Reference type" value="primary" required><input name="locator" placeholder="Canonical locator" required><button type="submit">Add reference</button></form>' : ''}
     </section>
+    <section class="editor-section"><header><div><h3>Per-field review</h3><p>Optional, more granular than the overall verification below. Approving the whole record already marks every field verified for you -- use this only when you want to flag one specific field, or record that you checked it yourself.</p></div></header>
+      ${fieldReviewChecklist(data.requiredFields, data.fieldReviews)}
+      <form id="field-review-form" class="inline-control"><input name="notes" placeholder="Notes (applies to any field you set below)" maxlength="1000"><button type="submit">Save field decisions</button></form>
+    </section>
     <section class="editor-section"><header><div><h3>Mood &amp; occasion tags</h3><p>Suggestions are keyword matches only -- confirm or remove before saving. Nothing is assigned until you save.</p></div></header>
       ${taxonomyChecklist(taxonomyResponse.data)}
       <button type="button" data-save-taxonomy>Save tags</button>
@@ -569,6 +573,16 @@ async function showRecord(id) {
       ${data.decisions.map((item) => `<div class="history-row"><span><strong>${esc(item.decision === 'approved' ? 'Verified' : human(item.decision))}</strong><small>by ${esc(item.reviewerId)}</small></span><small>${date(item.decidedAt)}</small></div>`).join('') || empty('No verification recorded yet.')}
     </section>`;
   if (!$('#record-dialog').open) $('#record-dialog').showModal();
+}
+
+function fieldReviewChecklist(requiredFields, fieldReviews) {
+  if (!requiredFields?.length) return empty('No reviewable fields defined.');
+  const latestByField = new Map();
+  for (const review of fieldReviews || []) latestByField.set(review.fieldName, review);
+  return `<div class="field-review-grid">${requiredFields.map((field) => {
+    const latest = latestByField.get(field);
+    return `<label>${esc(human(field))}${latest ? `<span class="badge ${esc(latest.decision === 'verified' ? 'verified' : latest.decision === 'correction_required' ? 'rejected' : '')}">${esc(human(latest.decision))} &middot; ${esc(latest.reviewerId)}</span>` : '<small>Not reviewed</small>'}<select data-field-decision="${esc(field)}"><option value="">No change</option><option value="verified">Verified</option><option value="correction_required">Correction required</option><option value="not_applicable">Not applicable</option></select></label>`;
+  }).join('')}</div>`;
 }
 
 function taxonomyChecklist(taxonomy) {
@@ -608,6 +622,14 @@ $('#record-detail').addEventListener('submit', async (event) => {
       });
       await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/revisions`, { method: 'POST', body });
       notify('Correction revision created.');
+    } else if (event.target.id === 'field-review-form') {
+      const notes = new FormData(event.target).get('notes') || undefined;
+      const reviews = $$('[data-field-decision]', $('#record-detail'))
+        .filter((select) => select.value)
+        .map((select) => ({ field: select.dataset.fieldDecision, decision: select.value, notes }));
+      if (!reviews.length) throw new Error('Choose a decision for at least one field.');
+      await api(`/v1/admin/editorial/records/${encodeURIComponent(id)}/field-reviews`, { method: 'POST', body: { reviews } });
+      notify(`${reviews.length} field review${reviews.length === 1 ? '' : 's'} saved.`);
     }
     await showRecord(id);
     state.loaded.delete('queue');
