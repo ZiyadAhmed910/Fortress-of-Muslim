@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-07T08:30:46.571Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-07T10:55:34.058Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -112,25 +112,31 @@ Not all of these are bugs; verify before assuming.
 | `apps/status/public/app.js` | js | 131 |  |  |
 | `packages/contracts/src/index.ts` | ts | 137 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +27 more |
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
-| `pwa-website/js/app.js` | js | 142 |  |  |
+| `pwa-website/js/app.js` | js | 159 |  |  |
 | `pwa-website/js/assistant.js` | js | 54 |  |  |
 | `pwa-website/js/categories.js` | js | 160 |  |  |
 | `pwa-website/js/constants.js` | js | 4 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 62 |  |  |
+| `pwa-website/js/dom.js` | js | 110 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
 | `pwa-website/js/home.js` | js | 182 |  |  |
-| `pwa-website/js/modes.js` | js | 34 |  |  |
+| `pwa-website/js/layout-settings.js` | js | 44 |  |  |
+| `pwa-website/js/layout.js` | js | 106 |  |  |
+| `pwa-website/js/modes.js` | js | 69 |  |  |
 | `pwa-website/js/online.js` | js | 21 |  |  |
+| `pwa-website/js/prayer-times.js` | js | 202 |  |  |
+| `pwa-website/js/prayer.js` | js | 373 |  |  |
 | `pwa-website/js/pwa.js` | js | 101 |  |  |
 | `pwa-website/js/reader.js` | js | 129 |  |  |
+| `pwa-website/js/reminders.js` | js | 181 |  |  |
 | `pwa-website/js/routes.js` | js | 29 |  |  |
-| `pwa-website/js/settings.js` | js | 32 |  |  |
-| `pwa-website/js/state.js` | js | 22 |  |  |
-| `pwa-website/js/userData.js` | js | 74 |  |  |
+| `pwa-website/js/settings.js` | js | 36 |  |  |
+| `pwa-website/js/state.js` | js | 34 |  |  |
+| `pwa-website/js/tasbih.js` | js | 194 |  |  |
+| `pwa-website/js/userData.js` | js | 157 |  |  |
 | `pwa-website/js/utils.js` | js | 23 |  |  |
-| `pwa-website/sw.js` | js | 99 |  |  |
+| `pwa-website/sw.js` | js | 124 |  |  |
 
 ## Routes
 
@@ -252,15 +258,17 @@ Not all of these are bugs; verify before assuming.
 
 | Name | Kind | Defined in | Referenced by (excl. definer) |
 | --- | --- | --- | --- |
-| a | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
+| a | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts`, `pwa-website/js/prayer.js`, `pwa-website/js/reminders.js` |
 | access_requests | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts` |
 | account | table | `apps/auth/migrations/0001_identity.sql` | (none) |
+| an | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
 | any | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
 | api_current_content | view | `apps/api/migrations/0010_api_content_visibility.sql`, `apps/api/migrations/0013_verify_and_publish_hisn.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts` |
 | api_published_content | view | `apps/api/migrations/0010_api_content_visibility.sql`, `apps/api/migrations/0013_verify_and_publish_hisn.sql` | (none) |
 | apikey | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts` |
 | Arabic | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
 | audit_events | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
+| before | unknown | `(not defined in scanned files)` | `pwa-website/js/userData.js` |
 | books | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | both | unknown | `(not defined in scanned files)` | `apps/api/src/repositories/d1-content-repository.ts` |
 | canonical_dataset_items | table | `apps/api/migrations/0008_publication_snapshots.sql` | `apps/api/src/rag.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
@@ -283,6 +291,7 @@ Not all of these are bugs; verify before assuming.
 | cross_references | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | dataset_sources | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | dataset_versions | table | `apps/api/migrations/0001_content_schema.sql` | `apps/auth/src/editorial-plane.ts` |
+| date | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | developer_profiles | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | device_registrations | table | `apps/auth/migrations/0003_developer_console.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | deviceCode | table | `apps/auth/migrations/0003_developer_console.sql` | (none) |
@@ -292,7 +301,7 @@ Not all of these are bugs; verify before assuming.
 | editorial_notifications | table | `apps/api/migrations/0016_editorial_notifications.sql` | `apps/auth/src/notifications.ts` |
 | editorial_record_state | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | editorial_role_grants | table | `apps/auth/migrations/0006_editorial_roles.sql` | (none) |
-| either | unknown | `(not defined in scanned files)` | `apps/api/test/rag-synonyms.test.ts` |
+| either | unknown | `(not defined in scanned files)` | `apps/api/test/rag-synonyms.test.ts`, `pwa-website/js/prayer.js` |
 | every | unknown | `(not defined in scanned files)` | `apps/auth/test/admin-mfa-gate.test.ts` |
 | exactly | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | field_reviews | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
@@ -305,13 +314,17 @@ Not all of these are bugs; verify before assuming.
 | jwks | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | keyword | unknown | `(not defined in scanned files)` | `apps/auth/src/taxonomy.ts` |
 | languages | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/auth/src/admin-plane.ts` |
+| localStorage | unknown | `(not defined in scanned files)` | `pwa-website/js/layout.js` |
 | mcp_server_registrations | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/index.ts` |
 | mcp_tool_definitions | table | `apps/auth/migrations/0002_control_plane.sql` | (none) |
 | mcp_toolset_tools | table | `apps/auth/migrations/0005_query_and_mcp_toolsets.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | mcp_toolsets | table | `apps/auth/migrations/0005_query_and_mcp_toolsets.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | member | table | `apps/auth/migrations/0001_identity.sql` | (none) |
+| metal | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
 | named_queries | table | `apps/auth/migrations/0003_developer_console.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | natural | unknown | `(not defined in scanned files)` | `apps/api/test/fuzzy-title.test.ts` |
+| north | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
+| now | unknown | `(not defined in scanned files)` | `pwa-website/js/reminders.js` |
 | oauthAccessToken | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/index.ts` |
 | oauthClient | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/auth.ts`, `apps/auth/src/index.ts` |
 | oauthClientAssertion | table | `apps/auth/migrations/0001_identity.sql` | (none) |
@@ -344,12 +357,15 @@ Not all of these are bugs; verify before assuming.
 | segment_translations | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | session | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts` |
 | SET | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
+| solar | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | source_materials | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | source_references | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | taxonomy_terms | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
-| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js` |
+| that | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
+| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/layout-settings.js` |
 | this | unknown | `(not defined in scanned files)` | `apps/auth/src/editorial-plane.ts`, `apps/status/public/app.js` |
 | travel | unknown | `(not defined in scanned files)` | `apps/api/test/fuzzy-title.test.ts` |
+| true | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js` |
 | twoFactor | table | `apps/auth/migrations/0008_account_security.sql` | (none) |
 | usage_events | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | user | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
@@ -359,3 +375,4 @@ Not all of these are bugs; verify before assuming.
 | webhook_deliveries | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/webhooks.test.ts`, `apps/auth/migrations/0011_webhooks.sql` | `apps/auth/src/index.ts`, `apps/auth/src/webhooks.ts` |
 | webhook_subscriptions | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/webhooks.test.ts`, `apps/auth/migrations/0011_webhooks.sql` | `apps/auth/src/index.ts`, `apps/auth/src/webhooks.ts` |
 | what | unknown | `(not defined in scanned files)` | `apps/auth/test/editorial-pilot.test.ts` |
+| whatever | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
