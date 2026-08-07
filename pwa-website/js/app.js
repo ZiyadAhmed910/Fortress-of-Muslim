@@ -20,6 +20,7 @@ import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
 import { initContentModes } from './modes.js';
 import { initPrayer } from './prayer.js';
+import { initReminders, openAdhkarFromNotification } from './reminders.js';
 import { openCanonicalRoute } from './routes.js';
 
 init();
@@ -31,6 +32,7 @@ async function init() {
   initHadith();
   initAssistant();
   initPrayer();
+  initReminders();
   initContentModes();
   renderLoadingSkeleton();
 
@@ -40,6 +42,7 @@ async function init() {
     state.filtered = state.entries;
     filterList();
     await openCanonicalRoute();
+    openAdhkarFromNotificationUrl();
   } catch (error) {
     els.resultCount.textContent = 'Content did not load';
     els.duaList.innerHTML = `
@@ -52,6 +55,13 @@ async function init() {
 
   setupServiceWorker();
   window.addEventListener('popstate', () => openCanonicalRoute());
+}
+
+function openAdhkarFromNotificationUrl() {
+  const category = new URLSearchParams(location.search).get('adhkar');
+  if (!category) return;
+  openAdhkarFromNotification(category);
+  history.replaceState(null, '', location.pathname);
 }
 
 function renderLoadingSkeleton() {

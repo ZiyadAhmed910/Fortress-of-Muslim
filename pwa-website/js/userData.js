@@ -4,6 +4,7 @@ import { toast } from './utils.js';
 import { applySettings } from './settings.js';
 import { filterList } from './home.js';
 import { ASR_METHODS, CALCULATION_METHODS, DEFAULT_ASR_METHOD, DEFAULT_CALCULATION_METHOD } from './prayer-times.js';
+import { scheduleToday as scheduleRemindersToday } from './reminders.js';
 
 const BACKUP_KIND = 'fortress-of-muslim-user-data';
 
@@ -22,6 +23,9 @@ export function exportUserData() {
       asrMethod: state.asrMethod,
       manualLatitude: state.manualLatitude,
       manualLongitude: state.manualLongitude,
+      remindersEnabled: state.remindersEnabled,
+      morningAdhkarEnabled: state.morningAdhkarEnabled,
+      eveningAdhkarEnabled: state.eveningAdhkarEnabled,
     },
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -63,6 +67,9 @@ function importUserData(payload) {
   state.asrMethod = ASR_METHODS[settings.asrMethod] ? settings.asrMethod : DEFAULT_ASR_METHOD;
   state.manualLatitude = typeof settings.manualLatitude === 'number' ? clampNumber(settings.manualLatitude, -90, 90, null) : null;
   state.manualLongitude = typeof settings.manualLongitude === 'number' ? clampNumber(settings.manualLongitude, -180, 180, null) : null;
+  state.remindersEnabled = Boolean(settings.remindersEnabled);
+  state.morningAdhkarEnabled = settings.morningAdhkarEnabled !== false;
+  state.eveningAdhkarEnabled = settings.eveningAdhkarEnabled !== false;
 
   localStorage.setItem('favourites', JSON.stringify([...state.favourites]));
   localStorage.setItem('fontScale', String(state.fontScale));
@@ -78,9 +85,13 @@ function importUserData(payload) {
     localStorage.removeItem('manualLatitude');
     localStorage.removeItem('manualLongitude');
   }
+  localStorage.setItem('remindersEnabled', String(state.remindersEnabled));
+  localStorage.setItem('morningAdhkarEnabled', String(state.morningAdhkarEnabled));
+  localStorage.setItem('eveningAdhkarEnabled', String(state.eveningAdhkarEnabled));
 
   applySettings();
   filterList();
+  scheduleRemindersToday();
   toast('Backup imported.');
 }
 

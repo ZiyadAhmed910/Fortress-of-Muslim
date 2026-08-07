@@ -27,4 +27,7 @@ export const state = {
   prayerTimes: null,
   prayerCountdownTimer: null,
   deviceOrientationActive: false,
+  remindersEnabled: localStorage.getItem('remindersEnabled') === 'true',
+  morningAdhkarEnabled: localStorage.getItem('morningAdhkarEnabled') !== 'false',
+  eveningAdhkarEnabled: localStorage.getItem('eveningAdhkarEnabled') !== 'false',
 };

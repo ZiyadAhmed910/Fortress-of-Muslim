@@ -65,6 +65,20 @@ export function deactivatePrayer() {
   disableLiveCompass();
 }
 
+// Read-only lookup of whatever location is already known -- never prompts for a fresh geolocation
+// reading. Reminders scheduling uses this (not resolveCoordinates) because requesting location
+// access should only ever happen from an explicit user action on the Prayer tab, never silently
+// as a side effect of the reminders feature running in the background.
+export function getKnownCoordinates() {
+  if (state.manualLatitude !== null && state.manualLongitude !== null) {
+    return { latitude: state.manualLatitude, longitude: state.manualLongitude, source: 'manual' };
+  }
+  if (state.lastKnownLatitude !== null && state.lastKnownLongitude !== null) {
+    return { latitude: state.lastKnownLatitude, longitude: state.lastKnownLongitude, source: 'cached' };
+  }
+  return null;
+}
+
 // Manual coordinates always win (an explicit user choice); otherwise fall back to the last
 // successful geolocation reading cached in this browser, so a returning offline user still sees
 // times without a fresh permission prompt; otherwise ask geolocation directly.
