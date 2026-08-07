@@ -217,22 +217,16 @@ support, not by severity.
    shape: forced `AbortSignal.timeout(500)` against a real `navigator.credentials.get()` call in a
    live browser and confirmed it rejects with `error.name === 'TimeoutError'` after the timeout --
    the exact condition the new error handling checks for.
-4. **Named Queries can only target Duas, never Hadith.** `parseRecordQuery`
-   (`apps/auth/src/index.ts:657`) hardcodes `objectName: 'duas' as const` on every named query it
-   creates — there's no way to get a Hadith-backed named query even via a direct API call, let alone
-   through the Developer Portal UI, which doesn't offer the choice either. Hadith is a first-class
-   content type everywhere else (REST API, MCP tools, editorial workflow) except here.
-5. **The OAuth consent screen hardcodes "ChatGPT."** `apps/developers/public/oauth.js` shows
-   "ChatGPT" in its UI copy ("authorizing ChatGPT," "Denying access," "Return to ChatGPT...")
-   regardless of which client is actually connecting. The backend already has the real client name
-   available (`oauthClient.name`); the consent page just doesn't use it. Cosmetic today because
-   ChatGPT is presumably the only client exercised so far, but wrong for any other Connected App.
-6. **Minor: inconsistent SQL parameterization in `editorial-plane.ts`.** Three spots (`decideBook`
-   x2, `rollbackDataset`) interpolate a value via a `sqlLiteral()` escaping helper instead of the
-   `.bind()` parameterization used everywhere else in the file. Not currently exploitable — in all
-   three cases the interpolated value is system-generated or already fetched from a parameterized
-   lookup, not raw user input — but it's a style inconsistency worth cleaning up for defense in
-   depth rather than relying on "it happens to be safe today."
+4. ~~**Named Queries can only target Duas, never Hadith.**~~ Fixed 2026-08-06: `parseRecordQuery`
+   (`apps/auth/src/index.ts`) now reads `objectName` from the request instead of hardcoding
+   `'duas'`, `apps/api/src/lib/record-query.ts` branches on it (`OBJECT_CONFIG` adds the Hadith-only
+   joins/fields), and the Developer Portal named-query builder gained a content-type picker.
+5. ~~**The OAuth consent screen hardcodes "ChatGPT."**~~ Fixed 2026-08-06: added an unauthenticated
+   `GET /v1/oauth/client-name` route and wired `apps/developers/public/oauth.js` to fetch and show
+   the real connecting client's name instead.
+6. ~~**Minor: inconsistent SQL parameterization in `editorial-plane.ts`.**~~ Fixed 2026-08-06: the
+   three `sqlLiteral()` call sites (`decideBook` x2, `rollbackDataset`) now use `.bind()`
+   parameterization like the rest of the file; `sqlLiteral()` itself was deleted as dead code.
 
 **Explicitly checked and confirmed correct, so it doesn't need re-litigating:** Admin/Editor/
 Reviewer role gating including the developer-login-restriction question (`apps/auth/src/admin-plane.ts`
