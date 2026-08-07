@@ -256,6 +256,19 @@ function stopCountdown() {
   countdownTimer = null;
 }
 
+// `alpha` on the plain `deviceorientation` event is only guaranteed to be referenced to true/
+// magnetic north when `event.absolute` is true -- and on a lot of Android/Chrome devices, the
+// plain event fires with absolute:false (alpha measured from whatever direction the device
+// happened to be facing when the sensor started, not from north), which is exactly what made the
+// needle inaccurate. `deviceorientationabsolute` exists specifically to guarantee a north-
+// referenced reading, so it's preferred whenever the browser fires it; the `absolute` check below
+// also protects against a non-absolute `deviceorientation` reading being used by mistake.
+function headingFromOrientationEvent(event) {
+  if (typeof event.webkitCompassHeading === 'number') return event.webkitCompassHeading; // iOS Safari: already north-referenced
+  if (event.absolute && event.alpha !== null) return 360 - event.alpha;
+  return null;
+}
+
 // iOS 13+ requires DeviceOrientationEvent.requestPermission() to be called from a direct user
 // gesture (a tap), never automatically on load -- calling it outside a click handler silently
 // fails on Safari. Android/other browsers don't have this method at all and fire the event freely.
@@ -273,19 +286,27 @@ async function enableLiveCompass() {
     return;
   }
   deviceOrientationHandler = (event) => {
-    const heading = event.webkitCompassHeading ?? (event.alpha !== null ? 360 - event.alpha : null);
+    const heading = headingFromOrientationEvent(event);
     if (heading === null) return;
     els.qiblaCompass.style.setProperty('--device-heading', `${heading}deg`);
   };
+  // Both listeners are attached -- iOS Safari never fires deviceorientationabsolute but does put
+  // webkitCompassHeading on the plain event; Chrome/Android fire deviceorientationabsolute
+  // specifically for north-referenced readings. Whichever actually delivers usable data wins;
+  // harmless if both fire, since setting the same CSS custom property twice is a no-op in effect.
+  window.addEventListener('deviceorientationabsolute', deviceOrientationHandler);
   window.addEventListener('deviceorientation', deviceOrientationHandler);
   state.deviceOrientationActive = true;
   els.qiblaCompass.hidden = false;
   els.qiblaCompassButton.hidden = true;
-  els.qiblaNote.textContent = 'Live compass active -- the needle points toward the Qibla as you turn.';
+  els.qiblaNote.textContent = 'Live compass active -- the needle points toward the Qibla as you turn. Uses the device\'s magnetic compass, so accuracy depends on your device and nearby magnetic interference (metal, magnets, some phone cases) -- if it seems off, try moving away from metal objects or recalibrating your phone\'s compass (usually a figure-8 motion) in its system settings.';
 }
 
 function disableLiveCompass() {
-  if (deviceOrientationHandler) window.removeEventListener('deviceorientation', deviceOrientationHandler);
+  if (deviceOrientationHandler) {
+    window.removeEventListener('deviceorientationabsolute', deviceOrientationHandler);
+    window.removeEventListener('deviceorientation', deviceOrientationHandler);
+  }
   deviceOrientationHandler = null;
   state.deviceOrientationActive = false;
 }
