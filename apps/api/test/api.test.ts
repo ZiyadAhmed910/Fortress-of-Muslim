@@ -105,6 +105,18 @@ const repository: ContentRepository = {
     ];
     return candidates.slice(0, limit);
   },
+  async searchCurrentForRag(query, limit) {
+    const terms = query.toLocaleLowerCase().match(/[a-z]+/g)?.filter((term) => term.length >= 5) ?? [];
+    const matches = (text: string) => terms.some((term) => text.toLocaleLowerCase().includes(term));
+    const candidates = [
+      ...records.filter((record) => matches(`${record.title} ${record.parts.flat().map((segment) => segment.text).join(' ')}`))
+        .map((record) => ({ id: record.id, contentType: 'dua' as const, score: 0.5 })),
+      ...(matches(`${hadith.title} ${hadith.segments.map((segment) => segment.text).join(' ')}`)
+        ? [{ id: hadith.id, contentType: 'hadith' as const, score: 0.5 }]
+        : []),
+    ];
+    return candidates.slice(0, limit);
+  },
   async findDuasByTitle(query, limit) {
     const normalized = query.toLocaleLowerCase();
     return records.filter((record) => record.title.toLocaleLowerCase().includes(normalized))

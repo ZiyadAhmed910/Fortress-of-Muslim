@@ -42,6 +42,7 @@ export interface ContentRepository {
   listDuas(offset: number, limit: number): Promise<DuaSummary[]>;
   searchDuas(query: string, offset: number, limit: number): Promise<{ items: DuaSummary[]; total: number }>;
   searchForRag(query: string, limit: number): Promise<RagRecordMatch[]>;
+  searchCurrentForRag(query: string, limit: number): Promise<RagRecordMatch[]>;
   findDuasByTitle(query: string, limit: number): Promise<DuaTitleMatch[]>;
   getRandomDua(): Promise<Dua | undefined>;
   getDua(id: string): Promise<Dua | undefined>;

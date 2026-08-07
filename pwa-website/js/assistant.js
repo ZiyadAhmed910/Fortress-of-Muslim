@@ -32,16 +32,20 @@ export function initAssistant() {
 
 function renderAnswer(data) {
   const answer = escapeHtml(data.answer).replace(/\n/g, '<br>');
-  const sources = data.sources.map((source) => `
-    <a class="assistant-source" href="${escapeHtml(source.canonicalUrl)}">
+  const sources = data.sources.map((source) => {
+    const isVerified = source.verificationStatus === 'verified';
+    return `
+    <a class="assistant-source${isVerified ? '' : ' assistant-source--unverified'}" href="${escapeHtml(source.canonicalUrl)}">
       <span>[${source.index}] ${escapeHtml(source.collection)}</span>
       <strong>${escapeHtml(source.reference)}</strong>
-      <small>${escapeHtml(source.verificationStatus)} verification</small>
+      <small>${isVerified ? 'Verified' : 'Not yet verified'}</small>
     </a>
-  `).join('');
+  `;
+  }).join('');
   els.assistantResult.innerHTML = `
     <article class="assistant-answer"><p>${answer}</p></article>
     <div class="assistant-sources">${sources}</div>
+    ${data.meta.includesUnverifiedSource ? '<p class="assistant-note">This answer draws on at least one source that is not yet independently verified -- clearly marked above.</p>' : ''}
     ${data.meta.retrievalMode === 'empty_dataset' ? '' : `<p class="assistant-remaining">${data.meta.remainingToday} questions remaining today on this connection.</p>`}
   `;
 }
