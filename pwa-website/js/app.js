@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { els } from './dom.js';
 import { loadDuas } from './data.js';
-import { applySettings, setFontScale } from './settings.js';
+import { applySettings, initSettingsNav, setFontScale, showSettingsCategoryList } from './settings.js';
 import { filterList, openAdvancedFilter, setOpenEntryHandler, showAdvancedDashboard, showMoreResults, toggleFavourite } from './home.js';
 import {
   bindSwipe,
@@ -30,6 +30,7 @@ init();
 async function init() {
   setOpenEntryHandler(openEntry);
   applySettings();
+  initSettingsNav();
   bindEvents();
   initHadith();
   initAssistant();
@@ -57,6 +58,11 @@ async function init() {
     console.error(error);
   }
 
+  // Tells the bootstrap watchdog in index.html (which runs outside this module graph, so it
+  // still works even if something in here throws before reaching this point) that the app got
+  // far enough to show the user *something* -- real content or the graceful error message above --
+  // rather than leaving them stuck on a stale/blank screen with no way to recover.
+  window.__fortressAppReady = true;
   setupServiceWorker();
   window.addEventListener('popstate', () => openCanonicalRoute());
 }
@@ -104,7 +110,10 @@ function bindEvents() {
   });
 
   els.backButton.addEventListener('click', showHome);
-  els.settingsButton.addEventListener('click', () => els.settingsDialog.showModal());
+  els.settingsButton.addEventListener('click', () => {
+    showSettingsCategoryList();
+    els.settingsDialog.showModal();
+  });
   els.darkModeToggle.addEventListener('change', () => {
     state.darkMode = els.darkModeToggle.checked;
     localStorage.setItem('darkMode', String(state.darkMode));

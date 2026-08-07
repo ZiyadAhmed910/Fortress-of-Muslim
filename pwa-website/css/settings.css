@@ -153,13 +153,55 @@
 .dialog-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 0.75rem;
 }
 
 .dialog-head h2 {
+  flex: 1;
   margin: 0;
   font-size: 1.2rem;
+}
+
+.settings-back-button[hidden] {
+  display: none;
+}
+
+.settings-category-list {
+  display: grid;
+}
+
+.settings-category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  border-top: 1px solid var(--line);
+  padding: 1rem 0;
+  text-align: left;
+  color: var(--ink);
+  background: none;
+}
+
+.settings-category-row:first-child {
+  border-top: 0;
+}
+
+.settings-category-row strong,
+.settings-category-row small {
+  display: block;
+}
+
+.settings-category-row small {
+  margin-top: 0.2rem;
+  color: var(--muted);
+}
+
+.settings-category-chevron {
+  color: var(--muted);
+  font-size: 1.3rem;
+  line-height: 1;
 }
 
 .setting-row {
@@ -310,6 +352,5 @@
 }
 
 .setting-row:has(#remindersEnabledToggle:not(:checked)) ~ .reminder-subrow {
-  opacity: 0.5;
-  pointer-events: none;
+  display: none;
 }

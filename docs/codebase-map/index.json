@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T10:55:34.058Z",
+  "generatedAt": "2026-08-07T13:08:43.160Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -298,7 +298,7 @@
     },
     {
       "path": "apps/auth/src/admin-plane.ts",
-      "lines": 802,
+      "lines": 938,
       "language": "ts",
       "exports": [
         "function requiresMfaEnrollment",
@@ -308,7 +308,7 @@
         "./types",
         "./editorial-plane"
       ],
-      "routeCount": 22
+      "routeCount": 24
     },
     {
       "path": "apps/auth/src/auth.ts",
@@ -347,7 +347,7 @@
     },
     {
       "path": "apps/auth/src/index.ts",
-      "lines": 852,
+      "lines": 895,
       "language": "ts",
       "exports": [
         "class AuthWorker"
@@ -363,7 +363,7 @@
         "./webhooks",
         "./types"
       ],
-      "routeCount": 27
+      "routeCount": 30
     },
     {
       "path": "apps/auth/src/notifications.ts",
@@ -547,7 +547,7 @@
     },
     {
       "path": "apps/admin/public/app.js",
-      "lines": 1408,
+      "lines": 1465,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -563,7 +563,7 @@
     },
     {
       "path": "apps/developers/public/console.js",
-      "lines": 733,
+      "lines": 777,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -603,7 +603,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 159,
+      "lines": 168,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -643,7 +643,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 110,
+      "lines": 114,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -675,7 +675,7 @@
     },
     {
       "path": "pwa-website/js/layout-settings.js",
-      "lines": 44,
+      "lines": 60,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -755,7 +755,7 @@
     },
     {
       "path": "pwa-website/js/settings.js",
-      "lines": 36,
+      "lines": 66,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1331,11 +1331,19 @@
     },
     {
       "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/access-requests",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 139
+    },
+    {
+      "style": "manual",
       "method": "(any)",
       "path": "/^\\/v1\\/admin\\/users\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 140
+      "line": 141
     },
     {
       "style": "manual",
@@ -1343,7 +1351,7 @@
       "path": "/^\\/v1\\/admin\\/sessions\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 147
+      "line": 148
     },
     {
       "style": "manual",
@@ -1351,7 +1359,7 @@
       "path": "/^\\/v1\\/admin\\/services\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 152
+      "line": 153
     },
     {
       "style": "manual",
@@ -1359,7 +1367,7 @@
       "path": "/^\\/v1\\/admin\\/rate-limits\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 158
+      "line": 159
     },
     {
       "style": "manual",
@@ -1367,7 +1375,7 @@
       "path": "\r",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 164
+      "line": 165
     },
     {
       "style": "manual",
@@ -1375,7 +1383,15 @@
       "path": "/^\\/v1\\/admin\\/alerts\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 172
+      "line": 173
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/access-requests\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 179
     },
     {
       "style": "manual",
@@ -1708,10 +1724,34 @@
     {
       "style": "manual",
       "method": "GET",
-      "path": "/v1/control/mcp-servers",
+      "path": "/v1/control/plans",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
       "line": 169
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/access-requests",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 176
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/access-requests",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 185
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/mcp-servers",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 212
     },
     {
       "style": "manual",
@@ -1719,7 +1759,7 @@
       "path": "/v1/control/mcp-servers",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 179
+      "line": 222
     },
     {
       "style": "manual",
@@ -1727,7 +1767,7 @@
       "path": "/v1/control/devices",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 200
+      "line": 243
     },
     {
       "style": "manual",
@@ -1735,7 +1775,7 @@
       "path": "/v1/control/devices",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 210
+      "line": 253
     },
     {
       "style": "manual",
@@ -1743,7 +1783,7 @@
       "path": "/^\\/v1\\/control\\/devices\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 234
+      "line": 277
     },
     {
       "style": "manual",
@@ -1751,7 +1791,7 @@
       "path": "/^\\/v1\\/control\\/oauth-clients\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 243
+      "line": 286
     },
     {
       "style": "manual",
@@ -1759,7 +1799,7 @@
       "path": "/v1/control/named-queries",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 269
+      "line": 312
     },
     {
       "style": "manual",
@@ -1767,7 +1807,7 @@
       "path": "/v1/control/named-queries",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 281
+      "line": 324
     },
     {
       "style": "manual",
@@ -1775,7 +1815,7 @@
       "path": "/^\\/v1\\/control\\/named-queries\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 295
+      "line": 338
     },
     {
       "style": "manual",
@@ -1783,7 +1823,7 @@
       "path": "/v1/control/mcp/catalog",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 309
+      "line": 352
     },
     {
       "style": "manual",
@@ -1791,7 +1831,7 @@
       "path": "/v1/control/mcp/toolsets",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 311
+      "line": 354
     },
     {
       "style": "manual",
@@ -1799,7 +1839,7 @@
       "path": "/v1/control/mcp/toolsets",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 323
+      "line": 366
     },
     {
       "style": "manual",
@@ -1807,7 +1847,7 @@
       "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 331
+      "line": 374
     },
     {
       "style": "manual",
@@ -1815,7 +1855,7 @@
       "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 345
+      "line": 388
     },
     {
       "style": "manual",
@@ -1823,7 +1863,7 @@
       "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 360
+      "line": 403
     },
     {
       "style": "manual",
@@ -1831,7 +1871,7 @@
       "path": "/v1/control/webhooks",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 378
+      "line": 421
     },
     {
       "style": "manual",
@@ -1839,7 +1879,7 @@
       "path": "/v1/control/webhooks",
       "matchKind": "exact",
       "file": "apps/auth/src/index.ts",
-      "line": 398
+      "line": 441
     },
     {
       "style": "manual",
@@ -1847,7 +1887,7 @@
       "path": "/^\\/v1\\/control\\/webhooks\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 411
+      "line": 454
     },
     {
       "style": "manual",
@@ -1855,7 +1895,7 @@
       "path": "/^\\/v1\\/control\\/webhooks\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 425
+      "line": 468
     },
     {
       "style": "manual",
@@ -1863,7 +1903,7 @@
       "path": "/^\\/v1\\/control\\/webhooks\\/deliveries\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/index.ts",
-      "line": 438
+      "line": 481
     },
     {
       "style": "manual",
@@ -1903,7 +1943,8 @@
         "apps/auth/migrations/0002_control_plane.sql"
       ],
       "referencedBy": [
-        "apps/auth/src/admin-plane.ts"
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
       ]
     },
     {
@@ -2640,6 +2681,14 @@
       "referencedBy": []
     },
     {
+      "name": "one",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/settings.js"
+      ]
+    },
+    {
       "name": "operational_alerts",
       "kind": "table",
       "definedIn": [
@@ -2899,6 +2948,14 @@
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "Settings",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/layout-settings.js"
       ]
     },
     {
