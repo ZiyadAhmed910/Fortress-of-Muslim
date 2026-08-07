@@ -65,6 +65,20 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
       return new Response(null, { status: 204, headers: corsHeaders(allowedOrigin) });
     }
 
+    // Public and unauthenticated on purpose: the OAuth consent screen needs the real application
+    // name before (and possibly without ever) signing in, and an app's registered display name is
+    // exactly what every real-world "X wants to access your account" consent screen shows publicly.
+    if (url.pathname === '/v1/oauth/client-name' && request.method === 'GET') {
+      const clientId = url.searchParams.get('client_id');
+      if (!clientId) return json({ error: { code: 'invalid_request', message: 'client_id is required.' } }, 400);
+      const client = await this.env.IDENTITY_DB.prepare(
+        'SELECT name FROM "oauthClient" WHERE clientId = ? AND (disabled IS NULL OR disabled = 0)',
+      ).bind(clientId).first<{ name: string | null }>();
+      const headers = new Headers(corsHeaders(allowedOrigin));
+      headers.set('Content-Type', 'application/json');
+      return new Response(JSON.stringify({ data: { name: client?.name ?? null } }), { status: 200, headers });
+    }
+
     const customManagementRoute = url.pathname.startsWith('/v1/admin/') || url.pathname.startsWith('/v1/control/');
     if (customManagementRoute && isMutation(request.method)) {
       if (!isTrustedBrowserMutation(request, this.env)) {

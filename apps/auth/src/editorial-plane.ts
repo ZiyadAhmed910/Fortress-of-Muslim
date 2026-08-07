@@ -666,8 +666,8 @@ async function decideBook(context: EditorialContext, bookId: string, body: Recor
     FROM canonical_records canonical
     JOIN content_revisions revision ON revision.id = canonical.current_revision_id
     JOIN revision_metadata metadata ON metadata.revision_id = revision.id
-    WHERE canonical.content_type = 'hadith' AND metadata.book_id = '${sqlLiteral(bookId)}'
-  `);
+    WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
+  `, bookId);
   if (recordCount === 0) return invalid('This book has no Hadith records to review.');
   const notes = optionalText(body.notes, 2000);
   const now = new Date().toISOString();
@@ -700,13 +700,13 @@ async function decideBook(context: EditorialContext, bookId: string, body: Recor
     FROM canonical_records canonical
     JOIN content_revisions revision ON revision.id = canonical.current_revision_id
     JOIN revision_metadata metadata ON metadata.revision_id = revision.id
-    WHERE canonical.content_type = 'hadith' AND metadata.book_id = '${sqlLiteral(bookId)}'
+    WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
       AND NOT EXISTS (
         SELECT 1 FROM canonical_references reference
         WHERE reference.revision_id = revision.id
           AND reference.verification_status != 'rejected'
       )
-  `);
+  `, bookId);
   if (missingReferences > 0) {
     return invalid(`${missingReferences} Hadith record${missingReferences === 1 ? '' : 's'} need a canonical reference before this book can be verified.`);
   }
@@ -1368,9 +1368,9 @@ async function submitDecision(context: EditorialContext, canonicalId: string, bo
   if (decision === 'approved') {
     const references = await count(context.env.CONTENT_DB, `
       SELECT COUNT(*) AS count FROM canonical_references
-      WHERE revision_id = '${sqlLiteral(current.revisionId)}'
+      WHERE revision_id = ?
         AND verification_status != 'rejected'
-    `);
+    `, current.revisionId);
     if (references < 1) return invalid('Attach at least one canonical reference before verifying this record.');
   }
 
@@ -1967,8 +1967,8 @@ async function rollbackDataset(context: EditorialContext, targetDatasetId: strin
   if (target.id === current.id) return conflict('The selected dataset is already current.');
   const snapshotCount = await count(context.env.CONTENT_DB, `
     SELECT COUNT(*) AS count FROM canonical_dataset_items
-    WHERE dataset_version_id = '${sqlLiteral(target.id)}'
-  `);
+    WHERE dataset_version_id = ?
+  `, target.id);
   if (snapshotCount !== Number(target.recordCount)) {
     return conflict('The rollback target does not have a complete immutable dataset snapshot.');
   }
@@ -2234,18 +2234,14 @@ async function readJson(request: Request): Promise<Record<string, unknown>> {
   try { return await request.json() as Record<string, unknown>; } catch { return {}; }
 }
 
-async function count(database: D1Database, sql: string) {
-  const row = await database.prepare(sql).first<{ count: number }>();
+async function count(database: D1Database, sql: string, ...params: unknown[]) {
+  const row = await database.prepare(sql).bind(...params).first<{ count: number }>();
   return Number(row?.count ?? 0);
 }
 
 async function sha256(value: string) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-}
-
-function sqlLiteral(value: string) {
-  return value.replaceAll("'", "''");
 }
 
 function invalid(message: string) {
