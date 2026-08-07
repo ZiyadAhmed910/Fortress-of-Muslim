@@ -162,6 +162,17 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.23.2
+
+- **Fixed the Developer Portal's Sign out button staying visible while logged out**: the profile
+  dropdown's `[hidden]` attribute was being set correctly by `app.js`, but `styles.css`'s
+  `.profile-dropdown button { display: block; }` rule had equal specificity to the browser's
+  default `[hidden]` behavior and won on source order, so the button rendered anyway despite being
+  logically hidden. Added an explicit `.profile-dropdown [hidden] { display: none; }` override in
+  both `styles.css` and `console.css` (the latter as a defensive fix; its own sign-out button
+  turned out to already be correctly hidden via its ancestor). Verified live that only "Sign out"
+  was affected -- the other profile menu links are meant to stay visible when logged out.
+
 ### 0.23.1
 
 - **Fixed TOTP QR code unscannable by Microsoft Authenticator**: the Developer Portal's
