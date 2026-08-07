@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-07T04:25:15.720Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-07T04:29:02.018Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -114,13 +114,13 @@ Not all of these are bugs; verify before assuming.
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
 | `pwa-website/js/app.js` | js | 142 |  |  |
 | `pwa-website/js/assistant.js` | js | 54 |  |  |
-| `pwa-website/js/categories.js` | js | 144 |  |  |
+| `pwa-website/js/categories.js` | js | 160 |  |  |
 | `pwa-website/js/constants.js` | js | 4 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 61 |  |  |
+| `pwa-website/js/dom.js` | js | 62 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
-| `pwa-website/js/home.js` | js | 177 |  |  |
+| `pwa-website/js/home.js` | js | 182 |  |  |
 | `pwa-website/js/modes.js` | js | 34 |  |  |
 | `pwa-website/js/online.js` | js | 21 |  |  |
 | `pwa-website/js/pwa.js` | js | 101 |  |  |
@@ -298,6 +298,7 @@ Not all of these are bugs; verify before assuming.
 | field_reviews | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | hadith_grades | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | hadith_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
+| harm | unknown | `(not defined in scanned files)` | `pwa-website/js/categories.js` |
 | invitation | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | its | unknown | `(not defined in scanned files)` | `apps/auth/src/admin-plane.ts` |
 | json_each | unknown | `(not defined in scanned files)` | `apps/auth/src/webhooks.ts` |

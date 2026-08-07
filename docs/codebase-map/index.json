@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T04:25:15.720Z",
+  "generatedAt": "2026-08-07T04:29:02.018Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -619,7 +619,7 @@
     },
     {
       "path": "pwa-website/js/categories.js",
-      "lines": 144,
+      "lines": 160,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -643,7 +643,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 61,
+      "lines": 62,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -667,7 +667,7 @@
     },
     {
       "path": "pwa-website/js/home.js",
-      "lines": 177,
+      "lines": 182,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2342,6 +2342,14 @@
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "harm",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/categories.js"
+      ]
     },
     {
       "name": "invitation",
