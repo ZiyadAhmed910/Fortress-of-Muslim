@@ -226,8 +226,9 @@
 .prayer-row-active { border-color: var(--accent-strong); background: color-mix(in srgb, var(--accent-strong) 10%, var(--paper-strong)); }
 .prayer-row-active .prayer-row-time { color: var(--accent-strong); font-weight: 800; }
 
-:root:not(.advanced-ui) .prayer-times-list,
-:root:not(.advanced-ui) .qibla-card { display: none; }
+/* The full five-times list stays Advanced-UI-only (that's the detailed view Simple UI is meant to
+   skip), but Qibla direction is core functionality, not an "advanced" extra -- it shows in both. */
+:root:not(.advanced-ui) .prayer-times-list { display: none; }
 
 .qibla-card { display: grid; gap: 0.6rem; padding: 1rem; border: 1px solid var(--line); border-radius: 0.7rem; background: var(--paper-strong); }
 .qibla-heading { display: flex; align-items: center; justify-content: space-between; }
