@@ -184,6 +184,13 @@ Search/RAG quality and PWA discovery, closing out the rest of the post-0.20 sear
 - **PWA category/mood discovery**: category and mood filter chips now show a live count of matching
   duas, and the mood panel shows a short description of the selected feeling, computed from the
   existing per-entry categories/moods with no new taxonomy to maintain.
+- **Embedding model upgrade (test environment only)**: Ask's semantic retrieval moves from
+  `@cf/baai/bge-base-en-v1.5` (768-dim, English-only) to `@cf/baai/bge-m3` (1024-dim, multilingual,
+  8192-token context) -- directly targets mixed Arabic/English/transliteration questions ("siwak"
+  vs. "miswak"). Vectorize indexes are dimension-locked at creation, so this required a new index
+  (`fortress-rag-test-m3`) rather than an in-place resize; the old `fortress-rag-test` index is left
+  allocated but unused. **Production's index is not yet migrated** -- see
+  `docs/release-readiness.md`'s current blocker before promoting this to `main`.
 
 ### 0.22.0
 
