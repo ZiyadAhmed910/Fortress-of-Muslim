@@ -251,3 +251,65 @@
   font-size: 0.86rem;
   text-align: center;
 }
+
+.settings-section-heading {
+  margin: 1.1rem 0 0.15rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.settings-section-heading:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.settings-section-note {
+  margin: -0.3rem 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.layout-config-list {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.layout-config-row {
+  border-top: 1px solid var(--line);
+  padding: 0.85rem 0;
+  gap: 0.6rem;
+}
+
+.layout-config-enable {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.layout-config-row select {
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  background: var(--paper-strong);
+  color: var(--ink);
+}
+
+.layout-config-row:has([data-layout-enable]:not(:checked)) {
+  opacity: 0.55;
+}
+
+.layout-config-row:has([data-layout-enable]:not(:checked)) select {
+  pointer-events: none;
+}
+
+.setting-row:has(#remindersEnabledToggle:not(:checked)) ~ .reminder-subrow {
+  opacity: 0.5;
+  pointer-events: none;
+}

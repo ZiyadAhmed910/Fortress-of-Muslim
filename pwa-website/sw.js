@@ -21,6 +21,8 @@ const ASSETS = [
   './js/filters.js',
   './js/home.js',
   './js/hadith.js',
+  './js/layout.js',
+  './js/layout-settings.js',
   './js/modes.js',
   './js/online.js',
   './js/prayer.js',

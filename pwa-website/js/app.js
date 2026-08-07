@@ -18,7 +18,8 @@ import { applyWaitingUpdate, promptInstall, setupInstallPrompt, setupServiceWork
 import { exportUserData, importUserDataFile } from './userData.js';
 import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
-import { initContentModes } from './modes.js';
+import { initContentModes, refreshLayoutVisibility } from './modes.js';
+import { renderLayoutConfigList } from './layout-settings.js';
 import { initPrayer } from './prayer.js';
 import { initReminders, openAdhkarFromNotification } from './reminders.js';
 import { initTasbih } from './tasbih.js';
@@ -36,6 +37,7 @@ async function init() {
   initReminders();
   initTasbih();
   initContentModes();
+  renderLayoutConfigList();
   renderLoadingSkeleton();
 
   try {
@@ -124,6 +126,7 @@ function bindEvents() {
     localStorage.setItem('advancedUi', String(state.advancedUi));
     applySettings();
     filterList();
+    refreshLayoutVisibility();
   });
 
   els.homeView.querySelectorAll('[data-advanced-filter]').forEach((button) => {

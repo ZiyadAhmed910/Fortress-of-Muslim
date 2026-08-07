@@ -14,30 +14,46 @@ import {
 const COUNTDOWN_TICK_MS = 20_000;
 let countdownTimer = null;
 let deviceOrientationHandler = null;
+// Shared across both tabs -- resolving a location from either Prayer Times or Qibla immediately
+// benefits the other one too, since they're both just different views onto the same coordinates.
 let currentCoordinates = null;
 
 export function initPrayer() {
-  els.prayerLocationButton.addEventListener('click', requestDeviceLocation);
-  els.prayerLocationRetry.addEventListener('click', requestDeviceLocation);
-  els.prayerLocationCancel.addEventListener('click', () => { els.prayerLocationForm.hidden = true; });
-  els.prayerLocationForm.addEventListener('submit', onManualLocationSubmit);
+  initLocationUi({
+    label: els.prayerTimesLocationLabel,
+    button: els.prayerTimesLocationButton,
+    form: els.prayerTimesLocationForm,
+    cancel: els.prayerTimesLocationCancel,
+    retry: els.prayerTimesLocationRetry,
+    onResolved: () => { computeAndRenderPrayerTimes(); startCountdown(); },
+  });
+  initLocationUi({
+    label: els.qiblaLocationLabel,
+    button: els.qiblaLocationButton,
+    form: els.qiblaLocationForm,
+    cancel: els.qiblaLocationCancel,
+    retry: els.qiblaLocationRetry,
+    onResolved: () => computeAndRenderQibla(),
+  });
+
   els.qiblaCompassButton.addEventListener('click', enableLiveCompass);
   els.calculationMethodSelect.addEventListener('change', () => {
     state.calculationMethod = els.calculationMethodSelect.value;
     localStorage.setItem('calculationMethod', state.calculationMethod);
-    if (state.contentMode === 'prayer') computeAndRender();
+    if (state.contentMode === 'prayerTimes') computeAndRenderPrayerTimes();
   });
   els.asrMethodSelect.addEventListener('change', () => {
     state.asrMethod = els.asrMethodSelect.value;
     localStorage.setItem('asrMethod', state.asrMethod);
-    if (state.contentMode === 'prayer') computeAndRender();
+    if (state.contentMode === 'prayerTimes') computeAndRenderPrayerTimes();
   });
   document.addEventListener('visibilitychange', () => {
     // A prayer schedule is only valid for the calendar day it was computed for -- recompute
     // whenever the tab becomes visible again, not just on load, so a device left open overnight
-    // (or one whose clock/timezone changed) always shows today's actual times.
-    if (document.visibilityState === 'visible' && state.contentMode === 'prayer' && currentCoordinates) {
-      computeAndRender();
+    // (or one whose clock/timezone changed) always shows today's actual times. Qibla's bearing has
+    // no time-of-day dependency, so it doesn't need this.
+    if (document.visibilityState === 'visible' && state.contentMode === 'prayerTimes' && currentCoordinates) {
+      computeAndRenderPrayerTimes();
     }
   });
 }
@@ -47,27 +63,41 @@ export function syncPrayerSettingsControls() {
   els.asrMethodSelect.value = state.asrMethod;
 }
 
-export async function activatePrayer() {
+export async function activatePrayerTimes() {
   syncPrayerSettingsControls();
   const coordinates = await resolveCoordinates();
   if (!coordinates) {
-    showLocationNeeded();
+    showLocationNeeded('prayerTimes');
     return;
   }
   currentCoordinates = coordinates;
-  showLocationKnown(coordinates);
-  computeAndRender();
+  showLocationKnown('prayerTimes', coordinates);
+  computeAndRenderPrayerTimes();
   startCountdown();
 }
 
-export function deactivatePrayer() {
+export function deactivatePrayerTimes() {
   stopCountdown();
+}
+
+export async function activateQibla() {
+  const coordinates = await resolveCoordinates();
+  if (!coordinates) {
+    showLocationNeeded('qibla');
+    return;
+  }
+  currentCoordinates = coordinates;
+  showLocationKnown('qibla', coordinates);
+  computeAndRenderQibla();
+}
+
+export function deactivateQibla() {
   disableLiveCompass();
 }
 
 // Read-only lookup of whatever location is already known -- never prompts for a fresh geolocation
 // reading. Reminders scheduling uses this (not resolveCoordinates) because requesting location
-// access should only ever happen from an explicit user action on the Prayer tab, never silently
+// access should only ever happen from an explicit user action on a Prayer/Qibla tab, never silently
 // as a side effect of the reminders feature running in the background.
 export function getKnownCoordinates() {
   if (state.manualLatitude !== null && state.manualLongitude !== null) {
@@ -104,10 +134,14 @@ function refreshDeviceLocationQuietly() {
     if (!located) return;
     const moved = Math.abs(located.latitude - state.lastKnownLatitude) > 0.01 || Math.abs(located.longitude - state.lastKnownLongitude) > 0.01;
     rememberDeviceLocation(located);
-    if (moved && state.manualLatitude === null && state.contentMode === 'prayer') {
-      currentCoordinates = { ...located, source: 'device' };
-      showLocationKnown(currentCoordinates);
-      computeAndRender();
+    if (!moved || state.manualLatitude !== null) return;
+    currentCoordinates = { ...located, source: 'device' };
+    if (state.contentMode === 'prayerTimes') {
+      showLocationKnown('prayerTimes', currentCoordinates);
+      computeAndRenderPrayerTimes();
+    } else if (state.contentMode === 'qibla') {
+      showLocationKnown('qibla', currentCoordinates);
+      computeAndRenderQibla();
     }
   });
 }
@@ -119,76 +153,98 @@ function rememberDeviceLocation(located) {
   localStorage.setItem('lastKnownLongitude', String(located.longitude));
 }
 
-async function requestDeviceLocation() {
-  els.prayerLocationLabel.textContent = 'Locating...';
-  const located = await getLocation({ enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 });
-  if (!located) {
-    toast('Location permission was denied or is unavailable.');
-    showLocationNeeded();
-    return;
-  }
-  rememberDeviceLocation(located);
-  state.manualLatitude = null;
-  state.manualLongitude = null;
-  localStorage.removeItem('manualLatitude');
-  localStorage.removeItem('manualLongitude');
-  els.prayerLocationForm.hidden = true;
-  currentCoordinates = { ...located, source: 'device' };
-  showLocationKnown(currentCoordinates);
-  computeAndRender();
-  startCountdown();
+// Wires up one tab's "Set location" button, manual-entry form, and cancel/retry actions. Both the
+// Prayer Times and Qibla tabs get their own independent copy of this UI (each tab is meant to be
+// self-contained if someone opens it without ever visiting the other), but they resolve to and
+// write back the same underlying coordinates, so setting a location from either one updates both.
+function initLocationUi({ label, button, form, cancel, retry, onResolved }) {
+  const requestDeviceLocation = async () => {
+    label.textContent = 'Locating...';
+    const located = await getLocation({ enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 });
+    if (!located) {
+      toast('Location permission was denied or is unavailable.');
+      showLocationNeededFor({ label, button, form });
+      return;
+    }
+    rememberDeviceLocation(located);
+    state.manualLatitude = null;
+    state.manualLongitude = null;
+    localStorage.removeItem('manualLatitude');
+    localStorage.removeItem('manualLongitude');
+    form.hidden = true;
+    currentCoordinates = { ...located, source: 'device' };
+    showLocationKnownFor({ label, button }, currentCoordinates);
+    onResolved();
+  };
+
+  button.addEventListener('click', requestDeviceLocation);
+  retry.addEventListener('click', requestDeviceLocation);
+  cancel.addEventListener('click', () => { form.hidden = true; });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const latitude = Number(data.get('latitude'));
+    const longitude = Number(data.get('longitude'));
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+      toast('Enter a valid latitude (-90 to 90) and longitude (-180 to 180).');
+      return;
+    }
+    state.manualLatitude = latitude;
+    state.manualLongitude = longitude;
+    localStorage.setItem('manualLatitude', String(latitude));
+    localStorage.setItem('manualLongitude', String(longitude));
+    form.hidden = true;
+    currentCoordinates = { latitude, longitude, source: 'manual' };
+    showLocationKnownFor({ label, button }, currentCoordinates);
+    onResolved();
+    toast('Location saved.');
+  });
 }
 
-function onManualLocationSubmit(event) {
-  event.preventDefault();
-  const form = new FormData(event.currentTarget);
-  const latitude = Number(form.get('latitude'));
-  const longitude = Number(form.get('longitude'));
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
-    toast('Enter a valid latitude (-90 to 90) and longitude (-180 to 180).');
-    return;
-  }
-  state.manualLatitude = latitude;
-  state.manualLongitude = longitude;
-  localStorage.setItem('manualLatitude', String(latitude));
-  localStorage.setItem('manualLongitude', String(longitude));
-  els.prayerLocationForm.hidden = true;
-  currentCoordinates = { latitude, longitude, source: 'manual' };
-  showLocationKnown(currentCoordinates);
-  computeAndRender();
-  startCountdown();
-  toast('Location saved.');
+function showLocationNeededFor({ label, button, form }) {
+  label.textContent = 'Location needed.';
+  button.textContent = 'Allow location';
+  form.hidden = false;
 }
 
-function showLocationNeeded() {
-  els.prayerLocationLabel.textContent = 'Location needed to compute prayer times.';
-  els.prayerLocationButton.textContent = 'Allow location';
-  els.prayerLocationForm.hidden = false;
-  els.prayerTimezoneNote.hidden = true;
-  els.prayerTimesList.hidden = true;
-  els.qiblaCard.hidden = true;
-  els.prayerNextName.textContent = '–';
-  els.prayerNextTime.textContent = '––:––';
-  els.prayerNextCountdown.textContent = '';
-}
-
-function showLocationKnown(coordinates) {
+function showLocationKnownFor({ label, button }, coordinates) {
   const sourceLabel = { manual: 'Manual location', cached: 'Last known location', device: 'Current location' }[coordinates.source] || 'Location';
-  els.prayerLocationLabel.textContent = `${sourceLabel}: ${coordinates.latitude.toFixed(3)}, ${coordinates.longitude.toFixed(3)}`;
-  els.prayerLocationButton.textContent = 'Change';
-  // Clock times are rendered in this device's own timezone (there's no offline way to look up the
-  // IANA timezone for arbitrary coordinates without a network call or a multi-megabyte timezone
-  // boundary dataset, both out of scope here). That's silently correct for geolocation/cached
-  // readings (the device is physically where it says it is, so its own timezone setting already
-  // matches), but not for a manually-entered location the device isn't actually at.
-  els.prayerTimezoneNote.hidden = coordinates.source !== 'manual';
-  els.prayerTimesList.hidden = false;
-  els.qiblaCard.hidden = false;
+  label.textContent = `${sourceLabel}: ${coordinates.latitude.toFixed(3)}, ${coordinates.longitude.toFixed(3)}`;
+  button.textContent = 'Change';
+}
+
+function showLocationNeeded(tab) {
+  if (tab === 'prayerTimes') {
+    showLocationNeededFor({ label: els.prayerTimesLocationLabel, button: els.prayerTimesLocationButton, form: els.prayerTimesLocationForm });
+    els.prayerTimesTimezoneNote.hidden = true;
+    els.prayerTimesList.hidden = true;
+    els.prayerNextName.textContent = '–';
+    els.prayerNextTime.textContent = '––:––';
+    els.prayerNextCountdown.textContent = '';
+  } else {
+    showLocationNeededFor({ label: els.qiblaLocationLabel, button: els.qiblaLocationButton, form: els.qiblaLocationForm });
+    els.qiblaCard.hidden = true;
+  }
+}
+
+function showLocationKnown(tab, coordinates) {
+  if (tab === 'prayerTimes') {
+    showLocationKnownFor({ label: els.prayerTimesLocationLabel, button: els.prayerTimesLocationButton }, coordinates);
+    // Clock times are rendered in this device's own timezone (there's no offline way to look up
+    // the IANA timezone for arbitrary coordinates without a network call or a multi-megabyte
+    // timezone boundary dataset, both out of scope here). That's silently correct for geolocation/
+    // cached readings (the device is physically there), but not for a manually entered location.
+    els.prayerTimesTimezoneNote.hidden = coordinates.source !== 'manual';
+    els.prayerTimesList.hidden = false;
+  } else {
+    showLocationKnownFor({ label: els.qiblaLocationLabel, button: els.qiblaLocationButton }, coordinates);
+    els.qiblaCard.hidden = false;
+  }
 }
 
 let lastComputedDateKey = '';
 
-function computeAndRender() {
+function computeAndRenderPrayerTimes() {
   if (!currentCoordinates) return;
   const { latitude, longitude } = currentCoordinates;
   const now = new Date();
@@ -197,7 +253,11 @@ function computeAndRender() {
   state.prayerTimes = times;
   renderPrayerList(times);
   renderNextPrayer(times);
-  renderQibla(latitude, longitude);
+}
+
+function computeAndRenderQibla() {
+  if (!currentCoordinates) return;
+  renderQibla(currentCoordinates.latitude, currentCoordinates.longitude);
 }
 
 function renderPrayerList(times) {
@@ -246,7 +306,7 @@ function startCountdown() {
     // Covers a tab left open and foregrounded exactly across midnight (the visibilitychange
     // handler in initPrayer only fires when the tab regains visibility after being hidden, which
     // this case never triggers) -- cheap to check every tick since it's just a string compare.
-    if (new Date().toDateString() !== lastComputedDateKey) { computeAndRender(); return; }
+    if (new Date().toDateString() !== lastComputedDateKey) { computeAndRenderPrayerTimes(); return; }
     if (state.prayerTimes) renderNextPrayer(state.prayerTimes);
   }, COUNTDOWN_TICK_MS);
 }
