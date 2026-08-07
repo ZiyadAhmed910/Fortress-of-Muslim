@@ -42,6 +42,10 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a7 7 0 0 0-4 12.7V20l4-2 4 2v-4.3A7 7 0 0 0 12 3Z"/><path d="M9.5 10a2.5 2.5 0 1 1 4.2 1.8c-.9.7-1.7 1.1-1.7 2.2M12 16h.01"/></svg>
               <span>Ask</span>
             </button>
+            <button data-content-mode="prayer" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+              <span>Prayer</span>
+            </button>
           </nav>
 
           <section class="advanced-home" id="advancedHome" aria-label="Advanced home">
@@ -117,6 +121,48 @@
             </form>
             <p class="assistant-note">Answers use retrieved Fortress records and numbered citations. Imported records may still be pending scholarly verification.</p>
             <div class="assistant-result" id="assistantResult" aria-live="polite"></div>
+          </section>
+
+          <section class="online-home prayer-home" id="prayerHome" hidden>
+            <div class="prayer-next-card" id="prayerNextCard">
+              <span class="prayer-next-label">Next prayer</span>
+              <strong id="prayerNextName">&ndash;</strong>
+              <span class="prayer-next-time" id="prayerNextTime">&ndash;&ndash;:&ndash;&ndash;</span>
+              <span class="prayer-next-countdown" id="prayerNextCountdown"></span>
+            </div>
+
+            <div class="prayer-location-row">
+              <span id="prayerLocationLabel">Locating...</span>
+              <button class="text-button" id="prayerLocationButton" type="button">Set location</button>
+            </div>
+            <p class="prayer-timezone-note" id="prayerTimezoneNote" hidden>Times are shown in this device's own timezone, not the entered location's -- if you entered coordinates for a different timezone than this device is set to, clock times above will be off by that difference. The prayer angles themselves are still computed for the entered location.</p>
+
+            <form class="prayer-location-form" id="prayerLocationForm" hidden>
+              <label>Latitude<input name="latitude" type="number" step="0.0001" min="-90" max="90" placeholder="e.g. 21.4225" required></label>
+              <label>Longitude<input name="longitude" type="number" step="0.0001" min="-180" max="180" placeholder="e.g. 39.8262" required></label>
+              <div class="prayer-location-form-actions">
+                <button class="button compact" type="submit">Save location</button>
+                <button class="text-button" type="button" id="prayerLocationCancel">Cancel</button>
+                <button class="text-button" type="button" id="prayerLocationRetry">Try device location again</button>
+              </div>
+            </form>
+
+            <div class="prayer-times-list" id="prayerTimesList" aria-label="Today's prayer times" hidden></div>
+
+            <div class="qibla-card" id="qiblaCard" hidden>
+              <div class="qibla-heading">
+                <strong>Qibla direction</strong>
+                <span id="qiblaBearing">&ndash;</span>
+              </div>
+              <button class="text-button" id="qiblaCompassButton" type="button" hidden>Use live compass</button>
+              <div class="qibla-compass" id="qiblaCompass" hidden aria-hidden="true">
+                <div class="qibla-compass-ring">
+                  <span class="qibla-compass-n">N</span>
+                  <div class="qibla-needle" id="qiblaNeedle"></div>
+                </div>
+              </div>
+              <p class="qibla-note" id="qiblaNote"></p>
+            </div>
           </section>
 
           <div class="simple-home" id="simpleHome">
@@ -244,6 +290,29 @@
             </span>
             <input id="advancedUiToggle" type="checkbox">
           </label>
+          <div class="setting-row setting-row-stack">
+            <span>
+              <strong>Prayer calculation method</strong>
+              <small>Sets the Fajr/Isha angles used to compute your prayer times.</small>
+            </span>
+            <select id="calculationMethodSelect">
+              <option value="mwl">Muslim World League</option>
+              <option value="isna">Islamic Society of North America</option>
+              <option value="egyptian">Egyptian General Authority</option>
+              <option value="karachi">University of Islamic Sciences, Karachi</option>
+              <option value="ummalqura">Umm al-Qura, Makkah</option>
+            </select>
+          </div>
+          <div class="setting-row setting-row-stack">
+            <span>
+              <strong>Asr calculation</strong>
+              <small>Hanafi uses a longer shadow length, so Asr falls later.</small>
+            </span>
+            <select id="asrMethodSelect">
+              <option value="standard">Standard (Shafi, Maliki, Hanbali)</option>
+              <option value="hanafi">Hanafi</option>
+            </select>
+          </div>
           <div class="setting-row install-row" id="installRow">
             <span>
               <strong>Install app</strong>
