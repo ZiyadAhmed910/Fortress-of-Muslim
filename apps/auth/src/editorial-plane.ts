@@ -1,5 +1,6 @@
 import type { Bindings } from './types';
 import { triggerWebhookEvent } from './webhooks';
+import { suggestTaxonomySlugs } from './taxonomy';
 
 export type EditorialRole = 'admin' | 'editor' | 'reviewer';
 
@@ -145,6 +146,14 @@ export async function handleEditorialPlane(
   if (fieldsMatch && request.method === 'POST') {
     requireRole(context.role, ['reviewer', 'editor', 'admin']);
     return submitFieldReviews(context, decodeURIComponent(fieldsMatch[1]!), await readJson(request));
+  }
+  const taxonomyMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)\/taxonomy$/);
+  if (taxonomyMatch && request.method === 'GET') {
+    return getRecordTaxonomy(context, decodeURIComponent(taxonomyMatch[1]!));
+  }
+  if (taxonomyMatch && request.method === 'POST') {
+    requireRole(context.role, ['reviewer', 'editor', 'admin']);
+    return assignRecordTaxonomy(context, decodeURIComponent(taxonomyMatch[1]!), await readJson(request));
   }
   const decisionMatch = url.pathname.match(/^\/v1\/admin\/editorial\/records\/([^/]+)\/decision$/);
   if (decisionMatch && request.method === 'POST') {
@@ -1274,6 +1283,76 @@ async function submitFieldReviews(context: EditorialContext, canonicalId: string
     throw error;
   }
   return json({ data: { canonicalId, revisionId: current.revisionId, reviewedFields: reviews.length } }, 201);
+}
+
+async function recordIdentity(database: D1Database, canonicalId: string) {
+  return database.prepare(`
+    SELECT revision.record_id AS recordId, revision.id AS revisionId, revision.title, metadata.narrator
+    FROM canonical_records canonical
+    JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+    LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    WHERE canonical.canonical_id = ?
+  `).bind(canonicalId).first<{ recordId: string; revisionId: string; title: string; narrator: string | null }>();
+}
+
+async function getRecordTaxonomy(context: EditorialContext, canonicalId: string) {
+  const record = await recordIdentity(context.env.CONTENT_DB, canonicalId);
+  if (!record) return notFound('Canonical record was not found.');
+
+  const segments = await context.env.CONTENT_DB.prepare(`
+    SELECT segment.text FROM revision_parts part
+    JOIN revision_segments segment ON segment.revision_part_id = part.id
+    WHERE part.revision_id = ?
+  `).bind(record.revisionId).all<{ text: string }>();
+  const searchText = [record.title, record.narrator, ...segments.results.map((row) => row.text)].filter(Boolean).join(' ');
+  const suggestedSlugs = suggestTaxonomySlugs(searchText);
+
+  const [assigned, suggested] = await Promise.all([
+    context.env.CONTENT_DB.prepare(`
+      SELECT term.id, term.taxonomy_type AS type, term.slug, term.label
+      FROM record_taxonomy assignment
+      JOIN taxonomy_terms term ON term.id = assignment.term_id
+      WHERE assignment.record_id = ?
+      ORDER BY term.taxonomy_type, term.label
+    `).bind(record.recordId).all<{ id: string; type: string; slug: string; label: string }>(),
+    suggestedSlugs.length
+      ? context.env.CONTENT_DB.prepare(`
+        SELECT id, taxonomy_type AS type, slug, label FROM taxonomy_terms
+        WHERE slug IN (${suggestedSlugs.map(() => '?').join(',')})
+        ORDER BY taxonomy_type, label
+      `).bind(...suggestedSlugs).all<{ id: string; type: string; slug: string; label: string }>()
+      : Promise.resolve({ results: [] as Array<{ id: string; type: string; slug: string; label: string }> }),
+  ]);
+  const assignedIds = new Set(assigned.results.map((term) => term.id));
+  return json({
+    data: {
+      canonicalId,
+      assigned: assigned.results,
+      suggested: suggested.results.filter((term) => !assignedIds.has(term.id)),
+    },
+  });
+}
+
+async function assignRecordTaxonomy(context: EditorialContext, canonicalId: string, body: Record<string, unknown>) {
+  const record = await recordIdentity(context.env.CONTENT_DB, canonicalId);
+  if (!record) return notFound('Canonical record was not found.');
+  const termIds = Array.isArray(body.termIds) ? [...new Set(body.termIds.map(String))] : [];
+  if (termIds.length) {
+    const valid = await context.env.CONTENT_DB.prepare(`
+      SELECT COUNT(*) AS count FROM taxonomy_terms WHERE id IN (${termIds.map(() => '?').join(',')})
+    `).bind(...termIds).first<{ count: number }>();
+    if ((valid?.count ?? 0) !== termIds.length) return invalid('One or more taxonomy terms do not exist.');
+  }
+  await context.env.CONTENT_DB.batch([
+    context.env.CONTENT_DB.prepare(`
+      DELETE FROM record_taxonomy WHERE record_id = ? AND assignment_source = 'editorial'
+    `).bind(record.recordId),
+    ...termIds.map((termId) => context.env.CONTENT_DB.prepare(`
+      INSERT INTO record_taxonomy (record_id, term_id, assignment_source) VALUES (?, ?, 'editorial')
+    `).bind(record.recordId, termId)),
+    auditStatement(context, 'editorial.taxonomy_assigned', 'record', canonicalId, { termIds }),
+  ]);
+  return json({ data: { canonicalId, termIds } });
 }
 
 async function submitDecision(context: EditorialContext, canonicalId: string, body: Record<string, unknown>, options: { fireWebhook?: boolean } = {}) {
