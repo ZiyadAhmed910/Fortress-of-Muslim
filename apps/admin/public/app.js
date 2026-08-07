@@ -12,6 +12,7 @@ const state = {
   lookups: null,
   queue: { params: {}, offset: 0, limit: 50, total: 0 },
   queueSelection: new Set(),
+  resources: {},
 };
 const roleViews = {
   admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'rate-limits', 'security', 'audit']),
@@ -28,7 +29,9 @@ const resourceNames = {
 };
 
 for (const section of $$('[data-resource]')) {
-  $('resource-header', section).outerHTML = `<header><div><span class="kicker">PLATFORM RESOURCES</span><h1>${resourceNames[section.dataset.resource]}</h1><p>Inspect ownership and change platform access state.</p></div></header>`;
+  const type = section.dataset.resource;
+  $('resource-header', section).outerHTML = `<header><div><span class="kicker">PLATFORM RESOURCES</span><h1>${resourceNames[type]}</h1><p>Inspect ownership and change platform access state.</p></div></header><form class="filter" data-filter="${type}"><input name="q" placeholder="Search by name or owner"><button>Search</button></form>`;
+  section.querySelector('.resource-table').insertAdjacentHTML('afterend', `<div class="pagination" data-resource-pagination="${type}"></div>`);
 }
 
 $('#login-form').addEventListener('submit', async (event) => {
@@ -275,7 +278,7 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'rag') await loadRag();
     else if (id === 'workload') await loadWorkload();
     else if (id === 'audit') await loadAudit(params);
-    else if (resourceNames[id]) await loadResources(id);
+    else if (resourceNames[id]) await loadResources(id, params);
     state.loaded.add(id);
   } catch (error) {
     notify(error.message, true);
@@ -1034,14 +1037,32 @@ async function showUser(id) {
   dialog.showModal();
 }
 
-async function loadResources(type) {
-  const rows = (await api(`/v1/admin/resources?type=${encodeURIComponent(type)}`)).data;
+async function loadResources(type, params = {}) {
+  const offset = Number(params.offset ?? 0);
+  const query = { type, offset, ...(params.q ? { q: params.q } : {}) };
+  const response = await api(`/v1/admin/resources?${new URLSearchParams(query)}`);
+  const rows = response.data;
+  state.resources[type] = {
+    params: Object.fromEntries(Object.entries(params).filter(([key]) => key !== 'offset')),
+    offset,
+    pageSize: response.pagination.pageSize,
+    total: response.pagination.total,
+  };
   $(`#${type} .resource-table`).innerHTML = tableHead(['Resource', 'Owner', 'Created', 'Status', ''])
-    + rows.map((row) => {
+    + (rows.map((row) => {
       const current = resourceStatus(type, row.status);
       return `<div class="row"><span><strong>${esc(row.name || row.start || row.id)}</strong><small>${esc(row.id)}</small></span><span><strong>${esc(row.ownerName || 'Unknown')}</strong><small>${esc(row.ownerEmail || '')}</small></span><span>${date(row.createdAt)}</span><span class="badge ${esc(current)}">${esc(current)}</span><span class="actions">${resourceActions(type, row.id, current)}</span></div>`;
-    }).join('');
+    }).join('') || empty());
+  const start = rows.length ? offset + 1 : 0;
+  const end = offset + rows.length;
+  $(`[data-resource-pagination="${type}"]`).innerHTML = `<span>${start}-${end} of ${response.pagination.total}</span><div><button data-resource-page="${type}:${Math.max(0, offset - response.pagination.pageSize)}" ${offset === 0 ? 'disabled' : ''}>Previous</button><button data-resource-page="${type}:${offset + response.pagination.pageSize}" ${!response.pagination.hasMore ? 'disabled' : ''}>Next</button></div>`;
 }
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-resource-page]');
+  if (!button || button.disabled) return;
+  const [type, offset] = button.dataset.resourcePage.split(':');
+  loadResources(type, { ...state.resources[type]?.params, offset: Number(offset) });
+});
 document.addEventListener('click', async (event) => {
   const button = event.target.closest('[data-resource-status]');
   if (!button) return;

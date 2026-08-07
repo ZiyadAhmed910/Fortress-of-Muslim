@@ -616,19 +616,80 @@ async function updateUser(context: AdminContext, id: string, body: Record<string
   return json({ data: { id, status } });
 }
 
+const RESOURCE_PAGE_SIZE = 50;
+
 async function listResources({ env }: AdminContext, url: URL) {
   const type = url.searchParams.get('type');
-  const definitions: Record<string, string> = {
-    'api-keys': 'SELECT k.id, k.name, k.start, k.enabled AS status, k.expiresAt, k.requestCount, k.createdAt, u.name AS ownerName, u.email AS ownerEmail FROM apikey k LEFT JOIN "user" u ON u.id = k.referenceId ORDER BY k.createdAt DESC LIMIT 100',
-    'oauth-clients': 'SELECT c.clientId AS id, c.name, c.disabled AS status, c.grantTypes, c.createdAt, u.name AS ownerName, u.email AS ownerEmail FROM "oauthClient" c LEFT JOIN "user" u ON u.id = c.userId ORDER BY c.createdAt DESC LIMIT 100',
-    devices: 'SELECT d.id, d.name, d.device_type AS detail, d.status, d.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail FROM device_registrations d LEFT JOIN "user" u ON u.id = d.owner_user_id ORDER BY d.created_at DESC LIMIT 100',
-    'mcp-servers': 'SELECT m.id, m.name, m.slug AS detail, m.status, m.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail FROM mcp_toolsets m LEFT JOIN "user" u ON u.id = m.owner_user_id ORDER BY m.created_at DESC LIMIT 100',
-    'mcp-tools': "SELECT t.id, t.tool_name AS name, t.external_url AS detail, t.approval_status AS status, t.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail FROM mcp_toolset_tools t JOIN mcp_toolsets s ON s.id = t.toolset_id LEFT JOIN \"user\" u ON u.id = s.owner_user_id WHERE t.tool_type = 'external_api' ORDER BY t.created_at DESC LIMIT 100",
-    'named-queries': 'SELECT q.id, q.name, q.operation AS detail, q.status, q.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail FROM named_queries q LEFT JOIN "user" u ON u.id = q.owner_user_id ORDER BY q.created_at DESC LIMIT 100',
+  const query = cleanQuery(url.searchParams.get('q'));
+  const like = `%${query}%`;
+  const offset = Math.max(0, Number(url.searchParams.get('offset')) || 0);
+  // Owner name/email plus a resource-specific identifier are searchable so an admin can find a
+  // specific user's keys/apps/etc without paging through everything -- the flat LIMIT 100 with no
+  // filter this replaced made anything past the 100 most recent rows unreachable on a real platform.
+  const definitions: Record<string, { rows: string; count: string; binds: unknown[] }> = {
+    'api-keys': {
+      rows: `SELECT k.id, k.name, k.start, k.enabled AS status, k.expiresAt, k.requestCount, k.createdAt, u.name AS ownerName, u.email AS ownerEmail
+        FROM apikey k LEFT JOIN "user" u ON u.id = k.referenceId
+        WHERE (? = '' OR k.name LIKE ? OR k.start LIKE ? OR u.name LIKE ? OR u.email LIKE ?)
+        ORDER BY k.createdAt DESC LIMIT ? OFFSET ?`,
+      count: `SELECT COUNT(*) AS count FROM apikey k LEFT JOIN "user" u ON u.id = k.referenceId
+        WHERE (? = '' OR k.name LIKE ? OR k.start LIKE ? OR u.name LIKE ? OR u.email LIKE ?)`,
+      binds: [query, like, like, like, like],
+    },
+    'oauth-clients': {
+      rows: `SELECT c.clientId AS id, c.name, c.disabled AS status, c.grantTypes, c.createdAt, u.name AS ownerName, u.email AS ownerEmail
+        FROM "oauthClient" c LEFT JOIN "user" u ON u.id = c.userId
+        WHERE (? = '' OR c.name LIKE ? OR c.clientId LIKE ? OR u.name LIKE ? OR u.email LIKE ?)
+        ORDER BY c.createdAt DESC LIMIT ? OFFSET ?`,
+      count: `SELECT COUNT(*) AS count FROM "oauthClient" c LEFT JOIN "user" u ON u.id = c.userId
+        WHERE (? = '' OR c.name LIKE ? OR c.clientId LIKE ? OR u.name LIKE ? OR u.email LIKE ?)`,
+      binds: [query, like, like, like, like],
+    },
+    devices: {
+      rows: `SELECT d.id, d.name, d.device_type AS detail, d.status, d.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail
+        FROM device_registrations d LEFT JOIN "user" u ON u.id = d.owner_user_id
+        WHERE (? = '' OR d.name LIKE ? OR u.name LIKE ? OR u.email LIKE ?)
+        ORDER BY d.created_at DESC LIMIT ? OFFSET ?`,
+      count: `SELECT COUNT(*) AS count FROM device_registrations d LEFT JOIN "user" u ON u.id = d.owner_user_id
+        WHERE (? = '' OR d.name LIKE ? OR u.name LIKE ? OR u.email LIKE ?)`,
+      binds: [query, like, like, like],
+    },
+    'mcp-servers': {
+      rows: `SELECT m.id, m.name, m.slug AS detail, m.status, m.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail
+        FROM mcp_toolsets m LEFT JOIN "user" u ON u.id = m.owner_user_id
+        WHERE (? = '' OR m.name LIKE ? OR m.slug LIKE ? OR u.name LIKE ? OR u.email LIKE ?)
+        ORDER BY m.created_at DESC LIMIT ? OFFSET ?`,
+      count: `SELECT COUNT(*) AS count FROM mcp_toolsets m LEFT JOIN "user" u ON u.id = m.owner_user_id
+        WHERE (? = '' OR m.name LIKE ? OR m.slug LIKE ? OR u.name LIKE ? OR u.email LIKE ?)`,
+      binds: [query, like, like, like, like],
+    },
+    'mcp-tools': {
+      rows: `SELECT t.id, t.tool_name AS name, t.external_url AS detail, t.approval_status AS status, t.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail
+        FROM mcp_toolset_tools t JOIN mcp_toolsets s ON s.id = t.toolset_id LEFT JOIN "user" u ON u.id = s.owner_user_id
+        WHERE t.tool_type = 'external_api' AND (? = '' OR t.tool_name LIKE ? OR u.name LIKE ? OR u.email LIKE ?)
+        ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
+      count: `SELECT COUNT(*) AS count FROM mcp_toolset_tools t JOIN mcp_toolsets s ON s.id = t.toolset_id LEFT JOIN "user" u ON u.id = s.owner_user_id
+        WHERE t.tool_type = 'external_api' AND (? = '' OR t.tool_name LIKE ? OR u.name LIKE ? OR u.email LIKE ?)`,
+      binds: [query, like, like, like],
+    },
+    'named-queries': {
+      rows: `SELECT q.id, q.name, q.operation AS detail, q.status, q.created_at AS createdAt, u.name AS ownerName, u.email AS ownerEmail
+        FROM named_queries q LEFT JOIN "user" u ON u.id = q.owner_user_id
+        WHERE (? = '' OR q.name LIKE ? OR q.operation LIKE ? OR u.name LIKE ? OR u.email LIKE ?)
+        ORDER BY q.created_at DESC LIMIT ? OFFSET ?`,
+      count: `SELECT COUNT(*) AS count FROM named_queries q LEFT JOIN "user" u ON u.id = q.owner_user_id
+        WHERE (? = '' OR q.name LIKE ? OR q.operation LIKE ? OR u.name LIKE ? OR u.email LIKE ?)`,
+      binds: [query, like, like, like, like],
+    },
   };
   if (!type || !definitions[type]) return invalid('Choose a supported resource type.');
-  const result = await env.IDENTITY_DB.prepare(definitions[type]).all();
-  return json({ data: result.results });
+  const definition = definitions[type];
+  const [rows, countRow] = await Promise.all([
+    env.IDENTITY_DB.prepare(definition.rows).bind(...definition.binds, RESOURCE_PAGE_SIZE, offset).all(),
+    env.IDENTITY_DB.prepare(definition.count).bind(...definition.binds).first(),
+  ]);
+  const total = Number(countRow?.count ?? 0);
+  return json({ data: rows.results, pagination: { offset, pageSize: RESOURCE_PAGE_SIZE, total, hasMore: offset + RESOURCE_PAGE_SIZE < total } });
 }
 
 async function updateResourceStatus(context: AdminContext, type: string, id: string, body: Record<string, unknown>) {
