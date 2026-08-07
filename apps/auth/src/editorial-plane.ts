@@ -16,6 +16,36 @@ const REVIEW_FIELDS = [
   'completeness', 'duplicate_detection',
 ] as const;
 
+// An overall approval implies every field was checked as part of that verification -- this fills
+// in a 'verified' field_reviews row for each REVIEW_FIELDS entry not already reviewed by this same
+// reviewer. INSERT OR IGNORE respects the (revision_id, field_name, reviewer_external_id) unique
+// constraint so it never overwrites a field this reviewer already reviewed individually (with its
+// own notes/decision) before doing the overall approval.
+function fieldVerificationStatements(context: EditorialContext, revisionId: string) {
+  return REVIEW_FIELDS.map((field) => context.env.CONTENT_DB.prepare(`
+    INSERT OR IGNORE INTO field_reviews (
+      id, revision_id, field_name, reviewer_external_id, decision, notes
+    ) VALUES (?, ?, ?, ?, 'verified', ?)
+  `).bind(`field-review.${crypto.randomUUID()}`, revisionId, field, context.user.id, 'Verified via overall record approval.'));
+}
+
+// Book verification can affect hundreds of Hadith records at once -- one INSERT-per-field-per-
+// record (fieldVerificationStatements above) would mean N*13 separate prepared statements in a
+// single D1 batch, which doesn't scale. This does the same fill-in-every-field-not-already-
+// reviewed-by-this-reviewer job as a single set-based statement instead.
+function fieldVerificationStatementForBook(context: EditorialContext, bookId: string) {
+  return context.env.CONTENT_DB.prepare(`
+    INSERT OR IGNORE INTO field_reviews (id, revision_id, field_name, reviewer_external_id, decision, notes)
+    SELECT 'field-review.book.' || hex(randomblob(16)), revision.id, field.column1, ?, 'verified',
+           'Verified via overall record approval.'
+    FROM canonical_records canonical
+    JOIN content_revisions revision ON revision.id = canonical.current_revision_id
+    JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    CROSS JOIN (VALUES ${REVIEW_FIELDS.map((field) => `('${field}')`).join(',')}) AS field
+    WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
+  `).bind(context.user.id, bookId);
+}
+
 export async function handleEditorialPlane(
   request: Request,
   url: URL,
@@ -673,16 +703,17 @@ async function decideBook(context: EditorialContext, bookId: string, body: Recor
   }
 
   const affectedRecords = await context.env.CONTENT_DB.prepare(`
-    SELECT canonical.canonical_id AS canonicalId
+    SELECT canonical.canonical_id AS canonicalId, revision.id AS revisionId
     FROM canonical_records canonical
     JOIN content_revisions revision ON revision.id = canonical.current_revision_id
     JOIN revision_metadata metadata ON metadata.revision_id = revision.id
     WHERE canonical.content_type = 'hadith' AND metadata.book_id = ?
-  `).bind(bookId).all<{ canonicalId: string }>();
+  `).bind(bookId).all<{ canonicalId: string; revisionId: string }>();
 
   const datasetId = `canonical.verified.${Date.now()}.${crypto.randomUUID().slice(0, 8)}`;
   const historyPrefix = `publication-history.${datasetId}`;
   await context.env.CONTENT_DB.batch([
+    fieldVerificationStatementForBook(context, bookId),
     context.env.CONTENT_DB.prepare(`
       INSERT OR IGNORE INTO review_decisions (
         id, revision_id, reviewer_external_id, review_stage, decision, notes, decided_at
@@ -1273,6 +1304,7 @@ async function submitDecision(context: EditorialContext, canonicalId: string, bo
           id, revision_id, reviewer_external_id, review_stage, decision, notes
         ) VALUES (?, ?, ?, ?, ?, ?)
       `).bind(id, current.revisionId, context.user.id, 'independent_review', decision, optionalText(body.notes, 2000)),
+      ...(decision === 'approved' ? fieldVerificationStatements(context, current.revisionId) : []),
       context.env.CONTENT_DB.prepare(`
         UPDATE canonical_references
         SET verification_status = CASE WHEN ? = 'approved' THEN 'verified' ELSE verification_status END,
