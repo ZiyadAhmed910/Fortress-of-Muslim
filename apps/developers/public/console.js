@@ -267,7 +267,10 @@ $('#oauth-form').addEventListener('submit', async (event) => {
     const body = { client_name: form.get('client_name'), redirect_uris: interactive ? redirects : ['https://localhost.invalid/fortress-machine-client'], token_endpoint_auth_method: isPublic ? 'none' : isPrivateJwt ? 'private_key_jwt' : 'client_secret_basic', grant_types: interactive ? ['authorization_code','refresh_token'] : ['client_credentials'], response_types: interactive ? ['code'] : [], scope: [...(interactive ? ['openid','profile','offline_access'] : []),...scopes].join(' '), resources: scopes.some((scope)=>scope.startsWith('mcp:')) ? [apiBase.replace('/v1',''),apiBase.replace('api','mcp').replace('/v1','')] : [apiBase.replace('/v1','')] };
     if (isPrivateJwt) body.jwks_uri = form.get('jwks_uri');
     const app = await authJson('/api/auth/oauth2/create-client', { method: 'POST', body });
-    reveal('#oauth-reveal', 'Connected app created', `Client ID: ${app.client_id}${app.client_secret ? `\nClient secret: ${app.client_secret}` : ''}`, app.client_secret ? 'Copy the client secret now. It will not be shown again.' : 'Public clients use PKCE and have no client secret.');
+    revealCredentials('#oauth-reveal', 'Connected app created', [
+      { label: 'Client ID', value: app.client_id },
+      { label: 'Client secret', value: app.client_secret },
+    ], app.client_secret ? 'Copy the client secret now. It will not be shown again.' : 'Public clients use PKCE and have no client secret.');
     formElement.reset(); resetCallbacks(); updateOAuthForm(); closeDrawers(); await loadApps();
   }, 'Connected app created.', formElement);
 });
@@ -423,10 +426,17 @@ $('#totp-enable-form').addEventListener('submit', async (event) => {
 });
 
 function renderTotpSetup(totpURI, backupCodes) {
-  const secret = extractTotpSecret(totpURI);
+  const secret = extractTotpSecret(totpURI) || totpURI;
   const target = $('#totp-setup');
-  target.innerHTML = `<strong>Authenticator setup</strong><div class="totp-qr"></div><p>Scan with your authenticator app, or enter this key manually if it can't scan:</p><code>${esc(secret || totpURI)}</code><small>Recovery codes: ${esc(backupCodes.join('  '))}</small>`;
+  const codesGrid = backupCodes.map((code) => `<code>${esc(code)}</code>`).join('');
+  target.innerHTML = `<strong>Authenticator setup</strong><div class="totp-qr"></div><p>Scan with your authenticator app, or enter this key manually if it can't scan.</p>${copyField('Setup key', secret)}<div class="recovery-codes"><div class="credential-field-header"><span class="credential-label">Recovery codes</span><button class="button compact" type="button" data-copy-value="Recovery codes">Copy all</button></div><p class="hint">Each code signs you in once if you lose access to your authenticator app. Save them somewhere safe -- they will not be shown again.</p><div class="recovery-codes-grid">${codesGrid}</div></div>`;
   renderQrCode($('.totp-qr', target), totpURI);
+  const copyValues = { 'Setup key': secret, 'Recovery codes': backupCodes.join('\n') };
+  target.querySelectorAll('[data-copy-value]').forEach((button) => {
+    const value = copyValues[button.dataset.copyValue];
+    if (value === undefined) return;
+    button.addEventListener('click', async () => { await navigator.clipboard.writeText(value); button.textContent = button.textContent === 'Copy all' ? 'Copied all' : 'Copied'; setTimeout(() => { button.textContent = button.dataset.copyValue === 'Recovery codes' ? 'Copy all' : 'Copy'; }, 1500); });
+  });
 }
 
 function extractTotpSecret(totpURI) {
@@ -482,14 +492,14 @@ async function loadKeys() {
     const result = await authJson('/api/auth/api-key/list'); state.keys = Array.isArray(result) ? result : result.apiKeys || [];
     reconcileBrowserKeys(state.keys);
     $('#metric-keys').textContent = state.keys.length;
-    render('#api-key-list', state.keys, (key) => `<div class="resource-row"><span class="row-title"><strong>${esc(key.name || 'Unnamed key')}</strong><small>${formatDate(key.createdAt)}</small></span><code>${esc(key.start || key.prefix || 'fom_')}...</code><span>${key.expiresAt ? formatDate(key.expiresAt) : 'Never'}</span><span class="status">Active</span><button class="button compact" data-revoke-key="${esc(key.id)}">Revoke</button></div>`);
+    render('#api-key-list', state.keys, (key) => `<div class="resource-row"><span class="row-title"><strong>${esc(key.name || 'Unnamed key')}</strong><small>${formatDate(key.createdAt)}</small></span><code>${esc(key.start || key.prefix || '••••••')}...</code><span>${key.expiresAt ? formatDate(key.expiresAt) : 'Never'}</span><span class="status">Active</span><button class="button compact" data-revoke-key="${esc(key.id)}">Revoke</button></div>`);
   });
 }
 async function loadApps() {
   await withListState('#oauth-list', async () => {
     const result = await authJson('/api/auth/oauth2/get-clients'); state.apps = Array.isArray(result) ? result : result?.clients || [];
     $('#metric-apps').textContent = state.apps.length; updateAppSelects();
-    render('#oauth-list', state.apps, (app) => { const id = app.client_id || app.clientId; const redirects = app.redirect_uris || app.redirectUris || []; const method = app.token_endpoint_auth_method || app.tokenEndpointAuthMethod || (app.public ? 'none' : 'client secret'); const disabled = Number(app.disabled ?? 0) === 1; return `<div class="resource-row apps-grid"><span class="row-title"><strong>${esc(app.client_name || app.name || 'Connected app')}</strong><small>${disabled ? 'Disabled' : formatDate(app.created_at || app.createdAt)}</small></span><code>${esc(id)}</code><span>${esc(methodLabel(method))}</span><span title="${esc(arrayValue(redirects).join('\n'))}">${esc(displayRedirect(redirects))}</span><span class="row-actions"><button class="button compact" data-app-status="${disabled ? 'active' : 'disabled'}" data-app="${esc(id)}">${disabled ? 'Enable' : 'Disable'}</button><button class="button compact" data-delete-app="${esc(id)}">Delete</button></span></div>`; });
+    render('#oauth-list', state.apps, (app) => { const id = app.client_id || app.clientId; const redirects = app.redirect_uris || app.redirectUris || []; const method = app.token_endpoint_auth_method || app.tokenEndpointAuthMethod || (app.public ? 'none' : 'client secret'); const disabled = Number(app.disabled ?? 0) === 1; return `<div class="resource-row apps-grid"><span class="row-title"><strong>${esc(app.client_name || app.name || 'Connected app')}</strong><small>${disabled ? 'Disabled' : formatDate(app.created_at || app.createdAt)}</small></span><code>${esc(id)}</code><span>${esc(methodLabel(method))}</span><span class="callback-cell" title="${esc(arrayValue(redirects).join('\n'))}">${esc(displayRedirect(redirects))}</span><span class="row-actions"><button class="button compact" data-app-status="${disabled ? 'active' : 'disabled'}" data-app="${esc(id)}">${disabled ? 'Enable' : 'Disable'}</button><button class="button compact" data-delete-app="${esc(id)}">Delete</button></span></div>`; });
   });
 }
 async function loadDevices() {
@@ -565,6 +575,18 @@ function reconcileBrowserKeys(serverKeys) {
   if (explorerKey && !remembered.some((key) => key.key === explorerKey)) localStorage.removeItem('fortress-explorer-key');
 }
 function reveal(selector, title, secret, note) { const target = $(selector); target.innerHTML = `<strong>${esc(title)}</strong><button class="button compact" type="button" data-copy-secret>Copy</button><code>${esc(secret)}</code><small>${esc(note)}</small>`; target.hidden = false; $('[data-copy-secret]', target).addEventListener('click', async (event) => { await navigator.clipboard.writeText(secret); event.currentTarget.textContent = 'Copied'; }); }
+function copyField(label, value) { return `<div class="credential-field"><span class="credential-label">${esc(label)}</span><code>${esc(value)}</code><button class="button compact" type="button" data-copy-value="${esc(label)}">Copy</button></div>`; }
+function revealCredentials(selector, title, fields, note) {
+  const target = $(selector);
+  const rows = fields.filter((field) => field.value).map((field) => copyField(field.label, field.value)).join('');
+  target.innerHTML = `<strong>${esc(title)}</strong><div class="credential-list">${rows}</div><small>${esc(note)}</small>`;
+  target.hidden = false;
+  target.querySelectorAll('[data-copy-value]').forEach((button) => {
+    const field = fields.find((item) => item.label === button.dataset.copyValue);
+    if (!field) return;
+    button.addEventListener('click', async () => { await navigator.clipboard.writeText(field.value); button.textContent = 'Copied'; setTimeout(() => { button.textContent = 'Copy'; }, 1500); });
+  });
+}
 function render(selector, items, renderer) { $(selector).innerHTML = items.length ? items.map(renderer).join('') : '<p class="empty-row">Nothing created yet.</p>'; }
 function renderLoading(selector) { const node = $(selector); if (node) node.innerHTML = '<p class="empty-row loading">Loading&hellip;</p>'; }
 function renderLoadError(selector, retry) {
