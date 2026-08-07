@@ -13,6 +13,7 @@
 .profile-identity small { color: var(--muted); text-overflow: ellipsis; overflow: hidden; }
 .profile-dropdown a, .profile-dropdown button { width: 100%; display: block; padding: 9px 10px; border: 0; border-radius: 4px; color: var(--ink); background: transparent; text-align: left; text-decoration: none; cursor: pointer; font-size: 13px; }
 .profile-dropdown a:hover, .profile-dropdown button:hover { background: var(--surface-subtle); }
+.profile-dropdown [hidden] { display: none; }
 .console-mobile-menu { display: none; }
 .auth-page { min-height: 100vh; display: grid; place-items: center; padding: 96px 20px 40px; background: var(--bg); }
 .auth-surface { width: calc(100vw - 32px); max-width: 430px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); box-shadow: var(--shadow); }
