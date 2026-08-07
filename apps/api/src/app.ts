@@ -448,6 +448,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
         repositoryFactory(context.env),
         parsed.data.question,
         context.req.header('CF-Connecting-IP') ?? 'unknown-client',
+        parsed.data.filters,
       );
       context.header('Cache-Control', 'no-store');
       return context.json({ data, meta: responseMeta(context) });

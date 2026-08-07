@@ -1,6 +1,6 @@
 import type { CollectionSummary, ContentSegment, Dua, DuaSummary, Hadith, HadithSummary } from '@fortress/contracts';
 import { rankDuaTitles } from '../lib/fuzzy-title';
-import type { ContentRepository, DatasetSummary, DuaTitleMatch, RagRecordMatch, RecordEvidence } from './content-repository';
+import type { ContentRepository, DatasetSummary, DuaTitleMatch, RagFilters, RagRecordMatch, RecordEvidence } from './content-repository';
 
 type DatasetRow = {
   id: string;
@@ -145,7 +145,7 @@ export class D1ContentRepository implements ContentRepository {
     return { items: rows.results.map(toDuaSummary), total: count?.count ?? 0 };
   }
 
-  async searchForRag(query: string, limit: number): Promise<RagRecordMatch[]> {
+  async searchForRag(query: string, limit: number, filters?: RagFilters): Promise<RagRecordMatch[]> {
     const result = await this.database.prepare(`
       SELECT search.canonical_id AS id, search.content_type AS contentType,
              search.title, search.body, search.narrator,
@@ -156,9 +156,16 @@ export class D1ContentRepository implements ContentRepository {
        AND publication.revision_id = search.revision_id
       WHERE publication.publication_status = 'published'
         AND canonical_search_fts MATCH ?
+        AND (? IS NULL OR search.content_type = ?)
+        AND (? IS NULL OR search.collection_slug = ?)
       ORDER BY bm25(canonical_search_fts), search.canonical_id
       LIMIT ?
-    `).bind(toRagFtsQuery(query), limit).all<{
+    `).bind(
+      toRagFtsQuery(query),
+      filters?.contentType ?? null, filters?.contentType ?? null,
+      filters?.collection ?? null, filters?.collection ?? null,
+      limit,
+    ).all<{
       id: string;
       contentType: 'dua' | 'hadith';
       title: string;
@@ -178,7 +185,7 @@ export class D1ContentRepository implements ContentRepository {
   // over api_current_content, which already includes unverified candidates. No FTS index needed --
   // canonical_search_fts only ever gets populated at publish time, and this is a low-frequency
   // fallback path, not the primary search, so a scan-based match is an acceptable tradeoff.
-  async searchCurrentForRag(query: string, limit: number): Promise<RagRecordMatch[]> {
+  async searchCurrentForRag(query: string, limit: number, filters?: RagFilters): Promise<RagRecordMatch[]> {
     const tokens = meaningfulTokens(query).slice(0, 6);
     if (tokens.length === 0) return [];
     const likeConditions = tokens.map(() => `(
@@ -202,9 +209,17 @@ export class D1ContentRepository implements ContentRepository {
       JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
       JOIN content_revisions revision ON revision.id = publication.revision_id
       LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
-      WHERE ${likeConditions}
+      LEFT JOIN collections collection ON collection.id = metadata.collection_id
+      WHERE (${likeConditions})
+        AND (? IS NULL OR canonical.content_type = ?)
+        AND (? IS NULL OR collection.slug = ?)
       LIMIT ?
-    `).bind(...bindings, limit).all<{
+    `).bind(
+      ...bindings,
+      filters?.contentType ?? null, filters?.contentType ?? null,
+      filters?.collection ?? null, filters?.collection ?? null,
+      limit,
+    ).all<{
       id: string; contentType: 'dua' | 'hadith'; title: string; narrator: string; body: string;
     }>();
     return result.results.map((row) => ({

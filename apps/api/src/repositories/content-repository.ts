@@ -13,6 +13,7 @@ export type DatasetSummary = {
 
 export type DuaTitleMatch = Dua & { matchScore: number };
 export type RagRecordMatch = { id: string; contentType: 'dua' | 'hadith'; score: number };
+export type RagFilters = { contentType?: 'dua' | 'hadith'; collection?: string };
 
 export type RecordEvidence = {
   recordId: string;
@@ -41,8 +42,8 @@ export interface ContentRepository {
   countDuas(): Promise<number>;
   listDuas(offset: number, limit: number): Promise<DuaSummary[]>;
   searchDuas(query: string, offset: number, limit: number): Promise<{ items: DuaSummary[]; total: number }>;
-  searchForRag(query: string, limit: number): Promise<RagRecordMatch[]>;
-  searchCurrentForRag(query: string, limit: number): Promise<RagRecordMatch[]>;
+  searchForRag(query: string, limit: number, filters?: RagFilters): Promise<RagRecordMatch[]>;
+  searchCurrentForRag(query: string, limit: number, filters?: RagFilters): Promise<RagRecordMatch[]>;
   findDuasByTitle(query: string, limit: number): Promise<DuaTitleMatch[]>;
   getRandomDua(): Promise<Dua | undefined>;
   getDua(id: string): Promise<Dua | undefined>;

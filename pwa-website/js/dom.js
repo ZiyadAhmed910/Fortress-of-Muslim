@@ -54,6 +54,7 @@ export const els = {
   assistantHome: document.getElementById('assistantHome'),
   assistantForm: document.getElementById('assistantForm'),
   assistantQuestion: document.getElementById('assistantQuestion'),
+  assistantContentType: document.getElementById('assistantContentType'),
   assistantSubmit: document.getElementById('assistantSubmit'),
   assistantResult: document.getElementById('assistantResult'),
 };

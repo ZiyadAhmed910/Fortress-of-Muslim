@@ -1,5 +1,5 @@
 import type { Dua, Hadith } from '@fortress/contracts';
-import type { ContentRepository } from './repositories/content-repository';
+import type { ContentRepository, RagFilters } from './repositories/content-repository';
 import { parseExactHadithReference } from './rag-reference';
 import { expandRetrievalQuery } from './rag-synonyms';
 import type { Bindings } from './types';
@@ -178,7 +178,13 @@ export async function getRagStatus(env: Bindings, repository: ContentRepository)
   };
 }
 
-export async function answerQuestion(env: Bindings, repository: ContentRepository, question: string, clientAddress: string) {
+export async function answerQuestion(
+  env: Bindings,
+  repository: ContentRepository,
+  question: string,
+  clientAddress: string,
+  filters?: RagFilters,
+) {
   const dataset = await repository.getCurrentDataset();
   if (dataset.recordCount === 0) {
     return {
@@ -200,10 +206,10 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
   // question -- for those, skip the multi-query embedding/lexical pipeline below and resolve the
   // reference directly. Falls through to normal retrieval if the hint doesn't match a real record
   // (it may just be an ordinary question that happens to end in a number).
-  const exactReference = parseExactHadithReference(question);
+  const exactReference = filters?.contentType !== 'dua' ? parseExactHadithReference(question) : null;
   if (exactReference) {
     const record = await repository.findHadithByReference(exactReference.collectionHint, exactReference.number);
-    if (record) {
+    if (record && (!filters?.collection || record.collection.slug === filters.collection)) {
       const grounded: GroundedRecord[] = [{ record, contentType: 'hadith', score: 0.99, retrieval: 'lexical' }];
       const { answer, sources, model, generated } = await generateGroundedAnswer(env, dataset, question, grounded);
       return {
@@ -229,8 +235,8 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
   const expandedVariants = await expandQueryVariants(env, question);
   const retrievalQueries = [question, ...expandedVariants].map(expandRetrievalQuery);
   const retrievals = await Promise.all(retrievalQueries.map((retrievalQuery) => Promise.all([
-    retrieveVectorRecords(env, repository, dataset.id, retrievalQuery),
-    retrieveLexicalRecords(repository, retrievalQuery),
+    retrieveVectorRecords(env, repository, dataset.id, retrievalQuery, filters),
+    retrieveLexicalRecords(repository, retrievalQuery, filters),
   ])));
   const vectorAvailable = retrievals.some(([vectorResult]) => vectorResult.available);
   const vectorRecords = retrievals.flatMap(([vectorResult]) => vectorResult.records);
@@ -239,7 +245,7 @@ export async function answerQuestion(env: Bindings, repository: ContentRepositor
 
   let includesUnverifiedSource = false;
   if (grounded.length < MIN_VERIFIED_SOURCES) {
-    const fallback = await retrieveUnverifiedFallback(repository, retrievalQueries[0]!, grounded, MAX_CONTEXTS - grounded.length);
+    const fallback = await retrieveUnverifiedFallback(repository, retrievalQueries[0]!, grounded, MAX_CONTEXTS - grounded.length, filters);
     if (fallback.length) {
       includesUnverifiedSource = true;
       grounded.push(...fallback);
@@ -345,11 +351,12 @@ async function retrieveUnverifiedFallback(
   question: string,
   existing: GroundedRecord[],
   limit: number,
+  filters?: RagFilters,
 ): Promise<GroundedRecord[]> {
   if (limit <= 0) return [];
   try {
     const existingIds = new Set(existing.map((item) => item.record.id));
-    const candidates = await repository.searchCurrentForRag(question, limit + existingIds.size);
+    const candidates = await repository.searchCurrentForRag(question, limit + existingIds.size, filters);
     const records = await Promise.all(candidates.map(async (candidate) => {
       if (existingIds.has(candidate.id)) return null;
       const record = candidate.contentType === 'dua'
@@ -365,14 +372,24 @@ async function retrieveUnverifiedFallback(
   }
 }
 
-async function retrieveVectorRecords(env: Bindings, repository: ContentRepository, datasetId: string, question: string) {
+async function retrieveVectorRecords(
+  env: Bindings,
+  repository: ContentRepository,
+  datasetId: string,
+  question: string,
+  filters?: RagFilters,
+) {
   try {
     const embedding = await env.AI.run(EMBEDDING_MODEL, { text: [question] }) as EmbeddingResponse;
     if (!embedding.data[0]) throw new Error('Question embedding was not returned.');
+    const vectorFilter: Record<string, string> = {};
+    if (filters?.contentType) vectorFilter.contentType = filters.contentType;
+    if (filters?.collection) vectorFilter.collection = filters.collection;
     const matches = await env.VECTOR_INDEX.query(embedding.data[0], {
       namespace: datasetId,
       topK: MAX_CONTEXTS,
       returnMetadata: 'all',
+      ...(Object.keys(vectorFilter).length > 0 ? { filter: vectorFilter } : {}),
     });
     const records = await Promise.all(matches.matches.map(async (match) => {
       const metadata = match.metadata as Record<string, string> | undefined;
@@ -393,10 +410,14 @@ async function retrieveVectorRecords(env: Bindings, repository: ContentRepositor
   }
 }
 
-async function retrieveLexicalRecords(repository: ContentRepository, question: string): Promise<GroundedRecord[]> {
+async function retrieveLexicalRecords(
+  repository: ContentRepository,
+  question: string,
+  filters?: RagFilters,
+): Promise<GroundedRecord[]> {
   let candidates: Awaited<ReturnType<ContentRepository['searchForRag']>>;
   try {
-    candidates = await repository.searchForRag(question, MAX_CONTEXTS);
+    candidates = await repository.searchForRag(question, MAX_CONTEXTS, filters);
   } catch (error) {
     console.error(JSON.stringify({ event: 'rag_lexical_retrieval_failed', message: errorMessage(error) }));
     return [];
