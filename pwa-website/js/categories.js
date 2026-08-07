@@ -40,22 +40,27 @@ export const MOOD_GROUPS = {
   anxious: {
     label: 'Anxious',
     terms: ['anxiety', 'distress', 'worry', 'grief', 'sadness', 'hardship', 'difficult', 'calamity'],
+    description: 'Duas for worry, distress, and difficult moments',
   },
   afraid: {
     label: 'Afraid',
     terms: ['fear', 'afraid', 'enemy', 'danger', 'harm', 'refuge', 'protection'],
+    description: 'Duas for fear, danger, and seeking refuge',
   },
   sad: {
     label: 'Sad',
     terms: ['grief', 'sadness', 'sorrow', 'distress', 'hardship'],
+    description: 'Duas for grief, sorrow, and hardship',
   },
   grateful: {
     label: 'Grateful',
     terms: ['praise', 'thanks', 'gratitude', 'blessing', 'favour', 'favor', 'alhamdu', 'hamd'],
+    description: 'Duas for praise, thanks, and gratitude',
   },
   protection: {
     label: 'Protection',
     terms: ['protect', 'protection', 'refuge', 'evil', 'devil', 'shaytan', 'harm', 'nightmare'],
+    description: 'Duas for protection from harm and evil',
   },
 };
 
@@ -94,6 +99,17 @@ export function filterEntryByGroup(entry, group) {
 export function filterEntryByMood(entry, mood) {
   if (!mood) return true;
   return entry.moods.includes(mood);
+}
+
+// Shown as a count badge on each category/mood chip so someone can see how much is inside before
+// tapping in -- discoverability that a bare label doesn't give, especially for a lightly-populated
+// group like a mood that only matches a handful of entries.
+export function countByGroup(entries, group) {
+  return entries.filter((entry) => filterEntryByGroup(entry, group)).length;
+}
+
+export function countByMood(entries, mood) {
+  return entries.filter((entry) => filterEntryByMood(entry, mood)).length;
 }
 
 export function groupLabel(group) {

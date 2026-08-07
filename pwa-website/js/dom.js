@@ -22,6 +22,7 @@ export const els = {
   categoryChips: document.getElementById('categoryChips'),
   moodPanel: document.getElementById('moodPanel'),
   moodChips: document.getElementById('moodChips'),
+  moodDescription: document.getElementById('moodDescription'),
   resultCount: document.getElementById('resultCount'),
   duaList: document.getElementById('duaList'),
   loadMoreButton: document.getElementById('loadMoreButton'),

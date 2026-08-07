@@ -176,6 +176,24 @@
   font-weight: 800;
 }
 
+.mood-description {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.chip-count {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.05rem 0.42rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .row-title mark {
   border-radius: 0.25rem;
   padding: 0 0.08rem;

@@ -3,7 +3,7 @@ import { els } from './dom.js';
 import { escapeHtml } from './utils.js';
 import { applyFilters, shouldUseFavouriteFilter } from './filters.js';
 import { applySettings, updateAdvancedNavActive } from './settings.js';
-import { CATEGORY_GROUPS, DEFAULT_MOOD, MOOD_GROUPS, QUICK_FILTERS, groupLabel, normalizeSearch } from './categories.js';
+import { CATEGORY_GROUPS, countByGroup, countByMood, DEFAULT_MOOD, MOOD_GROUPS, QUICK_FILTERS, groupLabel, normalizeSearch } from './categories.js';
 
 let openEntryHandler = () => {};
 
@@ -56,15 +56,19 @@ export function renderList() {
 
 export function renderFilterControls() {
   els.categoryChips.innerHTML = [
-    ...QUICK_FILTERS.map((key) => filterButton(key, CATEGORY_GROUPS[key].label)),
-    filterButton('moods', 'Moods'),
+    ...QUICK_FILTERS.map((key) => filterButton(key, CATEGORY_GROUPS[key].label, countByGroup(state.entries, key))),
+    filterButton('moods', 'Moods', countByGroup(state.entries, 'moods')),
   ].join('');
 
   els.moodPanel.hidden = activeGroup() !== 'moods';
   els.moodChips.innerHTML = Object.entries(MOOD_GROUPS).map(([key, group]) => {
     const active = state.activeMood === key;
-    return `<button class="filter-chip ${active ? 'active' : ''}" data-mood-filter="${key}" type="button">${escapeHtml(group.label)}</button>`;
+    const count = countByMood(state.entries, key);
+    return `<button class="filter-chip ${active ? 'active' : ''}" data-mood-filter="${key}" type="button">${escapeHtml(group.label)} <span class="chip-count">${count}</span></button>`;
   }).join('');
+  if (els.moodDescription) {
+    els.moodDescription.textContent = state.activeMood ? MOOD_GROUPS[state.activeMood]?.description ?? '' : 'Choose a feeling to find related duas.';
+  }
 
   els.categoryChips.querySelectorAll('[data-quick-filter]').forEach((button) => {
     button.addEventListener('click', () => setQuickFilter(button.dataset.quickFilter));
@@ -139,9 +143,10 @@ function activeGroup() {
   return state.advancedListMode ? state.advancedFilter : state.activeQuickFilter;
 }
 
-function filterButton(key, label) {
+function filterButton(key, label, count) {
   const active = activeGroup() === key;
-  return `<button class="filter-chip ${active ? 'active' : ''}" data-quick-filter="${key}" type="button">${escapeHtml(label)}</button>`;
+  const countLabel = typeof count === 'number' ? ` <span class="chip-count">${count}</span>` : '';
+  return `<button class="filter-chip ${active ? 'active' : ''}" data-quick-filter="${key}" type="button">${escapeHtml(label)}${countLabel}</button>`;
 }
 
 function rowMeta(entry) {
