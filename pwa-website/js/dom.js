@@ -78,4 +78,10 @@ export const els = {
   qiblaNote: document.getElementById('qiblaNote'),
   calculationMethodSelect: document.getElementById('calculationMethodSelect'),
   asrMethodSelect: document.getElementById('asrMethodSelect'),
+  remindersEnabledToggle: document.getElementById('remindersEnabledToggle'),
+  remindersUnsupportedNote: document.getElementById('remindersUnsupportedNote'),
+  remindersBlockedNote: document.getElementById('remindersBlockedNote'),
+  remindersLocationNote: document.getElementById('remindersLocationNote'),
+  morningAdhkarToggle: document.getElementById('morningAdhkarToggle'),
+  eveningAdhkarToggle: document.getElementById('eveningAdhkarToggle'),
 };

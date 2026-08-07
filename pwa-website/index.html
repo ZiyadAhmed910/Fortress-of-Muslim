@@ -320,6 +320,30 @@
             </span>
             <button class="small-action-button" id="installButton" type="button">Install</button>
           </div>
+          <label class="setting-row">
+            <span>
+              <strong>Prayer reminders</strong>
+              <small>Local notifications for morning and evening adhkar, computed on this device -- no account, no push server. Only fires while this app/tab is open (even in the background); a fully closed app or browser can't reliably notify you on the web, this is a platform limit, not a bug here.</small>
+            </span>
+            <input id="remindersEnabledToggle" type="checkbox">
+          </label>
+          <p class="reminder-note reminder-note-warning" id="remindersUnsupportedNote" hidden>Notifications are not supported in this browser.</p>
+          <p class="reminder-note reminder-note-warning" id="remindersBlockedNote" hidden>Notifications are blocked for this site -- allow them in your browser's site settings to use reminders.</p>
+          <p class="reminder-note reminder-note-warning" id="remindersLocationNote" hidden>Set your location on the Prayer tab first so reminders know when to fire.</p>
+          <label class="setting-row reminder-subrow">
+            <span>
+              <strong>Morning adhkar</strong>
+              <small>15 minutes after Fajr.</small>
+            </span>
+            <input id="morningAdhkarToggle" type="checkbox">
+          </label>
+          <label class="setting-row reminder-subrow">
+            <span>
+              <strong>Evening adhkar</strong>
+              <small>15 minutes after Asr.</small>
+            </span>
+            <input id="eveningAdhkarToggle" type="checkbox">
+          </label>
           <div class="setting-row setting-row-stack">
             <span>
               <strong>Backup</strong>

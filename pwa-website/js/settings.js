@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { els } from './dom.js';
 import { APP_VERSION } from './constants.js';
 import { syncPrayerSettingsControls } from './prayer.js';
+import { syncReminderControls } from './reminders.js';
 
 export function applySettings() {
   els.appVersion.textContent = `Version ${APP_VERSION}`;
@@ -15,6 +16,7 @@ export function applySettings() {
   els.arabicSizeToggle.checked = state.largeArabic;
   els.advancedUiToggle.checked = state.advancedUi;
   syncPrayerSettingsControls();
+  syncReminderControls();
   updateAdvancedNavActive();
 }
 

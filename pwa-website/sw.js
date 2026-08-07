@@ -26,6 +26,7 @@ const ASSETS = [
   './js/prayer.js',
   './js/prayer-times.js',
   './js/pwa.js',
+  './js/reminders.js',
   './js/reader.js',
   './js/routes.js',
   './js/settings.js',
@@ -89,6 +90,25 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       });
+    })
+  );
+});
+
+// Reminder notifications (registration.showNotification, used whenever this service worker
+// controls the page) carry {category: 'morning'|'evening'} in event.notification.data. Clicking
+// one should open the matching adhkar category directly rather than just opening the app.
+self.addEventListener('notificationclick', (event) => {
+  const category = event.notification.data?.category;
+  event.notification.close();
+  if (!category) return;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      const existing = clientList.find((client) => 'focus' in client);
+      if (existing) {
+        existing.postMessage({ type: 'OPEN_ADHKAR', category });
+        return existing.focus();
+      }
+      return self.clients.openWindow(`./?adhkar=${category}`);
     })
   );
 });
