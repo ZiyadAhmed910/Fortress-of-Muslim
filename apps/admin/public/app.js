@@ -1173,6 +1173,30 @@ async function loadAudit(params = {}) {
     + rows.map((row) => `<div class="row"><span><strong>${esc(human(row.action))}</strong><small>${esc(auditDetails(row.details) || row.action)}</small></span><span>${esc(row.actorName || row.actorUserId || 'system')}<small>${esc(row.actorEmail || '')}</small></span><span><strong>${esc(human(row.targetType))}</strong><small>${esc(row.targetId || '')}</small></span><span>${date(row.occurredAt)}</span><code>${esc(row.requestId || '')}</code></div>`).join('');
 }
 
+$('[data-export-audit]').addEventListener('click', async () => {
+  const q = $('[data-filter="audit"] [name="q"]').value;
+  const rows = (await api(`/v1/admin/audit?${new URLSearchParams(q ? { q } : {})}`)).data;
+  downloadCsv(`fortress-audit-log-${new Date().toISOString().slice(0, 10)}.csv`, rows, [
+    ['occurredAt', 'Time'], ['action', 'Action'], ['actorName', 'Actor'], ['actorEmail', 'Actor email'],
+    ['targetType', 'Target type'], ['targetId', 'Target ID'], ['requestId', 'Request ID'], ['details', 'Details'],
+  ]);
+});
+
+function downloadCsv(filename, rows, columns) {
+  const csvCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+  const lines = [
+    columns.map(([, label]) => csvCell(label)).join(','),
+    ...rows.map((row) => columns.map(([key]) => csvCell(key === 'details' ? auditDetails(row[key]) : row[key])).join(',')),
+  ];
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function auditDetails(value) {
   try {
     const parsed = typeof value === 'string' ? JSON.parse(value) : value;
