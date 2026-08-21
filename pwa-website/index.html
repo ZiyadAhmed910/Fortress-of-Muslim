@@ -19,6 +19,9 @@
     <script>
       (function () {
         var shown = false;
+        // The app signals readiness once its shell is interactive, which happens before dua data
+        // finishes loading -- a slow network is not a broken app, and the data layer shows its own
+        // error state if the fetch fails.
         function showFallback() {
           if (shown || window.__fortressAppReady) return;
           shown = true;
@@ -27,7 +30,8 @@
         }
         window.addEventListener('error', showFallback);
         window.addEventListener('unhandledrejection', showFallback);
-        setTimeout(function () { if (!window.__fortressAppReady) showFallback(); }, 6000);
+        setTimeout(function () { if (!window.__fortressAppReady) showFallback(); }, 10000);
+
         document.addEventListener('click', function (event) {
           var button = event.target.closest && event.target.closest('#bootFallbackReload');
           if (!button) return;
@@ -44,7 +48,12 @@
               .then(function (keys) { return Promise.all(keys.map(function (key) { return caches.delete(key); })); })
               .catch(function () {}));
           }
-          Promise.all(cleanup).finally(function () { location.reload(); });
+          // Unregistering the worker and clearing CacheStorage leaves the browser HTTP cache
+          // untouched, so a plain reload could serve the very same stale files and loop straight
+          // back here. Re-fetching the document with cache:'reload' replaces that HTTP entry first.
+          Promise.all(cleanup)
+            .then(function () { return fetch(location.pathname, { cache: 'reload' }).catch(function () {}); })
+            .finally(function () { location.replace(location.pathname); });
         });
       })();
     </script>

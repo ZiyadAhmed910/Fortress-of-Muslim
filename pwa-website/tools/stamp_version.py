@@ -24,6 +24,27 @@ def replace(path: Path, pattern: str, value: str) -> None:
         path.write_text(updated, encoding="utf-8")
 
 
+# Only index.html's entry point (js/app.js) carried a ?v= cache-buster, while every module it
+# imports did not. The host serves js/ with max-age (its mod_expires overrides our .htaccess
+# no-cache rule), so after a deploy the browser paired a fresh app.js with hours-stale modules --
+# app.js would call into a module missing the exports it expected, init() would throw, and the
+# boot fallback appeared. Reloading could not fix it because clearing the service worker and
+# CacheStorage leaves the HTTP cache untouched. Stamping every import makes the URL itself change
+# per build, so a stale module can never be paired with a new one regardless of host headers.
+MODULE_IMPORT = re.compile(r"""(from\s+['"]\./[A-Za-z0-9._\-/]+\.js)(?:\?v=[^'"]*)?(['"])""")
+
+
+def stamp_module_imports(build_version: str) -> int:
+    stamped = 0
+    for path in sorted((ROOT / "js").glob("*.js")):
+        text = path.read_text(encoding="utf-8")
+        updated = MODULE_IMPORT.sub(rf"\1?v={build_version}\2", text)
+        if updated != text:
+            path.write_text(updated, encoding="utf-8")
+            stamped += 1
+    return stamped
+
+
 def main() -> None:
     count = int(git_value("rev-list", "--count", "HEAD", fallback="13"))
     sha = git_value("rev-parse", "--short=10", "HEAD", fallback="local")
@@ -66,7 +87,9 @@ def main() -> None:
         f"?v={build_version}",
     )
 
-    print(f"Stamped app version {display_version} ({build_version})")
+    stamped_modules = stamp_module_imports(build_version)
+
+    print(f"Stamped app version {display_version} ({build_version}); {stamped_modules} module file(s) re-imported at this build")
 
 
 if __name__ == "__main__":

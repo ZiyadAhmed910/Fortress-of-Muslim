@@ -13,35 +13,41 @@ const ASSETS = [
   `./css/online.css?v=${APP_VERSION}`,
   `./css/responsive.css?v=${APP_VERSION}`,
   `./js/app.js?v=${APP_VERSION}`,
-  './js/assistant.js',
-  './js/categories.js',
-  './js/constants.js',
-  './js/data.js',
-  './js/dom.js',
-  './js/filters.js',
-  './js/home.js',
-  './js/hadith.js',
-  './js/layout.js',
-  './js/layout-settings.js',
-  './js/modes.js',
-  './js/online.js',
-  './js/prayer.js',
-  './js/prayer-times.js',
-  './js/pwa.js',
-  './js/reminders.js',
-  './js/reader.js',
-  './js/routes.js',
-  './js/settings.js',
-  './js/state.js',
-  './js/tasbih.js',
-  './js/userData.js',
-  './js/utils.js',
+  `./js/assistant.js?v=${APP_VERSION}`,
+  `./js/categories.js?v=${APP_VERSION}`,
+  `./js/constants.js?v=${APP_VERSION}`,
+  `./js/data.js?v=${APP_VERSION}`,
+  `./js/dom.js?v=${APP_VERSION}`,
+  `./js/filters.js?v=${APP_VERSION}`,
+  `./js/home.js?v=${APP_VERSION}`,
+  `./js/hadith.js?v=${APP_VERSION}`,
+  `./js/layout.js?v=${APP_VERSION}`,
+  `./js/layout-settings.js?v=${APP_VERSION}`,
+  `./js/modes.js?v=${APP_VERSION}`,
+  `./js/online.js?v=${APP_VERSION}`,
+  `./js/prayer.js?v=${APP_VERSION}`,
+  `./js/prayer-times.js?v=${APP_VERSION}`,
+  `./js/pwa.js?v=${APP_VERSION}`,
+  `./js/reminders.js?v=${APP_VERSION}`,
+  `./js/reader.js?v=${APP_VERSION}`,
+  `./js/routes.js?v=${APP_VERSION}`,
+  `./js/settings.js?v=${APP_VERSION}`,
+  `./js/state.js?v=${APP_VERSION}`,
+  `./js/tasbih.js?v=${APP_VERSION}`,
+  `./js/userData.js?v=${APP_VERSION}`,
+  `./js/utils.js?v=${APP_VERSION}`,
   './manifest.json',
   './data/duas.json',
   './data/duas.json?v=2026-07-23-hisn-v4',
   './icons/favicon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',
+];
+
+// Decorative card art. Kept out of ASSETS deliberately: a single failed image must not fail the
+// whole install and strand everyone on the previous worker, which is one way the app got stuck on
+// an old version. These are cached opportunistically and fall through to network if missing.
+const OPTIONAL_ASSETS = [
   './assets/cards/all-duas.webp',
   './assets/cards/morning.webp',
   './assets/cards/evening.webp',
@@ -54,8 +60,21 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
+  // cache: 'reload' forces every install fetch past the browser HTTP cache. cache.addAll() goes
+  // through it by default, so a stale HTTP-cached module could otherwise be baked into a brand new
+  // service worker cache and outlive the HTTP entry that produced it.
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Core assets stay all-or-nothing: a half-cached shell must never activate.
+      await Promise.all(ASSETS.map(async (asset) => {
+        const response = await fetch(new Request(asset, { cache: 'reload' }));
+        if (!response.ok) throw new Error(`Could not cache ${asset}: ${response.status}`);
+        await cache.put(asset, response);
+      }));
+      await Promise.all(OPTIONAL_ASSETS.map((asset) => fetch(new Request(asset, { cache: 'reload' }))
+        .then((response) => (response.ok ? cache.put(asset, response) : null))
+        .catch(() => null)));
+    })
   );
 });
 

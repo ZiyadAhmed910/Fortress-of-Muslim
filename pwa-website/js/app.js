@@ -41,6 +41,12 @@ async function init() {
   renderLayoutConfigList();
   renderLoadingSkeleton();
 
+  // Signals the bootstrap watchdog in index.html (which lives outside this module graph, so it
+  // still fires if anything above throws) that the shell wired up successfully. Set here rather
+  // than after the data fetch: a slow connection is not a broken app, and a failed fetch has its
+  // own error state below. The watchdog is only meant to catch "the app never booted at all".
+  window.__fortressAppReady = true;
+
   try {
     const data = await loadDuas();
     state.entries = data.entries;
@@ -58,11 +64,6 @@ async function init() {
     console.error(error);
   }
 
-  // Tells the bootstrap watchdog in index.html (which runs outside this module graph, so it
-  // still works even if something in here throws before reaching this point) that the app got
-  // far enough to show the user *something* -- real content or the graceful error message above --
-  // rather than leaving them stuck on a stale/blank screen with no way to recover.
-  window.__fortressAppReady = true;
   setupServiceWorker();
   window.addEventListener('popstate', () => openCanonicalRoute());
 }

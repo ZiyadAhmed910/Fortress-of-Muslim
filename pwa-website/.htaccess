@@ -3,18 +3,30 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.html [L]
 
+# The host's server-level mod_expires was applying "max-age=14400" to /js/*.js and winning over the
+# Header set below, so a fresh index.html + fresh app.js got paired with hours-stale modules after a
+# deploy. Module imports are now build-stamped (tools/stamp_version.py), which fixes that on its own,
+# but ExpiresActive is switched off for these types too so the header we send is the header served.
+<IfModule mod_expires.c>
+  <FilesMatch "\.(?:html|js|css|json|webmanifest)$">
+    ExpiresActive Off
+  </FilesMatch>
+</IfModule>
+
 <IfModule mod_headers.c>
-  <FilesMatch "\.(?:html|js|css|json)$">
-    Header set Cache-Control "no-cache, must-revalidate"
+  <FilesMatch "\.(?:html|js|css|json|webmanifest)$">
+    Header always set Cache-Control "no-cache, must-revalidate"
+    Header always unset Expires
+    Header always unset Pragma
   </FilesMatch>
 
   <Files "sw.js">
-    Header set Cache-Control "no-store, no-cache, must-revalidate"
-    Header set Pragma "no-cache"
-    Header set Expires "0"
+    Header always set Cache-Control "no-store, no-cache, must-revalidate"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
   </Files>
 
-  <FilesMatch "\.(?:png|webp)$">
-    Header set Cache-Control "public, max-age=86400"
+  <FilesMatch "\.(?:png|webp|svg)$">
+    Header always set Cache-Control "public, max-age=86400"
   </FilesMatch>
 </IfModule>
