@@ -671,6 +671,13 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.016
+
+- Fixed the app getting stuck on "This app didn't finish loading properly", where tapping Reload looped straight back to the same screen. Only the `js/app.js` entry point was cache-busted; every module it imports was not, and the host serves `/js/` with a 4-hour `max-age` that overrode our `.htaccess` no-cache rule. After a deploy the browser paired a fresh `app.js` with hours-stale modules, so startup threw. Clearing the service worker and its caches (what Reload did) never touched the browser HTTP cache holding those modules, so every reload reproduced it until the cache expired. Every module import is now build-stamped, so a stale module can no longer be paired with a new one.
+- The service worker now fetches with `cache: 'reload'` during install, so a stale HTTP-cached file can never be baked into a fresh worker cache and outlive the entry that produced it.
+- A failed decorative card image no longer fails the whole service worker install, which previously could strand everyone on the old version.
+- The startup watchdog now waits for the app shell rather than the dua data, so a slow connection is no longer mistaken for a broken app.
+
 ### 1.015
 
 - Reworked Settings from one long scrolling list into a category list that drills into a subscreen per category (Appearance, Prayer & Qibla, Reminders, Customize Layout, Data, About), with a back button, instead of everything shown at once.
