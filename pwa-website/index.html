@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="styles.css?v=build-dev">
   </head>
   <body>
-    <div id="bootFallback" hidden style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:rgba(20,20,18,0.72);font-family:system-ui,sans-serif;">
+    <div id="bootFallback" hidden style="position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;padding:1.5rem;background:rgba(20,20,18,0.72);font-family:system-ui,sans-serif;">
       <div style="max-width:22rem;padding:1.5rem;border-radius:0.9rem;background:#fff;color:#1a1a18;text-align:center;box-shadow:0 1rem 2.5rem rgba(0,0,0,0.35);">
         <p style="margin:0 0 0.9rem;font-size:1rem;line-height:1.5;">This app didn't finish loading properly -- this can happen right after an update. Reloading with a fresh copy usually fixes it.</p>
         <button id="bootFallbackReload" type="button" style="width:100%;padding:0.75rem 1rem;border:0;border-radius:0.6rem;background:#0b6f73;color:#fff;font-size:1rem;font-weight:700;">Reload app</button>
@@ -51,7 +51,9 @@
           if (shown || window.__fortressAppReady) return;
           shown = true;
           var el = document.getElementById('bootFallback');
-          if (el) el.hidden = false;
+          // display is set here rather than in the inline style: an inline `display` outranks the
+          // UA stylesheet's [hidden]{display:none}, which would pin the banner open permanently.
+          if (el) { el.hidden = false; el.style.display = 'flex'; }
           var detail = document.getElementById('bootFallbackDetail');
           if (!detail) return;
           navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -139,6 +141,10 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z"/></svg>
               <span>Duas</span>
             </button>
+            <button data-content-mode="quran" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5S9.5 4 6 4a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2c3.5 0 6 2.5 6 2.5"/><path d="M12 6.5S14.5 4 18 4a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2c-3.5 0-6 2.5-6 2.5"/><path d="M12 6.5V17"/></svg>
+              <span>Quran</span>
+            </button>
             <button data-content-mode="hadith" type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
               <span>Hadith</span>
@@ -194,7 +200,20 @@
 
           </section>
 
-          <section class="online-home hadith-home" id="hadithHome" hidden>
+          <section class="online-home quran-home" id="quranHome" hidden>
+        <div id="quranBrowse">
+          <label class="quran-search">
+            <span class="visually-hidden">Search surahs</span>
+            <input id="quranSearch" type="search" placeholder="Search surah by name or number" autocomplete="off">
+          </label>
+          <p class="result-count" id="quranCount"></p>
+          <div class="surah-list" id="quranList"></div>
+          <div id="quranAttribution"></div>
+        </div>
+        <article class="quran-reader" id="quranReader" hidden></article>
+      </section>
+
+      <section class="online-home hadith-home" id="hadithHome" hidden>
             <div id="hadithBrowse">
               <form class="online-search" id="hadithSearchForm">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
@@ -572,6 +591,13 @@
                 <small>Add this PWA to your device home screen.</small>
               </span>
               <button class="small-action-button" id="installButton" type="button">Install</button>
+            </div>
+            <div class="setting-row">
+              <span>
+                <strong>Quran offline</strong>
+                <small>Surahs are saved as you read them. Download everything to read the full Quran with no connection.</small>
+              </span>
+              <button class="small-action-button" id="quranDownloadButton" type="button">Download</button>
             </div>
             <div class="setting-row setting-row-stack">
               <span>

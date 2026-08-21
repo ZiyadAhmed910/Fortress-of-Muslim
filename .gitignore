@@ -23,3 +23,6 @@ sunnah-data-fast-do-not-deploy/
 .fortress-import/
 .fortress-backups/
 private-acquisition-do-not-commit/
+
+# cached upstream Quran downloads (see pwa-website/tools/build-quran-data.mjs)
+.quran-cache/

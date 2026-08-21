@@ -671,6 +671,12 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.018
+
+- Added the Quran: all 114 surahs in Arabic with the Saheeh International English translation, searchable by name or number, with each ayah's Arabic and English shown together.
+- Surahs download as you open them and stay readable offline; Settings > Data has a one-tap "Download" for the whole Quran. Downloaded surahs are kept in a cache that survives app updates, so a deploy never wipes what you saved.
+- Fixed the startup banner being permanently visible. Its inline `display:flex` outranked the browser's `[hidden]{display:none}` rule, so the "app didn't finish loading" panel showed on every load no matter how healthy the app was -- and tapping Reload simply returned to it, which is what made the problem look like a loop.
+
 ### 1.017
 
 - The "Reload app" recovery now lands on a one-time `?reset=<timestamp>` URL. Reloading the same URL could still be answered from a cache, so a device that reached the fallback could bounce straight back to it; a URL that has never been requested cannot match any cache entry, in CacheStorage or the browser HTTP cache. The marker is stripped from the address bar once the app is up.
