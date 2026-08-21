@@ -18,6 +18,7 @@ import { applyWaitingUpdate, promptInstall, setupInstallPrompt, setupServiceWork
 import { exportUserData, importUserDataFile } from './userData.js';
 import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
+import { initQuran, initQuranDownload } from './quran.js';
 import { initContentModes, refreshLayoutVisibility } from './modes.js';
 import { renderLayoutConfigList } from './layout-settings.js';
 import { initPrayer } from './prayer.js';
@@ -33,6 +34,8 @@ async function init() {
   initSettingsNav();
   bindEvents();
   initHadith();
+  initQuran();
+  initQuranDownload();
   initAssistant();
   initPrayer();
   initReminders();

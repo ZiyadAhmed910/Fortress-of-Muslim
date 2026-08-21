@@ -1,5 +1,11 @@
 const APP_VERSION = 'build-dev';
 const CACHE_NAME = `fortress-of-muslim-${APP_VERSION}`;
+// Quran text is immutable scripture, so it is keyed by content version rather than by build and is
+// deliberately NOT cleared on activate. Surah bodies are fetched on demand and can add up to ~2.4MB
+// once someone downloads the lot; putting them in the per-build cache would throw that away on the
+// next deploy and silently take the Quran offline for anyone who had saved it.
+const QURAN_CACHE = 'fortress-quran-v1';
+const isQuranBody = (url) => url.pathname.includes('/data/quran/surah-');
 const ASSETS = [
   './',
   './index.html',
@@ -26,6 +32,7 @@ const ASSETS = [
   `./js/modes.js?v=${APP_VERSION}`,
   `./js/online.js?v=${APP_VERSION}`,
   `./js/prayer.js?v=${APP_VERSION}`,
+  `./js/quran.js?v=${APP_VERSION}`,
   `./js/prayer-times.js?v=${APP_VERSION}`,
   `./js/pwa.js?v=${APP_VERSION}`,
   `./js/reminders.js?v=${APP_VERSION}`,
@@ -39,6 +46,7 @@ const ASSETS = [
   './manifest.json',
   './data/duas.json',
   './data/duas.json?v=2026-07-23-hisn-v4',
+  './data/quran/index.json',
   './icons/favicon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -81,7 +89,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(
-      keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      keys.filter((key) => key !== CACHE_NAME && key !== QURAN_CACHE).map((key) => caches.delete(key))
     ))
   );
   self.clients.claim();
@@ -102,13 +110,14 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+  const target = isQuranBody(new URL(event.request.url)) ? QURAN_CACHE : CACHE_NAME;
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
         if (response.ok && response.type !== 'opaque') {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          caches.open(target).then((cache) => cache.put(event.request, copy));
         }
         return response;
       });

@@ -337,3 +337,149 @@
   .hadith-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .assistant-home { max-width: 40rem; }
 }
+
+/* --- Quran --- */
+.quran-search input {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  color: var(--ink);
+  background: var(--paper-strong);
+  font-size: 1rem;
+}
+
+.surah-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.surah-row {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr auto;
+  gap: 0.85rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: var(--paper-strong);
+  color: var(--ink);
+  text-align: left;
+}
+
+.surah-number {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent-strong);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.surah-names strong,
+.surah-names small {
+  display: block;
+}
+
+.surah-names small {
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.surah-arabic {
+  font-family: "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", serif;
+  font-size: calc(1.3rem * var(--arabic-scale));
+  color: var(--accent-strong);
+}
+
+.surah-header {
+  margin: 0.9rem 0 0.4rem;
+  text-align: center;
+}
+
+.surah-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.surah-header h2 span {
+  font-family: "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", serif;
+  color: var(--accent-strong);
+}
+
+.surah-header p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.surah-bismillah {
+  margin: 0 0 1.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+  font-family: "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", serif;
+  font-size: calc(1.5rem * var(--font-scale) * var(--arabic-scale));
+  text-align: center;
+}
+
+.ayah-list {
+  display: grid;
+  gap: 1.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ayah {
+  display: grid;
+  gap: 0.55rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.ayah:last-child {
+  border-bottom: 0;
+}
+
+.ayah-number {
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.ayah-arabic {
+  margin: 0;
+  font-family: "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", serif;
+  font-size: calc(1.55rem * var(--font-scale) * var(--arabic-scale));
+  line-height: 2;
+  text-align: right;
+}
+
+.ayah-english {
+  margin: 0;
+  color: color-mix(in srgb, var(--ink) 88%, var(--muted));
+  font-size: calc(1.02rem * var(--font-scale));
+  line-height: 1.6;
+}
+
+.quran-attribution {
+  margin: 1.6rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.mode-quran .advanced-home,
+.mode-quran .simple-home,
+.mode-quran .advanced-bottom-nav,
+.mode-quran .favourites-fab {
+  display: none;
+}

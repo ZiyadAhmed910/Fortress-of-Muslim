@@ -18,6 +18,7 @@ export const state = {
   waitingWorker: null,
   refreshing: false,
   contentMode: 'duas',
+  quranSurah: null,
   calculationMethod: localStorage.getItem('calculationMethod') || 'mwl',
   asrMethod: localStorage.getItem('asrMethod') || 'standard',
   manualLatitude: localStorage.getItem('manualLatitude') ? Number(localStorage.getItem('manualLatitude')) : null,

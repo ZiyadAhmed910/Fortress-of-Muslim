@@ -7,6 +7,7 @@ const STORAGE_KEY = 'fortress_layout_config';
 // visible in both Simple and Advanced UI, so the app always has at least one guaranteed-reachable
 // view no matter how everything else is configured.
 export const CONFIGURABLE_TABS = [
+  { id: 'quran', label: 'Quran' },
   { id: 'hadith', label: 'Hadith' },
   { id: 'ask', label: 'Ask' },
   { id: 'prayerTimes', label: 'Prayer Times' },

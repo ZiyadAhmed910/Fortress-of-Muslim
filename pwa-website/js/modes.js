@@ -1,11 +1,12 @@
 import { els } from './dom.js';
 import { state } from './state.js';
 import { activateHadith } from './hadith.js';
+import { activateQuran } from './quran.js';
 import { activatePrayerTimes, activateQibla, deactivatePrayerTimes, deactivateQibla } from './prayer.js';
 import { activateTasbih } from './tasbih.js';
 import { applyLayoutToNav, isTabVisible } from './layout.js';
 
-const MODES = ['duas', 'hadith', 'ask', 'prayerTimes', 'qibla', 'tasbih'];
+const MODES = ['duas', 'quran', 'hadith', 'ask', 'prayerTimes', 'qibla', 'tasbih'];
 
 export function initContentModes() {
   els.contentModeButtons.forEach((button) => button.addEventListener('click', () => setContentMode(button.dataset.contentMode)));
@@ -21,10 +22,11 @@ export function setContentMode(requestedMode) {
   const previousMode = state.contentMode;
   state.contentMode = mode;
   const showingDuas = mode === 'duas';
-  els.app.classList.remove('is-reader', 'mode-hadith', 'mode-ask', 'mode-prayerTimes', 'mode-qibla', 'mode-tasbih');
+  els.app.classList.remove('is-reader', 'mode-quran', 'mode-hadith', 'mode-ask', 'mode-prayerTimes', 'mode-qibla', 'mode-tasbih');
   if (!showingDuas) els.app.classList.add(`mode-${mode}`);
   els.advancedHome.hidden = !showingDuas;
   els.simpleHome.hidden = !showingDuas;
+  els.quranHome.hidden = mode !== 'quran';
   els.hadithHome.hidden = mode !== 'hadith';
   els.assistantHome.hidden = mode !== 'ask';
   els.prayerTimesHome.hidden = mode !== 'prayerTimes';
@@ -36,6 +38,10 @@ export function setContentMode(requestedMode) {
   if (mode === 'duas') {
     els.screenTitle.textContent = 'Fortress of Muslim';
     els.screenSubtitle.textContent = 'Verified canonical chapters available offline';
+  } else if (mode === 'quran') {
+    els.screenTitle.textContent = 'Quran';
+    els.screenSubtitle.textContent = 'Arabic with English translation - works offline';
+    activateQuran();
   } else if (mode === 'hadith') {
     els.screenTitle.textContent = 'Hadith Library';
     els.screenSubtitle.textContent = 'Bukhari, Muslim, and Tirmidhi - online';

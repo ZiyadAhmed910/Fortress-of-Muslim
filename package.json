@@ -30,7 +30,8 @@
     "smoke:production:services": "node tools/deployment-smoke.mjs production services",
     "smoke:production:portals": "node tools/deployment-smoke.mjs production portals",
     "map:build": "node tools/generate-codebase-map.mjs",
-    "check": "npm run data:safety && npm run pwa:release-check && npm run typecheck && npm run test && npm run security:check"
+    "check": "npm run data:safety && npm run pwa:release-check && npm run typecheck && npm run test && npm run security:check",
+    "pwa:quran:build": "node pwa-website/tools/build-quran-data.mjs"
   },
   "engines": {
     "node": ">=22"
