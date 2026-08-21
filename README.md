@@ -671,6 +671,12 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.017
+
+- The "Reload app" recovery now lands on a one-time `?reset=<timestamp>` URL. Reloading the same URL could still be answered from a cache, so a device that reached the fallback could bounce straight back to it; a URL that has never been requested cannot match any cache entry, in CacheStorage or the browser HTTP cache. The marker is stripped from the address bar once the app is up.
+- The fallback now explains itself: an expandable "What went wrong?" panel reports the build the device is actually running, whether it is installed or in a browser, online state, service worker and cache status, and the underlying script errors, with a Copy details button.
+- Fixed an unhandled rejection from the background location refresh. It is best-effort polish on top of coordinates already on screen, but a rejection there was visible to the startup watchdog as a failed boot.
+
 ### 1.016
 
 - Fixed the app getting stuck on "This app didn't finish loading properly", where tapping Reload looped straight back to the same screen. Only the `js/app.js` entry point was cache-busted; every module it imports was not, and the host serves `/js/` with a 4-hour `max-age` that overrode our `.htaccess` no-cache rule. After a deploy the browser paired a fresh `app.js` with hours-stale modules, so startup threw. Clearing the service worker and its caches (what Reload did) never touched the browser HTTP cache holding those modules, so every reload reproduced it until the cache expired. Every module import is now build-stamped, so a stale module can no longer be paired with a new one.

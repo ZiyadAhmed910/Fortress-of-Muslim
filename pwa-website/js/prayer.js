@@ -143,7 +143,10 @@ function refreshDeviceLocationQuietly() {
       showLocationKnown('qibla', currentCoordinates);
       computeAndRenderQibla();
     }
-  });
+  // Deliberately swallowed: this refresh is best-effort background polish on top of coordinates
+  // already on screen. Letting it reject would surface as an unhandled rejection, which the boot
+  // watchdog in index.html reads as a failed startup.
+  }).catch(() => {});
 }
 
 function rememberDeviceLocation(located) {

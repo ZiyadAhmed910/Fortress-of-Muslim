@@ -14,11 +14,36 @@
       <div style="max-width:22rem;padding:1.5rem;border-radius:0.9rem;background:#fff;color:#1a1a18;text-align:center;box-shadow:0 1rem 2.5rem rgba(0,0,0,0.35);">
         <p style="margin:0 0 0.9rem;font-size:1rem;line-height:1.5;">This app didn't finish loading properly -- this can happen right after an update. Reloading with a fresh copy usually fixes it.</p>
         <button id="bootFallbackReload" type="button" style="width:100%;padding:0.75rem 1rem;border:0;border-radius:0.6rem;background:#0b6f73;color:#fff;font-size:1rem;font-weight:700;">Reload app</button>
+        <details style="margin-top:0.9rem;text-align:left;">
+          <summary style="cursor:pointer;font-size:0.85rem;color:#5a5a54;">What went wrong?</summary>
+          <pre id="bootFallbackDetail" style="margin:0.6rem 0 0;padding:0.6rem;max-height:9rem;overflow:auto;border-radius:0.4rem;background:#f2f2ee;color:#2a2a26;font-size:0.72rem;line-height:1.45;white-space:pre-wrap;word-break:break-word;"></pre>
+          <button id="bootFallbackCopy" type="button" style="width:100%;margin-top:0.5rem;padding:0.5rem;border:1px solid #cfcfc8;border-radius:0.45rem;background:#fff;color:#2a2a26;font-size:0.82rem;font-weight:600;">Copy details</button>
+        </details>
       </div>
     </div>
     <script>
       (function () {
         var shown = false;
+        var reasons = [];
+
+        function note(reason) {
+          if (reasons.length < 6) reasons.push(reason);
+        }
+
+        // Recorded even when the app recovers, so the detail panel can explain a fallback that
+        // fires later, and so a report always carries the first real error rather than a generic
+        // "didn't load" with no cause.
+        window.addEventListener('error', function (event) {
+          note('error: ' + (event && event.message ? event.message : 'unknown')
+            + (event && event.filename ? ' @ ' + String(event.filename).split('/').pop() + ':' + event.lineno : ''));
+          showFallback();
+        });
+        window.addEventListener('unhandledrejection', function (event) {
+          var r = event && event.reason;
+          note('unhandledrejection: ' + (r && r.message ? r.message : String(r)));
+          showFallback();
+        });
+
         // The app signals readiness once its shell is interactive, which happens before dua data
         // finishes loading -- a slow network is not a broken app, and the data layer shows its own
         // error state if the fetch fails.
@@ -27,10 +52,40 @@
           shown = true;
           var el = document.getElementById('bootFallback');
           if (el) el.hidden = false;
+          var detail = document.getElementById('bootFallbackDetail');
+          if (!detail) return;
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return ('caches' in window ? caches.keys() : Promise.resolve([])).then(function (keys) {
+              detail.textContent = [
+                'build: ' + buildId(),
+                'url: ' + location.href,
+                'online: ' + navigator.onLine,
+                'display: ' + (matchMedia('(display-mode: standalone)').matches ? 'installed' : 'browser'),
+                'workers: ' + regs.length + (navigator.serviceWorker.controller ? ' (controlling)' : ' (not controlling)'),
+                'caches: ' + (keys.join(', ') || 'none'),
+                '',
+                reasons.length ? reasons.join('\n') : 'no script error was captured -- the app simply never signalled ready within ' + (TIMEOUT_MS / 1000) + 's',
+              ].join('\n');
+            });
+          }).catch(function () { detail.textContent = reasons.join('\n') || 'unavailable'; });
         }
-        window.addEventListener('error', showFallback);
-        window.addEventListener('unhandledrejection', showFallback);
-        setTimeout(function () { if (!window.__fortressAppReady) showFallback(); }, 10000);
+
+        var TIMEOUT_MS = 10000;
+        // Resolved lazily: this script runs before the module <script> at the end of <body> has
+        // been parsed, so reading it now would always report "unstamped". The build id is the most
+        // useful field in a report, since it says exactly which deploy the device is actually on.
+        function buildId() {
+          var src = (document.querySelector('script[src*="app.js"]') || {}).src || '';
+          return src.indexOf('?v=') > -1 ? src.split('?v=')[1] : 'unstamped';
+        }
+        setTimeout(function () { if (!window.__fortressAppReady) showFallback(); }, TIMEOUT_MS);
+
+        document.addEventListener('click', function (event) {
+          var copy = event.target.closest && event.target.closest('#bootFallbackCopy');
+          if (!copy) return;
+          var text = (document.getElementById('bootFallbackDetail') || {}).textContent || '';
+          if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { copy.textContent = 'Copied'; }, function () {});
+        });
 
         document.addEventListener('click', function (event) {
           var button = event.target.closest && event.target.closest('#bootFallbackReload');
@@ -49,11 +104,14 @@
               .catch(function () {}));
           }
           // Unregistering the worker and clearing CacheStorage leaves the browser HTTP cache
-          // untouched, so a plain reload could serve the very same stale files and loop straight
-          // back here. Re-fetching the document with cache:'reload' replaces that HTTP entry first.
+          // untouched, so reloading the same URL could serve the very same stale files and loop
+          // straight back here. Re-fetch the document past the HTTP cache, then land on a URL that
+          // has never been requested before -- a unique query string cannot hit any cache entry, in
+          // CacheStorage or the HTTP cache, so the next load is guaranteed to start clean.
+          var escapeUrl = location.pathname + '?reset=' + Date.now();
           Promise.all(cleanup)
-            .then(function () { return fetch(location.pathname, { cache: 'reload' }).catch(function () {}); })
-            .finally(function () { location.replace(location.pathname); });
+            .then(function () { return fetch(escapeUrl, { cache: 'reload' }).catch(function () {}); })
+            .finally(function () { location.replace(escapeUrl); });
         });
       })();
     </script>

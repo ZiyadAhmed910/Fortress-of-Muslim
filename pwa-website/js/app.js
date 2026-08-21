@@ -46,6 +46,7 @@ async function init() {
   // than after the data fetch: a slow connection is not a broken app, and a failed fetch has its
   // own error state below. The watchdog is only meant to catch "the app never booted at all".
   window.__fortressAppReady = true;
+  clearRecoveryMarker();
 
   try {
     const data = await loadDuas();
@@ -66,6 +67,17 @@ async function init() {
 
   setupServiceWorker();
   window.addEventListener('popstate', () => openCanonicalRoute());
+}
+
+// The boot fallback's recovery lands on ?reset=<timestamp> so the request cannot match any cache
+// entry. Once the shell is up that marker has done its job, so drop it from the address bar rather
+// than leaving it on every subsequent share/bookmark of the page.
+function clearRecoveryMarker() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has('reset')) return;
+  params.delete('reset');
+  const query = params.toString();
+  history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
 }
 
 function openAdhkarFromNotificationUrl() {
