@@ -71,3 +71,103 @@
   background: color-mix(in srgb, var(--paper) 76%, transparent);
   text-align: center;
 }
+
+/* --- First-run walkthrough ------------------------------------------------ */
+
+.onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: color-mix(in srgb, #14140f 62%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+.onboarding-card {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 22rem);
+  padding: 1.5rem 1.35rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  background: var(--paper-strong);
+  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.32);
+  text-align: center;
+}
+
+.onboarding-icon {
+  margin: 0;
+  font-size: 2.1rem;
+  line-height: 1;
+}
+
+.onboarding-card h2 {
+  margin: 0;
+  font-size: 1.12rem;
+  line-height: 1.35;
+}
+
+.onboarding-body {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.onboarding-progress {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.onboarding-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+}
+
+.onboarding-dot.is-current {
+  width: 1.35rem;
+  background: var(--accent-strong);
+}
+
+.onboarding-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.onboarding-spacer { flex: 1 1 auto; }
+
+.onboarding-actions button {
+  padding: 0.55rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Skip is deliberately quiet but never hidden -- it is on every step, because a tour someone
+   cannot leave is worse than no tour. */
+.onboarding-skip {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-weight: 500 !important;
+}
+
+.onboarding-next {
+  border-color: var(--accent-strong) !important;
+  background: var(--accent-strong) !important;
+  color: #fff !important;
+}
