@@ -23,7 +23,7 @@ Two commitments shape every other decision in this codebase:
 
 ## Current version
 
-`0.23.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
+`0.24.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
 `package.json`). See `README.md` → `## Platform Releases` for the full version history — it is
 the closest thing this repo has to a changelog and should be treated as one.
 
@@ -122,13 +122,37 @@ Developer Portal, Admin Console). This is a passive dashboard, not an alerting s
 pages anyone when a probe fails. Closing that gap is 0.20 Operations work (see below).
 
 ### `pwa-website` — The PWA (fortressofmuslim.org)
-The original, still-primary user-facing product. Offline-first: 132 Hisn al-Muslim chapters / 268
-individual readings bundled locally (`pwa-website/data/`), installable, works after first load.
-Online-only features (Hadith browser, Ask) are explicitly isolated from the offline Dua mode and
-never enter the offline cache. Simple and advanced UI modes, category/mood browsing (moods/Ruqyah
-UI exists; the underlying verified content for them does not yet — see Goals), search with title
-highlighting, favourites, swipe reader, dark mode, settings export/import. Has its own independent
-version scheme (`1.0XX`, git-commit-count derived) separate from `PLATFORM_VERSION`.
+The flagship and still the primary user-facing product. Offline-first in the strong sense: only the
+Hadith browser and Ask need a network, and both are isolated from the offline caches so they can
+never take the offline content down with them. Has its own version scheme (`1.0XX`, git-commit-count
+derived, stamped by `tools/stamp_version.py`) separate from `PLATFORM_VERSION`.
+
+What it actually contains today:
+
+- **Duas** — 132 Hisn al-Muslim chapters / 268 readings bundled locally (`pwa-website/data/duas.json`).
+  Categories and moods are read from curated fields on each entry. They used to be inferred by
+  keyword-matching the text, which put 58% of assignments in the wrong place (a dua for wearing new
+  clothes was filed as healing recitation because its translation contains "protection"); that
+  inference is gone and `test/categories.test.js` asserts no category is ever assigned that a
+  curator did not set.
+- **Quran** — all 114 surahs, Saheeh International translation, tajweed colouring, sajdah marks,
+  page or continuous reading, per-ayah and per-surah favourites, continue-reading, and a
+  download-everything option. Surah bodies are fetched per surah into `fortress-quran-v1`, a cache
+  keyed by content version rather than by build so a deploy never wipes downloaded scripture.
+- **Recitation** — ayah-by-ayah playback (seven reciters) that advances through the surah, with
+  repeat modes and a cancellable per-surah offline download in `fortress-quran-audio-v1`.
+- **Word by word** — every word with its English gloss, tappable for word audio. Segmentation is
+  built from quran.com rather than derived from the text; see `tools/build-quran-words.mjs` for why
+  that distinction is load-bearing.
+- **Prayer times** — Meeus solar position, five calculation methods, both Asr methods, four
+  high-latitude conventions plus a nearest-latitude fallback inside the polar circles, with derived
+  times labelled as estimated. `test/prayer-times.test.js` covers ordering across a full year,
+  Hanafi vs standard Asr, all three night-division rules at Oslo, and the polar case at Tromsø.
+- **Qibla** — great-circle bearing plus a live compass where absolute heading is available.
+- **Tasbih** — presets, custom phrases, lifetime totals.
+- **Reminders** — opt-in local notifications for the five prayers and morning/evening adhkar.
+- **Shell** — simple and advanced layouts, per-feature show/hide, dark mode, first-run walkthrough,
+  and backup export/import covering favourites, settings, tasbih, layout and Quran preferences.
 
 ### `android-app`
 Not started. Planned after the PWA and API contracts stabilize.
@@ -165,7 +189,8 @@ directly, check whether it should be reading `api_current_content` / `canonical_
 
 ## Known documentation gaps (as of 0.19.1)
 
-- `docs/platform-architecture.md` labels Admin/Help/MCP as "Future" — Admin and MCP are live.
+- ~~`docs/platform-architecture.md` labels Admin/Help/MCP as "Future"~~ — corrected in 0.24.0.
+  (There is no `apps/help`; that entry described an app that was never created.)
 - `README.md`'s Admin Console dev section says "Never hard-code a privileged email or user ID in
   source" — `apps/auth/src/admin-plane.ts`'s `bootstrapDefaultAdmin` does exactly that (hardcodes
   the repo owner's email as a break-glass admin bootstrap). This is a deliberate, working mechanism
@@ -346,6 +371,38 @@ Reliability and safety, not new features, before anything else ships. Status of 
 Human-reviewed content expansion (more duas, Hadith collections, moods, Ruqyah) is explicitly
 gated on qualified editorial review — it is not a data-import problem, it's a "find qualified
 Editors and Reviewers" problem (`docs/canonical-data-roadmap.md` → Editorial Operations).
+
+## The two products, and what each is for
+
+The repo serves two audiences with genuinely different goals, and confusing them is the main way
+effort gets misspent here.
+
+**The PWA is for ordinary Muslims and must stay light.** Its job is to be the app someone opens
+five times a day: fast, offline, ad-free, no account required, nothing to configure before it is
+useful. Every feature added to it is weighed against install size and first-load time — which is
+why the Quran text, word data and recitation audio all load per surah on demand rather than
+shipping in the install, and why word data (2.6MB across 114 files) is fetched only when word mode
+is switched on. "It would be nice to have" is not sufficient reason to make the first load slower.
+
+**The Developer Portal is the ambitious one: a single open API and database of verified Islamic
+data.** The intent is that a developer arrives, signs up, and can build on canonical, verified,
+citable content — Quran, duas, hadith, prayer times — without assembling it from a dozen
+inconsistent sources first. The moat is not the API surface; it is that the corpus is verified,
+attributed, and stable, with an editorial process behind it that can be pointed at.
+
+That framing has a consequence worth stating plainly: the platform's value is the *corpus*, not
+generic platform machinery. Building tenant-content storage, custom objects, or hosted execution
+would mean competing with Cloudflare and Supabase on their own ground while the thing nobody else
+has — the verified library — gets less attention. Features that make the corpus more usable
+(delta sync, bulk export, SDKs, stable ids, published licensing) rank above features that make the
+platform more general.
+
+One gap follows directly from that: there is still no published statement of what a developer is
+permitted to do with the corpus — how it may be cached, redistributed, or attributed. Per-source
+terms are recorded as structured metadata in `pwa-website/data/quran/index.json` under
+`attribution`, but that covers the Quran alone and is not a platform-wide grant. A developer
+evaluating this commercially reaches that question before they reach any feature gap, so publishing
+it is worth more than most of what is on the roadmap above.
 
 ## Where to look for more detail
 
