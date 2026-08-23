@@ -29,6 +29,7 @@ export function exportUserData() {
       manualLatitude: state.manualLatitude,
       manualLongitude: state.manualLongitude,
       remindersEnabled: state.remindersEnabled,
+      prayerAdhanEnabled: state.prayerAdhanEnabled,
       morningAdhkarEnabled: state.morningAdhkarEnabled,
       eveningAdhkarEnabled: state.eveningAdhkarEnabled,
     },
@@ -82,6 +83,7 @@ function importUserData(payload) {
   state.manualLatitude = typeof settings.manualLatitude === 'number' ? clampNumber(settings.manualLatitude, -90, 90, null) : null;
   state.manualLongitude = typeof settings.manualLongitude === 'number' ? clampNumber(settings.manualLongitude, -180, 180, null) : null;
   state.remindersEnabled = Boolean(settings.remindersEnabled);
+  state.prayerAdhanEnabled = Boolean(settings.prayerAdhanEnabled);
   state.morningAdhkarEnabled = settings.morningAdhkarEnabled !== false;
   state.eveningAdhkarEnabled = settings.eveningAdhkarEnabled !== false;
 
@@ -100,6 +102,7 @@ function importUserData(payload) {
     localStorage.removeItem('manualLongitude');
   }
   localStorage.setItem('remindersEnabled', String(state.remindersEnabled));
+  localStorage.setItem('prayerAdhanEnabled', String(state.prayerAdhanEnabled));
   localStorage.setItem('morningAdhkarEnabled', String(state.morningAdhkarEnabled));
   localStorage.setItem('eveningAdhkarEnabled', String(state.eveningAdhkarEnabled));
   writeTasbihStorage(payload.tasbih);

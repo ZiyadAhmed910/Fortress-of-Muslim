@@ -30,6 +30,7 @@ export const state = {
   prayerCountdownTimer: null,
   deviceOrientationActive: false,
   remindersEnabled: localStorage.getItem('remindersEnabled') === 'true',
+  prayerAdhanEnabled: localStorage.getItem('prayerAdhanEnabled') === 'true',
   morningAdhkarEnabled: localStorage.getItem('morningAdhkarEnabled') !== 'false',
   eveningAdhkarEnabled: localStorage.getItem('eveningAdhkarEnabled') !== 'false',
 };

@@ -25,6 +25,11 @@ const scheduledTimeouts = [];
 
 export function initReminders() {
   els.remindersEnabledToggle.addEventListener('change', onRemindersEnabledChange);
+  els.prayerAdhanToggle.addEventListener('change', () => {
+    state.prayerAdhanEnabled = els.prayerAdhanToggle.checked;
+    localStorage.setItem('prayerAdhanEnabled', String(state.prayerAdhanEnabled));
+    scheduleToday();
+  });
   els.morningAdhkarToggle.addEventListener('change', () => {
     state.morningAdhkarEnabled = els.morningAdhkarToggle.checked;
     localStorage.setItem('morningAdhkarEnabled', String(state.morningAdhkarEnabled));
@@ -58,6 +63,7 @@ export function initReminders() {
 export function syncReminderControls() {
   const granted = hasNotificationPermission();
   els.remindersEnabledToggle.checked = state.remindersEnabled && granted;
+  els.prayerAdhanToggle.checked = state.prayerAdhanEnabled;
   els.morningAdhkarToggle.checked = state.morningAdhkarEnabled;
   els.eveningAdhkarToggle.checked = state.eveningAdhkarEnabled;
   els.remindersUnsupportedNote.hidden = 'Notification' in window;
@@ -112,10 +118,19 @@ function updateLocationNote() {
   els.remindersLocationNote.hidden = !needsLocation;
 }
 
+// Sunrise is in the computed set but is not a prayer, so it never raises an alert.
+const PRAYER_ALERTS = [
+  { key: 'fajr', label: 'Fajr' },
+  { key: 'dhuhr', label: 'Dhuhr' },
+  { key: 'asr', label: 'Asr' },
+  { key: 'maghrib', label: 'Maghrib' },
+  { key: 'isha', label: 'Isha' },
+];
+
 export function scheduleToday() {
   clearScheduled();
   if (!state.remindersEnabled || !hasNotificationPermission()) return;
-  if (!state.morningAdhkarEnabled && !state.eveningAdhkarEnabled) return;
+  if (!state.morningAdhkarEnabled && !state.eveningAdhkarEnabled && !state.prayerAdhanEnabled) return;
 
   const coordinates = getKnownCoordinates();
   updateLocationNote();
@@ -137,6 +152,22 @@ export function scheduleToday() {
       `It's been ${EVENING_OFFSET_MINUTES} minutes since Asr (${formatPrayerClock(times.asr)}) -- time for your evening remembrances.`,
       'evening',
     );
+  }
+
+  // One notification at each prayer time itself. Sunrise is excluded: it marks the end of Fajr's
+  // window rather than a prayer. Fired at the computed minute with no offset, unlike the adhkar
+  // reminders which deliberately trail their prayer.
+  if (state.prayerAdhanEnabled) {
+    PRAYER_ALERTS.forEach(({ key, label }) => {
+      const time = times[key];
+      if (!time) return;
+      scheduleAt(
+        timeToDateToday(time, 0),
+        `${label} — ${formatPrayerClock(time)}`,
+        `It is time for ${label}.`,
+        'prayer',
+      );
+    });
   }
 }
 
