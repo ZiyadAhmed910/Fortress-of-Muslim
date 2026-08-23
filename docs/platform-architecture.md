@@ -28,13 +28,12 @@ apps/
   auth/             Identity, API keys, organizations, OAuth 2.1 and control-plane storage
   developers/       Developer documentation, credentials and authenticated API explorer
   status/           Static service health dashboard
-  admin/            Future administrative control plane
-  help/             Future support portal
-  mcp/              Future MCP server
+  admin/            Administrative control plane (live)
+  mcp/              MCP gateway (live)
 packages/
   contracts/        Shared API schemas and types
   portal-ui/        Shared static portal design system and build pipeline
-pwa-website/        Existing static PWA, retained during migration
+pwa-website/        The flagship offline-first PWA
 ```
 
 ## Environment Model
@@ -64,7 +63,7 @@ Canonical IDs are stable and readable, for example `dua.hisn.001`. Part and segm
 
 The current JSON is a publishing input, not a runtime API database. The migration generator hashes the complete source and produces repeatable SQL. Database migrations run before each Worker deployment, so a Worker is never released against a missing schema.
 
-Future Admin publishing should create a new dataset version, validate it, and atomically activate it. Religious content must retain source provenance and verification status throughout that process.
+Admin publishing should create a new dataset version, validate it, and atomically activate it (not yet implemented). Religious content must retain source provenance and verification status throughout that process.
 
 Canonical metadata extends those core tables with languages, translations, collections, books, chapters, dua and Hadith metadata, typed taxonomy, source references, cross references, contributors, deterministic search metadata, and append-only verification, correction, publication, and content-audit history.
 

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-23T16:01:54.373Z",
+  "generatedAt": "2026-08-23T16:57:12.111Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -603,7 +603,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 190,
+      "lines": 200,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -643,7 +643,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 128,
+      "lines": 146,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -698,6 +698,14 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/js/onboarding.js",
+      "lines": 111,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/js/online.js",
       "lines": 21,
       "language": "js",
@@ -707,7 +715,7 @@
     },
     {
       "path": "pwa-website/js/prayer-times.js",
-      "lines": 202,
+      "lines": 274,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -715,7 +723,7 @@
     },
     {
       "path": "pwa-website/js/prayer.js",
-      "lines": 376,
+      "lines": 431,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -730,8 +738,16 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/js/quran-audio.js",
+      "lines": 426,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/js/quran.js",
-      "lines": 544,
+      "lines": 685,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -747,7 +763,7 @@
     },
     {
       "path": "pwa-website/js/reminders.js",
-      "lines": 212,
+      "lines": 221,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -771,7 +787,7 @@
     },
     {
       "path": "pwa-website/js/state.js",
-      "lines": 37,
+      "lines": 38,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -787,7 +803,7 @@
     },
     {
       "path": "pwa-website/js/userData.js",
-      "lines": 164,
+      "lines": 171,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -803,7 +819,39 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 152,
+      "lines": 174,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/categories.test.js",
+      "lines": 121,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/prayer-times.test.js",
+      "lines": 167,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/quran-words.test.js",
+      "lines": 129,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/vitest.config.js",
+      "lines": 12,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1941,6 +1989,7 @@
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/src/index.ts",
         "pwa-website/js/prayer.js",
+        "pwa-website/js/quran-audio.js",
         "pwa-website/js/reminders.js",
         "pwa-website/sw.js"
       ]
@@ -2299,6 +2348,14 @@
       "referencedBy": []
     },
     {
+      "name": "curated",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/categories.test.js"
+      ]
+    },
+    {
       "name": "dataset_sources",
       "kind": "table",
       "definedIn": [
@@ -2353,6 +2410,14 @@
         "apps/auth/migrations/0003_developer_console.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "different",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/quran-words.test.js"
+      ]
     },
     {
       "name": "disagreement_queue",
@@ -2430,7 +2495,24 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "apps/auth/test/admin-mfa-gate.test.ts"
+        "apps/auth/test/admin-mfa-gate.test.ts",
+        "pwa-website/js/onboarding.js"
+      ]
+    },
+    {
+      "name": "everyayah",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran-audio.js"
+      ]
+    },
+    {
+      "name": "everyone",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/onboarding.js"
       ]
     },
     {
@@ -2493,11 +2575,20 @@
       "referencedBy": []
     },
     {
+      "name": "it",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran-audio.js"
+      ]
+    },
+    {
       "name": "its",
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "apps/auth/src/admin-plane.ts"
+        "apps/auth/src/admin-plane.ts",
+        "pwa-website/test/categories.test.js"
       ]
     },
     {
@@ -2540,6 +2631,14 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/layout.js"
+      ]
+    },
+    {
+      "name": "Maghrib",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/prayer-times.test.js"
       ]
     },
     {
@@ -2698,6 +2797,14 @@
       "referencedBy": []
     },
     {
+      "name": "opening",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran.js"
+      ]
+    },
+    {
       "name": "operational_alerts",
       "kind": "table",
       "definedIn": [
@@ -2802,6 +2909,14 @@
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "quran",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/quran-words.test.js"
+      ]
     },
     {
       "name": "rag_daily_usage",
@@ -2931,6 +3046,14 @@
       ]
     },
     {
+      "name": "Ruqyah",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/categories.test.js"
+      ]
+    },
+    {
       "name": "segment_translations",
       "kind": "table",
       "definedIn": [
@@ -2992,6 +3115,22 @@
       "referencedBy": []
     },
     {
+      "name": "splitting",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran-audio.js"
+      ]
+    },
+    {
+      "name": "sunset",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer-times.js"
+      ]
+    },
+    {
       "name": "taxonomy_terms",
       "kind": "table",
       "definedIn": [
@@ -3026,7 +3165,14 @@
         "pwa-website/js/app.js",
         "pwa-website/js/categories.js",
         "pwa-website/js/layout-settings.js",
-        "pwa-website/js/quran.js"
+        "pwa-website/js/onboarding.js",
+        "pwa-website/js/prayer-times.js",
+        "pwa-website/js/prayer.js",
+        "pwa-website/js/quran-audio.js",
+        "pwa-website/js/quran.js",
+        "pwa-website/test/categories.test.js",
+        "pwa-website/test/prayer-times.test.js",
+        "pwa-website/test/quran-words.test.js"
       ]
     },
     {

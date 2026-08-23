@@ -18,29 +18,41 @@ The long-term plan is to support a larger curated library with 300-400 duas, ref
 
 ## App Features
 
-- Offline-first PWA with manifest and service worker.
-- Responsive mobile-first interface.
-- Simple UI by default.
-- Optional advanced graphical UI.
-- Home list with category pills.
-- Advanced home cards for all duas, morning, evening, sleep, salah, travel, favourites, moods, and ruqyah.
-- Advanced bottom navigation with Home, Favourites, Morning, Evening, Moods, and Ruqyah.
-- Search across titles, dua text, Arabic/transliteration/translation content, derived categories, moods, and tags.
-- Highlighted title matches in search results.
-- Favourites saved locally in the browser.
-- Favourites-only view.
-- Detail reader with part navigation.
-- Swipe support in the reader.
-- Copy and share full dua text.
-- Zoom in/out reading controls.
-- Dark mode.
-- Larger Arabic text option.
-- Settings backup export/import for favourites and settings.
-- Lightweight loading skeleton.
-- Lazy list rendering with Load more.
-- Lazy-loaded advanced card images.
-- Version display in Settings.
-- Install prompt and update banner support.
+The PWA is the flagship: a complete Islamic companion that works with no connection. Only the
+Hadith browser and the Ask assistant require the network, and both are deliberately isolated from
+the offline caches.
+
+**Duas** — 132 Hisn al-Muslim chapters / 268 readings bundled locally. Categories and moods come
+from curated data on each entry, never inferred from the text. Search covers titles, Arabic,
+transliteration, translation, categories, moods and tags, with matches highlighted. Favourites,
+part-by-part reader, swipe navigation, copy and share.
+
+**Quran** — all 114 surahs with Saheeh International translation, fetched per surah on first open
+and kept in a cache that survives deploys. Tajweed colouring, page or continuous reading, sajdah
+marks, per-ayah and per-surah favourites, continue-reading, and full-Quran download for offline use.
+
+**Recitation** — ayah-by-ayah playback from seven reciters that advances through the surah on its
+own, highlighting and scrolling to each ayah. Repeat off/ayah/surah, and a per-surah offline
+download that reports real bytes as it goes and can be cancelled.
+
+**Word by word** — every word with its English meaning, and tap any word to hear it. Word positions
+are built from the same source that numbers the audio files rather than derived from the text, so a
+word never plays out of step with the one shown.
+
+**Prayer times** — Meeus solar-position maths with five calculation methods and both Asr methods.
+Above ~48° where Fajr and Isha cannot be observed, four high-latitude conventions are offered
+(angle-based, one-seventh, middle of the night, or none); inside the polar circles times come from
+the nearest latitude where the sun rises and sets. Every derived time is labelled as estimated.
+
+**Qibla** — great-circle bearing with a live compass where the device supports absolute heading.
+
+**Tasbih** — presets, custom phrases, lifetime totals, progress ring and haptics.
+
+**Reminders** — opt-in local notifications for the five prayers and for morning and evening adhkar.
+
+**Throughout** — installable PWA with update banner, simple and advanced layouts, per-feature
+show/hide, dark mode, adjustable Arabic size, first-run walkthrough, and backup export/import
+covering favourites, settings, tasbih, layout and Quran preferences.
 
 ## Project Structure
 
@@ -161,6 +173,36 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.24.0
+
+_2026-08-23_
+
+- **Recitation player.** Ayah-by-ayah playback in the Quran reader, streamed per ayah from
+  everyayah.com so the first word sounds in ~150KB rather than after a whole-surah download.
+  Seven reciters, repeat off/ayah/surah, auto-advance with highlight and follow-along scrolling
+  across page turns, and a cancellable per-surah offline download that reports real bytes.
+- **Word-by-word audio and meaning.** Each word shown with its English gloss and playable on tap.
+  Word data is built from quran.com's segmentation (`pwa-website/tools/build-quran-words.mjs`)
+  rather than derived by splitting the Arabic: splitting agrees for 6232 of 6236 ayahs, and in the
+  other four Tanzil writes as two tokens what the Uthmani script counts as one, which would have
+  played every later word in those ayahs one position off with no visible symptom.
+- **High-latitude prayer times.** Above ~48° the sun does not always reach the Fajr/Isha angle and
+  the app previously showed nothing at all. Four conventions are now offered — angle-based
+  (default), one-seventh of the night, middle of the night, or none — with the Aqrab al-Bilaad
+  nearest-latitude fallback inside the polar circles. Derived times are labelled "estimated" and a
+  note names the convention; choosing "none" still explains the blanks.
+- **First-run walkthrough.** Four skippable cards covering offline behaviour, Quran options,
+  location handling and personalisation. Replayable from Settings → About.
+- **PWA test suite.** `pwa-website` is now a workspace with vitest + happy-dom, wired into
+  `npm run check`: 44 tests over prayer-time maths, dua categorisation and Quran word data.
+- **Fixed a recurring `hidden` bug class.** The `hidden` attribute is enforced only by a bare
+  attribute selector, so any class rule setting `display` defeated it while scripts still read
+  `.hidden` as true. This had pinned open a boot banner, a sign-out button and the new player bar,
+  and was silently displaying the qibla card and both location forms. `[hidden]` is now enforced
+  once, globally, in `css/base.css`.
+- **Documentation.** `docs/project-overview.md` and the README feature list rewritten against the
+  code; `docs/platform-architecture.md` corrected where it still described shipped apps as future.
 
 ### 0.23.2
 
