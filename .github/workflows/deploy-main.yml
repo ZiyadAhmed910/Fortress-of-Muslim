@@ -41,6 +41,11 @@ jobs:
             **/tools/**
             **/visualize.html
             **/visualize.css
+            **/node_modules/**
+            **/package.json
+            **/package-lock.json
+            **/vitest.config.js
+            **/test/**
 
       - name: Smoke test production PWA
         run: curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 https://fortressofmuslim.org/ > /dev/null
