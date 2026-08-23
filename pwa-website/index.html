@@ -697,13 +697,34 @@
                 <span class="settings-category-chevron" aria-hidden="true">›</span>
               </button>
               <section class="settings-panel" id="settings-panel-about" data-settings-panel="about" hidden>
-            <div class="settings-version" id="appVersion" aria-label="App version">Version 1.013</div>
+                <div class="setting-row">
+                  <span>
+                    <strong>Walkthrough</strong>
+                    <small>Show the first-run introduction again.</small>
+                  </span>
+                  <button class="small-action-button" id="replayOnboardingButton" type="button">Show</button>
+                </div>
+                <div class="settings-version" id="appVersion" aria-label="App version">Version 1.013</div>
               </section>
             </div>
           </div>
         </form>
       </dialog>
 
+      <div class="onboarding" id="onboarding" hidden role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+        <div class="onboarding-card">
+          <p class="onboarding-icon" id="onboardingIcon" aria-hidden="true"></p>
+          <h2 id="onboardingTitle"></h2>
+          <p class="onboarding-body" id="onboardingBody"></p>
+          <div class="onboarding-progress" id="onboardingProgress" role="group" aria-label="Walkthrough steps"></div>
+          <div class="onboarding-actions">
+            <button type="button" class="onboarding-skip" data-onboarding-skip>Skip</button>
+            <span class="onboarding-spacer"></span>
+            <button type="button" class="onboarding-back" id="onboardingBack" data-onboarding-back hidden>Back</button>
+            <button type="button" class="onboarding-next" id="onboardingNext" data-onboarding-next>Next</button>
+          </div>
+        </div>
+      </div>
       <div class="quran-player" id="quranPlayer" hidden role="region" aria-label="Recitation player">
         <div class="quran-player-main">
           <button class="quran-player-button" type="button" data-player-action="previous" aria-label="Previous ayah">&#9664;&#9664;</button>
