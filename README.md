@@ -671,6 +671,14 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.024
+
+- Dua categories and moods now come from the curated data only. They were previously inferred by checking whether a keyword appeared anywhere in a dua, body text included, which filed 58% of assignments wrongly: "When wearing a new garment" was a healing recitation because its translation contains the word "refuge".
+- Split the 25 duas tagged Ruqyah. Ruqyah now means recitation made over a person, for protection or cure, and holds six. Twelve occasional protection duas move to a new Protection category, and seven inner-hardship ones move to Other, where their Anxious and Sad moods still find them.
+- Added an Other category so the 69 duas with no curated category stay browsable rather than being reachable only by search.
+- Morning, Evening, Sleep, Salah and Travel were audited and their curated membership was already correct; they were only being polluted by the inference. Morning now correctly holds "When waking up" and the morning and evening adhkar, instead of also offering "Before sleeping".
+- Search is unchanged and still matches the full text of every dua.
+
 ### 1.023
 
 - Added prayer time notifications: an alert at Fajr, Dhuhr, Asr, Maghrib and Isha, alongside the existing morning and evening adhkar reminders. Sunrise is excluded as it marks the end of Fajr's window rather than a prayer.

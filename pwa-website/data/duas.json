@@ -2701,7 +2701,7 @@
       "duplicateId": false,
       "categories": [
         "sleep",
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "anxious",
@@ -2931,9 +2931,7 @@
       "uid": "dua-034",
       "sequence": 34,
       "duplicateId": false,
-      "categories": [
-        "ruqyah"
-      ],
+      "categories": [],
       "moods": [
         "anxious",
         "sad"
@@ -2994,9 +2992,7 @@
       "uid": "dua-035",
       "sequence": 35,
       "duplicateId": false,
-      "categories": [
-        "ruqyah"
-      ],
+      "categories": [],
       "moods": [
         "anxious",
         "sad"
@@ -3093,7 +3089,7 @@
       "sequence": 36,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "afraid",
@@ -3177,7 +3173,7 @@
       "sequence": 37,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "afraid",
@@ -3240,7 +3236,7 @@
       "sequence": 38,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "afraid",
@@ -3285,7 +3281,7 @@
       "sequence": 39,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "afraid",
@@ -3331,9 +3327,7 @@
       "uid": "dua-040",
       "sequence": 40,
       "duplicateId": false,
-      "categories": [
-        "ruqyah"
-      ],
+      "categories": [],
       "moods": [
         "anxious"
       ],
@@ -3512,9 +3506,7 @@
       "uid": "dua-043",
       "sequence": 43,
       "duplicateId": false,
-      "categories": [
-        "ruqyah"
-      ],
+      "categories": [],
       "moods": [
         "anxious"
       ],
@@ -3677,9 +3669,7 @@
       "uid": "dua-046",
       "sequence": 46,
       "duplicateId": false,
-      "categories": [
-        "ruqyah"
-      ],
+      "categories": [],
       "moods": [
         "anxious",
         "sad"
@@ -3872,9 +3862,7 @@
       "uid": "dua-050",
       "sequence": 50,
       "duplicateId": false,
-      "categories": [
-        "ruqyah"
-      ],
+      "categories": [],
       "moods": [],
       "tags": [
         "ruqyah",
@@ -4031,9 +4019,7 @@
       "uid": "dua-053",
       "sequence": 53,
       "duplicateId": false,
-      "categories": [
-        "ruqyah"
-      ],
+      "categories": [],
       "moods": [
         "anxious",
         "sad"
@@ -4419,7 +4405,7 @@
       "sequence": 61,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "protection"
@@ -5595,7 +5581,7 @@
       "sequence": 88,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "afraid",
@@ -5762,7 +5748,7 @@
       "sequence": 92,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "afraid",
@@ -6638,7 +6624,7 @@
       "sequence": 110,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "protection"
@@ -6685,7 +6671,7 @@
       "sequence": 111,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "protection"
@@ -7338,7 +7324,7 @@
       "sequence": 126,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "afraid"
@@ -7420,7 +7406,7 @@
       "sequence": 128,
       "duplicateId": false,
       "categories": [
-        "ruqyah"
+        "protection"
       ],
       "moods": [
         "afraid",
