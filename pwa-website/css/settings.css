@@ -163,10 +163,6 @@
   font-size: 1.2rem;
 }
 
-.settings-back-button[hidden] {
-  display: none;
-}
-
 /* Settings reads as grouped cards rather than hairline-separated text rows. The previous version
    drew only a 1px top border on transparent rows inside a rounded dialog, which left dangling lines
    with no surface behind them and no press feedback -- the "weird border" look. */
@@ -243,42 +239,6 @@
   color: var(--muted);
   font-size: 0.8rem;
   line-height: 1.35;
-}
-
-.settings-category-chevron {
-  flex: none;
-  color: var(--muted);
-  font-size: 1.35rem;
-  line-height: 1;
-}
-
-/* Panels group their rows on the same card surface as the category list. */
-.settings-panel {
-  display: grid;
-  gap: 0;
-  overflow: hidden;
-  border-radius: 0.85rem;
-  background: var(--paper);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-.settings-panel > .setting-row,
-.settings-panel > .layout-config-list,
-.settings-panel > .settings-version {
-  border-top: 0;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
-}
-
-.settings-panel > .setting-row + .setting-row,
-.settings-panel > .setting-row + .layout-config-list {
-  box-shadow: inset 0 1px 0 var(--line);
-}
-
-.settings-panel > .settings-section-note {
-  margin: 0;
-  padding: 0.85rem 1rem 0.2rem;
 }
 
 .setting-row {
@@ -413,4 +373,104 @@
 
 .layout-config-row:has([data-layout-enable]:not(:checked)) select {
   pointer-events: none;
+}
+
+/* Accordion groups: the row and the panel it opens are one unit, separated from the next group by an
+   inset hairline. The panel sits on a slightly recessed surface so it reads as belonging to the row
+   above rather than as a separate card. */
+.settings-group + .settings-group {
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.settings-group[hidden] {
+  display: none;
+}
+
+.settings-category-chevron {
+  flex: none;
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.settings-group.is-open .settings-category-chevron {
+  transform: rotate(90deg);
+}
+
+.settings-group.is-open > .settings-category-row {
+  color: var(--accent-strong);
+}
+
+.settings-group.is-open > .settings-category-row strong {
+  color: var(--accent-strong);
+}
+
+/* Panels are nested inside the list card, so they carry no card of their own. */
+.settings-panel {
+  display: grid;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.settings-panel[hidden] {
+  display: none;
+}
+
+.settings-panel > .setting-row + .setting-row,
+.settings-panel > .setting-row + .layout-config-list,
+.settings-panel > .reminder-note + .setting-row {
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.settings-panel > .settings-section-note {
+  margin: 0;
+  padding: 0.8rem 1rem 0.2rem;
+}
+
+.settings-panel > .layout-config-list {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.settings-panel > .settings-version {
+  padding: 1rem;
+}
+
+/* Quran reader chrome. A dedicated class rather than reusing .is-reader, because every content-mode
+   section lives inside #homeView and .is-reader hides that whole subtree -- which would take the
+   Quran reader with it. */
+.is-surah .content-mode-switch {
+  display: none;
+}
+
+.is-surah .back-button {
+  visibility: visible;
+}
+
+.is-surah .brand-title img {
+  display: none;
+}
+
+.is-surah .brand-title {
+  grid-template-columns: minmax(0, auto);
+}
+
+/* Leaves room for the fixed control strip at the bottom of a surah. */
+.is-surah .quran-reader {
+  padding-bottom: 5.4rem;
+}
+
+.quran-controls {
+  grid-template-columns: repeat(6, 2.65rem);
+}
+
+.quran-controls .tool-button.active {
+  color: #d0a215;
+}
+
+.quran-controls .tool-button:disabled {
+  opacity: 0.35;
 }

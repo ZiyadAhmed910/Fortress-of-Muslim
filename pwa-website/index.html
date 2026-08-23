@@ -202,7 +202,6 @@
 
           <section class="online-home quran-home" id="quranHome" hidden>
         <div id="quranBrowse">
-          <div id="quranResume"></div>
           <div class="quran-search-row">
             <label class="quran-search">
               <span class="visually-hidden">Search surahs</span>
@@ -210,6 +209,7 @@
             </label>
             <button class="chip-toggle" id="quranFavFilter" type="button" aria-label="Show favourite surahs only">☆ Saved</button>
           </div>
+          <div id="quranResume"></div>
           <p class="result-count" id="quranCount"></p>
           <div class="surah-list" id="quranList"></div>
           <div id="quranAttribution"></div>
@@ -472,41 +472,17 @@
       <dialog class="settings-dialog" id="settingsDialog">
         <form method="dialog">
           <div class="dialog-head">
-            <button class="icon-button settings-back-button" id="settingsBackButton" type="button" aria-label="Back to Settings" hidden>
-              <span aria-hidden="true">‹</span>
-            </button>
             <h2 id="settingsTitle">Settings</h2>
             <button class="icon-button" value="close" aria-label="Close">×</button>
           </div>
 
           <div class="settings-category-list" id="settingsCategoryList">
-            <button type="button" class="settings-category-row" data-settings-open="appearance">
-              <span><strong>Appearance</strong><small>Dark mode, Arabic text size, Advanced UI</small></span>
-              <span class="settings-category-chevron" aria-hidden="true">›</span>
-            </button>
-            <button type="button" class="settings-category-row" data-settings-open="prayer">
-              <span><strong>Prayer &amp; Qibla</strong><small>Calculation method, Asr method</small></span>
-              <span class="settings-category-chevron" aria-hidden="true">›</span>
-            </button>
-            <button type="button" class="settings-category-row" data-settings-open="reminders">
-              <span><strong>Reminders</strong><small>Prayer notifications, morning &amp; evening adhkar</small></span>
-              <span class="settings-category-chevron" aria-hidden="true">›</span>
-            </button>
-            <button type="button" class="settings-category-row" data-settings-open="layout">
-              <span><strong>Customize layout</strong><small>Choose what shows on each tab</small></span>
-              <span class="settings-category-chevron" aria-hidden="true">›</span>
-            </button>
-            <button type="button" class="settings-category-row" data-settings-open="data">
-              <span><strong>Data</strong><small>Install app, backup &amp; restore</small></span>
-              <span class="settings-category-chevron" aria-hidden="true">›</span>
-            </button>
-            <button type="button" class="settings-category-row" data-settings-open="about">
-              <span><strong>About</strong><small>Version info</small></span>
-              <span class="settings-category-chevron" aria-hidden="true">›</span>
-            </button>
-          </div>
-
-          <section class="settings-panel" data-settings-panel="appearance" data-settings-title="Appearance" hidden>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="appearance" aria-expanded="false" aria-controls="settings-panel-appearance">
+                <span><strong>Appearance</strong><small>Dark mode, Arabic text size, Advanced UI</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-appearance" data-settings-panel="appearance" hidden>
             <label class="setting-row">
               <span>
                 <strong>Dark mode</strong>
@@ -528,9 +504,46 @@
               </span>
               <input id="advancedUiToggle" type="checkbox">
             </label>
-          </section>
-
-          <section class="settings-panel" data-settings-panel="prayer" data-settings-title="Prayer & Qibla" hidden>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="quran" aria-expanded="false" aria-controls="settings-panel-quran">
+                <span><strong>Quran</strong><small>Tajweed, reading mode, offline download</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-quran" data-settings-panel="quran" hidden>
+            <label class="setting-row">
+              <span>
+                <strong>Tajweed colouring</strong>
+                <small>Colour the Arabic by recitation rule.</small>
+              </span>
+              <input id="quranTajweedToggle" type="checkbox">
+            </label>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>Reading mode</strong>
+                <small>Pages turn twenty ayahs at a time. Continuous scrolls the whole surah.</small>
+              </span>
+              <select id="quranReadingModeSelect">
+                <option value="pages">Pages</option>
+                <option value="scroll">Continuous scroll</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <span>
+                <strong>Offline Quran</strong>
+                <small>Surahs are saved as you read them. Download everything to read with no connection.</small>
+              </span>
+              <button class="small-action-button" id="quranDownloadButton" type="button">Download</button>
+            </div>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="prayer" aria-expanded="false" aria-controls="settings-panel-prayer">
+                <span><strong>Prayer &amp; Qibla</strong><small>Calculation method, Asr method</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-prayer" data-settings-panel="prayer" hidden>
             <div class="setting-row setting-row-stack">
               <span>
                 <strong>Calculation method</strong>
@@ -554,9 +567,14 @@
                 <option value="hanafi">Hanafi</option>
               </select>
             </div>
-          </section>
-
-          <section class="settings-panel" data-settings-panel="reminders" data-settings-title="Reminders" hidden>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="reminders" aria-expanded="false" aria-controls="settings-panel-reminders">
+                <span><strong>Reminders</strong><small>Prayer notifications, morning &amp; evening adhkar</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-reminders" data-settings-panel="reminders" hidden>
             <label class="setting-row">
               <span>
                 <strong>Prayer reminders</strong>
@@ -581,14 +599,24 @@
               </span>
               <input id="eveningAdhkarToggle" type="checkbox">
             </label>
-          </section>
-
-          <section class="settings-panel" data-settings-panel="layout" data-settings-title="Customize layout" hidden>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="layout" aria-expanded="false" aria-controls="settings-panel-layout">
+                <span><strong>Customize layout</strong><small>Choose what shows on each tab</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-layout" data-settings-panel="layout" hidden>
             <p class="settings-section-note">Choose which tabs you want, and whether each shows in Simple UI, Advanced UI, or both. Duas always stays available as your home tab.</p>
             <div class="layout-config-list" id="layoutConfigList"></div>
-          </section>
-
-          <section class="settings-panel" data-settings-panel="data" data-settings-title="Data" hidden>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="data" aria-expanded="false" aria-controls="settings-panel-data">
+                <span><strong>Data</strong><small>Install app, backup &amp; restore</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-data" data-settings-panel="data" hidden>
             <div class="setting-row install-row" id="installRow">
               <span>
                 <strong>Install app</strong>
@@ -596,14 +624,7 @@
               </span>
               <button class="small-action-button" id="installButton" type="button">Install</button>
             </div>
-            <div class="setting-row">
-              <span>
-                <strong>Quran offline</strong>
-                <small>Surahs are saved as you read them. Download everything to read the full Quran with no connection.</small>
-              </span>
-              <button class="small-action-button" id="quranDownloadButton" type="button">Download</button>
-            </div>
-            <div class="setting-row setting-row-stack">
+<div class="setting-row setting-row-stack">
               <span>
                 <strong>Backup</strong>
                 <small>Export or restore favourites and settings.</small>
@@ -614,11 +635,18 @@
                 <input id="importDataInput" type="file" accept="application/json,.json" hidden>
               </span>
             </div>
-          </section>
-
-          <section class="settings-panel" data-settings-panel="about" data-settings-title="About" hidden>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="about" aria-expanded="false" aria-controls="settings-panel-about">
+                <span><strong>About</strong><small>Version info</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-about" data-settings-panel="about" hidden>
             <div class="settings-version" id="appVersion" aria-label="App version">Version 1.013</div>
-          </section>
+              </section>
+            </div>
+          </div>
         </form>
       </dialog>
 
