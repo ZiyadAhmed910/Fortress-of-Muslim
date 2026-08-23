@@ -5,7 +5,13 @@ const CACHE_NAME = `fortress-of-muslim-${APP_VERSION}`;
 // once someone downloads the lot; putting them in the per-build cache would throw that away on the
 // next deploy and silently take the Quran offline for anyone who had saved it.
 const QURAN_CACHE = 'fortress-quran-v1';
-const isQuranBody = (url) => url.pathname.includes('/data/quran/surah-');
+// Recitation audio is cross-origin and far larger again -- a single surah can run to tens of
+// megabytes -- so it gets its own cache that survives deploys for exactly the same reason.
+const AUDIO_CACHE = 'fortress-quran-audio-v1';
+const AUDIO_HOSTS = ['everyayah.com', 'audio.qurancdn.com', 'verses.quran.com'];
+const isQuranBody = (url) => url.pathname.includes('/data/quran/surah-')
+  || url.pathname.includes('/data/quran/words-');
+const isRecitation = (url) => AUDIO_HOSTS.includes(url.hostname);
 const ASSETS = [
   './',
   './index.html',
@@ -33,6 +39,7 @@ const ASSETS = [
   `./js/online.js?v=${APP_VERSION}`,
   `./js/prayer.js?v=${APP_VERSION}`,
   `./js/quran.js?v=${APP_VERSION}`,
+  `./js/quran-audio.js?v=${APP_VERSION}`,
   `./js/prayer-times.js?v=${APP_VERSION}`,
   `./js/pwa.js?v=${APP_VERSION}`,
   `./js/reminders.js?v=${APP_VERSION}`,
@@ -89,7 +96,8 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(
-      keys.filter((key) => key !== CACHE_NAME && key !== QURAN_CACHE).map((key) => caches.delete(key))
+      keys.filter((key) => key !== CACHE_NAME && key !== QURAN_CACHE && key !== AUDIO_CACHE)
+        .map((key) => caches.delete(key))
     ))
   );
   self.clients.claim();
@@ -97,7 +105,20 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  if (new URL(event.request.url).origin !== self.location.origin) return;
+  const url = new URL(event.request.url);
+  // Recitation is the one cross-origin request worth intercepting: a surah downloaded for offline
+  // listening is useless if playback still goes straight to the network. Everything else
+  // cross-origin is left alone.
+  if (isRecitation(url)) {
+    event.respondWith(
+      caches.open(AUDIO_CACHE)
+        .then((cache) => cache.match(url.href))
+        .then((cached) => cached || fetch(event.request))
+        .catch(() => fetch(event.request))
+    );
+    return;
+  }
+  if (url.origin !== self.location.origin) return;
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).then((response) => {
@@ -110,7 +131,7 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-  const target = isQuranBody(new URL(event.request.url)) ? QURAN_CACHE : CACHE_NAME;
+  const target = isQuranBody(url) ? QURAN_CACHE : CACHE_NAME;
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
