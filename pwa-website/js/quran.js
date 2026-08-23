@@ -410,7 +410,6 @@ function renderSurah(surah) {
     </ol>
     ${prefs.paginated ? renderPager(page, totalPages) : ''}
     ${renderSurahNav(surah.number)}
-    ${attributionMarkup()}
     ${renderUtilityBar(surah, faved)}
   `;
 }
@@ -491,8 +490,22 @@ function attributionMarkup() {
   return `<p class="quran-attribution">${escapeHtml(arabic.text)}<br>${escapeHtml(translation.text)}<br>${escapeHtml(tajweed?.text || '')}<br><span class="sajdah-note">Sajdah marks: ${escapeHtml(sajdah?.convention || '')}</span></p>`;
 }
 
+// Rendered once into Settings > About rather than under every surah: CC BY still requires the
+// credit, but repeating four lines of licensing under each reading session was visual noise.
 function renderAttribution() {
-  els.quranAttribution.innerHTML = attributionMarkup();
+  if (els.quranAttribution) els.quranAttribution.innerHTML = attributionMarkup();
+}
+
+// About can be opened without ever visiting the Quran tab, in which case the index -- and with it
+// the attribution text -- has not been fetched. Loading it on demand keeps the credit correct
+// without adding a fetch to every app start. index.json is precached, so this is normally instant
+// and works offline.
+export async function ensureQuranAttribution() {
+  if (!els.quranAttribution || els.quranAttribution.innerHTML.trim()) return;
+  if (!index) {
+    try { index = await fetchJson(INDEX_URL); } catch { return; }
+  }
+  renderAttribution();
 }
 
 /** Fetches every surah so the whole Quran is readable offline. Reports progress as it goes. */
