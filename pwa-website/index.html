@@ -713,9 +713,10 @@
 
       <div class="onboarding" id="onboarding" hidden role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
         <div class="onboarding-card">
-          <p class="onboarding-icon" id="onboardingIcon" aria-hidden="true"></p>
+          <div class="onboarding-visual" id="onboardingVisual" aria-hidden="true"></div>
           <h2 id="onboardingTitle"></h2>
           <p class="onboarding-body" id="onboardingBody"></p>
+          <button type="button" class="onboarding-jump" id="onboardingAction" data-onboarding-action hidden></button>
           <div class="onboarding-progress" id="onboardingProgress" role="group" aria-label="Walkthrough steps"></div>
           <div class="onboarding-actions">
             <button type="button" class="onboarding-skip" data-onboarding-skip>Skip</button>

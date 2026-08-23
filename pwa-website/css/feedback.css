@@ -97,12 +97,6 @@
   text-align: center;
 }
 
-.onboarding-icon {
-  margin: 0;
-  font-size: 2.1rem;
-  line-height: 1;
-}
-
 .onboarding-card h2 {
   margin: 0;
   font-size: 1.12rem;
@@ -170,4 +164,95 @@
   border-color: var(--accent-strong) !important;
   background: var(--accent-strong) !important;
   color: #fff !important;
+}
+
+/* --- Walkthrough visuals -------------------------------------------------- */
+
+.onboarding-visual {
+  display: grid;
+  place-items: center;
+  min-height: 4.6rem;
+  margin-bottom: 0.15rem;
+}
+
+.onboarding-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.onboarding-glyph {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.onboarding-glyph.is-large {
+  width: 3rem;
+  height: 3rem;
+  color: var(--accent-strong);
+  stroke-width: 1.4;
+}
+
+.onboarding-plus {
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 300;
+}
+
+/* A miniature of the real tab bar. Same icons, same order, so the tab named in the text is one the
+   reader has already seen before they go looking for it. */
+.onboarding-nav {
+  display: flex;
+  gap: 0.1rem;
+  justify-content: center;
+  width: 100%;
+  padding: 0.45rem 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: var(--paper);
+}
+
+.onboarding-tab {
+  display: grid;
+  flex: 1 1 0;
+  gap: 0.18rem;
+  justify-items: center;
+  padding: 0.25rem 0.1rem;
+  border-radius: 0.45rem;
+  color: var(--muted);
+}
+
+.onboarding-tab small {
+  font-size: 0.58rem;
+  letter-spacing: 0.01em;
+}
+
+.onboarding-tab.is-active {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+/* The offer to jump straight to the feature. Prominent enough to be the obvious thing to do, but
+   below the text so it does not compete with reading it. */
+.onboarding-jump {
+  width: 100%;
+  margin-top: 0.15rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--accent-strong);
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--accent-strong);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.onboarding-jump:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }

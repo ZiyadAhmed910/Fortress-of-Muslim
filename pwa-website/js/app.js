@@ -21,7 +21,8 @@ import { initHadith } from './hadith.js';
 import { initQuran, initQuranDownload, initQuranSettings, isSurahOpen, showSurahList, rerenderOpenSurah } from './quran.js';
 import { initQuranAudioSettings } from './quran-audio.js';
 import { initOnboarding, maybeShowOnboarding, replayOnboarding } from './onboarding.js';
-import { initContentModes, refreshLayoutVisibility } from './modes.js';
+import { initContentModes, refreshLayoutVisibility, setContentMode } from './modes.js';
+import { isTabVisible } from './layout.js';
 import { renderLayoutConfigList } from './layout-settings.js';
 import { initPrayer } from './prayer.js';
 import { initReminders, openAdhkarFromNotification } from './reminders.js';
@@ -46,7 +47,14 @@ async function init() {
   initTasbih();
   initContentModes();
   renderLayoutConfigList();
-  initOnboarding();
+  initOnboarding({
+    goTo: setContentMode,
+    canGoTo: isTabVisible,
+    openSettings: () => {
+      showSettingsCategoryList();
+      els.settingsDialog.showModal();
+    },
+  });
   els.replayOnboardingButton.addEventListener('click', () => {
     els.settingsDialog.close();
     replayOnboarding();
