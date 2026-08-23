@@ -1,0 +1,14 @@
+{
+  "name": "@fortress/pwa",
+  "version": "0.23.2",
+  "private": true,
+  "description": "Fortress of Muslim offline-first PWA",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "data:verify": "node tools/build-canonical-snapshot.mjs"
+  },
+  "devDependencies": {
+    "happy-dom": "^15.11.7"
+  }
+}

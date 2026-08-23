@@ -6,3 +6,26 @@
 @import url("css/feedback.css?v=build-dev");
 @import url("css/online.css?v=build-dev");
 @import url("css/responsive.css?v=build-dev");
+
+.prayer-row-estimated {
+  margin-inline-start: 0.4rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.6rem;
+  background: var(--chip-bg);
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.prayer-estimated-note {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.6rem;
+  background: var(--chip-bg);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}

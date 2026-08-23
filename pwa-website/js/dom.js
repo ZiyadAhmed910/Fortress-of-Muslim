@@ -102,6 +102,8 @@ export const els = {
   qiblaNote: document.getElementById('qiblaNote'),
   calculationMethodSelect: document.getElementById('calculationMethodSelect'),
   asrMethodSelect: document.getElementById('asrMethodSelect'),
+  highLatitudeSelect: document.getElementById('highLatitudeSelect'),
+  prayerEstimatedNote: document.getElementById('prayerEstimatedNote'),
   remindersEnabledToggle: document.getElementById('remindersEnabledToggle'),
   remindersUnsupportedNote: document.getElementById('remindersUnsupportedNote'),
   remindersBlockedNote: document.getElementById('remindersBlockedNote'),

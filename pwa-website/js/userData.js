@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { toast } from './utils.js';
 import { applySettings } from './settings.js';
 import { filterList } from './home.js';
-import { ASR_METHODS, CALCULATION_METHODS, DEFAULT_ASR_METHOD, DEFAULT_CALCULATION_METHOD } from './prayer-times.js';
+import { ASR_METHODS, CALCULATION_METHODS, DEFAULT_ASR_METHOD, DEFAULT_CALCULATION_METHOD, DEFAULT_HIGH_LATITUDE_RULE, HIGH_LATITUDE_RULES } from './prayer-times.js';
 import { scheduleToday as scheduleRemindersToday } from './reminders.js';
 import { activateTasbih, TASBIH_STORAGE_KEY } from './tasbih.js';
 import { readLayoutStorage, writeLayoutStorage } from './layout.js';
@@ -26,6 +26,7 @@ export function exportUserData() {
       advancedUi: state.advancedUi,
       calculationMethod: state.calculationMethod,
       asrMethod: state.asrMethod,
+      highLatitudeRule: state.highLatitudeRule,
       manualLatitude: state.manualLatitude,
       manualLongitude: state.manualLongitude,
       remindersEnabled: state.remindersEnabled,
@@ -80,6 +81,7 @@ function importUserData(payload) {
   state.advancedUi = Boolean(settings.advancedUi);
   state.calculationMethod = CALCULATION_METHODS[settings.calculationMethod] ? settings.calculationMethod : DEFAULT_CALCULATION_METHOD;
   state.asrMethod = ASR_METHODS[settings.asrMethod] ? settings.asrMethod : DEFAULT_ASR_METHOD;
+  state.highLatitudeRule = HIGH_LATITUDE_RULES[settings.highLatitudeRule] ? settings.highLatitudeRule : DEFAULT_HIGH_LATITUDE_RULE;
   state.manualLatitude = typeof settings.manualLatitude === 'number' ? clampNumber(settings.manualLatitude, -90, 90, null) : null;
   state.manualLongitude = typeof settings.manualLongitude === 'number' ? clampNumber(settings.manualLongitude, -180, 180, null) : null;
   state.remindersEnabled = Boolean(settings.remindersEnabled);
@@ -94,6 +96,7 @@ function importUserData(payload) {
   localStorage.setItem('advancedUi', String(state.advancedUi));
   localStorage.setItem('calculationMethod', state.calculationMethod);
   localStorage.setItem('asrMethod', state.asrMethod);
+  localStorage.setItem('highLatitudeRule', state.highLatitudeRule);
   if (state.manualLatitude !== null && state.manualLongitude !== null) {
     localStorage.setItem('manualLatitude', String(state.manualLatitude));
     localStorage.setItem('manualLongitude', String(state.manualLongitude));

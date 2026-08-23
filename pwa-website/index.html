@@ -278,6 +278,7 @@
             </form>
 
             <div class="prayer-times-list" id="prayerTimesList" aria-label="Today's prayer times" hidden></div>
+            <p class="prayer-estimated-note" id="prayerEstimatedNote" hidden></p>
           </section>
 
           <section class="online-home qibla-home" id="qiblaHome" hidden>
@@ -568,6 +569,18 @@
                 <option value="egyptian">Egyptian General Authority</option>
                 <option value="karachi">University of Islamic Sciences, Karachi</option>
                 <option value="ummalqura">Umm al-Qura, Makkah</option>
+              </select>
+            </div>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>High latitude</strong>
+                <small>Above about 48&deg; the sun does not always reach the Fajr and Isha angles. This chooses how those are estimated.</small>
+              </span>
+              <select id="highLatitudeSelect">
+                <option value="angle">Angle-based (recommended)</option>
+                <option value="seventh">One-seventh of the night</option>
+                <option value="midnight">Middle of the night</option>
+                <option value="none">None (leave blank)</option>
               </select>
             </div>
             <div class="setting-row setting-row-stack">
