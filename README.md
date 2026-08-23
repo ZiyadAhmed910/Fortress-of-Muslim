@@ -671,6 +671,13 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.022
+
+- Prayer Times, Qibla and Tasbih now sit behind one Prayer tab with a floating bottom bar to switch between them. Adding Quran had made seven top-level tabs, which pushed Qibla and Tasbih past the edge of the bar; they were still reachable by scrolling but gave no sign they were there.
+- Fixed the tab bar overflowing on phones. Every tab had a fixed 5.4rem minimum, so five tabs needed 432px inside a 351px bar on a 375px screen and the last two were cut off. Tabs now share the width and stack the icon above a smaller label on narrow screens.
+- Fixed the Advanced UI card images staying blank. They are lazy-loaded so Simple UI never pays for them, but a lazy image inside a subtree that was hidden when the page parsed can fail to start loading once that subtree is revealed. Turning on Advanced UI now loads them directly.
+- Moved the Quran source and licence credits out from under every surah into Settings > About. CC BY still requires the attribution, so it moved rather than being dropped.
+
 ### 1.021
 
 - Settings is now an accordion. Tapping a category expands it in place underneath its own row instead of replacing the whole dialog, so the list stays on screen and the panel reads as part of it. One section opens at a time.

@@ -19,6 +19,7 @@ export const state = {
   refreshing: false,
   contentMode: 'duas',
   quranSurah: null,
+  lastWorshipMode: 'prayerTimes',
   calculationMethod: localStorage.getItem('calculationMethod') || 'mwl',
   asrMethod: localStorage.getItem('asrMethod') || 'standard',
   manualLatitude: localStorage.getItem('manualLatitude') ? Number(localStorage.getItem('manualLatitude')) : null,

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-23T08:56:10.750Z",
+  "generatedAt": "2026-08-23T09:14:14.981Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -643,7 +643,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 125,
+      "lines": 127,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -683,7 +683,7 @@
     },
     {
       "path": "pwa-website/js/layout.js",
-      "lines": 107,
+      "lines": 120,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -691,7 +691,7 @@
     },
     {
       "path": "pwa-website/js/modes.js",
-      "lines": 75,
+      "lines": 99,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -731,7 +731,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 537,
+      "lines": 550,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -763,7 +763,7 @@
     },
     {
       "path": "pwa-website/js/settings.js",
-      "lines": 71,
+      "lines": 91,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -771,7 +771,7 @@
     },
     {
       "path": "pwa-website/js/state.js",
-      "lines": 35,
+      "lines": 36,
       "language": "js",
       "exports": [],
       "imports": [],

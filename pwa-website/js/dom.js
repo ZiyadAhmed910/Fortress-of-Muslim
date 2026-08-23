@@ -47,6 +47,8 @@ export const els = {
   updateButton: document.getElementById('updateButton'),
   dismissUpdateButton: document.getElementById('dismissUpdateButton'),
   contentModeButtons: [...document.querySelectorAll('[data-content-mode]')],
+  contentGroupButtons: [...document.querySelectorAll('[data-content-group]')],
+  worshipSubnav: document.getElementById('worshipSubnav'),
   quranHome: document.getElementById('quranHome'),
   quranBrowse: document.getElementById('quranBrowse'),
   quranReader: document.getElementById('quranReader'),

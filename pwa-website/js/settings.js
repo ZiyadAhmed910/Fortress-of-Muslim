@@ -3,6 +3,7 @@ import { els } from './dom.js';
 import { APP_VERSION } from './constants.js';
 import { syncPrayerSettingsControls } from './prayer.js';
 import { syncReminderControls } from './reminders.js';
+import { ensureQuranAttribution } from './quran.js';
 
 export function applySettings() {
   els.appVersion.textContent = `Version ${APP_VERSION}`;
@@ -15,9 +16,27 @@ export function applySettings() {
   els.darkModeToggle.checked = state.darkMode;
   els.arabicSizeToggle.checked = state.largeArabic;
   els.advancedUiToggle.checked = state.advancedUi;
+  ensureAdvancedCardsLoad();
   syncPrayerSettingsControls();
   syncReminderControls();
   updateAdvancedNavActive();
+}
+
+// The advanced home's card images are loading="lazy" so Simple UI users never pay for them. But a
+// lazy image inside a subtree that was hidden at parse time can fail to start loading when that
+// subtree is later revealed, which leaves the advanced home showing empty card frames. Once Advanced
+// UI is actually on the images are certain to be wanted, so the hint is dropped and any that never
+// started are re-kicked by reassigning src.
+function ensureAdvancedCardsLoad() {
+  if (!state.advancedUi) return;
+  els.homeView.querySelectorAll('.advanced-home img[loading="lazy"]').forEach((image) => {
+    image.loading = 'eager';
+    if (!image.complete || image.naturalWidth === 0) {
+      const { src } = image;
+      image.src = '';
+      image.src = src;
+    }
+  });
 }
 
 export function updateAdvancedNavActive() {
@@ -54,6 +73,7 @@ function toggleSettingsCategory(button) {
   button.setAttribute('aria-expanded', String(!open));
   group.classList.toggle('is-open', !open);
   panel.hidden = open;
+  if (!open && button.dataset.settingsToggle === 'about') ensureQuranAttribution();
 }
 
 function collapseAllSettings() {

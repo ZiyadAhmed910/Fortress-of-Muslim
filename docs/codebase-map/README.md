@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-23T08:56:10.750Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-23T09:14:14.981Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -116,23 +116,23 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/categories.js` | js | 160 |  |  |
 | `pwa-website/js/constants.js` | js | 4 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 125 |  |  |
+| `pwa-website/js/dom.js` | js | 127 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
 | `pwa-website/js/home.js` | js | 182 |  |  |
 | `pwa-website/js/layout-settings.js` | js | 66 |  |  |
-| `pwa-website/js/layout.js` | js | 107 |  |  |
-| `pwa-website/js/modes.js` | js | 75 |  |  |
+| `pwa-website/js/layout.js` | js | 120 |  |  |
+| `pwa-website/js/modes.js` | js | 99 |  |  |
 | `pwa-website/js/online.js` | js | 21 |  |  |
 | `pwa-website/js/prayer-times.js` | js | 202 |  |  |
 | `pwa-website/js/prayer.js` | js | 376 |  |  |
 | `pwa-website/js/pwa.js` | js | 101 |  |  |
-| `pwa-website/js/quran.js` | js | 537 |  |  |
+| `pwa-website/js/quran.js` | js | 550 |  |  |
 | `pwa-website/js/reader.js` | js | 129 |  |  |
 | `pwa-website/js/reminders.js` | js | 181 |  |  |
 | `pwa-website/js/routes.js` | js | 29 |  |  |
-| `pwa-website/js/settings.js` | js | 71 |  |  |
-| `pwa-website/js/state.js` | js | 35 |  |  |
+| `pwa-website/js/settings.js` | js | 91 |  |  |
+| `pwa-website/js/state.js` | js | 36 |  |  |
 | `pwa-website/js/tasbih.js` | js | 194 |  |  |
 | `pwa-website/js/userData.js` | js | 161 |  |  |
 | `pwa-website/js/utils.js` | js | 23 |  |  |

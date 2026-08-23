@@ -714,3 +714,75 @@
 .mode-quran .favourites-fab {
   display: none;
 }
+
+/* Sub-navigation for the worship tools. Sits at the bottom of the viewport rather than under the
+   top bar, so switching between Times, Qibla and Tasbih is a thumb movement while the content keeps
+   the full height above it. */
+.worship-subnav {
+  position: fixed;
+  left: 50%;
+  bottom: max(0.7rem, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0.25rem;
+  width: min(100% - 1.5rem, 22rem);
+  padding: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-strong) 92%, transparent);
+  box-shadow: var(--shadow);
+  transform: translateX(-50%);
+  backdrop-filter: blur(8px);
+}
+
+.worship-subnav[hidden] {
+  display: none;
+}
+
+.worship-subnav button {
+  display: grid;
+  place-items: center;
+  gap: 0.1rem;
+  padding: 0.45rem 0.3rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.worship-subnav button[hidden] {
+  display: none;
+}
+
+.worship-subnav button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.worship-subnav button.active {
+  background: var(--accent-strong);
+  color: #fff;
+}
+
+/* Content clears the floating bar in the modes that show it. */
+.mode-prayerTimes main,
+.mode-qibla main,
+.mode-tasbih main {
+  padding-bottom: 5rem;
+}
+
+.about-attribution {
+  padding: 0.9rem 1rem 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}

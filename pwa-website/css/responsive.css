@@ -31,3 +31,31 @@
     height: 2.2rem;
   }
 }
+
+/* The tab bar sized every button at min-width 5.4rem, so five tabs needed 432px of a 351px bar on a
+   375px phone and the last two were pushed out of view. overflow-x was auto, so they were reachable
+   by scrolling but gave no sign they existed. On narrow screens the buttons now share the width
+   equally and stack the icon above a smaller label, which is the usual phone tab-bar shape. */
+@media (max-width: 30rem) {
+  .content-mode-switch button {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.12rem;
+    min-height: 3.2rem;
+    padding: 0.35rem 0.15rem;
+    font-size: 0.66rem;
+    letter-spacing: -0.01em;
+  }
+
+  .content-mode-switch svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .content-mode-switch button span {
+    overflow: hidden;
+    max-width: 100%;
+    text-overflow: ellipsis;
+  }
+}

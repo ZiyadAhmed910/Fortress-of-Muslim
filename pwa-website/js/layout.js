@@ -96,11 +96,24 @@ export function isTabVisible(tabId) {
   return entry.visibility === (state.advancedUi ? 'advanced' : 'simple');
 }
 
+// Prayer Times, Qibla and Tasbih sit behind one "Prayer" tab, so that tab follows its members: it
+// appears when any of them is visible, and its sub-bar only offers the ones that are. With a single
+// member left the sub-bar is pointless, so it is suppressed and the tab acts as a direct link.
+export const WORSHIP_TABS = ['prayerTimes', 'qibla', 'tasbih'];
+
+export function visibleWorshipTabs() {
+  return WORSHIP_TABS.filter(isTabVisible);
+}
+
 /** Hides/shows each non-Duas nav button per the current config + Simple/Advanced UI state. */
 export function applyLayoutToNav() {
   els.contentModeButtons.forEach((button) => {
     const tabId = button.dataset.contentMode;
     if (tabId === 'duas') return;
     button.hidden = !isTabVisible(tabId);
+  });
+  const worship = visibleWorshipTabs();
+  els.contentGroupButtons.forEach((button) => {
+    if (button.dataset.contentGroup === 'worship') button.hidden = worship.length === 0;
   });
 }
