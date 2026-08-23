@@ -3,6 +3,17 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.html [L]
 
+# Development files must never be served from the public origin. Excluding them from the deploy
+# stops new uploads but cannot remove copies already on disk: once a path is excluded the FTP action
+# no longer tracks it, so it is orphaned rather than deleted. 0.24.0 shipped package.json,
+# vitest.config.js and test/ this way. Denying them here is what actually takes them off the web,
+# and it keeps covering any stray file of these kinds in future.
+<FilesMatch "^(package(-lock)?\.json|vitest\.config\.js|serve\.py|.*\.test\.js)$">
+  Require all denied
+</FilesMatch>
+
+RedirectMatch 404 ^/(test|tools|node_modules)(/|$)
+
 # The host's server-level mod_expires was applying "max-age=14400" to /js/*.js and winning over the
 # Header set below, so a fresh index.html + fresh app.js got paired with hours-stale modules after a
 # deploy. Module imports are now build-stamped (tools/stamp_version.py), which fixes that on its own,
