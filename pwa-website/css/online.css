@@ -339,15 +339,6 @@
 }
 
 /* --- Quran --- */
-.quran-search-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-  margin-bottom: 0.6rem;
-}
-
-.quran-search { flex: 1; }
-
 .quran-search input {
   width: 100%;
   padding: 0.75rem 0.9rem;
@@ -529,13 +520,6 @@
   text-align: right;
 }
 
-.ayah-end {
-  display: inline-block;
-  margin: 0 0.15rem;
-  color: var(--accent-strong);
-  font-size: 0.75em;
-}
-
 .ayah-english {
   margin: 0;
   color: color-mix(in srgb, var(--ink) 88%, var(--muted));
@@ -618,18 +602,6 @@
 :root.dark .tj-ham_wasl,
 :root.dark .tj-laam_shamsiyah,
 :root.dark .tj-slnt { color: #7e786c; }
-
-.quran-attribution {
-  margin: 1.6rem 0 0;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.76rem;
-  line-height: 1.55;
-  text-align: center;
-}
-
-.sajdah-note { display: inline-block; margin-top: 0.3rem; opacity: 0.85; }
 
 .saved-block { margin-bottom: 0.9rem; }
 
@@ -780,9 +752,100 @@
   padding-bottom: 5rem;
 }
 
-.about-attribution {
-  padding: 0.9rem 1rem 0;
+
+/* Ayah-end numeral drawn as the ringed medallion a printed mushaf uses, rather than a bare digit
+   sitting in the line of text. */
+.ayah-end {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75em;
+  height: 1.75em;
+  margin: 0 0.2em;
+  border: 1.5px solid var(--accent-strong);
+  border-radius: 50%;
+  color: var(--accent-strong);
+  font-size: 0.62em;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* Quran list filter row, matching the dua list's count + Clear arrangement. */
+.quran-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.quran-filter-row .result-count {
+  margin: 0;
+}
+
+.quran-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quran-filter-actions .text-button[hidden] {
+  display: none;
+}
+
+.surah-names mark {
+  padding: 0 0.1em;
+  border-radius: 0.2em;
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+  color: inherit;
+}
+
+/* Previous/next surah buttons carry the Arabic name alongside the transliteration. */
+.surah-nav-arabic {
+  font-family: "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", serif;
+  font-size: 0.95rem;
   color: var(--muted);
-  font-size: 0.74rem;
-  line-height: 1.55;
+}
+
+.surah-nav button:last-child .surah-nav-arabic {
+  display: block;
+  text-align: right;
+}
+
+/* The phrase strip hid its scrollbar entirely, so with more phrases than fit there was no sign the
+   rest existed and no way to drag to them with a mouse. A slim scrollbar is shown on pointer devices
+   and a fade on the trailing edge hints at more on touch, where dragging already works. */
+.tasbih-preset-tabs {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent-strong) 45%, transparent) transparent;
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent 100%);
+}
+
+.tasbih-preset-tabs::-webkit-scrollbar {
+  display: block;
+  height: 5px;
+}
+
+.tasbih-preset-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tasbih-preset-tabs::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-strong) 45%, transparent);
+}
+
+/* Once the strip is scrolled to the end the fade is misleading, so it only applies while there is
+   more to reach. Set by tasbih.js. */
+.tasbih-preset-tabs.at-end {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.tasbih-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 0 0 0.9rem;
 }

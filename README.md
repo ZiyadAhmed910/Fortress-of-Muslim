@@ -671,6 +671,17 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.023
+
+- Added prayer time notifications: an alert at Fajr, Dhuhr, Asr, Maghrib and Isha, alongside the existing morning and evening adhkar reminders. Sunrise is excluded as it marks the end of Fajr's window rather than a prayer.
+- Fixed Cancel doing nothing when adding a Tasbih phrase. The close button defaulted to submitting the form, so the required Label field failed validation and blocked it. There is now a visible Cancel button as well.
+- Moved Reset and Add phrase above the Tasbih counter.
+- The Tasbih phrase strip had its scrollbar hidden, so with more phrases than fit there was no sign the rest existed and no way to drag to them with a mouse. It now shows a slim scrollbar and fades the trailing edge while there is more to reach.
+- The Quran surah list now uses the same search bar as Duas, with the search icon, a Clear action, and matched text highlighted in the results.
+- Ayah numbers are drawn inside a ring, as in a printed mushaf.
+- Previous and next surah buttons now show the Arabic name alongside the transliteration.
+- Removed the Quran source credits from the app at the maintainer's instruction, following confirmation of usage permission.
+
 ### 1.022
 
 - Prayer Times, Qibla and Tasbih now sit behind one Prayer tab with a floating bottom bar to switch between them. Adding Quran had made seven top-level tabs, which pushed Qibla and Tasbih past the edge of the bar; they were still reachable by scrolling but gave no sign they were there.

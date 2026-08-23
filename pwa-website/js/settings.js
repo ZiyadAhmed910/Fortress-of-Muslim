@@ -3,7 +3,6 @@ import { els } from './dom.js';
 import { APP_VERSION } from './constants.js';
 import { syncPrayerSettingsControls } from './prayer.js';
 import { syncReminderControls } from './reminders.js';
-import { ensureQuranAttribution } from './quran.js';
 
 export function applySettings() {
   els.appVersion.textContent = `Version ${APP_VERSION}`;
@@ -73,7 +72,6 @@ function toggleSettingsCategory(button) {
   button.setAttribute('aria-expanded', String(!open));
   group.classList.toggle('is-open', !open);
   panel.hidden = open;
-  if (!open && button.dataset.settingsToggle === 'about') ensureQuranAttribution();
 }
 
 function collapseAllSettings() {

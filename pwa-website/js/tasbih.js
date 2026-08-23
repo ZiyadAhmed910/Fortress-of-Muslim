@@ -40,7 +40,24 @@ function activePreset() {
   return data.presets.find((preset) => preset.id === data.activePresetId) || data.presets[0];
 }
 
+// Keeps the trailing fade honest: it should only suggest more phrases when there really are more.
+// Watches content as well as size -- this runs at startup, before any phrase has been rendered, so
+// a size-only observer would settle on "nothing to scroll" and leave the fade off for good.
+function trackPresetScroll() {
+  const tabs = els.tasbihPresetTabs;
+  const update = () => {
+    const scrollable = tabs.scrollWidth > tabs.clientWidth + 2;
+    const atEnd = !scrollable || tabs.scrollLeft + tabs.clientWidth >= tabs.scrollWidth - 2;
+    tabs.classList.toggle('at-end', atEnd);
+  };
+  tabs.addEventListener('scroll', update, { passive: true });
+  new ResizeObserver(update).observe(tabs);
+  new MutationObserver(update).observe(tabs, { childList: true, subtree: true });
+  update();
+}
+
 export function initTasbih() {
+  trackPresetScroll();
   els.tasbihTapArea.addEventListener('click', increment);
 
   let touchStartX = 0;

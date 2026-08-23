@@ -194,15 +194,18 @@
 
           <section class="online-home quran-home" id="quranHome" hidden>
         <div id="quranBrowse">
-          <div class="quran-search-row">
-            <label class="quran-search">
-              <span class="visually-hidden">Search surahs</span>
-              <input id="quranSearch" type="search" placeholder="Search surah by name or number" autocomplete="off">
-            </label>
-            <button class="chip-toggle" id="quranFavFilter" type="button" aria-label="Show favourite surahs only">☆ Saved</button>
+          <div class="search-wrap">
+            <span aria-hidden="true">&#8981;</span>
+            <input id="quranSearch" type="search" placeholder="Search surah by name or number" autocomplete="off" aria-label="Search surahs">
+          </div>
+          <div class="quran-filter-row">
+            <p class="result-count" id="quranCount"></p>
+            <span class="quran-filter-actions">
+              <button class="text-button" id="quranClearSearch" type="button">Clear</button>
+              <button class="chip-toggle" id="quranFavFilter" type="button" aria-label="Show favourite surahs only">☆ Saved</button>
+            </span>
           </div>
           <div id="quranResume"></div>
-          <p class="result-count" id="quranCount"></p>
           <div class="surah-list" id="quranList"></div>
         </div>
         <article class="quran-reader" id="quranReader" hidden></article>
@@ -312,6 +315,12 @@
           <section class="online-home tasbih-home" id="tasbihHome" hidden>
             <div class="tasbih-preset-tabs" id="tasbihPresetTabs" aria-label="Dhikr phrase"></div>
 
+<div class="tasbih-actions">
+              <button class="text-button" id="tasbihResetButton" type="button">Reset this count</button>
+              <button class="text-button" id="tasbihAddPresetButton" type="button">Add phrase</button>
+              <button class="text-button" id="tasbihDeletePresetButton" type="button" hidden>Delete phrase</button>
+            </div>
+
             <button class="tasbih-tap-area" id="tasbihTapArea" type="button" aria-label="Tap to count">
               <div class="tasbih-progress-ring">
                 <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -328,11 +337,7 @@
               <small class="tasbih-hint">Tap anywhere to count &middot; swipe to switch phrase</small>
             </button>
 
-            <div class="tasbih-actions">
-              <button class="text-button" id="tasbihResetButton" type="button">Reset this count</button>
-              <button class="text-button" id="tasbihAddPresetButton" type="button">Add phrase</button>
-              <button class="text-button" id="tasbihDeletePresetButton" type="button" hidden>Delete phrase</button>
-            </div>
+            
 
             <p class="tasbih-lifetime" id="tasbihLifetime"></p>
           </section>
@@ -341,12 +346,13 @@
             <form method="dialog" id="tasbihPresetForm">
               <div class="dialog-head">
                 <h2>Add a phrase</h2>
-                <button class="icon-button" value="cancel" aria-label="Close">×</button>
+                <button class="icon-button" type="submit" value="cancel" formnovalidate aria-label="Close">×</button>
               </div>
               <label class="tasbih-preset-field">Label<input name="label" maxlength="60" required></label>
               <label class="tasbih-preset-field">Arabic (optional)<input name="labelArabic" dir="rtl" lang="ar" maxlength="60"></label>
               <label class="tasbih-preset-field">Target count<input name="target" type="number" min="1" max="9999" value="33"></label>
               <div class="tasbih-preset-form-actions">
+                <button class="small-action-button secondary" type="submit" value="cancel" formnovalidate>Cancel</button>
                 <button class="small-action-button" type="submit" value="save">Save</button>
               </div>
             </form>
@@ -594,6 +600,13 @@
             <p class="reminder-note reminder-note-warning" id="remindersLocationNote" hidden>Set your location on the Prayer Times or Qibla tab first so reminders know when to fire.</p>
             <label class="setting-row reminder-subrow">
               <span>
+                <strong>Prayer times</strong>
+                <small>Notify at Fajr, Dhuhr, Asr, Maghrib and Isha.</small>
+              </span>
+              <input id="prayerAdhanToggle" type="checkbox">
+            </label>
+            <label class="setting-row reminder-subrow">
+              <span>
                 <strong>Morning adhkar</strong>
                 <small>15 minutes after Fajr.</small>
               </span>
@@ -650,7 +663,6 @@
                 <span class="settings-category-chevron" aria-hidden="true">›</span>
               </button>
               <section class="settings-panel" id="settings-panel-about" data-settings-panel="about" hidden>
-            <div id="quranAttribution" class="about-attribution"></div>
             <div class="settings-version" id="appVersion" aria-label="App version">Version 1.013</div>
               </section>
             </div>

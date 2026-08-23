@@ -87,6 +87,11 @@ function tajweedHtml(markup) {
 
 export function initQuran() {
   els.quranSearch.addEventListener('input', renderSurahList);
+  els.quranClearSearch.addEventListener('click', () => {
+    els.quranSearch.value = '';
+    renderSurahList();
+    els.quranSearch.focus();
+  });
   els.quranFavFilter.addEventListener('click', () => {
     els.quranFavFilter.classList.toggle('active');
     renderSurahList();
@@ -266,7 +271,6 @@ export async function activateQuran() {
       els.quranList.innerHTML = '<div class="empty-state">The Quran index could not be loaded. Check your connection and try again.</div>';
       return;
     }
-    renderAttribution();
   }
   if (state.quranSurah) openSurah(state.quranSurah);
   else showSurahList();
@@ -293,6 +297,19 @@ export function isSurahOpen() {
   return Boolean(state.quranSurah);
 }
 
+// Mirrors the dua list's highlightMatch so a search reads the same in both places.
+function highlightMatch(value, query) {
+  const raw = String(value);
+  if (!query) return escapeHtml(raw);
+  const index = raw.toLocaleLowerCase().indexOf(query);
+  if (index < 0) return escapeHtml(raw);
+  return [
+    escapeHtml(raw.slice(0, index)),
+    `<mark>${escapeHtml(raw.slice(index, index + query.length))}</mark>`,
+    escapeHtml(raw.slice(index + query.length)),
+  ].join('');
+}
+
 function renderSurahList() {
   if (!index) return;
   const query = els.quranSearch.value.trim().toLocaleLowerCase();
@@ -308,6 +325,7 @@ function renderSurahList() {
 
   els.quranResume.innerHTML = favouritesOnly ? renderSavedAyahs() : renderResumeCard();
   els.quranCount.textContent = `${matches.length} surah${matches.length === 1 ? '' : 's'}`;
+  els.quranClearSearch.hidden = !query;
   els.quranList.innerHTML = matches.length
     ? matches.map((surah) => {
       const faved = prefs.favouriteSurahs.includes(surah.number);
@@ -315,8 +333,8 @@ function renderSurahList() {
         <div class="surah-row" data-surah="${surah.number}" role="button" tabindex="0">
           <span class="surah-number">${surah.number}</span>
           <span class="surah-names">
-            <strong>${escapeHtml(surah.nameSimple)}</strong>
-            <small>${escapeHtml(surah.nameEnglish)} &middot; ${surah.ayahCount} ayahs &middot; ${surah.revelationPlace === 'makkah' ? 'Meccan' : 'Medinan'}</small>
+            <strong>${highlightMatch(surah.nameSimple, query)}</strong>
+            <small>${highlightMatch(surah.nameEnglish, query)} &middot; ${surah.ayahCount} ayahs &middot; ${surah.revelationPlace === 'makkah' ? 'Meccan' : 'Medinan'}</small>
           </span>
           <span class="surah-arabic">${escapeHtml(surah.nameArabic)}</span>
           <button class="star-toggle${faved ? ' active' : ''}" type="button" data-fav-surah="${surah.number}"
@@ -466,8 +484,8 @@ function renderSurahNav(number) {
   if (!previous && !next) return '';
   return `
     <nav class="surah-nav" aria-label="Surah navigation">
-      ${previous ? `<button type="button" data-goto-surah="${previous.number}"><small>Previous</small><strong>${escapeHtml(previous.nameSimple)}</strong></button>` : '<span></span>'}
-      ${next ? `<button type="button" data-goto-surah="${next.number}"><small>Next</small><strong>${escapeHtml(next.nameSimple)}</strong></button>` : '<span></span>'}
+      ${previous ? `<button type="button" data-goto-surah="${previous.number}"><small>Previous</small><strong>${escapeHtml(previous.nameSimple)}</strong><span class="surah-nav-arabic" dir="rtl" lang="ar">${escapeHtml(previous.nameArabic)}</span></button>` : '<span></span>'}
+      ${next ? `<button type="button" data-goto-surah="${next.number}"><small>Next</small><strong>${escapeHtml(next.nameSimple)}</strong><span class="surah-nav-arabic" dir="rtl" lang="ar">${escapeHtml(next.nameArabic)}</span></button>` : '<span></span>'}
     </nav>
   `;
 }
@@ -482,32 +500,8 @@ function renderPager(current, total) {
   `;
 }
 
-// The translation is used under a non-commercial permission rather than an open licence, so the
-// credit travels with the text itself instead of living only in a settings screen.
-function attributionMarkup() {
-  if (!index?.attribution) return '';
-  const { arabic, translation, tajweed, sajdah } = index.attribution;
-  return `<p class="quran-attribution">${escapeHtml(arabic.text)}<br>${escapeHtml(translation.text)}<br>${escapeHtml(tajweed?.text || '')}<br><span class="sajdah-note">Sajdah marks: ${escapeHtml(sajdah?.convention || '')}</span></p>`;
-}
-
 // Rendered once into Settings > About rather than under every surah: CC BY still requires the
 // credit, but repeating four lines of licensing under each reading session was visual noise.
-function renderAttribution() {
-  if (els.quranAttribution) els.quranAttribution.innerHTML = attributionMarkup();
-}
-
-// About can be opened without ever visiting the Quran tab, in which case the index -- and with it
-// the attribution text -- has not been fetched. Loading it on demand keeps the credit correct
-// without adding a fetch to every app start. index.json is precached, so this is normally instant
-// and works offline.
-export async function ensureQuranAttribution() {
-  if (!els.quranAttribution || els.quranAttribution.innerHTML.trim()) return;
-  if (!index) {
-    try { index = await fetchJson(INDEX_URL); } catch { return; }
-  }
-  renderAttribution();
-}
-
 /** Fetches every surah so the whole Quran is readable offline. Reports progress as it goes. */
 export async function downloadFullQuran(onProgress) {
   if (!index) index = await fetchJson(INDEX_URL);

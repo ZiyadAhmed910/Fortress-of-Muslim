@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-23T09:14:14.981Z",
+  "generatedAt": "2026-08-23T09:39:50.086Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -643,7 +643,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 127,
+      "lines": 128,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -731,7 +731,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 550,
+      "lines": 544,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -747,7 +747,7 @@
     },
     {
       "path": "pwa-website/js/reminders.js",
-      "lines": 181,
+      "lines": 212,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -763,7 +763,7 @@
     },
     {
       "path": "pwa-website/js/settings.js",
-      "lines": 91,
+      "lines": 89,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -771,7 +771,7 @@
     },
     {
       "path": "pwa-website/js/state.js",
-      "lines": 36,
+      "lines": 37,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -779,7 +779,7 @@
     },
     {
       "path": "pwa-website/js/tasbih.js",
-      "lines": 194,
+      "lines": 211,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -787,7 +787,7 @@
     },
     {
       "path": "pwa-website/js/userData.js",
-      "lines": 161,
+      "lines": 164,
       "language": "js",
       "exports": [],
       "imports": [],
