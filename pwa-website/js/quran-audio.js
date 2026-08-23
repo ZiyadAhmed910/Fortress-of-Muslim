@@ -20,8 +20,10 @@ export const RECITERS = [
   { id: 'Minshawy_Murattal_128kbps', name: 'Mohamed Siddiq El-Minshawi' },
   { id: 'Abdurrahmaan_As-Sudais_192kbps', name: 'Abdul Rahman Al-Sudais' },
   { id: 'Saood_ash-Shuraym_128kbps', name: 'Saud Al-Shuraim' },
-  { id: 'Ghamadi_40kbps', name: 'Saad Al-Ghamdi (low data)' },
 ];
+// Every reciter here is verified present for the whole mushaf at 128kbps or better. Saad Al-Ghamdi
+// was offered as a 40kbps "low data" option and has been removed: that bitrate is the only one this
+// CDN carries for him, and a recitation nobody wants to listen to is not worth a slot in the list.
 export const DEFAULT_RECITER = 'Alafasy_128kbps';
 export const REPEAT_MODES = ['off', 'ayah', 'surah'];
 const REPEAT_LABELS = { off: 'Repeat off', ayah: 'Repeating this ayah', surah: 'Repeating this surah' };
@@ -91,8 +93,8 @@ export function currentReciter() {
  * (which would be circular), the reader registers what the player needs from it: a way to make an
  * ayah visible, which in paginated mode means turning the page first.
  */
-export function initQuranAudio({ ensureAyahVisible }) {
-  context = { ensureAyahVisible };
+export function initQuranAudio({ ensureAyahVisible, onAyahChange }) {
+  context = { ensureAyahVisible, onAyahChange };
 
   audio = new Audio();
   audio.preload = 'auto';
@@ -191,6 +193,9 @@ export function setPlaybackSurah(surah) {
 export async function playAyah(surahNumber, ayahNumber, { autoplay = true, total } = {}) {
   if (!audio) return;
   playing = { surah: surahNumber, ayah: ayahNumber, total: total ?? playing?.total ?? null };
+  // Listening is reading. Someone who plays a surah and comes back tomorrow should resume where the
+  // recitation reached, not where they last happened to scroll.
+  context?.onAyahChange?.(surahNumber, ayahNumber);
   audio.src = ayahAudioUrl(prefs.reciter, surahNumber, ayahNumber);
   highlightPlaying();
   renderPlayerBar();
