@@ -7,6 +7,7 @@ import { ASR_METHODS, CALCULATION_METHODS, DEFAULT_ASR_METHOD, DEFAULT_CALCULATI
 import { scheduleToday as scheduleRemindersToday } from './reminders.js';
 import { activateTasbih, TASBIH_STORAGE_KEY } from './tasbih.js';
 import { readLayoutStorage, writeLayoutStorage } from './layout.js';
+import { readQuranStorage, writeQuranStorage } from './quran.js';
 import { refreshLayoutVisibility } from './modes.js';
 import { syncLayoutConfigControls } from './layout-settings.js';
 
@@ -38,6 +39,8 @@ export function exportUserData() {
     // Per-tab enable/Simple-Advanced-visibility config -- its own localStorage key/shape too,
     // same reasoning as tasbih above.
     layout: readLayoutStorage(),
+    // Favourite surahs and ayahs, reading position and reader preferences -- its own key/shape too.
+    quran: readQuranStorage(),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -101,6 +104,7 @@ function importUserData(payload) {
   localStorage.setItem('eveningAdhkarEnabled', String(state.eveningAdhkarEnabled));
   writeTasbihStorage(payload.tasbih);
   writeLayoutStorageIfPresent(payload.layout);
+  if (payload.quran && typeof payload.quran === 'object') writeQuranStorage(payload.quran);
 
   applySettings();
   filterList();

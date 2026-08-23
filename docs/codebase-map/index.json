@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T13:08:43.160Z",
+  "generatedAt": "2026-08-23T08:31:08.922Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -603,7 +603,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 168,
+      "lines": 184,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -643,7 +643,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 114,
+      "lines": 124,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -683,7 +683,7 @@
     },
     {
       "path": "pwa-website/js/layout.js",
-      "lines": 106,
+      "lines": 107,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -691,7 +691,7 @@
     },
     {
       "path": "pwa-website/js/modes.js",
-      "lines": 69,
+      "lines": 75,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -715,7 +715,7 @@
     },
     {
       "path": "pwa-website/js/prayer.js",
-      "lines": 373,
+      "lines": 376,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -724,6 +724,14 @@
     {
       "path": "pwa-website/js/pwa.js",
       "lines": 101,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/quran.js",
+      "lines": 399,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -763,7 +771,7 @@
     },
     {
       "path": "pwa-website/js/state.js",
-      "lines": 34,
+      "lines": 35,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -779,7 +787,7 @@
     },
     {
       "path": "pwa-website/js/userData.js",
-      "lines": 157,
+      "lines": 161,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -795,7 +803,7 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 124,
+      "lines": 152,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1933,7 +1941,8 @@
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/src/index.ts",
         "pwa-website/js/prayer.js",
-        "pwa-website/js/reminders.js"
+        "pwa-website/js/reminders.js",
+        "pwa-website/sw.js"
       ]
     },
     {
@@ -2955,7 +2964,8 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "pwa-website/js/layout-settings.js"
+        "pwa-website/js/layout-settings.js",
+        "pwa-website/js/quran.js"
       ]
     },
     {
@@ -3015,7 +3025,8 @@
         "apps/developers/public/console.js",
         "apps/status/public/app.js",
         "pwa-website/js/app.js",
-        "pwa-website/js/layout-settings.js"
+        "pwa-website/js/layout-settings.js",
+        "pwa-website/js/quran.js"
       ]
     },
     {

@@ -671,6 +671,16 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.019
+
+- Rebuilt Settings as grouped cards. It previously drew a single hairline above each transparent row inside a rounded dialog, leaving dangling lines with no surface behind them and no press feedback; rows now sit on a rounded surface with inset separators that stop at the corners, larger touch targets, and hover/press states.
+- Added colour-coded tajweed to the Quran, covering all 17 recitation rules, with a per-reader toggle for plain text.
+- Added sajdah (prostration) marks, shown as in a printed mushaf.
+- Added favourite surahs, favourite ayahs, and a "Continue reading" card that returns to where you stopped.
+- Added a scroll/pages toggle for surah reading, 20 ayahs per page, remembered per reader.
+- Added per-ayah copy and share, matching the dua reader.
+- Quran favourites, bookmarks and reader preferences are included in Settings backup export/import.
+
 ### 1.018
 
 - Added the Quran: all 114 surahs in Arabic with the Saheeh International English translation, searchable by name or number, with each ayah's Arabic and English shown together.

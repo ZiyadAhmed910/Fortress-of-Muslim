@@ -5,6 +5,15 @@
 //              redistribution are permitted provided the source is credited with a link back, and
 //              the text must not be altered. That makes it clean for any downstream use, including
 //              serving through the platform API.
+//   Tajweed    Quran.com / Quran Foundation (text_uthmani_tajweed), which returns the Uthmani text
+//              with recitation rules already marked up inline as <tajweed class=...> spans, plus the
+//              ornate end-of-ayah numeral. The obvious alternative, cpfair/quran-tajweed, annotates
+//              by codepoint offset into a 2017 snapshot of the Tanzil text; measured against current
+//              Tanzil that lands only 97-99% of rules on the right letter, because Tanzil's encoding
+//              has shifted since. Mis-coloured tajweed teaches recitation wrongly, so the pre-marked
+//              text was chosen -- there is no offset arithmetic to drift.
+//   Sajdah     Quran.com verse metadata (sajdah_number), so prostration verses are marked as in a
+//              printed mushaf rather than hard-coded from memory.
 //   Translation Saheeh International, via Tanzil. Copyrighted; permitted here for free,
 //              non-commercial religious use with attribution. It is deliberately NOT cleared for
 //              redistribution to third-party developers through the platform API -- see
@@ -29,7 +38,20 @@ const SOURCES = {
   arabic: 'https://tanzil.net/pub/download/index.php?quranType=uthmani-min&outType=txt&agree=true',
   english: 'https://tanzil.net/trans/?transID=en.sahih&type=txt&agree=true',
   chapters: 'https://api.quran.com/api/v4/chapters?language=en',
+  tajweed: (surah) => `https://api.quran.com/api/v4/quran/verses/uthmani_tajweed?chapter_number=${surah}`,
+  sajdah: (surah) => `https://api.quran.com/api/v4/verses/by_chapter/${surah}?fields=sajdah_number&per_page=300`,
 };
+
+// <tajweed class=x>..</tajweed> and the <span class=end>N</span> ayah numeral are stripped to
+// recover plain text for copying, sharing and search. Kept as one helper so the app and the build
+// agree on what "plain" means.
+export function stripTajweed(markup) {
+  return markup
+    .replace(/<span class=end>.*?<\/span>/g, '')
+    .replace(/<\/?tajweed[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 // Downloads are cached on disk so re-running the build does not re-hit the upstream sites, and so a
 // build stays reproducible if one of them is briefly unreachable.
@@ -89,15 +111,49 @@ function openingText(surahNumber, bismillahPre, text) {
   return remainder;
 }
 
+// Tanzil prefixes ayah 1 with the Bismillah; Quran.com's tajweed text does not (2:1 is just
+// "الٓمٓ"). So only the plain text is stripped -- but that difference is asserted per surah rather
+// than assumed, because silently stripping a real opening word would corrupt the verse.
+const BISMILLAH_TAJWEED_PLAIN = stripTajweed(
+  JSON.parse(await fetchCached('tajweed-1.json', SOURCES.tajweed(1))).verses[0].text_uthmani_tajweed,
+);
+
+function assertTajweedHasNoBismillah(surahNumber, markup) {
+  if (stripTajweed(markup).startsWith(BISMILLAH_TAJWEED_PLAIN)) {
+    throw new Error(`Surah ${surahNumber}: tajweed ayah 1 unexpectedly opens with the Bismillah; it would render twice`);
+  }
+}
+
 let cursor = 0;
 const index = [];
+let sajdahTotal = 0;
+const sajdahKeys = [];
 for (const chapter of chapters) {
   const count = chapter.verses_count;
   const bismillahPre = Boolean(chapter.bismillah_pre);
+
+  const [tajweedRaw, sajdahRaw] = await Promise.all([
+    fetchCached(`tajweed-${chapter.id}.json`, SOURCES.tajweed(chapter.id)),
+    fetchCached(`sajdah-${chapter.id}.json`, SOURCES.sajdah(chapter.id)),
+  ]);
+  const tajweedVerses = JSON.parse(tajweedRaw).verses;
+  const sajdahVerses = JSON.parse(sajdahRaw).verses;
+  if (tajweedVerses.length !== count) {
+    throw new Error(`Surah ${chapter.id}: tajweed returned ${tajweedVerses.length} verses, expected ${count}`);
+  }
+  const sajdahByAyah = new Map(sajdahVerses
+    .filter((verse) => verse.sajdah_number)
+    .map((verse) => [verse.verse_number, verse.sajdah_number]));
+
   const ayahs = [];
   for (let i = 0; i < count; i += 1) {
     const ar = i === 0 ? openingText(chapter.id, bismillahPre, arabic[cursor]) : arabic[cursor];
-    ayahs.push({ n: i + 1, ar, en: english[cursor] });
+    const tj = tajweedVerses[i].text_uthmani_tajweed;
+    if (i === 0 && bismillahPre) assertTajweedHasNoBismillah(chapter.id, tj);
+    const ayah = { n: i + 1, ar, tj, en: english[cursor] };
+    const sajdah = sajdahByAyah.get(i + 1);
+    if (sajdah) { ayah.sajdah = sajdah; sajdahTotal += 1; sajdahKeys.push(`${chapter.id}:${i + 1}`); }
+    ayahs.push(ayah);
     cursor += 1;
   }
   const surah = {
@@ -137,6 +193,16 @@ await writeFile(new URL('index.json', OUT_DIR), JSON.stringify({
       licence: 'CC BY 3.0',
       redistributable: true,
     },
+    sajdah: {
+      convention: '14 verses (Hanafi, Maliki, Hanbali): includes Sad 38:24, excludes the second Hajj sajdah 22:77.',
+    },
+    tajweed: {
+      source: 'Quran.com (Quran Foundation)',
+      url: 'https://quran.com',
+      text: 'Tajweed markup and sajdah marks from Quran.com (Quran Foundation).',
+      licence: 'Free use with attribution.',
+      redistributable: false,
+    },
     translation: {
       source: 'Saheeh International',
       url: 'https://tanzil.net/trans/',
@@ -150,5 +216,18 @@ await writeFile(new URL('index.json', OUT_DIR), JSON.stringify({
 
 // 114 surahs, minus Al-Fatihah (Bismillah is its ayah 1) and At-Tawbah (no Bismillah at all).
 if (strippedCount !== 112) throw new Error(`Stripped a Bismillah prefix from ${strippedCount} surahs, expected 112`);
+// The number of recitation sajdahs is a point of fiqh difference, so the exact set is pinned rather
+// than counted: this is the 14-sajdah convention (Hanafi/Maliki/Hanbali) that the upstream metadata
+// follows -- it includes Sad 38:24 and excludes the second Hajj sajdah 22:77. The Shafi'i position
+// is the reverse on both. Pinning the keys means an upstream change to the convention fails the
+// build loudly instead of silently altering which verses the app tells people to prostrate at.
+const EXPECTED_SAJDAH = ['7:206', '13:15', '16:50', '17:109', '19:58', '22:18', '25:60',
+  '27:26', '32:15', '38:24', '41:38', '53:62', '84:21', '96:19'];
+const foundSajdah = sajdahKeys.slice().sort();
+if (foundSajdah.join(',') !== EXPECTED_SAJDAH.slice().sort().join(',')) {
+  throw new Error(`Sajdah verses changed upstream.
+  expected: ${EXPECTED_SAJDAH.join(', ')}
+  found:    ${sajdahKeys.join(', ')}`);
+}
 
-console.log(`Built ${TOTAL_SURAHS} surahs / ${TOTAL_AYAHS} ayahs into data/quran/ (Bismillah prefix separated on ${strippedCount}).`);
+console.log(`Built ${TOTAL_SURAHS} surahs / ${TOTAL_AYAHS} ayahs into data/quran/ (Bismillah separated on ${strippedCount}, ${sajdahTotal} sajdah verses, tajweed inline).`);

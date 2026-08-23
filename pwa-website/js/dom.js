@@ -52,6 +52,8 @@ export const els = {
   quranBrowse: document.getElementById('quranBrowse'),
   quranReader: document.getElementById('quranReader'),
   quranSearch: document.getElementById('quranSearch'),
+  quranFavFilter: document.getElementById('quranFavFilter'),
+  quranResume: document.getElementById('quranResume'),
   quranList: document.getElementById('quranList'),
   quranCount: document.getElementById('quranCount'),
   quranAttribution: document.getElementById('quranAttribution'),

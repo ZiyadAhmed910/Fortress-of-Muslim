@@ -202,10 +202,14 @@
 
           <section class="online-home quran-home" id="quranHome" hidden>
         <div id="quranBrowse">
-          <label class="quran-search">
-            <span class="visually-hidden">Search surahs</span>
-            <input id="quranSearch" type="search" placeholder="Search surah by name or number" autocomplete="off">
-          </label>
+          <div id="quranResume"></div>
+          <div class="quran-search-row">
+            <label class="quran-search">
+              <span class="visually-hidden">Search surahs</span>
+              <input id="quranSearch" type="search" placeholder="Search surah by name or number" autocomplete="off">
+            </label>
+            <button class="chip-toggle" id="quranFavFilter" type="button" aria-label="Show favourite surahs only">☆ Saved</button>
+          </div>
           <p class="result-count" id="quranCount"></p>
           <div class="surah-list" id="quranList"></div>
           <div id="quranAttribution"></div>
