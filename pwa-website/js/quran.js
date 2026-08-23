@@ -1,6 +1,7 @@
 import { els } from './dom.js';
 import { state } from './state.js';
 import { escapeHtml, toast } from './utils.js';
+import { setFontScale } from './settings.js';
 
 // Surah bodies live in their own files and are fetched the first time one is opened, rather than
 // bundled into the install. With tajweed markup the full text is ~6MB, which would dominate a first
@@ -23,7 +24,7 @@ function loadPrefs() {
     if (!parsed || typeof parsed !== 'object') return fallback;
     return {
       favouriteSurahs: Array.isArray(parsed.favouriteSurahs) ? parsed.favouriteSurahs.filter(Number.isInteger) : [],
-      favouriteAyahs: Array.isArray(parsed.favouriteAyahs) ? parsed.favouriteAyahs.filter((k) => typeof k === 'string') : [],
+      favouriteAyahs: normaliseFavouriteAyahs(parsed.favouriteAyahs),
       lastRead: parsed.lastRead && Number.isInteger(parsed.lastRead.surah) ? parsed.lastRead : null,
       tajweed: parsed.tajweed !== false,
       paginated: parsed.paginated === true,
@@ -31,6 +32,24 @@ function loadPrefs() {
   } catch {
     return fallback;
   }
+}
+
+// Saved ayahs were originally plain "surah:ayah" strings, which meant the saved list had no text to
+// show without fetching every surah they came from. They now carry a short preview; older entries
+// (and older backups) are upgraded in place and simply render without one until re-saved.
+function normaliseFavouriteAyahs(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => {
+      if (typeof entry === 'string') return { k: entry, p: '' };
+      if (entry && typeof entry.k === 'string') return { k: entry.k, p: typeof entry.p === 'string' ? entry.p : '' };
+      return null;
+    })
+    .filter(Boolean);
+}
+
+function isAyahFavourite(key) {
+  return prefs.favouriteAyahs.some((entry) => entry.k === key);
 }
 
 function savePrefs() {
@@ -85,9 +104,40 @@ export function initQuran() {
   });
   els.quranBrowse.addEventListener('click', (event) => {
     const resume = event.target.closest('[data-resume]');
-    if (resume) openSurah(prefs.lastRead.surah, prefs.lastRead.ayah);
+    if (resume) return openSurah(prefs.lastRead.surah, prefs.lastRead.ayah);
+    const savedAyah = event.target.closest('[data-open-ayah]');
+    if (savedAyah) {
+      const [surahNumber, ayahNumber] = savedAyah.dataset.openAyah.split(':').map(Number);
+      openSurah(surahNumber, ayahNumber);
+    }
   });
   els.quranReader.addEventListener('click', onReaderClick);
+  bindSurahSwipe();
+}
+
+// Matches the dua reader's swipe. Horizontal-only and threshold-gated so it cannot fire while
+// someone is scrolling a long surah vertically, and RTL-aware in intent: swiping left moves forward
+// through the mushaf, the same direction the Next button goes.
+function bindSurahSwipe() {
+  let startX = 0;
+  let startY = 0;
+  let tracking = false;
+  els.quranReader.addEventListener('touchstart', (event) => {
+    if (event.touches.length !== 1) { tracking = false; return; }
+    startX = event.touches[0].clientX;
+    startY = event.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+  els.quranReader.addEventListener('touchend', (event) => {
+    if (!tracking || !state.quranSurah) return;
+    tracking = false;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
+    const target = state.quranSurah + (dx < 0 ? 1 : -1);
+    if (target >= 1 && target <= 114) openSurah(target);
+  }, { passive: true });
 }
 
 function onReaderClick(event) {
@@ -108,8 +158,16 @@ function onReaderClick(event) {
   }
   const favAyah = event.target.closest('[data-fav-ayah]');
   if (favAyah) {
-    toggleAyahFavourite(favAyah.dataset.favAyah);
+    const { ayah } = findAyah(favAyah.dataset.favAyah);
+    toggleAyahFavourite(favAyah.dataset.favAyah, ayah?.en || '');
     renderSurah(loaded.get(state.quranSurah));
+    return;
+  }
+  const goto = event.target.closest('[data-goto-surah]');
+  if (goto) return openSurah(Number(goto.dataset.gotoSurah));
+  const zoom = event.target.closest('[data-zoom]');
+  if (zoom) {
+    setFontScale(state.fontScale + Number(zoom.dataset.zoom));
     return;
   }
   const copy = event.target.closest('[data-copy-ayah]');
@@ -139,9 +197,10 @@ function toggleSurahFavourite(number) {
   savePrefs();
 }
 
-function toggleAyahFavourite(key) {
-  const at = prefs.favouriteAyahs.indexOf(key);
-  if (at === -1) prefs.favouriteAyahs.push(key); else prefs.favouriteAyahs.splice(at, 1);
+function toggleAyahFavourite(key, preview = '') {
+  const at = prefs.favouriteAyahs.findIndex((entry) => entry.k === key);
+  if (at === -1) prefs.favouriteAyahs.push({ k: key, p: preview.slice(0, 120) });
+  else prefs.favouriteAyahs.splice(at, 1);
   savePrefs();
 }
 
@@ -217,7 +276,7 @@ function renderSurahList() {
       || surah.nameArabic.includes(query);
   });
 
-  els.quranResume.innerHTML = renderResumeCard();
+  els.quranResume.innerHTML = favouritesOnly ? renderSavedAyahs() : renderResumeCard();
   els.quranCount.textContent = `${matches.length} surah${matches.length === 1 ? '' : 's'}`;
   els.quranList.innerHTML = matches.length
     ? matches.map((surah) => {
@@ -236,6 +295,22 @@ function renderSurahList() {
       `;
     }).join('')
     : `<div class="empty-state">${favouritesOnly ? 'No favourite surahs yet. Tap a star to save one.' : 'No surah matched that search.'}</div>`;
+}
+
+// Saving an ayah is pointless if it cannot be found again, so the Saved chip lists saved ayahs as
+// well as saved surahs, each jumping straight back to the verse.
+function renderSavedAyahs() {
+  if (!prefs.favouriteAyahs.length) return '';
+  const rows = prefs.favouriteAyahs.map((entry) => {
+    const meta = index?.surahs.find((surah) => surah.number === Number(entry.k.split(':')[0]));
+    return `
+      <button class="saved-ayah" type="button" data-open-ayah="${entry.k}">
+        <span class="saved-ayah-ref">${escapeHtml(meta ? meta.nameSimple : '')} ${escapeHtml(entry.k)}</span>
+        ${entry.p ? `<span class="saved-ayah-text">${escapeHtml(entry.p)}</span>` : ''}
+      </button>
+    `;
+  }).join('');
+  return `<div class="saved-block"><h3>Saved ayahs (${prefs.favouriteAyahs.length})</h3><div class="saved-ayah-list">${rows}</div></div>`;
 }
 
 function renderResumeCard() {
@@ -299,6 +374,8 @@ function renderSurah(surah) {
         <button class="chip-toggle${faved ? ' active' : ''}" type="button" data-fav-surah="${surah.number}">${faved ? '★ Saved' : '☆ Save surah'}</button>
         <button class="chip-toggle${prefs.tajweed ? ' active' : ''}" type="button" data-toggle-tajweed>Tajweed</button>
         <button class="chip-toggle${prefs.paginated ? ' active' : ''}" type="button" data-toggle-view>${prefs.paginated ? 'Pages' : 'Scroll'}</button>
+        <button class="chip-toggle" type="button" data-zoom="-0.12" aria-label="Decrease text size">A-</button>
+        <button class="chip-toggle" type="button" data-zoom="0.12" aria-label="Increase text size">A+</button>
       </div>
     </header>
     ${surah.bismillahPre ? '<p class="surah-bismillah" dir="rtl" lang="ar">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>' : ''}
@@ -306,13 +383,14 @@ function renderSurah(surah) {
       ${visible.map((ayah) => renderAyah(surah, ayah)).join('')}
     </ol>
     ${prefs.paginated ? renderPager(page, totalPages) : ''}
+    ${renderSurahNav(surah.number)}
     ${attributionMarkup()}
   `;
 }
 
 function renderAyah(surah, ayah) {
   const key = `${surah.number}:${ayah.n}`;
-  const faved = prefs.favouriteAyahs.includes(key);
+  const faved = isAyahFavourite(key);
   const arabic = prefs.tajweed ? tajweedHtml(ayah.tj) : escapeHtml(stripTajweed(ayah.tj));
   return `
     <li class="ayah${ayah.sajdah ? ' has-sajdah' : ''}${faved ? ' is-favourite' : ''}" id="ayah-${surah.number}-${ayah.n}">
@@ -328,6 +406,20 @@ function renderAyah(surah, ayah) {
         <button class="ayah-action" type="button" data-share-ayah="${key}" aria-label="Share ayah ${key}">Share</button>
       </div>
     </li>
+  `;
+}
+
+// Reaching the end of a surah and having to go back to the list to continue is the main friction in
+// reading straight through, so the reader carries its own previous/next surah step.
+function renderSurahNav(number) {
+  const previous = index?.surahs.find((surah) => surah.number === number - 1);
+  const next = index?.surahs.find((surah) => surah.number === number + 1);
+  if (!previous && !next) return '';
+  return `
+    <nav class="surah-nav" aria-label="Surah navigation">
+      ${previous ? `<button type="button" data-goto-surah="${previous.number}"><small>Previous</small><strong>${escapeHtml(previous.nameSimple)}</strong></button>` : '<span></span>'}
+      ${next ? `<button type="button" data-goto-surah="${next.number}"><small>Next</small><strong>${escapeHtml(next.nameSimple)}</strong></button>` : '<span></span>'}
+    </nav>
   `;
 }
 
