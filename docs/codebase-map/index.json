@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-23T09:39:50.086Z",
+  "generatedAt": "2026-08-23T16:01:54.373Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -619,7 +619,7 @@
     },
     {
       "path": "pwa-website/js/categories.js",
-      "lines": 160,
+      "lines": 150,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3024,6 +3024,7 @@
         "apps/developers/public/console.js",
         "apps/status/public/app.js",
         "pwa-website/js/app.js",
+        "pwa-website/js/categories.js",
         "pwa-website/js/layout-settings.js",
         "pwa-website/js/quran.js"
       ]

@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-23T09:39:50.086Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-08-23T16:01:54.373Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -113,7 +113,7 @@ Not all of these are bugs; verify before assuming.
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
 | `pwa-website/js/app.js` | js | 190 |  |  |
 | `pwa-website/js/assistant.js` | js | 54 |  |  |
-| `pwa-website/js/categories.js` | js | 160 |  |  |
+| `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 4 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
 | `pwa-website/js/dom.js` | js | 128 |  |  |
@@ -369,7 +369,7 @@ Not all of these are bugs; verify before assuming.
 | source_references | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | taxonomy_terms | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
 | that | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
-| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/layout-settings.js`, `pwa-website/js/quran.js` |
+| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/categories.js`, `pwa-website/js/layout-settings.js`, `pwa-website/js/quran.js` |
 | this | unknown | `(not defined in scanned files)` | `apps/auth/src/editorial-plane.ts`, `apps/status/public/app.js` |
 | travel | unknown | `(not defined in scanned files)` | `apps/api/test/fuzzy-title.test.ts` |
 | true | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js` |

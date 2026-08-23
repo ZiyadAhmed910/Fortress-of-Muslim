@@ -70,6 +70,42 @@ function sunPosition(julianDate) {
   return { declination, equationOfTime };
 }
 
+// Established conventions for latitudes where the sun never reaches the Fajr/Isha depression angle.
+// All three divide the night (sunset to sunrise) and are the same set offered by PrayTimes.org and
+// adhan.js, so a reader can match whatever their local mosque follows.
+export const HIGH_LATITUDE_RULES = {
+  angle: {
+    key: 'angle',
+    label: 'Angle-based (recommended)',
+    // Night split in proportion to the method's own twilight angle: angle/60 of the night. This is
+    // PrayTimes.org's default and the one Muslim World League recommends for northern latitudes.
+    portion: (nightLength, angle) => (angle / 60) * nightLength,
+  },
+  seventh: {
+    key: 'seventh',
+    label: 'One-seventh of the night',
+    portion: (nightLength) => nightLength / 7,
+  },
+  midnight: {
+    key: 'midnight',
+    label: 'Middle of the night',
+    portion: (nightLength) => nightLength / 2,
+  },
+  none: {
+    key: 'none',
+    label: 'None (leave blank)',
+    portion: () => 0,
+  },
+};
+
+export const DEFAULT_HIGH_LATITUDE_RULE = 'angle';
+
+// Inside the polar circles there are dates with no sunrise or sunset at all, so there is no night to
+// divide and the rules above have nothing to work from. The convention there is Aqrab al-Bilaad --
+// "nearest locality" -- taking the times of the closest latitude that still has a normal day. 48
+// degrees is the usual choice, being roughly where the twilight angles stop resolving.
+const NEAREST_LATITUDE = 48;
+
 // Hour angle (in hours from solar noon) at which the sun reaches solar `altitude` degrees
 // (negative = below horizon, positive = above) for a given latitude and solar declination.
 // Standard formula: cos(H) = (sin(altitude) - sin(lat)*sin(dec)) / (cos(lat)*cos(dec)).
@@ -107,7 +143,7 @@ function formatClockTime(decimalHours, timezoneOffsetHours) {
  * local timezone) and `timezoneOffsetHours` is the UTC offset to render clock times in (pass
  * `-date.getTimezoneOffset() / 60` for the device's own timezone).
  */
-export function computePrayerTimes(latitude, longitude, date, methodKey = DEFAULT_CALCULATION_METHOD, asrMethodKey = DEFAULT_ASR_METHOD, timezoneOffsetHours = -date.getTimezoneOffset() / 60) {
+export function computePrayerTimes(latitude, longitude, date, methodKey = DEFAULT_CALCULATION_METHOD, asrMethodKey = DEFAULT_ASR_METHOD, timezoneOffsetHours = -date.getTimezoneOffset() / 60, highLatitudeRuleKey = DEFAULT_HIGH_LATITUDE_RULE) {
   const method = CALCULATION_METHODS[methodKey] ?? CALCULATION_METHODS[DEFAULT_CALCULATION_METHOD];
   const asr = ASR_METHODS[asrMethodKey] ?? ASR_METHODS[DEFAULT_ASR_METHOD];
   const jd = julianDay(date.getFullYear(), date.getMonth() + 1, date.getDate());
@@ -120,6 +156,9 @@ export function computePrayerTimes(latitude, longitude, date, methodKey = DEFAUL
 
   const dhuhrDecimal = 12 - equationOfTime / 60 - longitude / 15;
   const maghribDecimal = computeSolarTime(maghribH, longitude, equationOfTime, 1);
+  const sunriseDecimal = computeSolarTime(sunriseH, longitude, equationOfTime, -1);
+
+  let fajrDecimal = computeSolarTime(fajrH, longitude, equationOfTime, -1);
 
   let ishaDecimal;
   if (method.ishaMinutesAfterMaghrib && maghribDecimal !== null) {
@@ -129,13 +168,46 @@ export function computePrayerTimes(latitude, longitude, date, methodKey = DEFAUL
     ishaDecimal = computeSolarTime(ishaH, longitude, equationOfTime, 1);
   }
 
+  // Above roughly 48 degrees the sun does not descend far enough on some dates for Fajr or Isha to
+  // occur at all, and the hour angle is undefined. Rather than showing nothing, apply the reader's
+  // chosen convention, all of which estimate from the length of the night between sunset and
+  // sunrise. `estimated` records which prayers were derived this way so the UI can say so.
+  const estimated = [];
+  const rule = HIGH_LATITUDE_RULES[highLatitudeRuleKey] ?? HIGH_LATITUDE_RULES[DEFAULT_HIGH_LATITUDE_RULE];
+
+  // No sunrise or sunset today: polar day or polar night. Nothing can be derived from the length of
+  // a night that does not occur, so fall back to the nearest latitude that does have one. Guarded by
+  // the latitude check so this can only recurse once.
+  if (rule.key !== 'none' && (maghribDecimal === null || sunriseDecimal === null) && Math.abs(latitude) > NEAREST_LATITUDE) {
+    const nearest = computePrayerTimes(
+      Math.sign(latitude) * NEAREST_LATITUDE, longitude, date,
+      methodKey, asrMethodKey, timezoneOffsetHours, highLatitudeRuleKey,
+    );
+    return { ...nearest, estimated: ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'], highLatitudeRule: rule.key };
+  }
+
+  if (rule.key !== 'none' && maghribDecimal !== null && sunriseDecimal !== null) {
+    // Night runs from sunset to the next sunrise, so it wraps midnight.
+    const nightLength = fixRange(sunriseDecimal - maghribDecimal, 24);
+    if (fajrDecimal === null) {
+      fajrDecimal = fixRange(sunriseDecimal - rule.portion(nightLength, method.fajrAngle), 24);
+      estimated.push('fajr');
+    }
+    if (ishaDecimal === null) {
+      ishaDecimal = fixRange(maghribDecimal + rule.portion(nightLength, method.ishaAngle), 24);
+      estimated.push('isha');
+    }
+  }
+
   return {
-    fajr: formatClockTime(computeSolarTime(fajrH, longitude, equationOfTime, -1), timezoneOffsetHours),
-    sunrise: formatClockTime(computeSolarTime(sunriseH, longitude, equationOfTime, -1), timezoneOffsetHours),
+    fajr: formatClockTime(fajrDecimal, timezoneOffsetHours),
+    sunrise: formatClockTime(sunriseDecimal, timezoneOffsetHours),
     dhuhr: formatClockTime(dhuhrDecimal, timezoneOffsetHours),
     asr: formatClockTime(computeSolarTime(asrH, longitude, equationOfTime, 1), timezoneOffsetHours),
     maghrib: formatClockTime(maghribDecimal, timezoneOffsetHours),
     isha: formatClockTime(ishaDecimal, timezoneOffsetHours),
+    estimated,
+    highLatitudeRule: rule.key,
   };
 }
 

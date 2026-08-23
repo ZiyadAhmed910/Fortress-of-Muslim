@@ -136,7 +136,16 @@ export function scheduleToday() {
   updateLocationNote();
   if (!coordinates) return; // nothing to schedule against yet -- the note above explains why
 
-  const times = computePrayerTimes(coordinates.latitude, coordinates.longitude, new Date(), state.calculationMethod, state.asrMethod);
+  const now = new Date();
+  const times = computePrayerTimes(
+    coordinates.latitude,
+    coordinates.longitude,
+    now,
+    state.calculationMethod,
+    state.asrMethod,
+    -now.getTimezoneOffset() / 60,
+    state.highLatitudeRule,
+  );
   if (state.morningAdhkarEnabled && times.fajr) {
     scheduleAt(
       timeToDateToday(times.fajr, MORNING_OFFSET_MINUTES),

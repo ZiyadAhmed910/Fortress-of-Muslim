@@ -22,6 +22,7 @@ export const state = {
   lastWorshipMode: 'prayerTimes',
   calculationMethod: localStorage.getItem('calculationMethod') || 'mwl',
   asrMethod: localStorage.getItem('asrMethod') || 'standard',
+  highLatitudeRule: localStorage.getItem('highLatitudeRule') || 'angle',
   manualLatitude: localStorage.getItem('manualLatitude') ? Number(localStorage.getItem('manualLatitude')) : null,
   manualLongitude: localStorage.getItem('manualLongitude') ? Number(localStorage.getItem('manualLongitude')) : null,
   lastKnownLatitude: localStorage.getItem('lastKnownLatitude') ? Number(localStorage.getItem('lastKnownLatitude')) : null,

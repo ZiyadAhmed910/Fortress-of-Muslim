@@ -3,6 +3,7 @@ import { els } from './dom.js';
 import { toast } from './utils.js';
 import {
   computePrayerTimes,
+  HIGH_LATITUDE_RULES,
   computeQiblaBearing,
   compassDirectionLabel,
   formatPrayerClock,
@@ -42,6 +43,12 @@ export function initPrayer() {
     localStorage.setItem('calculationMethod', state.calculationMethod);
     if (state.contentMode === 'prayerTimes') computeAndRenderPrayerTimes();
   });
+  els.highLatitudeSelect.addEventListener('change', () => {
+    state.highLatitudeRule = els.highLatitudeSelect.value;
+    localStorage.setItem('highLatitudeRule', state.highLatitudeRule);
+    if (state.contentMode === 'prayerTimes') computeAndRenderPrayerTimes();
+  });
+
   els.asrMethodSelect.addEventListener('change', () => {
     state.asrMethod = els.asrMethodSelect.value;
     localStorage.setItem('asrMethod', state.asrMethod);
@@ -61,6 +68,7 @@ export function initPrayer() {
 export function syncPrayerSettingsControls() {
   els.calculationMethodSelect.value = state.calculationMethod;
   els.asrMethodSelect.value = state.asrMethod;
+  els.highLatitudeSelect.value = state.highLatitudeRule;
 }
 
 export async function activatePrayerTimes() {
@@ -221,6 +229,7 @@ function showLocationNeeded(tab) {
     showLocationNeededFor({ label: els.prayerTimesLocationLabel, button: els.prayerTimesLocationButton, form: els.prayerTimesLocationForm });
     els.prayerTimesTimezoneNote.hidden = true;
     els.prayerTimesList.hidden = true;
+    els.prayerEstimatedNote.hidden = true;
     els.prayerNextName.textContent = '–';
     els.prayerNextTime.textContent = '––:––';
     els.prayerNextCountdown.textContent = '';
@@ -252,7 +261,15 @@ function computeAndRenderPrayerTimes() {
   const { latitude, longitude } = currentCoordinates;
   const now = new Date();
   lastComputedDateKey = now.toDateString();
-  const times = computePrayerTimes(latitude, longitude, now, state.calculationMethod, state.asrMethod);
+  const times = computePrayerTimes(
+    latitude,
+    longitude,
+    now,
+    state.calculationMethod,
+    state.asrMethod,
+    -now.getTimezoneOffset() / 60,
+    state.highLatitudeRule,
+  );
   state.prayerTimes = times;
   renderPrayerList(times);
   renderNextPrayer(times);
@@ -264,12 +281,50 @@ function computeAndRenderQibla() {
 }
 
 function renderPrayerList(times) {
+  const estimated = new Set(times.estimated || []);
   els.prayerTimesList.innerHTML = prayerTimesList(times).map(({ key, label, time }) => `
     <div class="prayer-row${key === 'sunrise' ? ' prayer-row-sunrise' : ''}" data-prayer-row="${key}">
-      <span class="prayer-row-label">${label}</span>
+      <span class="prayer-row-label">${label}${estimated.has(key) ? ' <span class="prayer-row-estimated" title="Estimated -- the sun does not reach this angle here on this date">estimated</span>' : ''}</span>
       <span class="prayer-row-time">${formatPrayerClock(time)}</span>
     </div>
   `).join('');
+  renderEstimatedNote(times, estimated);
+}
+
+// At high latitudes some prayer times cannot be observed at all on some dates, so they are derived
+// from a convention instead. Saying which one, in the list itself, matters more than it looks: two
+// people in the same city can hold different times and both be right, and a silent number invites
+// the user to assume the app is simply wrong.
+function renderEstimatedNote(times, estimated) {
+  const note = els.prayerEstimatedNote;
+  if (!note) return;
+  // A blank time needs an explanation just as much as an estimated one does. Choosing "None" is a
+  // legitimate position -- some scholars hold that an unobservable time should not be invented --
+  // but an unexplained "--:--" is indistinguishable from the app being broken, which is the exact
+  // failure this whole feature exists to remove.
+  const blank = prayerTimesList(times).filter(({ key, time }) => !time && !estimated.has(key));
+  if (!estimated.size && !blank.length) {
+    note.hidden = true;
+    return;
+  }
+  note.hidden = false;
+  if (!estimated.size) {
+    note.textContent = `${listNames(blank.map((p) => p.label))} ${blank.length > 1 ? 'do' : 'does'} not occur at this latitude on this date. Choose a high-latitude convention in Settings to estimate ${blank.length > 1 ? 'them' : 'it'}.`;
+    return;
+  }
+  if (estimated.size >= 6) {
+    note.textContent = 'The sun does not rise or set here on this date, so every time is taken from the nearest latitude where it does (48°). Check these against your local mosque.';
+    return;
+  }
+  const rule = HIGH_LATITUDE_RULES[times.highLatitudeRule];
+  const names = listNames(prayerTimesList(times).filter(({ key }) => estimated.has(key)).map((p) => p.label));
+  const label = (rule ? rule.label : 'angle-based').replace(' (recommended)', '').toLowerCase();
+  note.textContent = `${names} cannot be observed at this latitude on this date, and ${estimated.size > 1 ? 'are' : 'is'} estimated using the ${label} convention. You can change this in Settings.`;
+}
+
+function listNames(names) {
+  if (names.length <= 1) return names[0] || '';
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
 function renderNextPrayer(times) {
