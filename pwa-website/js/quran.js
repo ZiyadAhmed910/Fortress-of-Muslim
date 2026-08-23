@@ -137,7 +137,7 @@ export function initQuran() {
   bindSurahSwipe();
   // The player advances ayah by ayah; in paginated mode the next ayah may be on a page that is not
   // rendered, and only the reader knows how to turn one.
-  initQuranAudio({ ensureAyahVisible: ensureAyahVisible });
+  initQuranAudio({ ensureAyahVisible, onAyahChange: markRead });
 }
 
 // Matches the dua reader's swipe. Horizontal-only and threshold-gated so it cannot fire while
@@ -339,6 +339,7 @@ async function fetchJson(url) {
 }
 
 export function showSurahList() {
+  stopObservingReadingPosition();
   if (isPlaying()) stopPlayback();
   state.quranSurah = null;
   els.app.classList.remove('is-surah');
@@ -470,12 +471,103 @@ export async function openSurah(number, scrollToAyah = null) {
   setPlaybackSurah(meta);
 
   if (scrollToAyah && prefs.paginated) page = Math.floor((scrollToAyah - 1) / PAGE_SIZE);
-  prefs.lastRead = { surah: number, ayah: scrollToAyah || 1 };
-  savePrefs();
+  // Seeds the position on open. It used to be the ONLY place lastRead was ever written, which is
+  // why "Continue reading" was stuck at ayah 1 no matter how far anyone actually read -- reading is
+  // scrolling, and nothing was watching that. markRead below now keeps it honest.
+  markRead(number, scrollToAyah || 1, { immediate: true });
   renderSurah(surah);
   if (scrollToAyah) {
-    document.getElementById(`ayah-${number}-${scrollToAyah}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    // Instant, not smooth: resuming at ayah 200 should put you there, not animate the whole way down
+    // past everything you already read. Following a recitation is the case where smooth is right,
+    // and that one still is.
+    document.getElementById(`ayah-${number}-${scrollToAyah}`)?.scrollIntoView({ block: 'center', behavior: 'instant' });
   }
+}
+
+let readMarkTimer = null;
+
+/**
+ * Records how far the reader has actually got. Two things move the position, because there are two
+ * ways to move through a surah: scrolling it, and listening to it.
+ *
+ * Writes are debounced -- scrolling past forty ayahs should not be forty localStorage writes -- but
+ * an explicit call (opening a surah, closing the reader) commits straight away so nothing is lost if
+ * the tab goes away before the timer fires.
+ */
+function markRead(surahNumber, ayahNumber, { immediate = false } = {}) {
+  if (!Number.isInteger(surahNumber) || !Number.isInteger(ayahNumber)) return;
+  const last = prefs.lastRead;
+  if (last && last.surah === surahNumber && last.ayah === ayahNumber) return;
+  prefs.lastRead = { surah: surahNumber, ayah: ayahNumber };
+  clearTimeout(readMarkTimer);
+  if (immediate) savePrefs();
+  else readMarkTimer = setTimeout(savePrefs, 500);
+}
+
+/** Commits any pending position write immediately. */
+function flushReadMark() {
+  if (!readMarkTimer) return;
+  clearTimeout(readMarkTimer);
+  readMarkTimer = null;
+  savePrefs();
+}
+
+/**
+ * Tracks which ayah is nearest the middle of the screen, so the reading position follows scrolling.
+ *
+ * Deliberately a scroll listener rather than an IntersectionObserver: IO callbacks are delivered as
+ * part of the rendering steps, so they never arrive in a tab that is not producing frames -- which
+ * is also what made the observer version impossible to verify here. Measuring once the scrolling
+ * stops is cheap enough (one pass over the rendered ayahs) and behaves the same whether or not
+ * anything is being painted.
+ */
+let scrollTracker = null;
+
+function observeReadingPosition(surahNumber) {
+  stopScrollTracking();
+  let idle = null;
+  const onScroll = () => {
+    clearTimeout(idle);
+    idle = setTimeout(() => {
+      const ayah = nearestAyahToCentre();
+      if (ayah) markRead(surahNumber, ayah);
+    }, 150);
+  };
+  scrollTracker = () => {
+    clearTimeout(idle);
+    window.removeEventListener('scroll', onScroll);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+}
+
+function nearestAyahToCentre() {
+  const centre = window.innerHeight / 2;
+  let best = null;
+  let bestDistance = Infinity;
+  for (const el of els.quranReader.querySelectorAll('.ayah[id]')) {
+    const rect = el.getBoundingClientRect();
+    // Anything spanning the centre line wins outright; otherwise the nearest edge decides, which is
+    // what settles the top and bottom of a surah where no ayah crosses the middle at all.
+    const distance = rect.top <= centre && rect.bottom >= centre
+      ? 0
+      : Math.min(Math.abs(rect.top - centre), Math.abs(rect.bottom - centre));
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = Number(el.id.split('-')[2]);
+      if (distance === 0) break;
+    }
+  }
+  return Number.isInteger(best) ? best : null;
+}
+
+function stopScrollTracking() {
+  scrollTracker?.();
+  scrollTracker = null;
+}
+
+function stopObservingReadingPosition() {
+  stopScrollTracking();
+  flushReadMark();
 }
 
 function renderSurah(surah) {
@@ -501,6 +593,7 @@ function renderSurah(surah) {
     ${renderUtilityBar(surah, faved)}
   `;
   restoreHighlight();
+  observeReadingPosition(surah.number);
   refreshAudioDownloadState(surah);
 }
 
