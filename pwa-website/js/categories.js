@@ -1,92 +1,85 @@
+// Categories and moods are curated per dua in data/duas.json and are NOT inferred from the text.
+//
+// They used to be derived by testing whether a keyword appeared anywhere in the dua, body text
+// included. Because almost every supplication contains "I seek refuge" or "praise be to Allah",
+// that filed 58% of assignments wrongly -- "When wearing a new garment" became a healing recitation
+// on the strength of the word "refuge". Terms are gone entirely; the labels below are presentation
+// only, and membership comes from the data.
 export const CATEGORY_GROUPS = {
   all: {
     label: 'All',
-    terms: [],
     description: 'Complete dua library',
   },
   morning: {
     label: 'Morning',
-    terms: ['morning', 'waking', 'sunrise', 'after prayer'],
     description: 'Morning and waking remembrances',
   },
   evening: {
     label: 'Evening',
-    terms: ['evening', 'night', 'sunset', 'after asr'],
-    description: 'Evening and night remembrances',
+    description: 'Evening remembrances',
   },
   sleep: {
     label: 'Sleep',
-    terms: ['sleep', 'bed', 'nightmare', 'dream'],
     description: 'Before sleep and night protection',
   },
   salah: {
     label: 'Salah',
-    terms: ['prayer', 'salah', 'ablution', 'mosque', 'tashahhud', 'prostrat', 'bowing', 'adhan'],
     description: 'Prayer, mosque, and ablution',
   },
   travel: {
     label: 'Travel',
-    terms: ['travel', 'traveller', 'journey', 'mount', 'safa', 'marwah', 'arafah', 'muzdalifa'],
     description: 'Travel, pilgrimage, and journeys',
+  },
+  protection: {
+    label: 'Protection',
+    description: 'Seeking refuge from harm, fear, and evil',
   },
   ruqyah: {
     label: 'Ruqyah',
-    terms: ['illness', 'sick', 'pain', 'devil', 'shaytan', 'protection', 'refuge', 'evil eye', 'magic', 'harm'],
-    description: 'Protection and healing recitations',
+    description: 'Recitation over a person for protection or cure',
+  },
+  other: {
+    label: 'Other',
+    description: 'Everything else in the collection',
   },
 };
 
 export const MOOD_GROUPS = {
   anxious: {
     label: 'Anxious',
-    terms: ['anxiety', 'distress', 'worry', 'grief', 'sadness', 'hardship', 'difficult', 'calamity'],
     description: 'Duas for worry, distress, and difficult moments',
   },
   afraid: {
     label: 'Afraid',
-    terms: ['fear', 'afraid', 'enemy', 'danger', 'harm', 'refuge', 'protection'],
     description: 'Duas for fear, danger, and seeking refuge',
   },
   sad: {
     label: 'Sad',
-    terms: ['grief', 'sadness', 'sorrow', 'distress', 'hardship'],
     description: 'Duas for grief, sorrow, and hardship',
   },
   grateful: {
     label: 'Grateful',
-    terms: ['praise', 'thanks', 'gratitude', 'blessing', 'favour', 'favor', 'alhamdu', 'hamd'],
     description: 'Duas for praise, thanks, and gratitude',
   },
   protection: {
     label: 'Protection',
-    terms: ['protect', 'protection', 'refuge', 'evil', 'devil', 'shaytan', 'harm', 'nightmare'],
     description: 'Duas for protection from harm and evil',
   },
 };
 
-export const QUICK_FILTERS = ['all', 'morning', 'evening', 'sleep', 'salah', 'travel', 'ruqyah'];
+export const QUICK_FILTERS = ['all', 'morning', 'evening', 'sleep', 'salah', 'travel', 'protection', 'ruqyah', 'other'];
 export const DEFAULT_MOOD = 'anxious';
 
 export function enrichEntry(entry) {
-  const baseSearchText = buildSearchText(entry);
-  const derivedCategories = Object.entries(CATEGORY_GROUPS)
-    .filter(([key, group]) => key === 'all' || matchesTerms(baseSearchText, group.terms))
-    .map(([key]) => key);
-  const derivedMoods = Object.entries(MOOD_GROUPS)
-    .filter(([, group]) => matchesTerms(baseSearchText, group.terms))
-    .map(([key]) => key);
-  const categories = [...new Set(['all', ...(entry.categories || []), ...derivedCategories])];
-  const moods = [...new Set([...(entry.moods || []), ...derivedMoods])];
+  const curated = entry.categories || [];
+  // Anything the curators have not placed is browsable under Other rather than being unreachable.
+  const categories = ['all', ...(curated.length ? curated : ['other'])];
+  const moods = [...(entry.moods || [])];
   const tags = [...new Set([...(entry.tags || []), ...categories, ...moods, ...tokenTags(entry.title)])];
-  const searchText = normalizeSearch(`${baseSearchText} ${categories.join(' ')} ${moods.join(' ')} ${tags.join(' ')}`);
+  // Body text still feeds SEARCH -- that is what search is for. It just no longer decides categories.
+  const searchText = normalizeSearch(`${buildSearchText(entry)} ${categories.join(' ')} ${moods.join(' ')} ${tags.join(' ')}`);
 
-  return {
-    ...entry,
-    categories,
-    moods,
-    tags,
-    searchText,
-  };
+  return { ...entry, categories, moods, tags, searchText };
 }
 
 export function filterEntryByGroup(entry, group) {
@@ -146,9 +139,6 @@ function buildSearchText(entry) {
   return normalizeSearch(`${metadata} ${body}`);
 }
 
-function matchesTerms(text, terms) {
-  return terms.some((term) => text.includes(normalizeSearch(term)));
-}
 
 function tokenTags(title) {
   return String(title)
