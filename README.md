@@ -671,6 +671,13 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.020
+
+- Saved ayahs can now be found again: the Saved filter lists them with a preview and jumps straight back to the verse. Previously an ayah could be starred but never located, which made the feature close to useless.
+- Added previous/next surah in the reader, and swipe between surahs, so reading straight through no longer means returning to the list.
+- Added A-/A+ text size controls to the Quran reader, sharing the same scale as the dua reader.
+- Saved ayahs now store a short preview. Entries saved in the older format, including those inside older backups, are upgraded automatically.
+
 ### 1.019
 
 - Rebuilt Settings as grouped cards. It previously drew a single hairline above each transparent row inside a rounded dialog, leaving dangling lines with no surface behind them and no press feedback; rows now sit on a rounded surface with inset separators that stop at the corners, larger touch targets, and hover/press states.
