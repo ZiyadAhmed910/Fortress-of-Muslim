@@ -18,7 +18,7 @@ import { applyWaitingUpdate, promptInstall, setupInstallPrompt, setupServiceWork
 import { exportUserData, importUserDataFile } from './userData.js';
 import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
-import { initQuran, initQuranDownload } from './quran.js';
+import { initQuran, initQuranDownload, initQuranSettings, isSurahOpen, showSurahList } from './quran.js';
 import { initContentModes, refreshLayoutVisibility } from './modes.js';
 import { renderLayoutConfigList } from './layout-settings.js';
 import { initPrayer } from './prayer.js';
@@ -36,6 +36,7 @@ async function init() {
   initHadith();
   initQuran();
   initQuranDownload();
+  initQuranSettings();
   initAssistant();
   initPrayer();
   initReminders();
@@ -125,7 +126,12 @@ function bindEvents() {
     filterList();
   });
 
-  els.backButton.addEventListener('click', showHome);
+  // One back button serves both readers: the Quran reader opens over the Quran tab rather than the
+  // shared reader view, so it closes itself before falling through to the dua reader's own handling.
+  els.backButton.addEventListener('click', () => {
+    if (isSurahOpen()) return showSurahList();
+    showHome();
+  });
   els.settingsButton.addEventListener('click', () => {
     showSettingsCategoryList();
     els.settingsDialog.showModal();

@@ -671,6 +671,14 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.021
+
+- Settings is now an accordion. Tapping a category expands it in place underneath its own row instead of replacing the whole dialog, so the list stays on screen and the panel reads as part of it. One section opens at a time.
+- Added a Quran settings category holding tajweed colouring, reading mode and the offline download, which moved out of Data. Reading mode now defaults to Pages and tajweed to on.
+- The Quran reader now behaves like the dua reader: opening a surah hides the tab bar, puts the surah name in the header and turns on the shared back button.
+- Replaced the chips above the text with a fixed control strip at the bottom, matching the dua reader: previous and next surah, save, share, and text size.
+- Continue reading moved below the search field.
+
 ### 1.020
 
 - Saved ayahs can now be found again: the Saved filter lists them with a preview and jumps straight back to the verse. Previously an ayah could be starred but never located, which made the feature close to useless.

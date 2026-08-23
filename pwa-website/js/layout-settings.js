@@ -1,7 +1,6 @@
 import { els } from './dom.js';
 import { CONFIGURABLE_TABS, getTabConfig, setTabEnabled, setTabVisibility } from './layout.js';
 import { refreshLayoutVisibility } from './modes.js';
-import { showSettingsCategoryList } from './settings.js';
 
 export function renderLayoutConfigList() {
   els.layoutConfigList.innerHTML = CONFIGURABLE_TABS.map(({ id, label }) => `
@@ -45,15 +44,22 @@ export function syncLayoutConfigControls() {
   updateSettingsCategoryAvailability();
 }
 
-// The Prayer & Qibla settings category only makes sense while at least one of those two tabs is
-// enabled -- with both switched off there's nothing left for "calculation method"/"Asr method" to
-// apply to, so the category disappears from Settings entirely rather than sitting there inert.
-// Called on every layout config change and whenever Settings is (re)opened.
+// A settings category for a disabled tab has nothing left to apply to, so it is removed from the
+// list entirely rather than sitting there inert. Prayer & Qibla covers two tabs and only goes when
+// both are off.
 export function updateSettingsCategoryAvailability() {
-  const prayerRow = els.settingsCategoryList.querySelector('[data-settings-open="prayer"]');
-  if (!prayerRow) return;
-  const prayerCategoryDisabled = !getTabConfig('prayerTimes').enabled && !getTabConfig('qibla').enabled;
-  prayerRow.hidden = prayerCategoryDisabled;
-  const openPanel = els.settingsPanels.find((panel) => panel.dataset.settingsPanel === 'prayer' && !panel.hidden);
-  if (prayerCategoryDisabled && openPanel) showSettingsCategoryList();
+  const setVisible = (key, visible) => {
+    const button = els.settingsCategoryList.querySelector(`[data-settings-toggle="${key}"]`);
+    if (!button) return;
+    const group = button.closest('.settings-group');
+    group.hidden = !visible;
+    // Collapse on the way out so it cannot reappear already expanded.
+    if (!visible) {
+      button.setAttribute('aria-expanded', 'false');
+      group.classList.remove('is-open');
+      group.querySelector('.settings-panel').hidden = true;
+    }
+  };
+  setVisible('prayer', getTabConfig('prayerTimes').enabled || getTabConfig('qibla').enabled);
+  setVisible('quran', getTabConfig('quran').enabled);
 }

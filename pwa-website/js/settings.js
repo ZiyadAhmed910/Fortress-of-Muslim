@@ -34,32 +34,37 @@ export function setFontScale(value) {
   applySettings();
 }
 
-// Settings is a category list that drills into one subscreen at a time (Appearance, Prayer &
-// Qibla, Reminders, ...) rather than one long flat scroll -- each category's rows live in a
-// `[data-settings-panel]` section, hidden until its `[data-settings-open]` row is tapped.
+// Settings is an accordion: each category expands in place under its own row, so the list stays on
+// screen and the panel reads as part of it. The previous drill-down swapped the entire dialog for a
+// single panel, which lost the reader's position in the list on every change of section.
 export function initSettingsNav() {
   els.settingsCategoryList.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-settings-open]');
-    if (!button) return;
-    openSettingsCategory(button.dataset.settingsOpen);
+    const button = event.target.closest('[data-settings-toggle]');
+    if (button) toggleSettingsCategory(button);
   });
-  els.settingsBackButton.addEventListener('click', showSettingsCategoryList);
 }
 
-function openSettingsCategory(id) {
-  const panel = els.settingsPanels.find((section) => section.dataset.settingsPanel === id);
-  if (!panel) return;
-  els.settingsCategoryList.hidden = true;
-  els.settingsPanels.forEach((section) => { section.hidden = section !== panel; });
-  els.settingsBackButton.hidden = false;
-  els.settingsTitle.textContent = panel.dataset.settingsTitle || 'Settings';
+function toggleSettingsCategory(button) {
+  const group = button.closest('.settings-group');
+  const panel = group.querySelector('.settings-panel');
+  const open = button.getAttribute('aria-expanded') === 'true';
+  // One section at a time: the dialog is short on a phone, and several open panels push the rest of
+  // the list off screen, which is the problem the accordion is meant to avoid.
+  if (!open) collapseAllSettings();
+  button.setAttribute('aria-expanded', String(!open));
+  group.classList.toggle('is-open', !open);
+  panel.hidden = open;
 }
 
-// Called both by the back button and whenever Settings is (re)opened, so it never reopens stuck
-// on whichever subscreen was last visited.
+function collapseAllSettings() {
+  els.settingsCategoryList.querySelectorAll('[data-settings-toggle]').forEach((button) => {
+    button.setAttribute('aria-expanded', 'false');
+    button.closest('.settings-group').classList.remove('is-open');
+    button.closest('.settings-group').querySelector('.settings-panel').hidden = true;
+  });
+}
+
+// Called whenever Settings is opened so it never reopens mid-section.
 export function showSettingsCategoryList() {
-  els.settingsCategoryList.hidden = false;
-  els.settingsPanels.forEach((section) => { section.hidden = true; });
-  els.settingsBackButton.hidden = true;
-  els.settingsTitle.textContent = 'Settings';
+  collapseAllSettings();
 }

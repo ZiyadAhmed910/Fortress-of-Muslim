@@ -18,7 +18,7 @@ let prefs = loadPrefs();
 let page = 0;
 
 function loadPrefs() {
-  const fallback = { favouriteSurahs: [], favouriteAyahs: [], lastRead: null, tajweed: true, paginated: false };
+  const fallback = { favouriteSurahs: [], favouriteAyahs: [], lastRead: null, tajweed: true, paginated: true };
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!parsed || typeof parsed !== 'object') return fallback;
@@ -27,7 +27,7 @@ function loadPrefs() {
       favouriteAyahs: normaliseFavouriteAyahs(parsed.favouriteAyahs),
       lastRead: parsed.lastRead && Number.isInteger(parsed.lastRead.surah) ? parsed.lastRead : null,
       tajweed: parsed.tajweed !== false,
-      paginated: parsed.paginated === true,
+      paginated: parsed.paginated !== false,
     };
   } catch {
     return fallback;
@@ -174,21 +174,31 @@ function onReaderClick(event) {
   if (copy) return copyAyah(copy.dataset.copyAyah);
   const share = event.target.closest('[data-share-ayah]');
   if (share) return shareAyah(share.dataset.shareAyah);
+  const shareSurah = event.target.closest('[data-share-surah]');
+  if (shareSurah) return shareWholeSurah(Number(shareSurah.dataset.shareSurah));
 
-  const tajweedToggle = event.target.closest('[data-toggle-tajweed]');
-  if (tajweedToggle) {
-    prefs.tajweed = !prefs.tajweed;
+}
+
+// Tajweed and reading mode are Settings, not per-surah controls, so the reader is not cluttered with
+// preferences that are set once. Both re-render whatever surah is open so the change is immediate.
+export function initQuranSettings() {
+  els.quranTajweedToggle.addEventListener('change', () => {
+    prefs.tajweed = els.quranTajweedToggle.checked;
     savePrefs();
-    renderSurah(loaded.get(state.quranSurah));
-    return;
-  }
-  const viewToggle = event.target.closest('[data-toggle-view]');
-  if (viewToggle) {
-    prefs.paginated = !prefs.paginated;
+    if (state.quranSurah) renderSurah(loaded.get(state.quranSurah));
+  });
+  els.quranReadingModeSelect.addEventListener('change', () => {
+    prefs.paginated = els.quranReadingModeSelect.value === 'pages';
     page = 0;
     savePrefs();
-    renderSurah(loaded.get(state.quranSurah));
-  }
+    if (state.quranSurah) renderSurah(loaded.get(state.quranSurah));
+  });
+  syncQuranSettingsControls();
+}
+
+export function syncQuranSettingsControls() {
+  els.quranTajweedToggle.checked = prefs.tajweed;
+  els.quranReadingModeSelect.value = prefs.paginated ? 'pages' : 'scroll';
 }
 
 function toggleSurahFavourite(number) {
@@ -226,6 +236,18 @@ async function copyAyah(key) {
   }
 }
 
+async function shareWholeSurah(number) {
+  const surah = loaded.get(number);
+  if (!surah) return;
+  const text = `${surah.nameSimple} (${surah.nameEnglish}) — ${surah.ayahCount} ayahs
+${location.origin}${location.pathname}`;
+  if (navigator.share) {
+    try { await navigator.share({ title: surah.nameSimple, text }); } catch { /* user dismissed */ }
+    return;
+  }
+  try { await navigator.clipboard.writeText(text); toast('Surah link copied.'); } catch { toast('Could not share this surah.'); }
+}
+
 async function shareAyah(key) {
   const text = ayahPlainText(key);
   if (navigator.share) {
@@ -256,11 +278,19 @@ async function fetchJson(url) {
   return response.json();
 }
 
-function showSurahList() {
+export function showSurahList() {
   state.quranSurah = null;
+  els.app.classList.remove('is-surah');
   els.quranReader.hidden = true;
   els.quranBrowse.hidden = false;
+  els.screenTitle.textContent = 'Quran';
+  els.screenSubtitle.textContent = 'Arabic with English translation - works offline';
   renderSurahList();
+}
+
+/** True when a surah is open, so the shared topbar back button knows what to close. */
+export function isSurahOpen() {
+  return Boolean(state.quranSurah);
 }
 
 function renderSurahList() {
@@ -331,9 +361,12 @@ export async function openSurah(number, scrollToAyah = null) {
   if (!meta) return;
   state.quranSurah = number;
   page = 0;
+  els.app.classList.add('is-surah');
   els.quranBrowse.hidden = true;
   els.quranReader.hidden = false;
-  els.quranReader.innerHTML = `${backButton()}<div class="empty-state">Loading ${escapeHtml(meta.nameSimple)}...</div>`;
+  els.screenTitle.textContent = meta.nameSimple;
+  els.screenSubtitle.textContent = `${meta.nameEnglish} · ${meta.ayahCount} ayahs`;
+  els.quranReader.innerHTML = `<div class="empty-state">Loading ${escapeHtml(meta.nameSimple)}...</div>`;
   window.scrollTo({ top: 0, behavior: 'instant' });
 
   let surah = loaded.get(number);
@@ -342,7 +375,7 @@ export async function openSurah(number, scrollToAyah = null) {
       surah = await fetchJson(surahUrl(number));
       loaded.set(number, surah);
     } catch {
-      els.quranReader.innerHTML = `${backButton()}<div class="empty-state">This surah is not downloaded and could not be fetched. Connect to the internet, or download the full Quran from Settings.</div>`;
+      els.quranReader.innerHTML = `<div class="empty-state">This surah is not downloaded and could not be fetched. Connect to the internet, or download the full Quran from Settings.</div>`;
       return;
     }
   }
@@ -366,17 +399,10 @@ function renderSurah(surah) {
     : surah.ayahs;
 
   els.quranReader.innerHTML = `
-    ${backButton()}
     <header class="surah-header">
       <h2>${escapeHtml(surah.nameSimple)} <span dir="rtl" lang="ar">${escapeHtml(surah.nameArabic)}</span></h2>
       <p>${escapeHtml(surah.nameEnglish)} &middot; ${surah.ayahCount} ayahs &middot; ${surah.revelationPlace === 'makkah' ? 'Meccan' : 'Medinan'}</p>
-      <div class="surah-tools">
-        <button class="chip-toggle${faved ? ' active' : ''}" type="button" data-fav-surah="${surah.number}">${faved ? '★ Saved' : '☆ Save surah'}</button>
-        <button class="chip-toggle${prefs.tajweed ? ' active' : ''}" type="button" data-toggle-tajweed>Tajweed</button>
-        <button class="chip-toggle${prefs.paginated ? ' active' : ''}" type="button" data-toggle-view>${prefs.paginated ? 'Pages' : 'Scroll'}</button>
-        <button class="chip-toggle" type="button" data-zoom="-0.12" aria-label="Decrease text size">A-</button>
-        <button class="chip-toggle" type="button" data-zoom="0.12" aria-label="Increase text size">A+</button>
-      </div>
+
     </header>
     ${surah.bismillahPre ? '<p class="surah-bismillah" dir="rtl" lang="ar">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>' : ''}
     <ol class="ayah-list">
@@ -385,6 +411,7 @@ function renderSurah(surah) {
     ${prefs.paginated ? renderPager(page, totalPages) : ''}
     ${renderSurahNav(surah.number)}
     ${attributionMarkup()}
+    ${renderUtilityBar(surah, faved)}
   `;
 }
 
@@ -406,6 +433,29 @@ function renderAyah(surah, ayah) {
         <button class="ayah-action" type="button" data-share-ayah="${key}" aria-label="Share ayah ${key}">Share</button>
       </div>
     </li>
+  `;
+}
+
+// Mirrors the dua reader's fixed control strip so the two readers are operated the same way, and so
+// preferences and actions are not competing for space at the top of the text.
+function renderUtilityBar(surah, faved) {
+  const previous = surah.number > 1 ? surah.number - 1 : null;
+  const next = surah.number < 114 ? surah.number + 1 : null;
+  return `
+    <nav class="reader-controls quran-controls" aria-label="Surah controls">
+      <button class="tool-button" type="button" data-goto-surah="${previous ?? ''}" ${previous ? '' : 'disabled'} aria-label="Previous surah">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button class="tool-button" type="button" data-goto-surah="${next ?? ''}" ${next ? '' : 'disabled'} aria-label="Next surah">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="tool-button${faved ? ' active' : ''}" type="button" data-fav-surah="${surah.number}" aria-label="${faved ? 'Remove surah from favourites' : 'Save surah to favourites'}">${faved ? '★' : '☆'}</button>
+      <button class="tool-button" type="button" data-share-surah="${surah.number}" aria-label="Share surah">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+      </button>
+      <button class="tool-button" type="button" data-zoom="-0.12" aria-label="Decrease text size">A-</button>
+      <button class="tool-button" type="button" data-zoom="0.12" aria-label="Increase text size">A+</button>
+    </nav>
   `;
 }
 
@@ -431,10 +481,6 @@ function renderPager(current, total) {
       <button type="button" data-page="${current + 1}" ${current >= total - 1 ? 'disabled' : ''}>Next</button>
     </nav>
   `;
-}
-
-function backButton() {
-  return '<button class="inline-back" data-close-surah type="button">All surahs</button>';
 }
 
 // The translation is used under a non-commercial permission rather than an open licence, so the

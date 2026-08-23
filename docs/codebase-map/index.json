@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-23T08:31:08.922Z",
+  "generatedAt": "2026-08-23T08:56:10.750Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -603,7 +603,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 184,
+      "lines": 190,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -643,7 +643,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 124,
+      "lines": 125,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -675,7 +675,7 @@
     },
     {
       "path": "pwa-website/js/layout-settings.js",
-      "lines": 60,
+      "lines": 66,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -731,7 +731,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 399,
+      "lines": 537,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -763,7 +763,7 @@
     },
     {
       "path": "pwa-website/js/settings.js",
-      "lines": 66,
+      "lines": 71,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2442,6 +2442,14 @@
       ]
     },
     {
+      "name": "favourites",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran.js"
+      ]
+    },
+    {
       "name": "field_reviews",
       "kind": "table",
       "definedIn": [
@@ -2688,14 +2696,6 @@
         "apps/auth/migrations/0001_identity.sql"
       ],
       "referencedBy": []
-    },
-    {
-      "name": "one",
-      "kind": "unknown",
-      "definedIn": [],
-      "referencedBy": [
-        "pwa-website/js/settings.js"
-      ]
     },
     {
       "name": "operational_alerts",
@@ -2964,7 +2964,6 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "pwa-website/js/layout-settings.js",
         "pwa-website/js/quran.js"
       ]
     },
