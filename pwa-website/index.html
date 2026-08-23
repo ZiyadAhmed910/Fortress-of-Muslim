@@ -543,10 +543,31 @@
                 <option value="scroll">Continuous scroll</option>
               </select>
             </div>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>Reciter</strong>
+                <small>Used for the ayah-by-ayah player.</small>
+              </span>
+              <select id="quranReciterSelect"></select>
+            </div>
+            <label class="setting-row">
+              <span>
+                <strong>Word by word</strong>
+                <small>Show each word with its meaning, and tap any word to hear it. Tajweed colouring is not shown in this mode.</small>
+              </span>
+              <input id="quranWordModeToggle" type="checkbox">
+            </label>
+            <label class="setting-row">
+              <span>
+                <strong>Follow the recitation</strong>
+                <small>Scroll to each ayah as it is recited.</small>
+              </span>
+              <input id="quranAutoScrollToggle" type="checkbox">
+            </label>
             <div class="setting-row">
               <span>
                 <strong>Offline Quran</strong>
-                <small>Surahs are saved as you read them. Download everything to read with no connection.</small>
+                <small>Surahs are saved as you read them. Download everything to read with no connection. Recitation audio downloads per surah, from the reader.</small>
               </span>
               <button class="small-action-button" id="quranDownloadButton" type="button">Download</button>
             </div>
@@ -683,6 +704,20 @@
         </form>
       </dialog>
 
+      <div class="quran-player" id="quranPlayer" hidden role="region" aria-label="Recitation player">
+        <div class="quran-player-main">
+          <button class="quran-player-button" type="button" data-player-action="previous" aria-label="Previous ayah">&#9664;&#9664;</button>
+          <button class="quran-player-button quran-player-toggle" id="quranPlayerToggle" type="button" data-player-action="toggle" aria-label="Pause recitation">&#10074;&#10074;</button>
+          <button class="quran-player-button" type="button" data-player-action="next" aria-label="Next ayah">&#9654;&#9654;</button>
+          <span class="quran-player-label" id="quranPlayerLabel" aria-live="polite"></span>
+          <button class="quran-player-button" id="quranPlayerRepeat" type="button" data-player-action="repeat" aria-label="Repeat off">&#8635;</button>
+          <button class="quran-player-button" type="button" data-player-action="close" aria-label="Stop recitation">&#10005;</button>
+        </div>
+        <label class="quran-player-reciter">
+          <span class="visually-hidden">Reciter</span>
+          <select id="quranPlayerReciter"></select>
+        </label>
+      </div>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
       <div class="update-banner" id="updateBanner" role="status" aria-live="polite">
         <span>New version available.</span>

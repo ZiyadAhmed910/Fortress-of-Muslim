@@ -2,6 +2,23 @@ import { els } from './dom.js';
 import { state } from './state.js';
 import { escapeHtml, toast } from './utils.js';
 import { setFontScale } from './settings.js';
+import {
+  initQuranAudio,
+  isWordMode,
+  loadWords,
+  playAyah,
+  playWord,
+  renderAyahWords,
+  restoreHighlight,
+  setPlaybackSurah,
+  stopPlayback,
+  isPlaying,
+  downloadSurahAudio,
+  cancelAudioDownload,
+  isDownloadingAudio,
+  surahAudioDownloaded,
+  currentReciter,
+} from './quran-audio.js';
 
 // Surah bodies live in their own files and are fetched the first time one is opened, rather than
 // bundled into the install. With tajweed markup the full text is ~6MB, which would dominate a first
@@ -118,6 +135,9 @@ export function initQuran() {
   });
   els.quranReader.addEventListener('click', onReaderClick);
   bindSurahSwipe();
+  // The player advances ayah by ayah; in paginated mode the next ayah may be on a page that is not
+  // rendered, and only the reader knows how to turn one.
+  initQuranAudio({ ensureAyahVisible: ensureAyahVisible });
 }
 
 // Matches the dua reader's swipe. Horizontal-only and threshold-gated so it cannot fire while
@@ -181,7 +201,43 @@ function onReaderClick(event) {
   if (share) return shareAyah(share.dataset.shareAyah);
   const shareSurah = event.target.closest('[data-share-surah]');
   if (shareSurah) return shareWholeSurah(Number(shareSurah.dataset.shareSurah));
+  const playButton = event.target.closest('[data-play-ayah]');
+  if (playButton) {
+    const [surahNumber, ayahNumber] = playButton.dataset.playAyah.split(':').map(Number);
+    const surah = loaded.get(surahNumber);
+    return playAyah(surahNumber, ayahNumber, { total: surah?.ayahCount });
+  }
+  const word = event.target.closest('[data-word]');
+  if (word) {
+    const [surahNumber, ayahNumber, position] = word.dataset.word.split(':').map(Number);
+    document.querySelectorAll('.qword.is-active').forEach((el) => el.classList.remove('is-active'));
+    word.classList.add('is-active');
+    return playWord(surahNumber, ayahNumber, position);
+  }
+  if (event.target.closest('[data-play-surah]')) {
+    const surah = loaded.get(state.quranSurah);
+    if (surah) return playAyah(surah.number, 1, { total: surah.ayahCount });
+  }
+  if (event.target.closest('[data-download-audio]')) return downloadAudioForOpenSurah();
 
+}
+
+/**
+ * Re-renders whatever surah is open. Turning word mode on needs the words file for that surah, so
+ * this fetches it first -- otherwise the toggle would appear to do nothing until the next surah.
+ */
+export async function rerenderOpenSurah() {
+  const surah = loaded.get(state.quranSurah);
+  if (!surah) return;
+  if (isWordMode()) {
+    try {
+      await loadWords(surah.number);
+    } catch {
+      toast('Word-by-word data could not be loaded for this surah.');
+      return;
+    }
+  }
+  renderSurah(surah);
 }
 
 // Tajweed and reading mode are Settings, not per-surah controls, so the reader is not cluttered with
@@ -283,6 +339,7 @@ async function fetchJson(url) {
 }
 
 export function showSurahList() {
+  if (isPlaying()) stopPlayback();
   state.quranSurah = null;
   els.app.classList.remove('is-surah');
   els.quranReader.hidden = true;
@@ -399,6 +456,19 @@ export async function openSurah(number, scrollToAyah = null) {
   }
   if (state.quranSurah !== number) return; // user navigated away while it loaded
 
+  // Word data is a separate ~25KB-to-200KB file per surah, fetched only when word mode is on. A
+  // failure here degrades to the ordinary flowing text rather than blocking the surah from opening:
+  // being unable to show glosses is not a reason to be unable to read.
+  if (isWordMode()) {
+    try {
+      await loadWords(number);
+    } catch {
+      toast('Word-by-word data could not be loaded for this surah.');
+    }
+    if (state.quranSurah !== number) return;
+  }
+  setPlaybackSurah(meta);
+
   if (scrollToAyah && prefs.paginated) page = Math.floor((scrollToAyah - 1) / PAGE_SIZE);
   prefs.lastRead = { surah: number, ayah: scrollToAyah || 1 };
   savePrefs();
@@ -430,11 +500,77 @@ function renderSurah(surah) {
     ${renderSurahNav(surah.number)}
     ${renderUtilityBar(surah, faved)}
   `;
+  restoreHighlight();
+  refreshAudioDownloadState(surah);
+}
+
+/**
+ * Makes an ayah renderable and returns once it is in the DOM. In continuous mode every ayah is
+ * already rendered; in paginated mode this turns to the page holding it. The player awaits this
+ * before starting the next ayah, so the highlight always has an element to land on.
+ */
+async function ensureAyahVisible(surahNumber, ayahNumber) {
+  if (surahNumber !== state.quranSurah) return;
+  const surah = loaded.get(surahNumber);
+  if (!surah) return;
+  if (!prefs.paginated) return;
+  const target = Math.floor((ayahNumber - 1) / PAGE_SIZE);
+  if (target === page) return;
+  page = target;
+  renderSurah(surah);
+}
+
+// The download button reports state rather than firing and forgetting: a surah of recitation can be
+// tens of megabytes, so "already have it", "downloading", and "how far along" all need to be visible.
+async function refreshAudioDownloadState(surah) {
+  const button = els.quranReader.querySelector('[data-download-audio]');
+  if (!button) return;
+  if (isDownloadingAudio()) return;
+  try {
+    if (await surahAudioDownloaded(surah.number, surah.ayahCount)) {
+      button.classList.add('active');
+      button.setAttribute('aria-label', `Recitation of ${surah.nameSimple} is saved offline`);
+      button.title = `Saved offline in ${currentReciter().name}`;
+    }
+  } catch {
+    // Cache inspection is best-effort; the button still works without it.
+  }
+}
+
+async function downloadAudioForOpenSurah() {
+  const surah = loaded.get(state.quranSurah);
+  if (!surah) return;
+  const button = els.quranReader.querySelector('[data-download-audio]');
+  if (isDownloadingAudio()) {
+    cancelAudioDownload();
+    toast('Download cancelled.');
+    if (button) button.textContent = '⬇';
+    return;
+  }
+  const original = button ? button.textContent : '';
+  try {
+    const bytes = await downloadSurahAudio(surah.number, surah.ayahCount, ({ done, total }) => {
+      if (button) button.textContent = `${Math.round((done / total) * 100)}%`;
+    });
+    if (button) {
+      button.textContent = original;
+      button.classList.add('active');
+    }
+    toast(`${surah.nameSimple} saved for offline listening (${(bytes / 1024 / 1024).toFixed(1)} MB).`);
+  } catch (error) {
+    if (button) button.textContent = original;
+    if (error.name === 'AbortError') return;
+    toast('Could not download this recitation. Check your connection and try again.');
+  }
 }
 
 function renderAyah(surah, ayah) {
   const key = `${surah.number}:${ayah.n}`;
   const faved = isAyahFavourite(key);
+  // Word mode replaces the flowing line with per-word chips, so tajweed colouring cannot come along:
+  // its markup spans word boundaries and would have to be cut mid-rule. Settings says so plainly
+  // rather than letting the colouring vanish unexplained.
+  const words = isWordMode() ? renderAyahWords(surah.number, ayah.n) : '';
   const arabic = prefs.tajweed ? tajweedHtml(ayah.tj) : escapeHtml(stripTajweed(ayah.tj));
   return `
     <li class="ayah${ayah.sajdah ? ' has-sajdah' : ''}${faved ? ' is-favourite' : ''}" id="ayah-${surah.number}-${ayah.n}">
@@ -442,9 +578,10 @@ function renderAyah(surah, ayah) {
         <span class="ayah-number">${key}</span>
         ${ayah.sajdah ? '<span class="sajdah-mark" title="Verse of prostration (sajdah)">۩ Sajdah</span>' : ''}
       </div>
-      <p class="ayah-arabic" dir="rtl" lang="ar">${arabic}</p>
+      ${words || `<p class="ayah-arabic" dir="rtl" lang="ar">${arabic}</p>`}
       <p class="ayah-english" lang="en">${escapeHtml(ayah.en)}</p>
       <div class="ayah-actions">
+        <button class="ayah-action" type="button" data-play-ayah="${key}" aria-label="Play ayah ${key}">▶ Play</button>
         <button class="ayah-action${faved ? ' active' : ''}" type="button" data-fav-ayah="${key}" aria-label="${faved ? 'Remove' : 'Save'} ayah ${key}">${faved ? '★' : '☆'}</button>
         <button class="ayah-action" type="button" data-copy-ayah="${key}" aria-label="Copy ayah ${key}">Copy</button>
         <button class="ayah-action" type="button" data-share-ayah="${key}" aria-label="Share ayah ${key}">Share</button>
@@ -466,6 +603,10 @@ function renderUtilityBar(surah, faved) {
       <button class="tool-button" type="button" data-goto-surah="${next ?? ''}" ${next ? '' : 'disabled'} aria-label="Next surah">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
       </button>
+      <button class="tool-button" type="button" data-play-surah aria-label="Play this surah from the beginning">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="tool-button" type="button" data-download-audio aria-label="Download this recitation for offline listening">⬇</button>
       <button class="tool-button${faved ? ' active' : ''}" type="button" data-fav-surah="${surah.number}" aria-label="${faved ? 'Remove surah from favourites' : 'Save surah to favourites'}">${faved ? '★' : '☆'}</button>
       <button class="tool-button" type="button" data-share-surah="${surah.number}" aria-label="Share surah">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>

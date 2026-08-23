@@ -8,6 +8,7 @@ import { scheduleToday as scheduleRemindersToday } from './reminders.js';
 import { activateTasbih, TASBIH_STORAGE_KEY } from './tasbih.js';
 import { readLayoutStorage, writeLayoutStorage } from './layout.js';
 import { readQuranStorage, writeQuranStorage } from './quran.js';
+import { readQuranAudioStorage, writeQuranAudioStorage } from './quran-audio.js';
 import { refreshLayoutVisibility } from './modes.js';
 import { syncLayoutConfigControls } from './layout-settings.js';
 
@@ -43,6 +44,8 @@ export function exportUserData() {
     layout: readLayoutStorage(),
     // Favourite surahs and ayahs, reading position and reader preferences -- its own key/shape too.
     quran: readQuranStorage(),
+    // Reciter, repeat mode, word mode and follow-along -- again its own key and shape.
+    quranAudio: readQuranAudioStorage(),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -111,6 +114,7 @@ function importUserData(payload) {
   writeTasbihStorage(payload.tasbih);
   writeLayoutStorageIfPresent(payload.layout);
   if (payload.quran && typeof payload.quran === 'object') writeQuranStorage(payload.quran);
+  if (payload.quranAudio && typeof payload.quranAudio === 'object') writeQuranAudioStorage(payload.quranAudio);
 
   applySettings();
   filterList();

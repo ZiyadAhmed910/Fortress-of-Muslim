@@ -464,7 +464,10 @@
 }
 
 .quran-controls {
-  grid-template-columns: repeat(6, 2.65rem);
+  /* Play and download joined the strip, so it carries eight buttons rather than six. They are
+     narrower to keep the bar inside a 360px screen without wrapping. */
+  grid-template-columns: repeat(8, 2.1rem);
+  gap: 0.3rem;
 }
 
 .quran-controls .tool-button.active {

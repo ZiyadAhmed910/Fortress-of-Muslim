@@ -18,7 +18,8 @@ import { applyWaitingUpdate, promptInstall, setupInstallPrompt, setupServiceWork
 import { exportUserData, importUserDataFile } from './userData.js';
 import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
-import { initQuran, initQuranDownload, initQuranSettings, isSurahOpen, showSurahList } from './quran.js';
+import { initQuran, initQuranDownload, initQuranSettings, isSurahOpen, showSurahList, rerenderOpenSurah } from './quran.js';
+import { initQuranAudioSettings } from './quran-audio.js';
 import { initContentModes, refreshLayoutVisibility } from './modes.js';
 import { renderLayoutConfigList } from './layout-settings.js';
 import { initPrayer } from './prayer.js';
@@ -37,6 +38,7 @@ async function init() {
   initQuran();
   initQuranDownload();
   initQuranSettings();
+  initQuranAudioSettings({ onWordModeChange: rerenderOpenSurah });
   initAssistant();
   initPrayer();
   initReminders();
