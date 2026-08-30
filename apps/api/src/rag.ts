@@ -83,6 +83,10 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
     LEFT JOIN revision_segments segment ON segment.revision_part_id = part.id
     WHERE publication.publication_status = 'published'
       AND publication.dataset_version_id = ?
+      AND NOT EXISTS (
+        SELECT 1 FROM canonical_withdrawals withdrawal
+        WHERE withdrawal.canonical_id = publication.canonical_id
+      )
     GROUP BY publication.canonical_id, publication.revision_id
     ORDER BY canonical.content_type, revision.sequence, publication.canonical_id
     LIMIT ? OFFSET ?
