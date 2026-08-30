@@ -155,6 +155,10 @@ export class D1ContentRepository implements ContentRepository {
         ON publication.canonical_id = search.canonical_id
        AND publication.revision_id = search.revision_id
       WHERE publication.publication_status = 'published'
+        AND NOT EXISTS (
+          SELECT 1 FROM canonical_withdrawals withdrawal
+          WHERE withdrawal.canonical_id = search.canonical_id
+        )
         AND canonical_search_fts MATCH ?
         AND (? IS NULL OR search.content_type = ?)
         AND (? IS NULL OR search.collection_slug = ?)
@@ -516,6 +520,10 @@ export class D1ContentRepository implements ContentRepository {
       SELECT COUNT(*) AS count
       FROM canonical_records
       WHERE content_type = ?
+        AND NOT EXISTS (
+          SELECT 1 FROM canonical_withdrawals withdrawal
+          WHERE withdrawal.canonical_id = canonical_records.canonical_id
+        )
     `).bind(contentType).first<{ count: number }>();
     return row?.count ?? 0;
   }

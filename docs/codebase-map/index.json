@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-23T16:57:12.111Z",
+  "generatedAt": "2026-08-30T04:32:31.052Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -96,7 +96,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 607,
+      "lines": 611,
       "language": "ts",
       "exports": [
         "type RagSource",
@@ -134,7 +134,7 @@
     },
     {
       "path": "apps/api/src/repositories/d1-content-repository.ts",
-      "lines": 712,
+      "lines": 720,
       "language": "ts",
       "exports": [
         "class D1ContentRepository"
@@ -181,6 +181,19 @@
         "node:path",
         "vitest",
         "../src/repositories/d1-content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/canonical-withdrawal.test.ts",
+      "lines": 111,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest"
       ],
       "routeCount": 0
     },
@@ -603,7 +616,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 200,
+      "lines": 208,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -643,7 +656,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 146,
+      "lines": 147,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -699,7 +712,7 @@
     },
     {
       "path": "pwa-website/js/onboarding.js",
-      "lines": 111,
+      "lines": 174,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -739,7 +752,7 @@
     },
     {
       "path": "pwa-website/js/quran-audio.js",
-      "lines": 426,
+      "lines": 431,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -747,7 +760,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 685,
+      "lines": 778,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -844,6 +857,14 @@
     {
       "path": "pwa-website/test/quran-words.test.js",
       "lines": 129,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/reciters.test.js",
+      "lines": 39,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -980,6 +1001,14 @@
     {
       "path": "apps/api/migrations/0016_editorial_notifications.sql",
       "lines": 18,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0017_canonical_withdrawals.sql",
+      "lines": 83,
       "language": "sql",
       "exports": [],
       "imports": [],
@@ -2034,11 +2063,13 @@
       "kind": "view",
       "definedIn": [
         "apps/api/migrations/0010_api_content_visibility.sql",
-        "apps/api/migrations/0013_verify_and_publish_hisn.sql"
+        "apps/api/migrations/0013_verify_and_publish_hisn.sql",
+        "apps/api/migrations/0017_canonical_withdrawals.sql"
       ],
       "referencedBy": [
         "apps/api/src/lib/record-query.ts",
-        "apps/api/src/repositories/d1-content-repository.ts"
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/canonical-withdrawal.test.ts"
       ]
     },
     {
@@ -2046,9 +2077,12 @@
       "kind": "view",
       "definedIn": [
         "apps/api/migrations/0010_api_content_visibility.sql",
-        "apps/api/migrations/0013_verify_and_publish_hisn.sql"
+        "apps/api/migrations/0013_verify_and_publish_hisn.sql",
+        "apps/api/migrations/0017_canonical_withdrawals.sql"
       ],
-      "referencedBy": []
+      "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts"
+      ]
     },
     {
       "name": "apikey",
@@ -2213,6 +2247,18 @@
       ]
     },
     {
+      "name": "canonical_withdrawals",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0017_canonical_withdrawals.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/canonical-withdrawal.test.ts"
+      ]
+    },
+    {
       "name": "chapters",
       "kind": "table",
       "definedIn": [
@@ -2261,6 +2307,7 @@
         "apps/api/migrations/0001_content_schema.sql"
       ],
       "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2272,6 +2319,7 @@
       ],
       "referencedBy": [
         "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -2289,6 +2337,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -2316,6 +2365,7 @@
         "apps/api/migrations/0001_content_schema.sql"
       ],
       "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2370,6 +2420,7 @@
         "apps/api/migrations/0001_content_schema.sql"
       ],
       "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2495,6 +2546,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts",
         "apps/auth/test/admin-mfa-gate.test.ts",
         "pwa-website/js/onboarding.js"
       ]
@@ -2505,14 +2557,6 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/quran-audio.js"
-      ]
-    },
-    {
-      "name": "everyone",
-      "kind": "unknown",
-      "definedIn": [],
-      "referencedBy": [
-        "pwa-website/js/onboarding.js"
       ]
     },
     {
@@ -2815,6 +2859,14 @@
       ]
     },
     {
+      "name": "or",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/onboarding.js"
+      ]
+    },
+    {
       "name": "organization",
       "kind": "table",
       "definedIn": [
@@ -3028,6 +3080,7 @@
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -3041,6 +3094,7 @@
       "referencedBy": [
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -3087,6 +3141,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "pwa-website/js/onboarding.js",
         "pwa-website/js/quran.js"
       ]
     },
@@ -3157,6 +3212,7 @@
       "referencedBy": [
         "apps/admin/public/app.js",
         "apps/api/src/rag.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts",
