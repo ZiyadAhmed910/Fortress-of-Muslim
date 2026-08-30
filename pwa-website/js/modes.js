@@ -94,5 +94,13 @@ function applyWorshipNav(mode) {
  * this after any layout config change or Simple/Advanced UI toggle. */
 export function refreshLayoutVisibility() {
   applyLayoutToNav();
-  if (!isTabVisible(state.contentMode)) setContentMode('duas');
+  if (!isTabVisible(state.contentMode)) {
+    setContentMode('duas');
+    return;
+  }
+  // When the active tab survives the change, setContentMode is not called -- and the worship
+  // sub-bar is only ever updated from there. Without this the sub-bar keeps whatever state it had
+  // when the screen was opened, and only corrects itself on the next navigation, which is exactly
+  // how it looked: a bar that vanished, then came back when you went somewhere else.
+  applyWorshipNav(state.contentMode);
 }

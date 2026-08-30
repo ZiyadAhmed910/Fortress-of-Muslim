@@ -6,14 +6,26 @@ const STORAGE_KEY = 'fortress_layout_config';
 // Duas is the permanent anchor/home -- deliberately not configurable here, always enabled, always
 // visible in both Simple and Advanced UI, so the app always has at least one guaranteed-reachable
 // view no matter how everything else is configured.
+// Prayer is a real configurable entry rather than a label, because it is a real thing on the nav:
+// one button that opens three screens. Switching it off has to take its children with it, and a
+// child cannot be reachable without it -- see isTabVisible and setTabEnabled below.
 export const CONFIGURABLE_TABS = [
   { id: 'quran', label: 'Quran' },
   { id: 'hadith', label: 'Hadith' },
   { id: 'ask', label: 'Ask' },
-  { id: 'prayerTimes', label: 'Prayer Times' },
-  { id: 'qibla', label: 'Qibla' },
-  { id: 'tasbih', label: 'Tasbih Counter' },
+  { id: 'prayer', label: 'Prayer' },
+  { id: 'prayerTimes', label: 'Prayer Times', parent: 'prayer' },
+  { id: 'qibla', label: 'Qibla', parent: 'prayer' },
+  { id: 'tasbih', label: 'Tasbih Counter', parent: 'prayer' },
 ];
+const PARENT_OF = Object.fromEntries(
+  CONFIGURABLE_TABS.filter((tab) => tab.parent).map((tab) => [tab.id, tab.parent]),
+);
+
+export function parentTabOf(tabId) {
+  return PARENT_OF[tabId] ?? null;
+}
+
 const CONFIGURABLE_TAB_IDS = new Set(CONFIGURABLE_TABS.map((tab) => tab.id));
 const VISIBILITY_VALUES = new Set(['simple', 'advanced', 'both']);
 const DEFAULT_TAB_CONFIG = { enabled: true, visibility: 'both' };
@@ -58,6 +70,12 @@ export function getTabConfig(tabId) {
 export function setTabEnabled(tabId, enabled) {
   if (!config[tabId]) return;
   config[tabId].enabled = Boolean(enabled);
+  // Switching a child on implies its parent: Qibla cannot be reached with Prayer switched off, so
+  // asking for Qibla is asking for Prayer. Switching a parent off does NOT clear its children's own
+  // settings -- they are hidden by isTabVisible while it is off, and come back as they were when it
+  // returns, rather than being silently rewritten.
+  const parent = PARENT_OF[tabId];
+  if (enabled && parent && config[parent] && !config[parent].enabled) config[parent].enabled = true;
   persist();
 }
 
@@ -69,10 +87,6 @@ export function setTabVisibility(tabId, visibility) {
 
 // Re-reads the stored config from localStorage -- used after a backup import, since that writes
 // localStorage directly rather than going through setTabEnabled/setTabVisibility.
-export function reloadLayoutConfig() {
-  config = loadConfig();
-}
-
 export function readLayoutStorage() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -92,8 +106,13 @@ export function isTabVisible(tabId) {
   if (!CONFIGURABLE_TAB_IDS.has(tabId)) return true; // Duas, or anything not under this system
   const entry = getTabConfig(tabId);
   if (!entry.enabled) return false;
-  if (entry.visibility === 'both') return true;
-  return entry.visibility === (state.advancedUi ? 'advanced' : 'simple');
+  if (entry.visibility !== 'both' && entry.visibility !== (state.advancedUi ? 'advanced' : 'simple')) {
+    return false;
+  }
+  // A child is only reachable through its parent, so the parent's own rules apply to it too -- both
+  // its enabled state and its Simple/Advanced visibility.
+  const parent = PARENT_OF[tabId];
+  return parent ? isTabVisible(parent) : true;
 }
 
 // Prayer Times, Qibla and Tasbih sit behind one "Prayer" tab, so that tab follows its members: it
