@@ -160,10 +160,6 @@ export async function loadWords(surahNumber) {
   return payload;
 }
 
-export function hasWords(surahNumber) {
-  return wordCache.has(surahNumber);
-}
-
 export function renderAyahWords(surahNumber, ayahNumber) {
   const words = wordCache.get(surahNumber)?.ayahs?.[ayahNumber - 1];
   if (!words) return '';
@@ -231,10 +227,6 @@ export function stopPlayback() {
 
 export function isPlaying() {
   return Boolean(playing);
-}
-
-export function playingAyah() {
-  return playing ? { ...playing } : null;
 }
 
 function onAyahEnded() {
@@ -425,6 +417,3 @@ export async function surahAudioDownloaded(surahNumber, ayahCount) {
   return Boolean(await cache.match(ayahAudioUrl(prefs.reciter, surahNumber, ayahCount)));
 }
 
-export async function clearAudioCache() {
-  if ('caches' in window) await caches.delete(AUDIO_CACHE);
-}

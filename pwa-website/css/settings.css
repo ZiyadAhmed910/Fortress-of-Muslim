@@ -477,3 +477,20 @@
 .quran-controls .tool-button:disabled {
   opacity: 0.35;
 }
+
+/* Customize Layout: Prayer owns three screens, so its rows are indented under it and greyed while
+   it is switched off. Greyed rather than hidden -- the child keeps its own setting, and hiding it
+   would make that setting look lost rather than temporarily unreachable. */
+.layout-config-row.is-child {
+  margin-inline-start: 1.15rem;
+  border-inline-start: 2px solid var(--line);
+  padding-inline-start: 0.7rem;
+}
+
+.layout-config-row.is-blocked {
+  opacity: 0.45;
+}
+
+.layout-config-row.is-blocked .layout-config-enable {
+  cursor: not-allowed;
+}
