@@ -203,6 +203,15 @@ _2026-08-23_
   once, globally, in `css/base.css`.
 - **Documentation.** `docs/project-overview.md` and the README feature list rewritten against the
   code; `docs/platform-architecture.md` corrected where it still described shipped apps as future.
+- **Customize Layout parent/child.** Prayer is now a configurable entry in its own right rather than
+  a button derived from its members: switching it off takes Prayer Times, Qibla and Tasbih with it,
+  its Simple/Advanced setting applies to them, and a child cannot be enabled without it. Children
+  keep their own setting while the parent is off and return unchanged. Also fixes the worship
+  sub-bar keeping stale state after a layout change until the next navigation.
+- **PWA shell budget raised 250 KB -> 300 KB.** The app gained recitation, word-by-word mode and the
+  walkthrough this release. Escalation agreed for next time: 500 KB, then a deploy-time minification
+  step rather than raising it again. See `tools/verify-pwa-release.mjs` for the two known weaknesses
+  in what the budget measures.
 
 ### 0.23.2
 
