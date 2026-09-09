@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-08-30T04:32:31.052Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-09T16:21:31.531Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -114,21 +114,21 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/app.js` | js | 208 |  |  |
 | `pwa-website/js/assistant.js` | js | 54 |  |  |
 | `pwa-website/js/categories.js` | js | 150 |  |  |
-| `pwa-website/js/constants.js` | js | 4 |  |  |
+| `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
 | `pwa-website/js/dom.js` | js | 147 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
 | `pwa-website/js/home.js` | js | 182 |  |  |
-| `pwa-website/js/layout-settings.js` | js | 66 |  |  |
-| `pwa-website/js/layout.js` | js | 120 |  |  |
-| `pwa-website/js/modes.js` | js | 99 |  |  |
+| `pwa-website/js/layout-settings.js` | js | 88 |  |  |
+| `pwa-website/js/layout.js` | js | 139 |  |  |
+| `pwa-website/js/modes.js` | js | 107 |  |  |
 | `pwa-website/js/onboarding.js` | js | 174 |  |  |
 | `pwa-website/js/online.js` | js | 21 |  |  |
 | `pwa-website/js/prayer-times.js` | js | 274 |  |  |
 | `pwa-website/js/prayer.js` | js | 431 |  |  |
 | `pwa-website/js/pwa.js` | js | 101 |  |  |
-| `pwa-website/js/quran-audio.js` | js | 431 |  |  |
+| `pwa-website/js/quran-audio.js` | js | 420 |  |  |
 | `pwa-website/js/quran.js` | js | 778 |  |  |
 | `pwa-website/js/reader.js` | js | 129 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
@@ -140,6 +140,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/utils.js` | js | 23 |  |  |
 | `pwa-website/sw.js` | js | 174 |  |  |
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
+| `pwa-website/test/layout.test.js` | js | 91 |  |  |
 | `pwa-website/test/prayer-times.test.js` | js | 167 |  |  |
 | `pwa-website/test/quran-words.test.js` | js | 129 |  |  |
 | `pwa-website/test/reciters.test.js` | js | 39 |  |  |
@@ -389,6 +390,7 @@ Not all of these are bugs; verify before assuming.
 | taxonomy_terms | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
 | that | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/categories.js`, `pwa-website/js/layout-settings.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/quran-words.test.js` |
+| there | unknown | `(not defined in scanned files)` | `pwa-website/js/modes.js` |
 | this | unknown | `(not defined in scanned files)` | `apps/auth/src/editorial-plane.ts`, `apps/status/public/app.js` |
 | travel | unknown | `(not defined in scanned files)` | `apps/api/test/fuzzy-title.test.ts` |
 | true | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js` |

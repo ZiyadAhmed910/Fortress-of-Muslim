@@ -153,6 +153,10 @@ What it actually contains today:
 - **Reminders** — opt-in local notifications for the five prayers and morning/evening adhkar.
 - **Shell** — simple and advanced layouts, per-feature show/hide, dark mode, first-run walkthrough,
   and backup export/import covering favourites, settings, tasbih, layout and Quran preferences.
+- **Advanced card artwork** — nine text-free SVG scenes with shaded architecture and gentle
+  ambient animation. They respect reduced motion and use the optional offline artwork cache.
+  `pwa-website/art-preview.html` displays the full collection; `tools/build-living-art.mjs`
+  regenerates it from deterministic vector builders.
 
 ### `android-app`
 Not started. Planned after the PWA and API contracts stabilize.

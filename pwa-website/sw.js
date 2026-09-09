@@ -64,15 +64,15 @@ const ASSETS = [
 // whole install and strand everyone on the previous worker, which is one way the app got stuck on
 // an old version. These are cached opportunistically and fall through to network if missing.
 const OPTIONAL_ASSETS = [
-  './assets/cards/all-duas.webp',
-  './assets/cards/morning.webp',
-  './assets/cards/evening.webp',
-  './assets/cards/before-sleep.webp',
-  './assets/cards/salah.webp',
-  './assets/cards/travel.webp',
-  './assets/cards/favourites.webp',
-  './assets/cards/moods.webp',
-  './assets/cards/ruqyah.webp',
+  './assets/cards/living/all-duas.svg',
+  './assets/cards/living/morning.svg',
+  './assets/cards/living/evening.svg',
+  './assets/cards/living/before-sleep.svg',
+  './assets/cards/living/salah.svg',
+  './assets/cards/living/travel.svg',
+  './assets/cards/living/favourites.svg',
+  './assets/cards/living/moods.svg',
+  './assets/cards/living/ruqyah.svg',
 ];
 
 self.addEventListener('install', (event) => {

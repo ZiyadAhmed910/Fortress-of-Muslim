@@ -52,13 +52,18 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: cover;
   object-position: center;
 }
 
 .advanced-featured {
   grid-column: 1 / -1;
-  aspect-ratio: 2.32 / 1;
+  aspect-ratio: 30 / 13;
+}
+
+.advanced-card:focus-visible {
+  outline: 3px solid var(--accent-strong);
+  outline-offset: 3px;
 }
 
 .advanced-card:active {
