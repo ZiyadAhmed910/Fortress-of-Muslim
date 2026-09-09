@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 400" width="660" height="400" role="presentation">
+  <defs>
+    <linearGradient id="skybeforesleep" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0.00" stop-color="#050b1e"/>
+      <stop offset="0.50" stop-color="#101f47"/>
+      <stop offset="1.00" stop-color="#20386e"/>
+    </linearGradient>
+    <radialGradient id="glowbeforesleep" cx="0.78" cy="0.18" r="0.72">
+      <stop offset="0" stop-color="#a9c6ff" stop-opacity="0.85"/>
+      <stop offset="0.45" stop-color="#a9c6ff" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#a9c6ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vigbeforesleep" cx="0.5" cy="0.45" r="0.78">
+      <stop offset="0.55" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.2"/>
+    </radialGradient>
+    <!-- One ornament shared by all nine: an eight-point star on a wide repeat, faint enough to read
+         as texture rather than pattern. The first version tiled at 64px and came out a diamond mesh. -->
+    <pattern id="latbeforesleep" width="112" height="112" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#eaf1ff" stroke-opacity="0.1" stroke-width="1.2">
+        <polygon points="56,10 67,34 91,23 80,47 104,56 80,65 91,89 67,78 56,102 45,78 21,89 32,65 8,56 32,47 21,23 45,34"/>
+      </g>
+    </pattern>
+  </defs>
+
+  <rect width="660" height="400" fill="url(#skybeforesleep)"/>
+  <rect width="660" height="400" fill="url(#latbeforesleep)"/>
+  <rect width="660" height="400" fill="url(#glowbeforesleep)"/>
+  <circle cx="614" cy="197" r="1.3" fill="#eaf1ff" fill-opacity="0.47"/><circle cx="590" cy="128" r="1.4" fill="#eaf1ff" fill-opacity="0.69"/><circle cx="214" cy="160" r="1.5" fill="#eaf1ff" fill-opacity="0.44"/><circle cx="83" cy="240" r="1.0" fill="#eaf1ff" fill-opacity="0.25"/><circle cx="130" cy="3" r="2.3" fill="#eaf1ff" fill-opacity="0.49"/><circle cx="214" cy="11" r="1.8" fill="#eaf1ff" fill-opacity="0.33"/><circle cx="555" cy="2" r="2.0" fill="#eaf1ff" fill-opacity="0.40"/><circle cx="346" cy="17" r="1.7" fill="#eaf1ff" fill-opacity="0.33"/><circle cx="465" cy="8" r="2.3" fill="#eaf1ff" fill-opacity="0.39"/><circle cx="440" cy="157" r="2.2" fill="#eaf1ff" fill-opacity="0.34"/><circle cx="53" cy="56" r="1.5" fill="#eaf1ff" fill-opacity="0.28"/><circle cx="120" cy="142" r="1.6" fill="#eaf1ff" fill-opacity="0.32"/><circle cx="424" cy="243" r="2.5" fill="#eaf1ff" fill-opacity="0.32"/><circle cx="421" cy="191" r="2.3" fill="#eaf1ff" fill-opacity="0.26"/><circle cx="321" cy="73" r="2.5" fill="#eaf1ff" fill-opacity="0.41"/><circle cx="233" cy="232" r="0.9" fill="#eaf1ff" fill-opacity="0.40"/><circle cx="381" cy="193" r="2.1" fill="#eaf1ff" fill-opacity="0.51"/><circle cx="598" cy="162" r="2.4" fill="#eaf1ff" fill-opacity="0.59"/><circle cx="256" cy="128" r="2.3" fill="#eaf1ff" fill-opacity="0.73"/><circle cx="308" cy="27" r="2.7" fill="#eaf1ff" fill-opacity="0.36"/><circle cx="171" cy="95" r="1.9" fill="#eaf1ff" fill-opacity="0.46"/><circle cx="108" cy="67" r="1.5" fill="#eaf1ff" fill-opacity="0.36"/><circle cx="291" cy="106" r="2.5" fill="#eaf1ff" fill-opacity="0.54"/><circle cx="283" cy="71" r="2.4" fill="#eaf1ff" fill-opacity="0.73"/><circle cx="569" cy="171" r="1.5" fill="#eaf1ff" fill-opacity="0.27"/><circle cx="153" cy="134" r="2.5" fill="#eaf1ff" fill-opacity="0.35"/><circle cx="497" cy="78" r="2.5" fill="#eaf1ff" fill-opacity="0.63"/><circle cx="139" cy="175" r="1.0" fill="#eaf1ff" fill-opacity="0.40"/><circle cx="264" cy="245" r="1.8" fill="#eaf1ff" fill-opacity="0.72"/><circle cx="531" cy="200" r="1.2" fill="#eaf1ff" fill-opacity="0.73"/><circle cx="300" cy="237" r="1.8" fill="#eaf1ff" fill-opacity="0.68"/><circle cx="543" cy="205" r="1.9" fill="#eaf1ff" fill-opacity="0.70"/><circle cx="224" cy="30" r="2.3" fill="#eaf1ff" fill-opacity="0.70"/><circle cx="290" cy="45" r="2.2" fill="#eaf1ff" fill-opacity="0.56"/><mask id="crbeforesleep"><rect x="0" y="0" width="9999" height="9999" fill="#000"/><circle cx="330" cy="184" r="84" fill="#fff"/><circle cx="365.28" cy="162.16" r="72.24" fill="#000"/></mask><circle cx="330" cy="184" r="84" fill="#eaf1ff" fill-opacity="0.66" mask="url(#crbeforesleep)"/><polygon points="171.6,92.0 173.5,99.3 180.1,95.5 176.3,102.1 183.6,104.0 176.3,105.9 180.1,112.5 173.5,108.7 171.6,116.0 169.7,108.7 163.1,112.5 166.9,105.9 159.6,104.0 166.9,102.1 163.1,95.5 169.7,99.3" fill="#eaf1ff" fill-opacity="0.5"/><polygon points="501.6,255.0 503.0,260.5 508.0,257.6 505.1,262.6 510.6,264.0 505.1,265.4 508.0,270.4 503.0,267.5 501.6,273.0 500.2,267.5 495.2,270.4 498.1,265.4 492.6,264.0 498.1,262.6 495.2,257.6 500.2,260.5" fill="#eaf1ff" fill-opacity="0.4"/><path d="M0 352 H660 V400 H0 Z" fill="#eaf1ff" fill-opacity="0.14"/>
+  <rect width="660" height="400" fill="url(#vigbeforesleep)"/>
+</svg>

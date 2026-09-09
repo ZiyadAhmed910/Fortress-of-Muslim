@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 400" width="660" height="400" role="presentation">
+  <defs>
+    <linearGradient id="skysalah" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0.00" stop-color="#062f28"/>
+      <stop offset="0.50" stop-color="#0d5245"/>
+      <stop offset="1.00" stop-color="#14876c"/>
+    </linearGradient>
+    <radialGradient id="glowsalah" cx="0.78" cy="0.18" r="0.72">
+      <stop offset="0" stop-color="#9bf3d3" stop-opacity="0.85"/>
+      <stop offset="0.45" stop-color="#9bf3d3" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#9bf3d3" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vigsalah" cx="0.5" cy="0.45" r="0.78">
+      <stop offset="0.55" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.2"/>
+    </radialGradient>
+    <!-- One ornament shared by all nine: an eight-point star on a wide repeat, faint enough to read
+         as texture rather than pattern. The first version tiled at 64px and came out a diamond mesh. -->
+    <pattern id="latsalah" width="112" height="112" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#e9fff6" stroke-opacity="0.1" stroke-width="1.2">
+        <polygon points="56,10 67,34 91,23 80,47 104,56 80,65 91,89 67,78 56,102 45,78 21,89 32,65 8,56 32,47 21,23 45,34"/>
+      </g>
+    </pattern>
+  </defs>
+
+  <rect width="660" height="400" fill="url(#skysalah)"/>
+  <rect width="660" height="400" fill="url(#latsalah)"/>
+  <rect width="660" height="400" fill="url(#glowsalah)"/>
+  <path d="M212.0 360.0 V234.0 A236.0 236.0 0 0 1 330.0 29.6 A236.0 236.0 0 0 1 448.0 234.0 V360.0 Z" fill="#e9fff6" fill-opacity="0.18"/><path d="M246.0 360.0 V257.5 A168.0 168.0 0 0 1 330.0 112.0 A168.0 168.0 0 0 1 414.0 257.5 V360.0 Z" fill="#e9fff6" fill-opacity="0.24"/><line x1="330" y1="80" x2="330" y2="168" stroke="#e9fff6" stroke-opacity="0.4" stroke-width="2.5"/><path d="M304 184 Q330 152 356 184 Q330 272 304 184 Z" fill="#e9fff6" fill-opacity="0.5"/><rect x="190" y="360" width="280" height="6" rx="3" fill="#e9fff6" fill-opacity="0.45"/>
+  <rect width="660" height="400" fill="url(#vigsalah)"/>
+</svg>

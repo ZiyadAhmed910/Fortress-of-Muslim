@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-30T04:32:31.052Z",
+  "generatedAt": "2026-09-09T16:21:31.531Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -640,7 +640,7 @@
     },
     {
       "path": "pwa-website/js/constants.js",
-      "lines": 4,
+      "lines": 3,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -688,7 +688,7 @@
     },
     {
       "path": "pwa-website/js/layout-settings.js",
-      "lines": 66,
+      "lines": 88,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -696,7 +696,7 @@
     },
     {
       "path": "pwa-website/js/layout.js",
-      "lines": 120,
+      "lines": 139,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -704,7 +704,7 @@
     },
     {
       "path": "pwa-website/js/modes.js",
-      "lines": 99,
+      "lines": 107,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -752,7 +752,7 @@
     },
     {
       "path": "pwa-website/js/quran-audio.js",
-      "lines": 431,
+      "lines": 420,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -841,6 +841,14 @@
     {
       "path": "pwa-website/test/categories.test.js",
       "lines": 121,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/layout.test.js",
+      "lines": 91,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3229,6 +3237,14 @@
         "pwa-website/test/categories.test.js",
         "pwa-website/test/prayer-times.test.js",
         "pwa-website/test/quran-words.test.js"
+      ]
+    },
+    {
+      "name": "there",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/modes.js"
       ]
     },
     {

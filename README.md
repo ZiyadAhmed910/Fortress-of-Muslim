@@ -722,6 +722,18 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### 1.025
+
+- Replaced the Advanced home category images with nine original text-free SVG scenes: moonlit
+  architecture, a dawn valley, an evening balcony, interiors, an oasis and gardens. Ambient light,
+  clouds, stars and reflections animate gently and respect reduced-motion preferences.
+- Added an artwork gallery at `art-preview.html`, deterministic source generators and browser
+  checks for embedded animation, responsive cards, category navigation and offline artwork.
+- Kept the original reference images and optional service-worker caching behavior.
+- Measured before shipping: the nine animated SVGs are 117 KB Brotli-compressed against 172 KB for
+  the nine static webp images they replace, so the animated set is lighter over the wire despite
+  being 714 KB on disk. Bluehost already serves SVG with `content-encoding: br`, verified live.
+
 ### 1.024
 
 - Dua categories and moods now come from the curated data only. They were previously inferred by checking whether a keyword appeared anywhere in a dua, body text included, which filed 58% of assignments wrongly: "When wearing a new garment" was a healing recitation because its translation contains the word "refuge".
