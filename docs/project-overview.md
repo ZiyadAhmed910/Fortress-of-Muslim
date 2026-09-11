@@ -134,13 +134,20 @@ What it actually contains today:
   keyword-matching the text, which put 58% of assignments in the wrong place (a dua for wearing new
   clothes was filed as healing recitation because its translation contains "protection"); that
   inference is gone and `test/categories.test.js` asserts no category is ever assigned that a
-  curator did not set.
+  curator did not set. Each reading also has a role (`entry.partRoles`, parallel to `parts`):
+  supplication (205), framed (36 — a narration containing the words), instruction (14 — what to
+  do, no fixed words) or virtue (13 — a merit, nothing to recite). The reader labels Guidance and
+  Virtue readings instead of showing them as duas with a `--` transliteration; the roles and every
+  data change behind them are recorded in `tools/apply-reading-roles.mjs`.
 - **Quran** — all 114 surahs, Saheeh International translation, tajweed colouring, sajdah marks,
   page or continuous reading, per-ayah and per-surah favourites, continue-reading, and a
   download-everything option. Surah bodies are fetched per surah into `fortress-quran-v1`, a cache
   keyed by content version rather than by build so a deploy never wipes downloaded scripture.
-- **Recitation** — ayah-by-ayah playback (seven reciters) that advances through the surah, with
-  repeat modes and a cancellable per-surah offline download in `fortress-quran-audio-v1`.
+- **Recitation** — ayah-by-ayah playback (six reciters) that advances through the surah, with
+  repeat modes and a cancellable per-surah offline download in `fortress-quran-audio-v1`. It keeps
+  playing with the phone locked: lock-screen controls via the Media Session API, the next ayah
+  preloaded, and no page render awaited between ayahs while hidden. The screen is held awake only
+  while "Follow the recitation" is on.
 - **Word by word** — every word with its English gloss, tappable for word audio. Segmentation is
   built from quran.com rather than derived from the text; see `tools/build-quran-words.mjs` for why
   that distinction is load-bearing.
@@ -154,7 +161,8 @@ What it actually contains today:
 - **Shell** — simple and advanced layouts, per-feature show/hide, dark mode, first-run walkthrough,
   and backup export/import covering favourites, settings, tasbih, layout and Quran preferences.
 - **Advanced card artwork** — nine text-free SVG scenes with shaded architecture and gentle
-  ambient animation. Appearance settings offer Optimized (default), Full and Still, persisted
+  ambient animation. Each card's title, description and reading count are HTML over the art, in
+  the same words as the screen the card opens (`test/card-labels.test.js` holds the two together). Appearance settings offer Optimized (default), Full and Still, persisted
   locally and in backups. Device reduced motion overrides animation. All three file variants
   use the optional offline artwork cache, so mode switching works without network access.
   `pwa-website/art-preview.html` displays the full collection; `tools/build-living-art.mjs`
@@ -171,7 +179,19 @@ canonical_records (stable identity, e.g. dua.hisn.001)
     -> revision_parts -> revision_segments (arabic / transliteration / translation / comment)
   -> editorial_record_state (current workflow_state + verification_status)
   -> canonical_publications (which revision is live, joined into canonical_dataset_versions)
+  -> canonical_reading_roles (dua only: supplication / framed / instruction / virtue)
+  -> canonical_withdrawals (a record taken out of every public read without deleting it)
 ```
+
+Every Hisn reading has a role (migration `0018`), served as `readingRole` on every dua response; a
+dua with no row reads as `supplication`. A framed reading's narration is a `comment` segment. Roles
+can currently be changed only by migration — the Admin Console does not edit them yet.
+
+Withdrawal (`0017`) exists because revisions, parts and segments are undeletable by trigger: a
+withdrawn record drops out of both API views, search, Ask and counts, while its history stays
+intact. It is reversible by deleting the withdrawal row. No record is withdrawn today — the two
+that `0017` withdrew (chapter 45's adhan and adhkar readings) were restored by `0018` as
+instruction readings.
 
 Public workflow states are intentionally small: `pending_review`, `verified`, `changes_requested`.
 Every record exposed via API/MCP carries its verification status, workflow state, verifier identity

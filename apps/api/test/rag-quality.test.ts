@@ -159,6 +159,7 @@ function dua(id: string, title: string, translation: string) {
     legacyId: id,
     sequence: 1,
     title,
+    readingRole: 'supplication' as const,
     partCount: 1,
     verificationStatus: 'verified' as const,
     workflowState: 'verified' as const,

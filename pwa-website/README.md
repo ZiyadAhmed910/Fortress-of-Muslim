@@ -80,6 +80,8 @@ executable.
 ## Current features
 
 - Published canonical Fortress chapters available offline after snapshot generation.
+- Each reading has a role -- supplication, framed, instruction or virtue -- and the reader labels
+  Guidance and Virtue readings rather than presenting them as words to recite.
 - Search across Arabic, transliteration, translation, categories, tags, and moods.
 - Add/remove favourites and open the favourites list from the center button.
 - Detail reader with swipe left/right navigation.
@@ -94,10 +96,24 @@ Hadith and Ask are intentionally online-only. The service worker never caches AP
 
 ## Local data build
 
-Rebuild the committed PWA artifact from the public test API with:
+`data/duas.json` is a committed, hand-maintained snapshot. Validate it with:
 
 ```powershell
 npm run pwa:data:build
 ```
 
-Set `FORTRESS_API_URL` to use another Fortress environment. The builder follows pagination, retrieves each complete published dua, and writes the active canonical dataset ID, verification state, revision numbers, and Fortress URLs. Editorial candidates are not accessible to the builder and cannot enter the offline snapshot.
+Despite the name, this does not fetch anything: `tools/build-canonical-snapshot.mjs` checks the
+committed file (schema 4, exactly 132 chapters in sequence, explicitly verified) and fails if it is
+not. An earlier version of this README described it downloading from the API; that is no longer
+what the code does.
+
+Each entry's `parts` holds its readings and `partRoles` holds one role per reading, in the same
+order: `supplication`, `framed`, `instruction` or `virtue`. Segment kinds are `arabic`,
+`transliteration`, `translation`, `reference` and `context` (the narration that introduces a framed
+reading). The roles and the data changes that came with them were applied once by
+`tools/apply-reading-roles.mjs`, which records every judgement and refuses to run if a change would
+lose text; `test/reading-roles.test.js` holds them in place. The same roles are on the API's
+records (migration `0018`), where a `context` line is a `comment` segment.
+
+When `data/duas.json` changes, bump `DATA_VERSION` in `js/constants.js` and the matching
+`duas.json?v=` entry in `sw.js` so installed apps fetch the new file.

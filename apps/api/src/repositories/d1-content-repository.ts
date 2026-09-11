@@ -16,6 +16,7 @@ type SummaryRow = {
   legacy_id: string;
   sequence: number;
   title: string;
+  reading_role: DuaSummary['readingRole'];
   part_count: number;
   revision_number: number;
   published_at: string | null;
@@ -562,9 +563,12 @@ function normalizeSearchText(value: string) {
     .trim();
 }
 
+// A dua with no recorded role is a supplication: roles were assigned to every Hisn reading in
+// migration 0018, and a reading only needs one when it is something other than words to recite.
 function duaSummarySql(source = 'api_current_content') {
   return `
     SELECT publication.canonical_id AS id, revision.legacy_id, revision.sequence, revision.title,
+           COALESCE(role.reading_role, 'supplication') AS reading_role,
            publication.revision_number, publication.published_at,
            publication.workflow_state, publication.verification_status,
            publication.verified_by_external_id, publication.verified_at,
@@ -572,6 +576,7 @@ function duaSummarySql(source = 'api_current_content') {
     FROM ${source} publication
     JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
     JOIN content_revisions revision ON revision.id = publication.revision_id
+    LEFT JOIN canonical_reading_roles role ON role.canonical_id = publication.canonical_id
     LEFT JOIN revision_parts part ON part.revision_id = revision.id`;
 }
 
@@ -601,6 +606,7 @@ function toDuaSummary(row: SummaryRow): DuaSummary {
     legacyId: row.legacy_id,
     sequence: row.sequence,
     title: row.title,
+    readingRole: row.reading_role,
     partCount: row.part_count,
     verificationStatus: row.verification_status,
     workflowState: row.workflow_state,

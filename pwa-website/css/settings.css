@@ -84,6 +84,60 @@
   color: color-mix(in srgb, var(--ink) 88%, var(--muted));
 }
 
+/* A framed reading's narration lead-in: read first, but quieter than the words it introduces. */
+.segment.context {
+  color: var(--muted);
+  font-size: calc(0.95rem * var(--font-scale));
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* What kind of reading this is, shown only when it is not a plain supplication. Guidance and virtue
+   readings have no transliteration line, so the note is what stops that looking like missing data. */
+.reading-role {
+  display: grid;
+  gap: 0.18rem;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.6rem;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.reading-role-label {
+  color: var(--accent-strong);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.reading-role-detail {
+  color: var(--muted);
+  font-size: calc(0.84rem * var(--font-scale));
+  line-height: 1.4;
+}
+
+.reading-role-virtue {
+  border-left-color: #b8892a;
+  background: color-mix(in srgb, #d4a23a 11%, transparent);
+}
+
+.reading-role-virtue .reading-role-label {
+  color: #9a6f17;
+}
+
+:root.dark .reading-role-virtue .reading-role-label {
+  color: #e7c178;
+}
+
+/* Guidance and virtue readings carry their meaning in the translation, so it leads rather than
+   trailing the Arabic in a muted tone. */
+[data-role="instruction"] .segment.translation,
+[data-role="virtue"] .segment.translation {
+  color: var(--ink);
+}
+
 .reader-controls {
   position: fixed;
   left: 50%;
