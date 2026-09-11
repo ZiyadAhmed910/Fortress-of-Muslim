@@ -162,31 +162,31 @@
           <section class="advanced-home" id="advancedHome" aria-label="Advanced home">
             <div class="advanced-card-list">
               <button class="advanced-card advanced-featured" data-advanced-filter="all" aria-label="Open all duas">
-                <img src="assets/cards/living/all-duas.svg" alt="" width="1200" height="520" loading="lazy" decoding="async">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/all-duas.svg"><img data-living-art src="assets/cards/living/all-duas.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
               </button>
               <button class="advanced-card" data-advanced-filter="morning" aria-label="Open morning duas">
-                <img src="assets/cards/living/morning.svg" alt="" width="1200" height="520" loading="lazy" decoding="async">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/morning.svg"><img data-living-art src="assets/cards/living/morning.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
               </button>
               <button class="advanced-card" data-advanced-filter="evening" aria-label="Open evening duas">
-                <img src="assets/cards/living/evening.svg" alt="" width="1200" height="520" loading="lazy" decoding="async">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/evening.svg"><img data-living-art src="assets/cards/living/evening.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
               </button>
               <button class="advanced-card" data-advanced-filter="sleep" aria-label="Open before sleep duas">
-                <img src="assets/cards/living/before-sleep.svg" alt="" width="1200" height="520" loading="lazy" decoding="async">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/before-sleep.svg"><img data-living-art src="assets/cards/living/before-sleep.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
               </button>
               <button class="advanced-card" data-advanced-filter="salah" aria-label="Open salah duas">
-                <img src="assets/cards/living/salah.svg" alt="" width="1200" height="520" loading="lazy" decoding="async">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/salah.svg"><img data-living-art src="assets/cards/living/salah.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
               </button>
               <button class="advanced-card" data-advanced-filter="travel" aria-label="Open travel duas">
-                <img src="assets/cards/living/travel.svg" alt="" width="1200" height="520" loading="lazy" decoding="async">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/travel.svg"><img data-living-art src="assets/cards/living/travel.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
               </button>
               <button class="advanced-card" data-advanced-filter="favourites" aria-label="Open favourite duas">
-                <img src="assets/cards/living/favourites.svg" alt="" width="1200" height="520" loading="lazy" decoding="async">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/favourites.svg"><img data-living-art src="assets/cards/living/favourites.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
               </button>
               <button class="advanced-card" data-advanced-filter="moods" aria-label="Open duas by mood">
-                <img src="assets/cards/living/moods.svg" alt="" width="1200" height="520" loading="lazy" decoding="async">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/moods.svg"><img data-living-art src="assets/cards/living/moods.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
               </button>
               <button class="advanced-card" data-advanced-filter="ruqyah" aria-label="Open ruqyah duas">
-                <img src="assets/cards/living/ruqyah.svg" alt="" width="1200" height="520" loading="lazy" decoding="async">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/ruqyah.svg"><img data-living-art src="assets/cards/living/ruqyah.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
               </button>
             </div>
 
@@ -518,6 +518,16 @@
               </span>
               <input id="advancedUiToggle" type="checkbox">
             </label>
+            <div class="setting-row setting-row-stack">
+              <label for="artMotion"><strong>Artwork animation</strong></label>
+              <select id="artMotion" aria-describedby="artMotionDescription artMotionSystemNote">
+                <option value="optimized">Optimized (default)</option>
+                <option value="full">Full animation</option>
+                <option value="still">Still</option>
+              </select>
+              <small id="artMotionDescription">Gentle light and limited movement, balanced for everyday devices.</small>
+              <small id="artMotionSystemNote" class="art-motion-system-note" hidden>Your device’s reduced motion setting is on. Artwork stays still; your choice is saved.</small>
+            </div>
               </section>
             </div>
             <div class="settings-group">

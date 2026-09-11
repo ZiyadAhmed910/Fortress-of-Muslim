@@ -11,6 +11,7 @@ import { readQuranStorage, writeQuranStorage } from './quran.js';
 import { readQuranAudioStorage, writeQuranAudioStorage } from './quran-audio.js';
 import { refreshLayoutVisibility } from './modes.js';
 import { syncLayoutConfigControls } from './layout-settings.js';
+import { getArtMotionPreference, setArtMotionPreference } from './art-motion.js';
 
 const BACKUP_KIND = 'fortress-of-muslim-user-data';
 
@@ -25,6 +26,7 @@ export function exportUserData() {
       darkMode: state.darkMode,
       largeArabic: state.largeArabic,
       advancedUi: state.advancedUi,
+      artMotion: getArtMotionPreference(),
       calculationMethod: state.calculationMethod,
       asrMethod: state.asrMethod,
       highLatitudeRule: state.highLatitudeRule,
@@ -97,6 +99,8 @@ function importUserData(payload) {
   localStorage.setItem('darkMode', String(state.darkMode));
   localStorage.setItem('largeArabic', String(state.largeArabic));
   localStorage.setItem('advancedUi', String(state.advancedUi));
+  // Older backups have no artwork preference; leave the current device's choice in place.
+  if (Object.hasOwn(settings, 'artMotion')) setArtMotionPreference(settings.artMotion);
   localStorage.setItem('calculationMethod', state.calculationMethod);
   localStorage.setItem('asrMethod', state.asrMethod);
   localStorage.setItem('highLatitudeRule', state.highLatitudeRule);

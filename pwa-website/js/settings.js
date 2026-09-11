@@ -3,6 +3,7 @@ import { els } from './dom.js';
 import { APP_VERSION } from './constants.js';
 import { syncPrayerSettingsControls } from './prayer.js';
 import { syncReminderControls } from './reminders.js';
+import { applyArtMotion, initArtMotion } from './art-motion.js';
 
 export function applySettings() {
   els.appVersion.textContent = `Version ${APP_VERSION}`;
@@ -15,6 +16,7 @@ export function applySettings() {
   els.darkModeToggle.checked = state.darkMode;
   els.arabicSizeToggle.checked = state.largeArabic;
   els.advancedUiToggle.checked = state.advancedUi;
+  applyArtMotion();
   ensureAdvancedCardsLoad();
   syncPrayerSettingsControls();
   syncReminderControls();
@@ -56,6 +58,11 @@ export function setFontScale(value) {
 // screen and the panel reads as part of it. The previous drill-down swapped the entire dialog for a
 // single panel, which lost the reader's position in the list on every change of section.
 export function initSettingsNav() {
+  initArtMotion({
+    select: els.artMotionSelect,
+    description: els.artMotionDescription,
+    systemNote: els.artMotionSystemNote,
+  });
   els.settingsCategoryList.addEventListener('click', (event) => {
     const button = event.target.closest('[data-settings-toggle]');
     if (button) toggleSettingsCategory(button);

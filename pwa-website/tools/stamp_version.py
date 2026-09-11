@@ -45,6 +45,17 @@ def stamp_module_imports(build_version: str) -> int:
     return stamped
 
 
+def stamp_artwork(build_version: str) -> None:
+    # Stamp image references so the controller is not paired with an earlier deploy's artwork.
+    # The gallery controller is generated inline to support opening the HTML through file://.
+    for name in ("index.html", "art-preview.html"):
+        path = ROOT / name
+        if not path.exists():
+            continue
+        replace(path, r"(assets/cards/living/(?:full/|still/)?[a-z-]+\.svg)(?:\?v=[^\"']*)?",
+                rf"\1?v={build_version}")
+
+
 def main() -> None:
     count = int(git_value("rev-list", "--count", "HEAD", fallback="13"))
     sha = git_value("rev-parse", "--short=10", "HEAD", fallback="local")
@@ -88,6 +99,7 @@ def main() -> None:
     )
 
     stamped_modules = stamp_module_imports(build_version)
+    stamp_artwork(build_version)
 
     print(f"Stamped app version {display_version} ({build_version}); {stamped_modules} module file(s) re-imported at this build")
 

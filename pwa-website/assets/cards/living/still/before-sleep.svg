@@ -1,4 +1,4 @@
-<svg data-motion="optimized" xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-label="Moonlit chamber with carved window, woven rug and a softly glowing brass lamp"><defs>
+<svg data-motion="still" xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-label="Moonlit chamber with carved window, woven rug and a softly glowing brass lamp"><defs>
     <linearGradient id="night" x2=".2" y2="1"><stop stop-color="#111e39"/><stop offset=".6" stop-color="#294457"/><stop offset="1" stop-color="#61868b"/></linearGradient>
     <linearGradient id="nightWall" x2="1" y2=".7"><stop stop-color="#091e2a"/><stop offset=".5" stop-color="#193b43"/><stop offset="1" stop-color="#364c4a"/></linearGradient>
     <linearGradient id="daySky" x2="0" y2="1"><stop stop-color="#99c8c9"/><stop offset=".67" stop-color="#e0e2c3"/><stop offset="1" stop-color="#f5dca2"/></linearGradient>
@@ -36,25 +36,25 @@
     @keyframes foliageSway{0%,100%{transform:rotate(-.7deg)}45%{transform:rotate(1.3deg)}72%{transform:rotate(.3deg)}}
     @keyframes waterRipple{0%{opacity:.62;transform:scale(.76)}100%{opacity:.05;transform:scale(1.65)}}
     @keyframes fountainFall{0%{opacity:.25;transform:translateY(-2px)}40%{opacity:.8}100%{opacity:.1;transform:translateY(8px)}}
-    .lamp-flame{transform-box:fill-box;transform-origin:50% 100%;animation:flameFlicker 2.8s linear infinite}
-    .lamp-glass{animation:glassFlicker 2.8s linear infinite}
-    .lamp-glow,.lamp-reflection{animation:lampLight 2.8s linear infinite}
-    .stars{animation:starPulse 6s ease-in-out infinite}
+    .lamp-flame{transform-box:fill-box;transform-origin:50% 100%;}
+    .lamp-glass{}
+    .lamp-glow,.lamp-reflection{}
+    .stars{}
     .dust{opacity:.3}
-    .water-ripple{transform-box:fill-box;transform-origin:center;animation:waterRipple 3.4s linear infinite}
-    .enhanced-motion{animation:none}
+    .water-ripple{transform-box:fill-box;transform-origin:center;}
+    .enhanced-motion{}
     .ambient-light{opacity:0;pointer-events:none}
-    svg[data-motion="full"] .scene .ambient-light{animation:roomLight 12s ease-in-out infinite}
+    svg[data-motion="full"] .scene .ambient-light{}
     @keyframes roomLight{0%,100%{opacity:.02}45%,60%{opacity:.19}}
-    svg[data-motion="full"] .scene .dust{animation:dustDrift 9s ease-in-out infinite;animation-delay:-2s}
-    svg[data-motion="full"] .scene .moon{animation:moonDrift 18s ease-in-out infinite;animation-delay:-4s}
-    svg[data-motion="full"] .scene .cloud-motion{animation:cloudDrift 18s ease-in-out infinite;animation-delay:-4s}
-    svg[data-motion="full"] .scene .light-shaft{animation:shaftDrift 11s ease-in-out infinite;animation-delay:-2s}
-    svg[data-motion="full"] .scene .foliage-motion{animation:foliageSway 7s ease-in-out infinite;animation-delay:-1.5s}
-    svg[data-motion="full"] .scene .fountain-drops{animation:fountainFall 2.4s linear infinite}
-    svg[data-motion="full"] .scene .extra-ripple{animation:waterRipple 3.4s linear infinite;animation-delay:-1.7s}
-    svg[data-motion="still"] .scene *{animation:none!important}
-    @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+    svg[data-motion="full"] .scene .dust{}
+    svg[data-motion="full"] .scene .moon{}
+    svg[data-motion="full"] .scene .cloud-motion{}
+    svg[data-motion="full"] .scene .light-shaft{}
+    svg[data-motion="full"] .scene .foliage-motion{}
+    svg[data-motion="full"] .scene .fountain-drops{}
+    svg[data-motion="full"] .scene .extra-ripple{}
+    svg[data-motion="still"] .scene *{}
+    @media(prefers-reduced-motion:reduce){*{}}
   </style><g class="scene">
     <rect width="1200" height="520" fill="url(#nightWall)"/>
     <path d="M0 0H442L578 49V345L0 401Z" fill="#102d37"/>

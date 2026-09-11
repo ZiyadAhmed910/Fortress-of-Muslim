@@ -33,6 +33,12 @@
     h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(43px, 4.5vw, 70px); font-weight: 400; line-height: 1.07; letter-spacing: -.049em; }
     h1 em { font-weight: 400; }
     .intro-copy { width: 292px; flex: 0 0 292px; margin: 0 0 5px; color: var(--muted); font-size: 13px; line-height: 1.85; }
+    .motion-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 13px 20px; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--rule); font-size: 12px; }
+    .motion-toolbar label { font-weight: 600; }
+    .motion-toolbar select { min-height: 40px; padding: 7px 32px 7px 12px; border: 1px solid var(--rule); border-radius: 7px; font: inherit; color: var(--ink); background: #fffdf7; }
+    .motion-toolbar select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .motion-toolbar small { color: var(--muted); line-height: 1.6; }
+    .motion-toolbar [hidden] { display: none; }
     .collection { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 30px; row-gap: 40px; }
     .scene { min-width: 0; margin: 0; }
     .scene:first-child { grid-column: 1 / -1; }
@@ -100,43 +106,53 @@
           <h1 id="page-title">A little stillness.<br>A little <em>wonder.</em></h1>
           <p class="intro-copy">Nine places to pause. Light, architecture and the natural world, brought to life in quietly moving illustrations. No words within the artwork; just room to breathe.</p>
         </div>
+        <div class="motion-toolbar">
+          <label for="artMotion">Artwork animation</label>
+          <select id="artMotion" aria-describedby="artMotionDescription artMotionSystemNote">
+            <option value="optimized">Optimized (default)</option>
+            <option value="full">Full animation</option>
+            <option value="still">Still</option>
+          </select>
+          <small id="artMotionDescription">Gentle light and limited movement, balanced for everyday devices.</small>
+          <small id="artMotionSystemNote" hidden>Your device’s reduced motion setting is on. Artwork stays still; your choice is saved.</small>
+        </div>
       </section>
 
       <section class="collection" aria-label="Nine animated banner illustrations">
         <figure class="scene">
-          <a class="art-link" href="assets/cards/living/all-duas.svg" aria-label="View the full All duas illustration"><img class="art" src="assets/cards/living/all-duas.svg" width="1200" height="520" alt="An atmospheric architectural illustration for All duas" fetchpriority="high"></a>
+          <a class="art-link" href="assets/cards/living/all-duas.svg" aria-label="View the full All duas illustration"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/all-duas.svg"><img data-living-art class="art" src="assets/cards/living/all-duas.svg" width="1200" height="520" alt="An atmospheric architectural illustration for All duas" fetchpriority="high"></picture></a>
           <figcaption class="caption"><span class="number">01</span><div><h2 class="scene-name">All duas</h2><p class="scene-note">A moment of quiet, a world of remembrance.</p></div><a class="scene-link" href="assets/cards/living/all-duas.svg" aria-label="View full All duas scene"><span class="scene-link-label">View full scene</span><span class="arrow" aria-hidden="true">↗</span></a></figcaption>
         </figure>
         <figure class="scene">
-          <a class="art-link" href="assets/cards/living/morning.svg" aria-label="View the full Morning illustration"><img class="art" src="assets/cards/living/morning.svg" width="1200" height="520" alt="An atmospheric morning illustration" loading="lazy" decoding="async"></a>
+          <a class="art-link" href="assets/cards/living/morning.svg" aria-label="View the full Morning illustration"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/morning.svg"><img data-living-art class="art" src="assets/cards/living/morning.svg" width="1200" height="520" alt="An atmospheric morning illustration" loading="lazy" decoding="async"></picture></a>
           <figcaption class="caption"><span class="number">02</span><div><h2 class="scene-name">Morning</h2><p class="scene-note">A soft beginning, as the world wakes.</p></div><a class="scene-link" href="assets/cards/living/morning.svg" aria-label="View full Morning scene"><span class="scene-link-label">View full scene</span><span class="arrow" aria-hidden="true">↗</span></a></figcaption>
         </figure>
         <figure class="scene">
-          <a class="art-link" href="assets/cards/living/evening.svg" aria-label="View the full Evening illustration"><img class="art" src="assets/cards/living/evening.svg" width="1200" height="520" alt="An atmospheric evening illustration" loading="lazy" decoding="async"></a>
+          <a class="art-link" href="assets/cards/living/evening.svg" aria-label="View the full Evening illustration"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/evening.svg"><img data-living-art class="art" src="assets/cards/living/evening.svg" width="1200" height="520" alt="An atmospheric evening illustration" loading="lazy" decoding="async"></picture></a>
           <figcaption class="caption"><span class="number">03</span><div><h2 class="scene-name">Evening</h2><p class="scene-note">The day settles into a gentler rhythm.</p></div><a class="scene-link" href="assets/cards/living/evening.svg" aria-label="View full Evening scene"><span class="scene-link-label">View full scene</span><span class="arrow" aria-hidden="true">↗</span></a></figcaption>
         </figure>
         <figure class="scene">
-          <a class="art-link" href="assets/cards/living/before-sleep.svg" aria-label="View the full Before sleep illustration"><img class="art" src="assets/cards/living/before-sleep.svg" width="1200" height="520" alt="A peaceful nighttime illustration for Before sleep" loading="lazy" decoding="async"></a>
+          <a class="art-link" href="assets/cards/living/before-sleep.svg" aria-label="View the full Before sleep illustration"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/before-sleep.svg"><img data-living-art class="art" src="assets/cards/living/before-sleep.svg" width="1200" height="520" alt="A peaceful nighttime illustration for Before sleep" loading="lazy" decoding="async"></picture></a>
           <figcaption class="caption"><span class="number">04</span><div><h2 class="scene-name">Before sleep</h2><p class="scene-note">Leave the day behind. Welcome the quiet.</p></div><a class="scene-link" href="assets/cards/living/before-sleep.svg" aria-label="View full Before sleep scene"><span class="scene-link-label">View full scene</span><span class="arrow" aria-hidden="true">↗</span></a></figcaption>
         </figure>
         <figure class="scene">
-          <a class="art-link" href="assets/cards/living/salah.svg" aria-label="View the full Salah illustration"><img class="art" src="assets/cards/living/salah.svg" width="1200" height="520" alt="An architectural illustration for Salah" loading="lazy" decoding="async"></a>
+          <a class="art-link" href="assets/cards/living/salah.svg" aria-label="View the full Salah illustration"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/salah.svg"><img data-living-art class="art" src="assets/cards/living/salah.svg" width="1200" height="520" alt="An architectural illustration for Salah" loading="lazy" decoding="async"></picture></a>
           <figcaption class="caption"><span class="number">05</span><div><h2 class="scene-name">Salah</h2><p class="scene-note">A place to return, again and again.</p></div><a class="scene-link" href="assets/cards/living/salah.svg" aria-label="View full Salah scene"><span class="scene-link-label">View full scene</span><span class="arrow" aria-hidden="true">↗</span></a></figcaption>
         </figure>
         <figure class="scene">
-          <a class="art-link" href="assets/cards/living/travel.svg" aria-label="View the full Travel illustration"><img class="art" src="assets/cards/living/travel.svg" width="1200" height="520" alt="An atmospheric landscape illustration for Travel" loading="lazy" decoding="async"></a>
+          <a class="art-link" href="assets/cards/living/travel.svg" aria-label="View the full Travel illustration"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/travel.svg"><img data-living-art class="art" src="assets/cards/living/travel.svg" width="1200" height="520" alt="An atmospheric landscape illustration for Travel" loading="lazy" decoding="async"></picture></a>
           <figcaption class="caption"><span class="number">06</span><div><h2 class="scene-name">Travel</h2><p class="scene-note">A little wonder beyond the familiar.</p></div><a class="scene-link" href="assets/cards/living/travel.svg" aria-label="View full Travel scene"><span class="scene-link-label">View full scene</span><span class="arrow" aria-hidden="true">↗</span></a></figcaption>
         </figure>
         <figure class="scene">
-          <a class="art-link" href="assets/cards/living/favourites.svg" aria-label="View the full Favourites illustration"><img class="art" src="assets/cards/living/favourites.svg" width="1200" height="520" alt="A contemplative illustration for Favourites" loading="lazy" decoding="async"></a>
+          <a class="art-link" href="assets/cards/living/favourites.svg" aria-label="View the full Favourites illustration"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/favourites.svg"><img data-living-art class="art" src="assets/cards/living/favourites.svg" width="1200" height="520" alt="A contemplative illustration for Favourites" loading="lazy" decoding="async"></picture></a>
           <figcaption class="caption"><span class="number">07</span><div><h2 class="scene-name">Favourites</h2><p class="scene-note">The familiar things we keep close.</p></div><a class="scene-link" href="assets/cards/living/favourites.svg" aria-label="View full Favourites scene"><span class="scene-link-label">View full scene</span><span class="arrow" aria-hidden="true">↗</span></a></figcaption>
         </figure>
         <figure class="scene">
-          <a class="art-link" href="assets/cards/living/moods.svg" aria-label="View the full Moods illustration"><img class="art" src="assets/cards/living/moods.svg" width="1200" height="520" alt="A soothing natural illustration for Moods" loading="lazy" decoding="async"></a>
+          <a class="art-link" href="assets/cards/living/moods.svg" aria-label="View the full Moods illustration"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/moods.svg"><img data-living-art class="art" src="assets/cards/living/moods.svg" width="1200" height="520" alt="A soothing natural illustration for Moods" loading="lazy" decoding="async"></picture></a>
           <figcaption class="caption"><span class="number">08</span><div><h2 class="scene-name">Moods</h2><p class="scene-note">Room for whatever the heart carries.</p></div><a class="scene-link" href="assets/cards/living/moods.svg" aria-label="View full Moods scene"><span class="scene-link-label">View full scene</span><span class="arrow" aria-hidden="true">↗</span></a></figcaption>
         </figure>
         <figure class="scene">
-          <a class="art-link" href="assets/cards/living/ruqyah.svg" aria-label="View the full Ruqyah illustration"><img class="art" src="assets/cards/living/ruqyah.svg" width="1200" height="520" alt="A serene architectural illustration for Ruqyah" loading="lazy" decoding="async"></a>
+          <a class="art-link" href="assets/cards/living/ruqyah.svg" aria-label="View the full Ruqyah illustration"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/ruqyah.svg"><img data-living-art class="art" src="assets/cards/living/ruqyah.svg" width="1200" height="520" alt="A serene architectural illustration for Ruqyah" loading="lazy" decoding="async"></picture></a>
           <figcaption class="caption"><span class="number">09</span><div><h2 class="scene-name">Ruqyah</h2><p class="scene-note">Find shelter in a moment of remembrance.</p></div><a class="scene-link" href="assets/cards/living/ruqyah.svg" aria-label="View full Ruqyah scene"><span class="scene-link-label">View full scene</span><span class="arrow" aria-hidden="true">↗</span></a></figcaption>
         </figure>
       </section>
@@ -147,5 +163,102 @@
       <p class="motion-note">Quiet motion. Your device’s reduced motion preference is respected.</p>
     </footer>
   </div>
+  <!-- BEGIN GENERATED ART MOTION -->
+  <!-- Generated from js/art-motion.js by tools/build-living-art.mjs. Do not edit this block. -->
+  <script>
+  (() => {
+const ART_MOTION_STORAGE_KEY = 'artMotion';
+const DEFAULT_ART_MOTION = 'optimized';
+const ART_MOTION_DESCRIPTIONS = {
+  optimized: 'Gentle light and limited movement, balanced for everyday devices.',
+  full: 'Richer skies, drifting clouds and extra movement for more capable devices.',
+  still: 'Keep every illustration still for the lightest experience.',
+};
+
+let preference = readArtMotionStorage();
+let initialized = false;
+let controls = {};
+const reducedMotion = typeof window.matchMedia === 'function'
+  ? window.matchMedia('(prefers-reduced-motion: reduce)')
+  : null;
+
+function normalizeArtMotion(value) {
+  return typeof value === 'string' && Object.hasOwn(ART_MOTION_DESCRIPTIONS, value)
+    ? value
+    : DEFAULT_ART_MOTION;
+}
+
+function readArtMotionStorage() {
+  try {
+    return normalizeArtMotion(localStorage.getItem(ART_MOTION_STORAGE_KEY));
+  } catch {
+    return DEFAULT_ART_MOTION;
+  }
+}
+
+function getArtMotionPreference() {
+  return preference;
+}
+
+function setArtMotionPreference(value) {
+  preference = normalizeArtMotion(value);
+  try {
+    localStorage.setItem(ART_MOTION_STORAGE_KEY, preference);
+  } catch {
+    // Storage can be unavailable in private or restricted contexts. Keep the choice for this visit.
+  }
+  applyArtMotion();
+}
+
+function applyArtMotion() {
+  const mode = reducedMotion?.matches ? 'still' : preference;
+  document.querySelectorAll('img[data-living-art]').forEach((image) => {
+    const source = image.getAttribute('src');
+    if (!source) return;
+    // Each mode has its own self-contained file, so neither browser image caches nor service
+    // workers can accidentally retain the previous mode's animation state.
+    const base = source.split(/[?#]/)[0].replace(/\/living\/(?:full|still)\//, '/living/');
+    const query = new URL(source, document.baseURI).searchParams;
+    query.delete('art-motion'); // Discard the previous fragment-based controller's cache key.
+    const modePath = mode === 'optimized' ? base : base.replace('/living/', `/living/${mode}/`);
+    const nextSource = `${modePath}${query.size ? `?${query}` : ''}`;
+    if (source !== nextSource) image.setAttribute('src', nextSource);
+    // Full-scene links in the gallery should open the mode the visitor is actually viewing.
+    const figure = image.closest('figure');
+    figure?.querySelectorAll('a[href*="/living/"]').forEach((link) => link.setAttribute('href', nextSource));
+  });
+  if (controls.select) controls.select.value = preference;
+  if (controls.description) controls.description.textContent = ART_MOTION_DESCRIPTIONS[preference];
+  if (controls.systemNote) controls.systemNote.hidden = !reducedMotion?.matches;
+}
+
+// Settings calls this after the module-driven app has parsed the DOM. The gallery can use the
+// same controller without importing the rest of the PWA or duplicating persistence behavior.
+function initArtMotion({
+  select = document.getElementById('artMotion'),
+  description = document.getElementById('artMotionDescription'),
+  systemNote = document.getElementById('artMotionSystemNote'),
+} = {}) {
+  if (initialized) return;
+  initialized = true;
+  controls = { select, description, systemNote };
+  select?.addEventListener('change', () => setArtMotionPreference(select.value));
+  if (reducedMotion?.addEventListener) {
+    reducedMotion.addEventListener('change', applyArtMotion);
+  } else {
+    reducedMotion?.addListener?.(applyArtMotion);
+  }
+  window.addEventListener('storage', (event) => {
+    if (event.key !== ART_MOTION_STORAGE_KEY && event.key !== null) return;
+    preference = readArtMotionStorage();
+    applyArtMotion();
+  });
+  applyArtMotion();
+}
+
+    initArtMotion();
+  })();
+  </script>
+  <!-- END GENERATED ART MOTION -->
 </body>
 </html>

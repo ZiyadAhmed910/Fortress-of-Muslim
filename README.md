@@ -722,6 +722,21 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### Unreleased — richer artwork and animation controls
+
+- Gave Morning, Evening and Travel distinct mosque designs and rebuilt Ruqyah as a complete
+  roofed sanctuary with a round pool. Joined Travel's roof and tower pieces; corrected the
+  library book's contact with its stand and the night lamp's contact with its table.
+- Added saved Optimized, Full and Still animation choices in Appearance settings and the
+  gallery. Full includes changing sunlight and scene tones, moving foliage and birds, stars,
+  water and lamp flicker. Optimized remains the default; device reduced motion selects Still.
+- Generated independent mode files to avoid shared SVG fragment state, removed animation
+  declarations from Still files, and cached every mode for offline switching.
+- Made the gallery's controller self-contained so opening `art-preview.html` directly from
+  disk supports animation switching without a blocked ES module import.
+- Sped up artwork motion, shortened Full lighting cycles to 12 seconds and increased water,
+  interior light and dust movement so effects are easier to notice at card size.
+
 ### 1.025
 
 - Replaced the Advanced home category images with nine original text-free SVG scenes: moonlit
