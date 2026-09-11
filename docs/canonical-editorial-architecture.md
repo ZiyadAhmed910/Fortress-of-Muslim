@@ -42,6 +42,14 @@ Every published dataset also receives a complete immutable `canonical_dataset_it
 
 The API Worker incrementally indexes the pending active dataset through a Cron Trigger. Vector metadata retains content type, collection, canonical record ID, and dataset namespace. Unverified records never enter this namespace and cannot ground Ask responses.
 
+## Reading Roles
+
+A dua record has a role (`canonical_reading_roles`, served as `readingRole`): `supplication` is words to recite; `framed` is a narration or instruction containing words to recite, whose narration is a `comment` segment; `instruction` says what to do with no fixed words; `virtue` describes a merit with nothing to recite. Instruction and virtue records have no transliteration segment, because there is nothing to transliterate. A dua without a row reads as `supplication`. Migration `0018` assigned all 268 Hisn readings; roles are not yet editable in the Admin Console.
+
+## Withdrawal
+
+Revisions, parts and segments cannot be deleted. To take a record out of public service, insert a row into `canonical_withdrawals` with a reason: both public views, lexical search, Ask and record counts exclude it, and its history stays intact. Deleting the row restores it. No record is currently withdrawn.
+
 The automated editorial pilot uses separate synthetic Editor, Reviewer, and Admin identities to verify authorization and state transitions. It is a software rehearsal only and cannot substitute for qualified human editorial or scholarly judgment.
 
 Canonical URLs use Fortress-owned sequential paths:

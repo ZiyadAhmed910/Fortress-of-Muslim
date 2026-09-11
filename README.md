@@ -174,6 +174,36 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.25.0
+
+_2026-09-11_
+
+- **Reading roles.** Hisn al-Muslim holds four kinds of reading and every record had been shaped as
+  a supplication, so 46 of 268 carried `--` or English prose where a transliteration belongs. Every
+  dua response now has `readingRole`: `supplication` (205), `framed` (36 — a narration containing
+  the words), `instruction` (14 — what to do, no fixed words) or `virtue` (13 — a merit, nothing to
+  recite). Stored in `canonical_reading_roles`; documented in the OpenAPI schema and the Developer
+  Portal's content model.
+- **48 corrected revisions** (migration `0018`). 44 non-transliterations removed from the
+  transliteration field, two narration frames moved to `comment` segments, two translations that
+  stopped mid-sentence completed. No Arabic or reference changed. Each correction is a new
+  immutable revision with a reason in `correction_history`, published as dataset
+  `canonical.hisn.reading-roles.2026-09-11`, so the Admin Console can roll back to the previous
+  dataset. The migration only revises a record whose published text is exactly what was reviewed,
+  and skips anything that differs, which makes it safe on production too.
+- **Chapter 45's adhan and adhkar readings restored.** `dua.hisn.142` and `.143` had been withdrawn
+  (`0017`) for showing `--` as a transliteration. They are valid readings, so they return as
+  `instruction` readings without the `--`. Withdrawal itself — taking a record out of every public
+  read without deleting its history, since revisions are undeletable by trigger — remains
+  available.
+- **Arabic search over Hisn fixed.** 0013 wrote the dua search rows with their diacritics, and FTS5
+  does not strip Arabic tashkeel, so a query typed without diacritics found nothing. The dua rows
+  are rebuilt with the same normalisation every application write path uses.
+- Verified before shipping by running the migration against a full copy of the test database:
+  all 268 readings match the PWA's data in text and role, no existing revision changed, and a
+  record with drifted text is skipped. `apps/api/test/reading-roles-migration.test.ts` runs it
+  through the real migration chain.
+
 ### 0.24.0
 
 _2026-08-23_
@@ -721,6 +751,20 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — reading roles, card titles and background recitation
+
+- Duas that are not words to recite no longer pretend to be. Each reading has a role, and the reader
+  labels Guidance readings ("What to do here -- there are no set words to recite") and Virtue
+  readings instead of showing a `--` transliteration. Narrations that introduce a dua appear as a
+  context line. 59 of 268 readings had `--` or English prose where the transliteration belongs.
+- Chapter 45's adhan and adhkar readings are back, as Guidance.
+- Two translations that stopped mid-sentence are complete: the three characteristics that complete
+  faith (108), and counting tasbih on the right hand (131).
+- The Advanced home cards have titles, descriptions and reading counts, in the same words as the
+  screen each opens. Counts are readings, not chapters: Evening is one chapter of 25 readings.
+- Quran recitation keeps playing with the phone locked, with lock-screen controls. The screen stays
+  on while playing only when "Follow the recitation" is on.
 
 ### Unreleased — richer artwork and animation controls
 
