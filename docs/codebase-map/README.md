@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-11T15:43:50.999Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-11T16:25:52.480Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -142,7 +142,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/tasbih.js` | js | 211 |  |  |
 | `pwa-website/js/userData.js` | js | 175 |  |  |
 | `pwa-website/js/utils.js` | js | 23 |  |  |
-| `pwa-website/sw.js` | js | 192 |  |  |
+| `pwa-website/sw.js` | js | 199 |  |  |
 | `pwa-website/test/card-labels.test.js` | js | 47 |  |  |
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
 | `pwa-website/test/layout.test.js` | js | 91 |  |  |
@@ -336,6 +336,7 @@ Not all of these are bugs; verify before assuming.
 | favourites | unknown | `(not defined in scanned files)` | `pwa-website/js/quran.js` |
 | field_reviews | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | filterList | unknown | `(not defined in scanned files)` | `pwa-website/js/home.js` |
+| for | unknown | `(not defined in scanned files)` | `pwa-website/sw.js` |
 | hadith_grades | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | hadith_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | harm | unknown | `(not defined in scanned files)` | `pwa-website/js/categories.js` |

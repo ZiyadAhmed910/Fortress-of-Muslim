@@ -198,7 +198,7 @@ function clearScheduled() {
 }
 
 async function showReminderNotification(title, body, category) {
-  const options = { body, tag: `fortress-reminder-${category}`, icon: 'icons/icon-192.png', data: { category } };
+  const options = { body, tag: `fortress-reminder-${category}`, icon: 'icons/icon-192.png?v=build-dev', data: { category } };
   if (navigator.serviceWorker?.controller) {
     const registration = await navigator.serviceWorker.ready;
     registration.showNotification(title, options);

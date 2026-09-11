@@ -56,9 +56,16 @@ const ASSETS = [
   './data/duas.json',
   './data/duas.json?v=2026-09-11-hisn-roles',
   './data/quran/index.json',
-  './icons/favicon.svg',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  // Only the icons the running app shows: the header mark, the tab icon, and the 192/512 art that
+  // notifications and the lock-screen player use -- those must work offline. The maskable icons
+  // and the Apple touch icon are read once, by the OS, when the app is installed, which needs a
+  // connection anyway. Every deploy re-downloads everything listed here, and those three PNGs were
+  // 58KB of it on every update for no offline benefit.
+  `./icons/logo.svg?v=${APP_VERSION}`,
+  `./icons/favicon.svg?v=${APP_VERSION}`,
+  `./icons/favicon.ico?v=${APP_VERSION}`,
+  `./icons/icon-192.png?v=${APP_VERSION}`,
+  `./icons/icon-512.png?v=${APP_VERSION}`,
 ];
 
 // Decorative card art. Kept out of ASSETS deliberately: a single failed image must not fail the

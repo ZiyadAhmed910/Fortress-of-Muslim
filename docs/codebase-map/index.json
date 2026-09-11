@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T15:43:50.999Z",
+  "generatedAt": "2026-09-11T16:25:52.480Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -858,7 +858,7 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 192,
+      "lines": 199,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2718,6 +2718,14 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/home.js"
+      ]
+    },
+    {
+      "name": "for",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/sw.js"
       ]
     },
     {

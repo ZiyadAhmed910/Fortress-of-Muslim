@@ -16,7 +16,7 @@ if (!Array.isArray(manifest.icons) || !manifest.icons.some((icon) => icon.sizes 
   || !manifest.icons.some((icon) => icon.sizes === '512x512')) {
   throw new Error('PWA manifest requires 192px and 512px install icons.');
 }
-for (const icon of manifest.icons) await access(join(root, icon.src));
+for (const icon of manifest.icons) await access(join(root, icon.src.split('?')[0]));
 
 const assetBlock = serviceWorker.match(/const ASSETS = \[([\s\S]*?)\];/)?.[1];
 if (!assetBlock) throw new Error('Service worker precache manifest was not found.');

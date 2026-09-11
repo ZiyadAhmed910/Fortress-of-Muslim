@@ -31,8 +31,8 @@ part-by-part reader, swipe navigation, copy and share.
 and kept in a cache that survives deploys. Tajweed colouring, page or continuous reading, sajdah
 marks, per-ayah and per-surah favourites, continue-reading, and full-Quran download for offline use.
 
-**Recitation** — ayah-by-ayah playback from seven reciters that advances through the surah on its
-own, highlighting and scrolling to each ayah. Repeat off/ayah/surah, and a per-surah offline
+**Recitation** — ayah-by-ayah playback from six reciters that advances through the surah on its
+own, highlighting and scrolling to each ayah, and keeps playing with the phone locked. Repeat off/ayah/surah, and a per-surah offline
 download that reports real bytes as it goes and can be cancelled.
 
 **Word by word** — every word with its English meaning, and tap any word to hear it. Word positions
@@ -756,6 +756,15 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — refined PWA identity
+
+- Replaced the crescent artwork with a consistent gold-and-teal mark with a pointed gateway,
+  plus a simplified small favicon. Updated the app header, artwork gallery and UI preview.
+- Generated matching install icons, separate maskable icons, Apple touch icon and ICO fallback
+  from one SVG source. Versioned icon references across install, media and notifications, and
+  precached the icons the app itself shows. The install-only icons are left out of the cache,
+  since they would otherwise be re-downloaded on every deploy.
 
 ### Unreleased — reading roles, card titles and background recitation
 
