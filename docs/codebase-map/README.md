@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-11T09:02:35.100Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-11T15:14:51.774Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -20,6 +20,7 @@ Not all of these are bugs; verify before assuming.
 - **api_published_content** (view) — defined in `apps/api/migrations/0010_api_content_visibility.sql`, `apps/api/migrations/0013_verify_and_publish_hisn.sql`, `apps/api/migrations/0017_canonical_withdrawals.sql`, only referenced by `apps/api/test/canonical-withdrawal.test.ts`
 - **apikey** (table) — defined in `apps/auth/migrations/0001_identity.sql`, only referenced by `apps/auth/src/admin-plane.ts`
 - **canonical_publication_history** (table) — defined in `apps/api/migrations/0006_canonical_editorial.sql`, only referenced by `apps/auth/src/editorial-plane.ts`
+- **canonical_reading_roles** (table) — defined in `apps/api/migrations/0018_hisn_reading_roles.sql`, only referenced by `apps/api/src/repositories/d1-content-repository.ts`
 - **disagreement_queue** (table) — defined in `apps/api/migrations/0006_canonical_editorial.sql`, only referenced by `apps/auth/src/admin-plane.ts`
 - **editorial_notifications** (table) — defined in `apps/api/migrations/0016_editorial_notifications.sql`, only referenced by `apps/auth/src/notifications.ts`
 - **languages** (table) — defined in `apps/api/migrations/0003_canonical_knowledge.sql`, only referenced by `apps/auth/src/admin-plane.ts`
@@ -56,6 +57,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/migrations/0015_taxonomy_seed.sql` | sql | 23 |  |  |
 | `apps/api/migrations/0016_editorial_notifications.sql` | sql | 18 |  |  |
 | `apps/api/migrations/0017_canonical_withdrawals.sql` | sql | 83 |  |  |
+| `apps/api/migrations/0018_hisn_reading_roles.sql` | sql | 731 |  |  |
 | `apps/api/src/app.ts` | ts | 623 | 26 | function createApp, const app |
 | `apps/api/src/index.ts` | ts | 51 |  | class ApiWorker |
 | `apps/api/src/lib/fuzzy-title.ts` | ts | 75 |  | type TitleCandidate, type RankedTitle, function rankDuaTitles |
@@ -65,7 +67,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/rag-synonyms.ts` | ts | 41 |  | function expandRetrievalQuery |
 | `apps/api/src/rag.ts` | ts | 611 |  | type RagSource, function indexRecordBatch, function indexNextPendingBatch, function getRagStatus, function answerQuestion, class RagRateLimitError |
 | `apps/api/src/repositories/content-repository.ts` | ts | 60 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
-| `apps/api/src/repositories/d1-content-repository.ts` | ts | 720 |  | class D1ContentRepository |
+| `apps/api/src/repositories/d1-content-repository.ts` | ts | 726 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
 | `apps/api/test/api.test.ts` | ts | 724 |  |  |
 | `apps/api/test/arabic-search.test.ts` | ts | 133 |  |  |
@@ -74,9 +76,10 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/test/hadith-reference.test.ts` | ts | 127 |  |  |
 | `apps/api/test/rag-filters.test.ts` | ts | 208 |  |  |
 | `apps/api/test/rag-index.test.ts` | ts | 62 |  |  |
-| `apps/api/test/rag-quality.test.ts` | ts | 173 |  |  |
+| `apps/api/test/rag-quality.test.ts` | ts | 174 |  |  |
 | `apps/api/test/rag-reference.test.ts` | ts | 28 |  |  |
 | `apps/api/test/rag-synonyms.test.ts` | ts | 27 |  |  |
+| `apps/api/test/reading-roles-migration.test.ts` | ts | 237 |  |  |
 | `apps/api/test/record-query.test.ts` | ts | 182 |  |  |
 | `apps/auth/auth.config.ts` | ts | 19 |  | const auth, default export |
 | `apps/auth/migrations/0001_identity.sql` | sql | 81 |  |  |
@@ -109,7 +112,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/developers/public/oauth.js` | js | 112 |  |  |
 | `apps/mcp/src/index.ts` | ts | 74 | 2 | default export |
 | `apps/status/public/app.js` | js | 131 |  |  |
-| `packages/contracts/src/index.ts` | ts | 137 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +27 more |
+| `packages/contracts/src/index.ts` | ts | 144 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +29 more |
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
 | `pwa-website/js/app.js` | js | 208 |  |  |
 | `pwa-website/js/art-motion.js` | js | 89 |  |  |
@@ -117,10 +120,10 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 150 |  |  |
+| `pwa-website/js/dom.js` | js | 151 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
-| `pwa-website/js/home.js` | js | 182 |  |  |
+| `pwa-website/js/home.js` | js | 219 |  |  |
 | `pwa-website/js/layout-settings.js` | js | 88 |  |  |
 | `pwa-website/js/layout.js` | js | 139 |  |  |
 | `pwa-website/js/modes.js` | js | 107 |  |  |
@@ -129,21 +132,23 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/prayer-times.js` | js | 274 |  |  |
 | `pwa-website/js/prayer.js` | js | 431 |  |  |
 | `pwa-website/js/pwa.js` | js | 101 |  |  |
-| `pwa-website/js/quran-audio.js` | js | 420 |  |  |
+| `pwa-website/js/quran-audio.js` | js | 556 |  |  |
 | `pwa-website/js/quran.js` | js | 778 |  |  |
-| `pwa-website/js/reader.js` | js | 129 |  |  |
+| `pwa-website/js/reader.js` | js | 147 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
 | `pwa-website/js/routes.js` | js | 29 |  |  |
-| `pwa-website/js/settings.js` | js | 96 |  |  |
+| `pwa-website/js/settings.js` | js | 100 |  |  |
 | `pwa-website/js/state.js` | js | 38 |  |  |
 | `pwa-website/js/tasbih.js` | js | 211 |  |  |
 | `pwa-website/js/userData.js` | js | 175 |  |  |
 | `pwa-website/js/utils.js` | js | 23 |  |  |
 | `pwa-website/sw.js` | js | 192 |  |  |
+| `pwa-website/test/card-labels.test.js` | js | 47 |  |  |
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
 | `pwa-website/test/layout.test.js` | js | 91 |  |  |
 | `pwa-website/test/prayer-times.test.js` | js | 167 |  |  |
 | `pwa-website/test/quran-words.test.js` | js | 129 |  |  |
+| `pwa-website/test/reading-roles.test.js` | js | 101 |  |  |
 | `pwa-website/test/reciters.test.js` | js | 39 |  |  |
 | `pwa-website/vitest.config.js` | js | 12 |  |  |
 
@@ -272,7 +277,11 @@ Not all of these are bugs; verify before assuming.
 
 | Name | Kind | Defined in | Referenced by (excl. definer) |
 | --- | --- | --- | --- |
-| a | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/reminders.js`, `pwa-website/sw.js` |
+| _m0018_eligible | table | `apps/api/migrations/0018_hisn_reading_roles.sql` | (none) |
+| _m0018_record_plan | table | `apps/api/migrations/0018_hisn_reading_roles.sql` | (none) |
+| _m0018_role_plan | table | `apps/api/migrations/0018_hisn_reading_roles.sql` | (none) |
+| _m0018_segment_plan | table | `apps/api/migrations/0018_hisn_reading_roles.sql` | (none) |
+| a | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/reminders.js`, `pwa-website/sw.js` |
 | access_requests | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | account | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | an | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
@@ -283,30 +292,31 @@ Not all of these are bugs; verify before assuming.
 | Arabic | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
 | audit_events | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
 | before | unknown | `(not defined in scanned files)` | `pwa-website/js/userData.js` |
-| books | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| books | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | both | unknown | `(not defined in scanned files)` | `apps/api/src/repositories/d1-content-repository.ts` |
-| canonical_dataset_items | table | `apps/api/migrations/0008_publication_snapshots.sql` | `apps/api/src/rag.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
-| canonical_dataset_versions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| canonical_dataset_items | table | `apps/api/migrations/0008_publication_snapshots.sql` | `apps/api/src/rag.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| canonical_dataset_versions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts` |
 | canonical_publication_history | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts` |
-| canonical_publications | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/rag-index.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
-| canonical_records | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
-| canonical_references | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| canonical_publications | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/rag-index.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
+| canonical_reading_roles | table | `apps/api/migrations/0018_hisn_reading_roles.sql` | `apps/api/src/repositories/d1-content-repository.ts` |
+| canonical_records | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| canonical_references | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | canonical_search_fts | virtual_table | `apps/api/test/record-query.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/auth/src/editorial-plane.ts` |
-| canonical_withdrawals | table | `apps/api/migrations/0017_canonical_withdrawals.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/canonical-withdrawal.test.ts` |
-| chapters | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
-| collections | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| canonical_withdrawals | table | `apps/api/migrations/0017_canonical_withdrawals.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/reading-roles-migration.test.ts` |
+| chapters | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| collections | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | content_audit_events | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
-| content_parts | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/src/editorial-plane.ts` |
-| content_records | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/arabic-search.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts` |
-| content_revisions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| content_parts | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| content_records | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/arabic-search.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| content_revisions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | content_search_fts | virtual_table | `apps/api/test/record-query.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
-| content_segments | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| content_segments | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts` |
 | contributors | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
-| correction_history | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| correction_history | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | cross_references | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | curated | unknown | `(not defined in scanned files)` | `pwa-website/test/categories.test.js` |
 | dataset_sources | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
-| dataset_versions | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| dataset_versions | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts` |
 | date | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | developer_profiles | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | device_registrations | table | `apps/auth/migrations/0003_developer_console.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
@@ -316,7 +326,7 @@ Not all of these are bugs; verify before assuming.
 | dua_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | editorial_assignments | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | editorial_notifications | table | `apps/api/migrations/0016_editorial_notifications.sql` | `apps/auth/src/notifications.ts` |
-| editorial_record_state | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| editorial_record_state | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | editorial_role_grants | table | `apps/auth/migrations/0006_editorial_roles.sql` | (none) |
 | either | unknown | `(not defined in scanned files)` | `apps/api/test/rag-synonyms.test.ts`, `pwa-website/js/prayer.js` |
 | every | unknown | `(not defined in scanned files)` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/test/admin-mfa-gate.test.ts`, `pwa-website/js/onboarding.js` |
@@ -324,6 +334,7 @@ Not all of these are bugs; verify before assuming.
 | exactly | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | favourites | unknown | `(not defined in scanned files)` | `pwa-website/js/quran.js` |
 | field_reviews | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| filterList | unknown | `(not defined in scanned files)` | `pwa-website/js/home.js` |
 | hadith_grades | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | hadith_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | harm | unknown | `(not defined in scanned files)` | `pwa-website/js/categories.js` |
@@ -368,17 +379,18 @@ Not all of these are bugs; verify before assuming.
 | publication_history | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | quran | unknown | `(not defined in scanned files)` | `pwa-website/test/quran-words.test.js` |
 | rag_daily_usage | table | `apps/api/migrations/0005_rag_usage.sql` | `apps/api/src/rag.ts` |
-| rag_index_state | table | `apps/api/migrations/0007_rag_index_state.sql` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| rag_index_state | table | `apps/api/migrations/0007_rag_index_state.sql` | `apps/api/src/rag.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | rate_limit_counters | table | `apps/auth/migrations/0010_rate_limits.sql` | `apps/auth/src/index.ts` |
 | record_numberings | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | record_placements | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/auth/src/editorial-plane.ts` |
 | record_search_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | record_taxonomy | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | review_decisions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
-| revision_metadata | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts` |
-| revision_parts | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/auth/src/editorial-plane.ts` |
-| revision_segments | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| revision_metadata | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| revision_parts | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts` |
+| revision_segments | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts` |
 | Ruqyah | unknown | `(not defined in scanned files)` | `pwa-website/test/categories.test.js` |
+| screen | unknown | `(not defined in scanned files)` | `pwa-website/test/card-labels.test.js` |
 | segment_translations | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | session | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts` |
 | SET | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
@@ -387,10 +399,11 @@ Not all of these are bugs; verify before assuming.
 | source_materials | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | source_references | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | splitting | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js` |
+| sqlite_master | unknown | `(not defined in scanned files)` | `apps/api/test/reading-roles-migration.test.ts` |
 | sunset | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | taxonomy_terms | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
 | that | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
-| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/categories.js`, `pwa-website/js/layout-settings.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/quran-words.test.js` |
+| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/categories.js`, `pwa-website/js/layout-settings.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/quran-words.test.js`, `pwa-website/test/reading-roles.test.js` |
 | there | unknown | `(not defined in scanned files)` | `pwa-website/js/modes.js` |
 | this | unknown | `(not defined in scanned files)` | `apps/auth/src/editorial-plane.ts`, `apps/status/public/app.js` |
 | travel | unknown | `(not defined in scanned files)` | `apps/api/test/fuzzy-title.test.ts` |
@@ -403,5 +416,5 @@ Not all of these are bugs; verify before assuming.
 | verification_records | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | webhook_deliveries | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/webhooks.test.ts`, `apps/auth/migrations/0011_webhooks.sql` | `apps/auth/src/index.ts`, `apps/auth/src/webhooks.ts` |
 | webhook_subscriptions | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/webhooks.test.ts`, `apps/auth/migrations/0011_webhooks.sql` | `apps/auth/src/index.ts`, `apps/auth/src/webhooks.ts` |
-| what | unknown | `(not defined in scanned files)` | `apps/auth/test/editorial-pilot.test.ts` |
+| what | unknown | `(not defined in scanned files)` | `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | whatever | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |

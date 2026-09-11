@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T09:02:35.100Z",
+  "generatedAt": "2026-09-11T15:14:51.774Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -134,7 +134,7 @@
     },
     {
       "path": "apps/api/src/repositories/d1-content-repository.ts",
-      "lines": 720,
+      "lines": 726,
       "language": "ts",
       "exports": [
         "class D1ContentRepository"
@@ -249,7 +249,7 @@
     },
     {
       "path": "apps/api/test/rag-quality.test.ts",
-      "lines": 173,
+      "lines": 174,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -278,6 +278,20 @@
       "imports": [
         "vitest",
         "../src/rag-synonyms"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/reading-roles-migration.test.ts",
+      "lines": 237,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/repositories/d1-content-repository"
       ],
       "routeCount": 0
     },
@@ -516,7 +530,7 @@
     },
     {
       "path": "packages/contracts/src/index.ts",
-      "lines": 137,
+      "lines": 144,
       "language": "ts",
       "exports": [
         "const API_VERSION",
@@ -526,6 +540,7 @@
         "const contentSegmentSchema",
         "const editorialWorkflowStateSchema",
         "const recordVerificationStatusSchema",
+        "const readingRoleSchema",
         "const duaSummarySchema",
         "const duaSchema",
         "const duaPartSchema",
@@ -542,6 +557,7 @@
         "const askQuestionSchema",
         "const vectorIndexBatchSchema",
         "type ContentSegment",
+        "type ReadingRole",
         "type DuaSummary",
         "type Dua",
         "type DuaPart",
@@ -664,7 +680,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 150,
+      "lines": 151,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -688,7 +704,7 @@
     },
     {
       "path": "pwa-website/js/home.js",
-      "lines": 182,
+      "lines": 219,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -760,7 +776,7 @@
     },
     {
       "path": "pwa-website/js/quran-audio.js",
-      "lines": 420,
+      "lines": 556,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -776,7 +792,7 @@
     },
     {
       "path": "pwa-website/js/reader.js",
-      "lines": 129,
+      "lines": 147,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -800,7 +816,7 @@
     },
     {
       "path": "pwa-website/js/settings.js",
-      "lines": 96,
+      "lines": 100,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -847,6 +863,14 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/test/card-labels.test.js",
+      "lines": 47,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/test/categories.test.js",
       "lines": 121,
       "language": "js",
@@ -873,6 +897,14 @@
     {
       "path": "pwa-website/test/quran-words.test.js",
       "lines": 129,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/reading-roles.test.js",
+      "lines": 101,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1025,6 +1057,14 @@
     {
       "path": "apps/api/migrations/0017_canonical_withdrawals.sql",
       "lines": 83,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0018_hisn_reading_roles.sql",
+      "lines": 731,
       "language": "sql",
       "exports": [],
       "imports": [],
@@ -2025,11 +2065,44 @@
   ],
   "schema": [
     {
+      "name": "_m0018_eligible",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "_m0018_record_plan",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "_m0018_role_plan",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "_m0018_segment_plan",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
       "name": "a",
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
         "apps/admin/public/app.js",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/src/index.ts",
@@ -2148,6 +2221,7 @@
       "referencedBy": [
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -2169,6 +2243,7 @@
       ],
       "referencedBy": [
         "apps/api/src/rag.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]
@@ -2184,6 +2259,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2209,8 +2285,19 @@
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/rag-index.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "canonical_reading_roles",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts"
       ]
     },
     {
@@ -2226,6 +2313,7 @@
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
@@ -2240,6 +2328,7 @@
       ],
       "referencedBy": [
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]
@@ -2271,7 +2360,8 @@
       "referencedBy": [
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
-        "apps/api/test/canonical-withdrawal.test.ts"
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts"
       ]
     },
     {
@@ -2283,6 +2373,7 @@
       "referencedBy": [
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]
@@ -2299,6 +2390,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -2324,6 +2416,7 @@
       ],
       "referencedBy": [
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2338,6 +2431,7 @@
         "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -2356,6 +2450,7 @@
         "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
@@ -2382,6 +2477,7 @@
       ],
       "referencedBy": [
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2401,6 +2497,7 @@
       ],
       "referencedBy": [
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]
@@ -2437,6 +2534,7 @@
       ],
       "referencedBy": [
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2534,6 +2632,7 @@
       "referencedBy": [
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
@@ -2600,6 +2699,14 @@
       "referencedBy": [
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "filterList",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/home.js"
       ]
     },
     {
@@ -3004,6 +3111,7 @@
       ],
       "referencedBy": [
         "apps/api/src/rag.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -3082,6 +3190,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -3098,6 +3207,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -3112,6 +3222,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -3121,6 +3232,14 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/test/categories.test.js"
+      ]
+    },
+    {
+      "name": "screen",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/card-labels.test.js"
       ]
     },
     {
@@ -3194,6 +3313,14 @@
       ]
     },
     {
+      "name": "sqlite_master",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/reading-roles-migration.test.ts"
+      ]
+    },
+    {
       "name": "sunset",
       "kind": "unknown",
       "definedIn": [],
@@ -3244,7 +3371,8 @@
         "pwa-website/js/quran.js",
         "pwa-website/test/categories.test.js",
         "pwa-website/test/prayer-times.test.js",
-        "pwa-website/test/quran-words.test.js"
+        "pwa-website/test/quran-words.test.js",
+        "pwa-website/test/reading-roles.test.js"
       ]
     },
     {
@@ -3370,6 +3498,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]
     },

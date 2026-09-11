@@ -403,11 +403,14 @@ components:
         kind:
           type: string
           enum: [arabic, transliteration, translation, comment]
+          description: >-
+            `comment` carries context and narration text around the words, such as the narration
+            that introduces a framed reading.
         text:
           type: string
     DuaSummary:
       type: object
-      required: [id, legacyId, sequence, title, partCount, verificationStatus, workflowState, verifiedBy, verifiedAt, revisionNumber, publishedAt, canonicalUrl]
+      required: [id, legacyId, sequence, title, readingRole, partCount, verificationStatus, workflowState, verifiedBy, verifiedAt, revisionNumber, publishedAt, canonicalUrl]
       properties:
         id:
           type: string
@@ -420,6 +423,14 @@ components:
           minimum: 1
         title:
           type: string
+        readingRole:
+          type: string
+          enum: [supplication, framed, instruction, virtue]
+          description: >-
+            What kind of reading this is. `supplication` is words to recite; `framed` is a narration
+            or instruction containing words to recite; `instruction` says what to do, with no fixed
+            words; `virtue` describes a merit, with nothing to recite. Do not present `instruction`
+            or `virtue` readings as something to recite.
         partCount:
           type: integer
           minimum: 0

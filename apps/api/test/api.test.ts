@@ -30,7 +30,7 @@ const env = envConfig as never;
 const authenticated = { headers: { Authorization: 'Bearer test.token.jwt' } };
 const records: Dua[] = [
   {
-    id: 'dua.hisn.001', legacyId: 'dua-001', sequence: 1, title: 'When waking up',
+    id: 'dua.hisn.001', legacyId: 'dua-001', sequence: 1, title: 'When waking up', readingRole: 'supplication',
     partCount: 1, verificationStatus: 'verified', workflowState: 'verified',
     verifiedBy: 'reviewer-1', verifiedAt: '2026-07-22T00:00:00.000Z', revisionNumber: 1,
     publishedAt: '2026-07-23T00:00:00.000Z',
@@ -38,7 +38,7 @@ const records: Dua[] = [
     parts: [[{ kind: 'arabic', text: 'Arabic text' }, { kind: 'translation', text: 'Translation' }]],
   },
   {
-    id: 'dua.hisn.002', legacyId: 'dua-002', sequence: 2, title: 'Upon wearing clothes',
+    id: 'dua.hisn.002', legacyId: 'dua-002', sequence: 2, title: 'Upon wearing clothes', readingRole: 'supplication',
     partCount: 1, verificationStatus: 'verified', workflowState: 'verified',
     verifiedBy: 'reviewer-1', verifiedAt: '2026-07-22T00:00:00.000Z', revisionNumber: 1,
     publishedAt: '2026-07-23T00:00:00.000Z',
@@ -46,7 +46,7 @@ const records: Dua[] = [
     parts: [[{ kind: 'translation', text: 'Translation' }]],
   },
   {
-    id: 'dua.hisn.003', legacyId: 'dua-003', sequence: 3, title: 'Upon wearing new clothes',
+    id: 'dua.hisn.003', legacyId: 'dua-003', sequence: 3, title: 'Upon wearing new clothes', readingRole: 'supplication',
     partCount: 1, verificationStatus: 'unverified', workflowState: 'pending_review',
     verifiedBy: null, verifiedAt: null, revisionNumber: 1,
     publishedAt: null,

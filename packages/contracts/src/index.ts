@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const API_VERSION = 'v1' as const;
 export const PLATFORM_NAME = 'Fortress Platform' as const;
-export const PLATFORM_VERSION = '0.24.0' as const;
+export const PLATFORM_VERSION = '0.25.0' as const;
 export const CURRENT_DATASET_ID = 'dataset.hisn.legacy.2026-07-11-v2' as const;
 
 export const contentSegmentSchema = z.object({
@@ -18,11 +18,17 @@ export const editorialWorkflowStateSchema = z.enum([
 
 export const recordVerificationStatusSchema = z.enum(['unverified', 'verified']);
 
+// What kind of reading a dua record is. Hisn al-Muslim is not only supplications: some readings
+// frame the words in a narration, some say what to do with no fixed words, some describe a merit.
+// Consumers should not offer instruction or virtue readings as something to recite.
+export const readingRoleSchema = z.enum(['supplication', 'framed', 'instruction', 'virtue']);
+
 export const duaSummarySchema = z.object({
   id: z.string(),
   legacyId: z.string(),
   sequence: z.number().int().positive(),
   title: z.string(),
+  readingRole: readingRoleSchema,
   partCount: z.number().int().nonnegative(),
   verificationStatus: recordVerificationStatusSchema,
   workflowState: editorialWorkflowStateSchema,
@@ -124,6 +130,7 @@ export const vectorIndexBatchSchema = z.object({
 });
 
 export type ContentSegment = z.infer<typeof contentSegmentSchema>;
+export type ReadingRole = z.infer<typeof readingRoleSchema>;
 export type DuaSummary = z.infer<typeof duaSummarySchema>;
 export type Dua = z.infer<typeof duaSchema>;
 export type DuaPart = z.infer<typeof duaPartSchema>;
