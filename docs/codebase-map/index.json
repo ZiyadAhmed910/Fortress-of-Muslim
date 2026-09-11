@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-09T16:21:31.531Z",
+  "generatedAt": "2026-09-11T09:02:35.100Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -623,6 +623,14 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/js/art-motion.js",
+      "lines": 89,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/js/assistant.js",
       "lines": 54,
       "language": "js",
@@ -656,7 +664,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 147,
+      "lines": 150,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -792,7 +800,7 @@
     },
     {
       "path": "pwa-website/js/settings.js",
-      "lines": 89,
+      "lines": 96,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -816,7 +824,7 @@
     },
     {
       "path": "pwa-website/js/userData.js",
-      "lines": 171,
+      "lines": 175,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -832,7 +840,7 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 174,
+      "lines": 192,
       "language": "js",
       "exports": [],
       "imports": [],

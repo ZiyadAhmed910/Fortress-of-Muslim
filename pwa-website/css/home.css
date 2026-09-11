@@ -37,6 +37,7 @@
 }
 
 .advanced-card {
+  position: relative;
   display: block;
   overflow: hidden;
   width: 100%;
@@ -46,6 +47,12 @@
   aspect-ratio: 1.65 / 1;
   background: var(--paper-strong);
   box-shadow: 0 10px 22px rgba(55, 58, 55, 0.13);
+}
+
+.advanced-card picture {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .advanced-card img {
@@ -246,4 +253,89 @@
 
 :root.dark .advanced-card {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+/* --- Card titles --------------------------------------------------------------------------------
+   The artwork carries no text by design, so the title lives here in the document: it is real text,
+   so it is selectable, translatable, read by screen readers, and cannot be cropped away when the
+   tile's aspect ratio crops the art.
+
+   The scene behind it ranges from near-black (Before Sleep, Ruqyah) to pale cream (Salah), so no
+   single text colour survives every card on its own. A scrim rising from the bottom edge gives the
+   white text a consistent dark ground without flattening the upper, most detailed part of the art. */
+
+.advanced-card-label {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: grid;
+  gap: 0.12rem;
+  padding: 1.6rem 0.8rem 0.62rem;
+  background: linear-gradient(to top,
+    rgba(5, 11, 22, 0.86) 0%,
+    rgba(5, 11, 22, 0.62) 42%,
+    rgba(5, 11, 22, 0) 100%);
+  color: #fff;
+  text-align: left;
+  pointer-events: none;
+}
+
+.advanced-card-title {
+  font-size: 1.02rem;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: 0.005em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+/* Wraps to two lines rather than truncating: at tile width "Before sleep and night protection"
+   came out as "Before sleep and night prot…", which reads as broken rather than brief. */
+.advanced-card-sub {
+  display: -webkit-box;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.68rem;
+  line-height: 1.28;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  /* Always two lines tall on tiles, so titles sit on the same baseline across a row whether their
+     subtitle wraps or not -- otherwise Morning rode visibly higher than Evening beside it. */
+  min-height: calc(1.28em * 2);
+}
+
+/* The count sits in the top corner, clear of the title, as a frosted chip so it reads over sky. */
+.advanced-card-count {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(5, 11, 22, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.advanced-featured .advanced-card-label {
+  padding: 2.4rem 1.05rem 0.9rem;
+}
+
+.advanced-featured .advanced-card-title {
+  font-size: 1.42rem;
+}
+
+.advanced-featured .advanced-card-sub {
+  min-height: 0;
+  font-size: 0.82rem;
+}
+
+.advanced-featured .advanced-card-count {
+  top: 0.7rem;
+  right: 0.7rem;
+  font-size: 0.7rem;
 }

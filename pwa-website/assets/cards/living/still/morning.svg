@@ -1,4 +1,4 @@
-<svg data-motion="optimized" xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520"><defs>
+<svg data-motion="still" xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520"><defs>
   <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#558493"/><stop offset=".63" stop-color="#bad0c6"/><stop offset="1" stop-color="#ffe4a4"/></linearGradient>
   <radialGradient id="halo"><stop stop-color="#ffda91" stop-opacity=".48"/><stop offset=".45" stop-color="#ffda91" stop-opacity=".14"/><stop offset="1" stop-color="#ffda91" stop-opacity="0"/></radialGradient>
   <radialGradient id="vignette" r=".7"><stop offset=".35" stop-color="#173d43" stop-opacity="0"/><stop offset="1" stop-color="#173d43" stop-opacity=".4"/></radialGradient>
@@ -16,29 +16,29 @@
   <pattern id="masonry" width="44" height="22" patternUnits="userSpaceOnUse"><path d="M0 0H44M0 22H44M22 0V11M0 11H44M7 11V22" stroke="#69786b" stroke-width=".6" opacity=".38" fill="none"/></pattern>
   </defs>
   <style>
-  .cloud{animation:cloud 32s ease-in-out infinite alternate;animation-delay:-8s}.cloud.slow{animation-duration:42s;animation-delay:-12s}
-  .glow{animation:glow 3.2s ease-in-out infinite}.glow.late{animation-delay:-1.4s;animation-duration:3.8s}
-  .star{animation:star 6s ease-in-out infinite;animation-delay:var(--delay,0s)}
-  .celestial{animation:rise 42s ease-in-out infinite alternate;animation-delay:-10s}.flock{animation:fly 30s ease-in-out infinite alternate}
-  .ripples,.flow{animation:water 7s ease-in-out infinite alternate;animation-delay:-2s}
+  .cloud{}.cloud.slow{}
+  .glow{}.glow.late{}
+  .star{}
+  .celestial{}.flock{}
+  .ripples,.flow{}
   .leaves,.canopy,.flock path{transform-origin:50% 100%;transform-box:fill-box}
   .fireflies,.water-drops{opacity:0}.lamp-body{transform-box:fill-box;transform-origin:50% 0}
   .ambient-light{opacity:0;pointer-events:none}.sun-radiance,.tree-sway{transform-box:fill-box;transform-origin:50% 100%}
-  svg[data-motion="full"] .scene .ambient-light{animation:daylight 12s ease-in-out infinite}
-  svg[data-motion="full"] .scene .sun-radiance{animation:sunlight 12s ease-in-out infinite}
-  svg[data-motion="full"] .scene .sun-disc{animation:sunColor 12s ease-in-out infinite}
-  svg[data-motion="full"] .scene .tree-sway{animation:sway 5s ease-in-out infinite alternate;animation-delay:-1.5s}
-  svg[data-motion="full"] .scene .star{animation-duration:3s}
-  svg[data-motion="full"] .scene .cloud{animation-duration:14s}svg[data-motion="full"] .scene .cloud.slow{animation-duration:20s}
-  svg[data-motion="full"] .scene .flock{animation-duration:18s}svg[data-motion="full"] .scene .flock path{animation:wings 1.5s ease-in-out infinite alternate}
-  svg[data-motion="full"] .scene .leaves,svg[data-motion="full"] .scene .canopy{animation:sway 5.5s ease-in-out infinite alternate;animation-delay:-1.5s}
-  svg[data-motion="full"] .scene .celestial{animation-duration:22s}svg[data-motion="full"] .scene .ripples{animation-duration:3.5s}
+  svg[data-motion="full"] .scene .ambient-light{}
+  svg[data-motion="full"] .scene .sun-radiance{}
+  svg[data-motion="full"] .scene .sun-disc{}
+  svg[data-motion="full"] .scene .tree-sway{}
+  svg[data-motion="full"] .scene .star{}
+  svg[data-motion="full"] .scene .cloud{}svg[data-motion="full"] .scene .cloud.slow{}
+  svg[data-motion="full"] .scene .flock{}svg[data-motion="full"] .scene .flock path{}
+  svg[data-motion="full"] .scene .leaves,svg[data-motion="full"] .scene .canopy{}
+  svg[data-motion="full"] .scene .celestial{}svg[data-motion="full"] .scene .ripples{}
   svg[data-motion="full"] .scene .fireflies,svg[data-motion="full"] .scene .water-drops{opacity:.7}
-  svg[data-motion="full"] .scene .fireflies circle{animation:firefly 5s ease-in-out infinite;animation-delay:var(--delay,0s)}
-  svg[data-motion="full"] .scene .water-drops circle{animation:fall 1.8s ease-in infinite}
-  svg[data-motion="full"] .scene .flow{stroke-dasharray:5 7;animation:stream 1.4s linear infinite}
-  svg[data-motion="full"] .scene .lamp-body{animation:lampSway 7s ease-in-out infinite alternate}
-  svg[data-motion="still"] .scene *{animation:none!important}
+  svg[data-motion="full"] .scene .fireflies circle{}
+  svg[data-motion="full"] .scene .water-drops circle{}
+  svg[data-motion="full"] .scene .flow{stroke-dasharray:5 7;}
+  svg[data-motion="full"] .scene .lamp-body{}
+  svg[data-motion="still"] .scene *{}
   @keyframes cloud{to{transform:translateX(52px)}}@keyframes glow{0%,100%{opacity:.78}17%{opacity:.91}21%{opacity:.7}39%{opacity:.88}44%{opacity:.74}71%{opacity:1}81%{opacity:.82}}
   @keyframes star{0%,100%{opacity:.3}50%{opacity:.95}}@keyframes rise{to{transform:translateY(-19px)}}
   @keyframes fly{from{transform:translate(-36px,6px)}to{transform:translate(57px,-14px)}}
@@ -49,7 +49,7 @@
   @keyframes daylight{0%,100%{opacity:.025}45%,60%{opacity:.24}}
   @keyframes sunlight{0%,100%{opacity:.35;transform:scale(.8)}45%,60%{opacity:1;transform:scale(1.2)}}
   @keyframes sunColor{0%,100%{fill:#f7c77e}45%,60%{fill:#fff9d9}}
-  @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+  @media(prefers-reduced-motion:reduce){*{}}
   </style><g class="scene"><rect width="1200" height="520" fill="url(#sky)"/><g class="celestial"><g class="sun-radiance"><circle cx="860" cy="200" r="290" fill="url(#halo)"/></g><circle class="sun-disc" cx="860" cy="200" r="53" fill="#fff0bc" opacity=".95"/><circle cx="860" cy="200" r="58" fill="#fff0bc" opacity=".12"/></g>
   <g fill="#f4ead1" opacity=".26"><g class="cloud"><path d="M38 145Q98 127 175 140Q207 117 259 133Q295 121 328 143Q369 137 405 151Q244 158 38 145Z"/><path d="M660 77Q745 67 783 76Q813 63 844 77Q898 65 957 83Q847 88 660 77Z"/></g><g class="cloud slow"><path d="M503 191Q561 176 617 185Q657 167 705 187Q755 174 785 189Q875 177 934 199Q677 204 503 191Z"/><path d="M80 223Q169 199 259 218Q325 203 424 224Q225 234 80 223Z"/></g></g>
   <path d="M-50 550V340L-180 314.8L-139 288.8L-120 292.8L-89 270.8L-50 296.8L-5 330.8L36 304.8L55 308.8L86 286.8L125 312.8L170 295.7L211 269.7L230 273.7L261 251.7L300 277.7L345 215.9L386 189.9L405 193.9L436 171.9L475 197.9L520 299.3L561 273.3L580 277.3L611 255.3L650 281.3L695 250.4L736 224.4L755 228.4L786 206.4L825 232.4L870 223L911 197L930 201L961 179L1000 205L1045 302.7L1086 276.7L1105 280.7L1136 258.7L1175 284.7L1220 235.4L1261 209.4L1280 213.4L1311 191.4L1350 217.4V550Z" fill="#9eb2ab"/><rect y="220" width="1200" height="130" fill="url(#mist)"/>

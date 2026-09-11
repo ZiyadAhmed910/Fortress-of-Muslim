@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-09T16:21:31.531Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-11T09:02:35.100Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -112,11 +112,12 @@ Not all of these are bugs; verify before assuming.
 | `packages/contracts/src/index.ts` | ts | 137 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +27 more |
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
 | `pwa-website/js/app.js` | js | 208 |  |  |
+| `pwa-website/js/art-motion.js` | js | 89 |  |  |
 | `pwa-website/js/assistant.js` | js | 54 |  |  |
 | `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 147 |  |  |
+| `pwa-website/js/dom.js` | js | 150 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
 | `pwa-website/js/home.js` | js | 182 |  |  |
@@ -133,12 +134,12 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/reader.js` | js | 129 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
 | `pwa-website/js/routes.js` | js | 29 |  |  |
-| `pwa-website/js/settings.js` | js | 89 |  |  |
+| `pwa-website/js/settings.js` | js | 96 |  |  |
 | `pwa-website/js/state.js` | js | 38 |  |  |
 | `pwa-website/js/tasbih.js` | js | 211 |  |  |
-| `pwa-website/js/userData.js` | js | 171 |  |  |
+| `pwa-website/js/userData.js` | js | 175 |  |  |
 | `pwa-website/js/utils.js` | js | 23 |  |  |
-| `pwa-website/sw.js` | js | 174 |  |  |
+| `pwa-website/sw.js` | js | 192 |  |  |
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
 | `pwa-website/test/layout.test.js` | js | 91 |  |  |
 | `pwa-website/test/prayer-times.test.js` | js | 167 |  |  |

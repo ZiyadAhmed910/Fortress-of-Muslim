@@ -43,12 +43,46 @@ function definitions() {
     <g id="rosette" fill="none" stroke="currentColor"><circle r="26" stroke-width="1"/><circle r="23" stroke-width=".6"/>${star(0, 0, 20, 'none', 'currentColor')}${star(0, 0, 13, 'none', 'currentColor')}<circle r="4" fill="currentColor"/>${seq(8, i => `<circle cx="${n(Math.cos(i * Math.PI / 4) * 23)}" cy="${n(Math.sin(i * Math.PI / 4) * 23)}" r="1.3" fill="currentColor"/>`)}</g>
   </defs>`;
 }
+function interiorMotionCSS() {
+  return `
+    @keyframes flameFlicker{0%,100%{opacity:.94;transform:scale(.96,1)}17%{opacity:.85;transform:scale(1.06,.93)}33%{opacity:1;transform:scale(.92,1.09)}47%{opacity:.88;transform:scale(1.03,.97)}61%{opacity:.97;transform:scale(.96,1.07)}80%{opacity:.87;transform:scale(1.05,.97)}}
+    @keyframes lampLight{0%,100%{opacity:.76}17%{opacity:.59}33%{opacity:.9}47%{opacity:.68}61%{opacity:.83}80%{opacity:.64}}
+    @keyframes glassFlicker{0%,100%{opacity:.95}17%{opacity:.8}33%{opacity:1}47%{opacity:.87}61%{opacity:.97}80%{opacity:.85}}
+    @keyframes dustDrift{0%,100%{transform:translate(0,0);opacity:.25}50%{transform:translate(14px,-18px);opacity:.75}}
+    @keyframes starPulse{0%,100%{opacity:.3}50%{opacity:.85}}
+    @keyframes moonDrift{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    @keyframes cloudDrift{0%,100%{transform:translate(-7px,0)}50%{transform:translate(23px,2px)}}
+    @keyframes shaftDrift{0%,100%{opacity:.62;transform:translateX(0)}50%{opacity:1;transform:translateX(9px)}}
+    @keyframes foliageSway{0%,100%{transform:rotate(-.7deg)}45%{transform:rotate(1.3deg)}72%{transform:rotate(.3deg)}}
+    @keyframes waterRipple{0%{opacity:.62;transform:scale(.76)}100%{opacity:.05;transform:scale(1.65)}}
+    @keyframes fountainFall{0%{opacity:.25;transform:translateY(-2px)}40%{opacity:.8}100%{opacity:.1;transform:translateY(8px)}}
+    .lamp-flame{transform-box:fill-box;transform-origin:50% 100%;animation:flameFlicker 2.8s linear infinite}
+    .lamp-glass{animation:glassFlicker 2.8s linear infinite}
+    .lamp-glow,.lamp-reflection{animation:lampLight 2.8s linear infinite}
+    .stars{animation:starPulse 6s ease-in-out infinite}
+    .dust{opacity:.3}
+    .water-ripple{transform-box:fill-box;transform-origin:center;animation:waterRipple 3.4s linear infinite}
+    .enhanced-motion{animation:none}
+    .ambient-light{opacity:0;pointer-events:none}
+    svg[data-motion="full"] .scene .ambient-light{animation:roomLight 12s ease-in-out infinite}
+    @keyframes roomLight{0%,100%{opacity:.02}45%,60%{opacity:.19}}
+    svg[data-motion="full"] .scene .dust{animation:dustDrift 9s ease-in-out infinite;animation-delay:-2s}
+    svg[data-motion="full"] .scene .moon{animation:moonDrift 18s ease-in-out infinite;animation-delay:-4s}
+    svg[data-motion="full"] .scene .cloud-motion{animation:cloudDrift 18s ease-in-out infinite;animation-delay:-4s}
+    svg[data-motion="full"] .scene .light-shaft{animation:shaftDrift 11s ease-in-out infinite;animation-delay:-2s}
+    svg[data-motion="full"] .scene .foliage-motion{animation:foliageSway 7s ease-in-out infinite;animation-delay:-1.5s}
+    svg[data-motion="full"] .scene .fountain-drops{animation:fountainFall 2.4s linear infinite}
+    svg[data-motion="full"] .scene .extra-ripple{animation:waterRipple 3.4s linear infinite;animation-delay:-1.7s}
+    svg[data-motion="still"] .scene *{animation:none!important}
+    @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+  `;
+}
 function wrap(label, content, extraDefs = '') {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-label="${label}">${definitions()}${extraDefs}<style>@keyframes lampBreathe{0%,100%{opacity:.7}35%{opacity:.87}55%{opacity:.76}75%{opacity:.94}}@keyframes dustDrift{0%,100%{transform:translate(0,0);opacity:.25}50%{transform:translate(7px,-9px);opacity:.65}}@keyframes starPulse{0%,100%{opacity:.3}50%{opacity:.85}}@keyframes moonDrift{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}.lamp-glow{animation:lampBreathe 6.3s ease-in-out infinite}.dust{animation:dustDrift 16s ease-in-out infinite}.stars{animation:starPulse 9s ease-in-out infinite}.moon{animation:moonDrift 28s ease-in-out infinite}@media(prefers-reduced-motion:reduce){*{animation:none!important}}</style>${content}<rect width="1200" height="520" fill="url(#vignette)" pointer-events="none"/></svg>`.replace(/-?\d+\.\d{3,}/g, value => String(n(Number(value))));
+  return `<svg data-motion="optimized" xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-label="${label}">${definitions()}${extraDefs}<style>${interiorMotionCSS()}</style><g class="scene">${content}<rect class="ambient-light" width="1200" height="520" fill="${label.startsWith('Moonlit') ? '#9dc4d5' : '#ffc77f'}"/><rect width="1200" height="520" fill="url(#vignette)" pointer-events="none"/></g></svg>`.replace(/-?\d+\.\d{3,}/g, value => String(n(Number(value))));
 }
 function dust(x, y, w, h, seed = 4, fill = '#f4d697') {
   const rand = random(seed);
-  return `<g class="dust" fill="${fill}">${seq(24, () => `<circle cx="${n(x + rand() * w)}" cy="${n(y + rand() * h)}" r="${n(.5 + rand() * 1)}" opacity="${n(.12 + rand() * .5)}"/>`)}</g>`;
+  return `<g class="dust enhanced-motion" fill="${fill}">${seq(24, () => `<circle cx="${n(x + rand() * w)}" cy="${n(y + rand() * h)}" r="${n(.5 + rand() * 1)}" opacity="${n(.12 + rand() * .5)}"/>`)}</g>`;
 }
 function joints(x, y, w, h, opacity = 1) { return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#stoneJoint)" opacity="${opacity}"/>`; }
 // Mortar lines follow the vault, so successive rings read as carved stone depth.
@@ -69,8 +103,12 @@ function vaultJoints(x, y, w, h, thickness, tint = '#173b43', opacity = .25) {
 function rosette(x, y, size, tint = '#c9b587') {
   return `<g transform="translate(${x} ${y}) scale(${size / 30})" color="${tint}"><use href="#rosette"/></g>`;
 }
-function lamp(x, y, scale = 1, chainLength = 40) {
-  return `<g transform="translate(${x} ${y}) scale(${scale})"><path d="M0 ${-chainLength}V-65" stroke="#c1a067" stroke-width="2"/><path d="M-3 ${-chainLength}V-65" stroke="#172f33" stroke-width="1"/>${seq(Math.max(0, Math.floor((chainLength - 65) / 8)), i => `<ellipse cx="0" cy="${-chainLength + i * 8}" rx="2" ry="4" fill="none" stroke="#ccad6b" stroke-width=".8"/>`)}<g class="lamp-glow"><ellipse cy="0" rx="137" ry="116" fill="url(#glow)"/></g><path d="M-5-64Q-12-73 0-77Q12-73 5-64" fill="none" stroke="url(#brass)" stroke-width="2"/><path d="M-20-36Q-17-51-6-58V-64H6V-58Q17-51 20-36Z" fill="url(#brass)"/><path d="M-17-31H17L24 18 14 38H-14L-24 18Z" fill="url(#glass)"/><path d="M-20-35H20V-29H-20Z M-26 16H26V23H-26Z M-16 35H16V40H-16Z" fill="url(#brass)"/><path d="M-20-29L-24 16-14 37M20-29L24 16 14 37M-7-29L-8 16-5 37M7-29L8 16 5 37" fill="none" stroke="#8c6739" stroke-width="2.8"/><path d="M-19-27L-22 15M-6-27L-6 14M8-27L9 14" stroke="#ffe8a0" stroke-opacity=".75" stroke-width="1"/><path d="M-13 39Q0 52 13 39" fill="url(#brass)"/><path d="M0 46V55" stroke="#c6a067" stroke-width="2"/><circle cy="57" r="3" fill="#d7b275"/>${seq(5, i => `<path d="M${-13 + i * 6.5}-42l2-6 2 6" fill="none" stroke="#503d2b" stroke-width="1.2"/>`)}${seq(7, i => `<circle cx="${-18 + i * 6}" cy="19" r="1" fill="#f8d696"/>`)}<path d="M0 8Q-8-3 0-14Q9-1 0 8Z" fill="#fff7c4"/><ellipse cy="9" rx="7" ry="2" fill="#7c552d"/></g>`;
+function lamp(x, y, scale = 1, chainLength = 40, footed = false) {
+  const chain = footed ? '' : `<path d="M0 ${-chainLength}V-65" stroke="#c1a067" stroke-width="2"/><path d="M-3 ${-chainLength}V-65" stroke="#172f33" stroke-width="1"/>${seq(Math.max(0, Math.floor((chainLength - 65) / 8)), i => `<ellipse cx="0" cy="${-chainLength + i * 8}" rx="2" ry="4" fill="none" stroke="#ccad6b" stroke-width=".8"/>`)}`;
+  const base = footed
+    ? '<path d="M-13 39Q-11 48-7 50V57H7V50Q11 48 13 39Z" fill="url(#brass)"/><path d="M-7 54Q-12 59-27 61V65Q0 72 27 65V61Q12 59 7 54Z" fill="url(#brass)"/><ellipse cy="61" rx="26" ry="5" fill="url(#brass)"/><path d="M-22 63Q0 68 22 63" stroke="#f6d68c" stroke-opacity=".6" fill="none"/>'
+    : '<path d="M-13 39Q0 52 13 39" fill="url(#brass)"/><path d="M0 46V55" stroke="#c6a067" stroke-width="2"/><circle cy="57" r="3" fill="#d7b275"/>';
+  return `<g transform="translate(${x} ${y}) scale(${scale})">${chain}<g class="lamp-glow"><ellipse cy="0" rx="137" ry="116" fill="url(#glow)"/></g><path d="M-5-64Q-12-73 0-77Q12-73 5-64" fill="none" stroke="url(#brass)" stroke-width="2"/><path d="M-20-36Q-17-51-6-58V-64H6V-58Q17-51 20-36Z" fill="url(#brass)"/><path class="lamp-glass" d="M-17-31H17L24 18 14 38H-14L-24 18Z" fill="url(#glass)"/><path d="M-20-35H20V-29H-20Z M-26 16H26V23H-26Z M-16 35H16V40H-16Z" fill="url(#brass)"/><path d="M-20-29L-24 16-14 37M20-29L24 16 14 37M-7-29L-8 16-5 37M7-29L8 16 5 37" fill="none" stroke="#8c6739" stroke-width="2.8"/><path d="M-19-27L-22 15M-6-27L-6 14M8-27L9 14" stroke="#ffe8a0" stroke-opacity=".75" stroke-width="1"/>${base}${seq(5, i => `<path d="M${-13 + i * 6.5}-42l2-6 2 6" fill="none" stroke="#503d2b" stroke-width="1.2"/>`)}${seq(7, i => `<circle cx="${-18 + i * 6}" cy="19" r="1" fill="#f8d696"/>`)}<g class="lamp-flame"><path d="M0 8Q-8-3 0-14Q9-1 0 8Z" fill="#fff7c4"/><path d="M0 7Q-3 1 1-5Q5 3 0 7Z" fill="#fffde4"/></g><ellipse cy="9" rx="7" ry="2" fill="#7c552d"/></g>`;
 }
 function skyStars() {
   const rand = random(793);
@@ -111,8 +149,8 @@ function nightRoom() {
     <path d="${opening}" fill="url(#night)"/>
     <g clip-path="url(#nightWindow)">
       ${skyStars()}
-      <g class="moon"><circle cx="823" cy="117" r="97" fill="url(#moonGlow)"/><circle cx="823" cy="117" r="20" fill="#e7e8c5"/><circle cx="817" cy="112" r="6" fill="#c6d7c6" opacity=".28"/><circle cx="829" cy="123" r="4" fill="#a5bcb8" opacity=".21"/></g>
-      <path d="M575 240Q653 218 716 236T858 232T1000 220" stroke="#9cb8b5" stroke-opacity=".12" stroke-width="10" fill="none"/>
+      <g class="moon enhanced-motion"><circle cx="823" cy="117" r="97" fill="url(#moonGlow)"/><circle cx="823" cy="117" r="20" fill="#e7e8c5"/><circle cx="817" cy="112" r="6" fill="#c6d7c6" opacity=".28"/><circle cx="829" cy="123" r="4" fill="#a5bcb8" opacity=".21"/></g>
+      <path class="cloud-motion enhanced-motion" d="M575 240Q653 218 716 236T858 232T1000 220" stroke="#9cb8b5" stroke-opacity=".12" stroke-width="10" fill="none"/>
       <path d="M569 299L655 263 710 277 782 250 861 278 950 246 1020 282V340H569Z" fill="#5a7b80" opacity=".42"/>
       ${distantCity(true)}
       ${foliage(907, 350, .55, '#1d414b', 8)}
@@ -125,7 +163,7 @@ function nightRoom() {
     <path d="M638 284H902M638 287H902" stroke="#49636a" stroke-width="2"/>
     <path d="M766 86V334M775 85V334" stroke="#54716e" stroke-width="2"/>
     ${seq(15, i => rosette(622 + i * 21, 365, 6, '#9caa8c'))}
-    <path d="M663 277L904 319 639 520H187Z" fill="url(#beam)"/>
+    <path class="light-shaft enhanced-motion" d="M663 277L904 319 639 520H187Z" fill="url(#beam)"/>
     <path d="M756 329L772 328 476 520H439Z M639 306L640 327 246 520H205Z" fill="#0b2a36" opacity=".3"/>
     <path d="${arch(1011, 44, 133, 287)}" fill="#09242d" stroke="#466764" stroke-width="5"/>
     <path d="${arch(1022, 61, 111, 263)}" fill="url(#lattice)" opacity=".65"/>
@@ -147,9 +185,10 @@ function nightRoom() {
     <ellipse cx="435" cy="368" rx="47" ry="17" fill="url(#wood)" stroke="#a0885d" stroke-width="1"/>
     <ellipse cx="435" cy="365" rx="43" ry="12" fill="#957b4f"/>
     <ellipse cx="435" cy="364" rx="37" ry="9" fill="#66583c"/>
-    <g transform="translate(435 342) scale(.65)"><ellipse cy="-1" rx="29" ry="9" fill="url(#brass)"/><path d="M-8 1V-42H8V1Z" fill="url(#brass)"/><ellipse cy="1" rx="25" ry="7" fill="url(#brass)"/></g>
-    ${lamp(435, 305, .67, 66)}
-    <ellipse class="lamp-glow" cx="438" cy="388" rx="154" ry="68" fill="url(#glow)" opacity=".4"/>
+    <g opacity=".6"><ellipse class="lamp-reflection" cx="435" cy="364" rx="43" ry="11" fill="url(#glow)"/></g>
+    <ellipse cx="435" cy="364" rx="22" ry="5" fill="#172a27" opacity=".75"/>
+    ${lamp(435, 319, .67, 66, true)}
+    <g opacity=".48"><ellipse class="lamp-reflection" cx="438" cy="391" rx="154" ry="68" fill="url(#glow)"/></g>
     ${dust(380, 223, 192, 153, 23)}
     ${foliage(84, 454, 1.05, '#0c2b34', 33)}
     <path d="M53 438H121L109 486Q89 496 67 486Z" fill="#18383e"/>
@@ -182,7 +221,9 @@ function mosqueArcade() {
       <path d="M642 309H949L984 332H609Z" fill="#95b8a3"/>
       <path d="M661 314H932M646 322H954" stroke="#e6e2b4" stroke-opacity=".52"/>
       <path d="M819 288V310M812 305Q819 273 827 305" stroke="#d5e4c0" stroke-width="2" fill="none"/>
-      <ellipse cx="819" cy="312" rx="17" ry="4" fill="none" stroke="#e2e7bd"/>
+      <g class="fountain-drops enhanced-motion" fill="#f5f0cf"><circle cx="816" cy="291" r="1.1"/><circle cx="822" cy="286" r=".9"/><circle cx="826" cy="298" r=".8"/><circle cx="811" cy="306" r=".9"/></g>
+      <ellipse class="water-ripple" cx="819" cy="312" rx="17" ry="4" fill="none" stroke="#e2e7bd"/>
+      <ellipse class="water-ripple extra-ripple enhanced-motion" cx="819" cy="313" rx="26" ry="5.5" fill="none" stroke="#e2e7bd" stroke-opacity=".55"/>
     </g>
     <path d="M0 0H1200V353H0Z ${mainOpening}" fill="url(#stone)" fill-rule="evenodd"/>
     <path d="M0 0H560V352H0Z" fill="#627f77"/>
@@ -226,7 +267,7 @@ function mosqueArcade() {
     <path d="M1099 0H1115V350H1099Z" fill="#738774" opacity=".3"/>
     ${seq(6, i => rosette(1126 + i * 20, 221, 6, '#bba779'))}
     ${rug(733, 408, 286, 166, -95)}
-    <path d="M552 173L888 347 589 519H125Z" fill="url(#beam)" opacity=".38"/>
+    <g opacity=".38"><path class="light-shaft enhanced-motion" d="M552 173L888 347 589 519H125Z" fill="url(#beam)"/></g>
     ${lamp(382, 217, .4, 200)}
     ${lamp(814, 71, .4, 255)}
     ${dust(546, 160, 500, 222, 32, '#ffedb1')}
@@ -247,7 +288,8 @@ function bookOnStand() {
     <path d="M787 341L897 283 1018 337 901 395Z" fill="none" stroke="#bf9a60" stroke-opacity=".6"/>
     <path d="M774 342L902 405 1037 338V348L902 416 774 352Z" fill="#3d362d"/>
     <path d="M774 343L902 406 1037 339" stroke="#dfb374" stroke-opacity=".7" fill="none"/>
-    <path d="M794 297L927 239 1029 300 895 363Z" fill="#051e29" opacity=".6"/>
+    <path d="M793 338L921 278 1028 337 895 405Z" fill="#061c24" opacity=".72"/>
+    <g class="resting-book" transform="translate(0 30)">
     <path d="M789 297L922 238 1029 302 894 363 789 306Z" fill="#a18859"/>
     <path d="M796 292L924 236 1021 294V312L895 371 796 312Z" fill="url(#pages)"/>
     ${seq(7, i => `<path d="M798 ${296 + i * 2}L895 ${354 + i * 2}L1019 ${296 + i * 2}" stroke="#715f43" stroke-opacity="${.22 + i * .04}" stroke-width=".7" fill="none"/>`)}
@@ -264,6 +306,7 @@ function bookOnStand() {
     <path d="M818 279L832 274 821 289Z M920 244L917 253 936 251Z M991 284L977 282 978 293Z M895 326L905 316 886 317Z" fill="#d0b67b"/>
     <path d="M836 310L843 307M860 324L867 321M814 297L821 294" stroke="#dcc388" stroke-width="2"/>
     <path d="M955 340L973 334 989 367 978 364 974 376Z" fill="#c99d53"/><path d="M960 340L979 369" stroke="#f0ca79" stroke-opacity=".55"/>
+    </g>
   </g>`;
 }
 function library() {
@@ -282,8 +325,8 @@ function library() {
       <path d="M40 313Q115 256 217 283T429 271L512 293V359H40Z" fill="#648774"/>
       <path d="M341 307V246H443V305Z M351 246Q351 215 391 197Q432 215 432 246Z" fill="#baae83" opacity=".7"/>
       <path d="${arch(374, 260, 31, 47)}" fill="#416e64"/>
-      ${foliage(136, 350, 1.15, '#3b6b60', 4)}
-      ${foliage(480, 355, .94, '#4d7b65', 5)}
+      <g class="foliage-motion enhanced-motion" style="transform-origin:136px 350px">${foliage(136, 350, 1.15, '#3b6b60', 4)}</g>
+      <g class="foliage-motion enhanced-motion" style="transform-origin:480px 355px;animation-delay:-5s">${foliage(480, 355, .94, '#4d7b65', 5)}</g>
       ${foliage(245, 362, .47, '#527e63', 15)}
       <path d="M102 182Q139 87 223 60M128 133Q100 77 88 53M170 96Q170 45 146 11" fill="none" stroke="#456b56" stroke-width="9"/>
       ${seq(22, i => `<ellipse cx="${96 + i * 6.5}" cy="${n(122 - Math.sin(i * .13) * 66)}" rx="${13 + i % 3 * 4}" ry="${8 + i % 4}" transform="rotate(${i * 17} ${96 + i * 6.5} ${n(122 - Math.sin(i * .13) * 66)})" fill="${['#658a67', '#739772', '#517b63'][i % 3]}"/>`)}
@@ -317,8 +360,8 @@ function library() {
     <path d="${arch(761, 93, 238, 172)}" fill="url(#fineTile)" opacity=".23"/>
     ${rosette(879, 162, 44, '#859479')}
     ${seq(12, i => rosette(662 + i * 39, 396, 7, '#9b9c78'))}
-    <path d="M681 306L166 520H644L1045 349Z" fill="url(#beam)" opacity=".8"/>
-    <path d="M126 357L483 358 766 520H404Z" fill="url(#beam)" opacity=".3"/>
+    <g opacity=".8"><path class="light-shaft enhanced-motion" d="M681 306L166 520H644L1045 349Z" fill="url(#beam)"/></g>
+    <g opacity=".3"><path class="light-shaft enhanced-motion" d="M126 357L483 358 766 520H404Z" fill="url(#beam)"/></g>
     <path d="M34 388L486 389 454 404 0 410Z" fill="#091f29" opacity=".4"/>
     ${rug(657, 413, 452, 196, -65, .85)}
     <path d="M1129 36H1200V367H1129Z" fill="#0c2b35" stroke="#566d5c" stroke-width="3"/>
@@ -326,7 +369,7 @@ function library() {
     ${seq(14, i => `<g transform="translate(${1145 + i % 5 * 13} ${i < 5 ? 58 : i < 10 ? 157 : 274})"><path d="M0 0H10V${i < 5 ? 62 : i < 10 ? 65 : 70}H0Z" fill="${['#647161', '#a58b61', '#3a5b56', '#786b50', '#456358'][i % 5]}"/><path d="M2 3V${i < 5 ? 56 : i < 10 ? 59 : 64}M1 9H9M1 15H9M1 ${i < 5 ? 51 : i < 10 ? 54 : 59}H9" stroke="#cdb47b" stroke-opacity=".45" stroke-width=".8"/></g>`)}
     <path d="M1136 123H1200V139H1136Z M1136 229H1200V245H1136Z M1136 351H1200V364H1136Z" fill="url(#wood)"/>
     <path d="M1137 124H1200M1137 230H1200M1137 352H1200" stroke="#b09260" stroke-opacity=".5"/>
-    <ellipse class="lamp-glow" cx="918" cy="261" rx="209" ry="173" fill="url(#glow)" opacity=".4"/>
+    <g opacity=".48"><ellipse class="lamp-reflection" cx="918" cy="261" rx="209" ry="173" fill="url(#glow)"/></g>
     ${lamp(943, 115, .75, 170)}
     ${bookOnStand()}
     ${dust(788, 166, 263, 202, 543)}

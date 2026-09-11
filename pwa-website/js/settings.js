@@ -3,18 +3,24 @@ import { els } from './dom.js';
 import { APP_VERSION } from './constants.js';
 import { syncPrayerSettingsControls } from './prayer.js';
 import { syncReminderControls } from './reminders.js';
+import { applyArtMotion, initArtMotion } from './art-motion.js';
 
 export function applySettings() {
   els.appVersion.textContent = `Version ${APP_VERSION}`;
   document.documentElement.classList.toggle('dark', state.darkMode);
   document.documentElement.classList.toggle('large-arabic', state.largeArabic);
   document.documentElement.classList.toggle('advanced-ui', state.advancedUi);
+  // The card artwork only exists in the Advanced home, so its motion setting is hidden in Simple UI
+  // rather than offered as a control that visibly does nothing -- the same rule the other settings
+  // for switched-off features follow.
+  if (els.artMotionRow) els.artMotionRow.hidden = !state.advancedUi;
   document.documentElement.classList.toggle('advanced-list', state.advancedListMode);
   document.documentElement.style.setProperty('--font-scale', state.fontScale.toFixed(2));
   document.querySelector('meta[name="theme-color"]').setAttribute('content', state.darkMode || state.advancedUi ? '#071827' : '#f3f3f0');
   els.darkModeToggle.checked = state.darkMode;
   els.arabicSizeToggle.checked = state.largeArabic;
   els.advancedUiToggle.checked = state.advancedUi;
+  applyArtMotion();
   ensureAdvancedCardsLoad();
   syncPrayerSettingsControls();
   syncReminderControls();
@@ -56,6 +62,11 @@ export function setFontScale(value) {
 // screen and the panel reads as part of it. The previous drill-down swapped the entire dialog for a
 // single panel, which lost the reader's position in the list on every change of section.
 export function initSettingsNav() {
+  initArtMotion({
+    select: els.artMotionSelect,
+    description: els.artMotionDescription,
+    systemNote: els.artMotionSystemNote,
+  });
   els.settingsCategoryList.addEventListener('click', (event) => {
     const button = event.target.closest('[data-settings-toggle]');
     if (button) toggleSettingsCategory(button);

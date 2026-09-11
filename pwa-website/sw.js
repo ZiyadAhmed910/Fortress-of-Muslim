@@ -25,6 +25,7 @@ const ASSETS = [
   `./css/online.css?v=${APP_VERSION}`,
   `./css/responsive.css?v=${APP_VERSION}`,
   `./js/app.js?v=${APP_VERSION}`,
+  `./js/art-motion.js?v=${APP_VERSION}`,
   `./js/assistant.js?v=${APP_VERSION}`,
   `./js/categories.js?v=${APP_VERSION}`,
   `./js/constants.js?v=${APP_VERSION}`,
@@ -73,7 +74,8 @@ const OPTIONAL_ASSETS = [
   './assets/cards/living/favourites.svg',
   './assets/cards/living/moods.svg',
   './assets/cards/living/ruqyah.svg',
-];
+].flatMap((asset) => [asset, asset.replace('/living/', '/living/full/'), asset.replace('/living/', '/living/still/')]);
+const LIVING_ART_PATHS = new Set(OPTIONAL_ASSETS.map((asset) => new URL(asset, self.location.href).pathname));
 
 self.addEventListener('install', (event) => {
   // cache: 'reload' forces every install fetch past the browser HTTP cache. cache.addAll() goes
@@ -120,15 +122,31 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   if (url.origin !== self.location.origin) return;
+  // Keep each render mode cached independently, including modes not yet selected by the user.
+  // Direct SVG navigation must never replace the cached HTML app shell.
+  if (LIVING_ART_PATHS.has(url.pathname)) {
+    const key = new URL(url);
+    key.search = '';
+    key.hash = '';
+    event.respondWith(caches.open(CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(key.href);
+      if (cached) return cached;
+      const response = await fetch(event.request);
+      if (response.ok) await cache.put(key.href, response.clone());
+      return response;
+    }));
+    return;
+  }
   if (event.request.mode === 'navigate') {
+    const navigationKey = url.pathname.endsWith('/art-preview.html') ? './art-preview.html' : './index.html';
     event.respondWith(
       fetch(event.request).then((response) => {
         if (response.ok) {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
+          caches.open(CACHE_NAME).then((cache) => cache.put(navigationKey, copy));
         }
         return response;
-      }).catch(() => caches.match('./index.html'))
+      }).catch(() => caches.match(navigationKey))
     );
     return;
   }

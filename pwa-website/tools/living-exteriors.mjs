@@ -33,15 +33,39 @@ function defs(p) {
   <pattern id="masonry" width="44" height="22" patternUnits="userSpaceOnUse"><path d="M0 0H44M0 22H44M22 0V11M0 11H44M7 11V22" stroke="${p[9]}" stroke-width=".6" opacity=".38" fill="none"/></pattern>
   </defs>
   <style>
-  .cloud{animation:cloud 32s ease-in-out infinite alternate}.cloud.slow{animation-duration:43s;animation-delay:-12s}
-  .glow{animation:glow 5.7s ease-in-out infinite}.glow.late{animation-delay:-3.1s;animation-duration:7.3s}
-  .star{animation:star 5s ease-in-out infinite;animation-delay:var(--delay,0s)}
-  .celestial{animation:rise 38s ease-in-out infinite alternate}.flock{animation:fly 28s ease-in-out infinite alternate}
-  .ripples{animation:water 8s ease-in-out infinite alternate}.leaves{animation:sway 9s ease-in-out infinite alternate;transform-origin:50% 100%;transform-box:fill-box}
-  @keyframes cloud{to{transform:translateX(38px)}}@keyframes glow{0%,100%{opacity:.75}23%{opacity:.9}48%{opacity:.69}73%{opacity:1}}
-  @keyframes star{0%,100%{opacity:.3}50%{opacity:.95}}@keyframes rise{to{transform:translateY(-13px)}}
-  @keyframes fly{from{transform:translate(-20px,3px)}to{transform:translate(45px,-8px)}}
-  @keyframes water{from{opacity:.28;transform:translateX(-3px)}to{opacity:.65;transform:translateX(5px)}}@keyframes sway{to{transform:rotate(.7deg)}}
+  .cloud{animation:cloud 32s ease-in-out infinite alternate;animation-delay:-8s}.cloud.slow{animation-duration:42s;animation-delay:-12s}
+  .glow{animation:glow 3.2s ease-in-out infinite}.glow.late{animation-delay:-1.4s;animation-duration:3.8s}
+  .star{animation:star 6s ease-in-out infinite;animation-delay:var(--delay,0s)}
+  .celestial{animation:rise 42s ease-in-out infinite alternate;animation-delay:-10s}.flock{animation:fly 30s ease-in-out infinite alternate}
+  .ripples,.flow{animation:water 7s ease-in-out infinite alternate;animation-delay:-2s}
+  .leaves,.canopy,.flock path{transform-origin:50% 100%;transform-box:fill-box}
+  .fireflies,.water-drops{opacity:0}.lamp-body{transform-box:fill-box;transform-origin:50% 0}
+  .ambient-light{opacity:0;pointer-events:none}.sun-radiance,.tree-sway{transform-box:fill-box;transform-origin:50% 100%}
+  svg[data-motion="full"] .scene .ambient-light{animation:daylight 12s ease-in-out infinite}
+  svg[data-motion="full"] .scene .sun-radiance{animation:sunlight 12s ease-in-out infinite}
+  svg[data-motion="full"] .scene .sun-disc{animation:sunColor 12s ease-in-out infinite}
+  svg[data-motion="full"] .scene .tree-sway{animation:sway 5s ease-in-out infinite alternate;animation-delay:-1.5s}
+  svg[data-motion="full"] .scene .star{animation-duration:3s}
+  svg[data-motion="full"] .scene .cloud{animation-duration:14s}svg[data-motion="full"] .scene .cloud.slow{animation-duration:20s}
+  svg[data-motion="full"] .scene .flock{animation-duration:18s}svg[data-motion="full"] .scene .flock path{animation:wings 1.5s ease-in-out infinite alternate}
+  svg[data-motion="full"] .scene .leaves,svg[data-motion="full"] .scene .canopy{animation:sway 5.5s ease-in-out infinite alternate;animation-delay:-1.5s}
+  svg[data-motion="full"] .scene .celestial{animation-duration:22s}svg[data-motion="full"] .scene .ripples{animation-duration:3.5s}
+  svg[data-motion="full"] .scene .fireflies,svg[data-motion="full"] .scene .water-drops{opacity:.7}
+  svg[data-motion="full"] .scene .fireflies circle{animation:firefly 5s ease-in-out infinite;animation-delay:var(--delay,0s)}
+  svg[data-motion="full"] .scene .water-drops circle{animation:fall 1.8s ease-in infinite}
+  svg[data-motion="full"] .scene .flow{stroke-dasharray:5 7;animation:stream 1.4s linear infinite}
+  svg[data-motion="full"] .scene .lamp-body{animation:lampSway 7s ease-in-out infinite alternate}
+  svg[data-motion="still"] .scene *{animation:none!important}
+  @keyframes cloud{to{transform:translateX(52px)}}@keyframes glow{0%,100%{opacity:.78}17%{opacity:.91}21%{opacity:.7}39%{opacity:.88}44%{opacity:.74}71%{opacity:1}81%{opacity:.82}}
+  @keyframes star{0%,100%{opacity:.3}50%{opacity:.95}}@keyframes rise{to{transform:translateY(-19px)}}
+  @keyframes fly{from{transform:translate(-36px,6px)}to{transform:translate(57px,-14px)}}
+  @keyframes water{from{opacity:.28;transform:translateX(-5px)}to{opacity:.72;transform:translateX(8px)}}@keyframes sway{from{transform:rotate(-1.2deg)}to{transform:rotate(2deg)}}
+  @keyframes wings{from{transform:scaleY(.45)}to{transform:scaleY(1.2)}}@keyframes firefly{0%,100%{opacity:.15;transform:translate(0,0)}45%{opacity:.9;transform:translate(14px,-19px)}}
+  @keyframes fall{from{opacity:0;transform:translateY(-6px)}30%{opacity:.8}to{opacity:0;transform:translateY(7px)}}@keyframes stream{to{stroke-dashoffset:-24}}
+  @keyframes lampSway{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
+  @keyframes daylight{0%,100%{opacity:.025}45%,60%{opacity:.24}}
+  @keyframes sunlight{0%,100%{opacity:.35;transform:scale(.8)}45%,60%{opacity:1;transform:scale(1.2)}}
+  @keyframes sunColor{0%,100%{fill:#f7c77e}45%,60%{fill:#fff9d9}}
   @media(prefers-reduced-motion:reduce){*{animation:none!important}}
   </style>`;
 }
@@ -49,7 +73,7 @@ function defs(p) {
 function sky(p, night = false, seed = 5) {
   const r = random(seed);
   const stars = night ? `<g fill="#fff5d7">${range(65, i => `<circle class="${i % 4 === 0 ? 'star' : ''}" style="--delay:-${f(r() * 9)}s" cx="${f(70 + r() * 1090)}" cy="${f(18 + r() * 208)}" r="${f(.45 + r() * 1.15)}" opacity="${f(.2 + r() * .65)}"/>`)}</g>` : '';
-  const orb = night ? `<g class="celestial"><circle cx="325" cy="98" r="150" fill="url(#halo)" opacity=".62"/><circle cx="325" cy="98" r="34" fill="#fff0c8" mask="url(#crescent)"/></g>` : `<g class="celestial"><circle cx="860" cy="200" r="240" fill="url(#halo)"/><circle cx="860" cy="200" r="53" fill="#fff0bc" opacity=".87"/><circle cx="860" cy="200" r="58" fill="#fff0bc" opacity=".12"/></g>`;
+  const orb = night ? `<g class="celestial"><circle cx="325" cy="98" r="150" fill="url(#halo)" opacity=".62"/><circle cx="325" cy="98" r="34" fill="#fff0c8" mask="url(#crescent)"/></g>` : `<g class="celestial"><g class="sun-radiance"><circle cx="860" cy="200" r="290" fill="url(#halo)"/></g><circle class="sun-disc" cx="860" cy="200" r="53" fill="#fff0bc" opacity=".95"/><circle cx="860" cy="200" r="58" fill="#fff0bc" opacity=".12"/></g>`;
   return `<rect width="1200" height="520" fill="url(#sky)"/>${stars}${orb}
   <g fill="${p[7]}" opacity="${night ? '.1' : '.26'}"><g class="cloud"><path d="M38 145Q98 127 175 140Q207 117 259 133Q295 121 328 143Q369 137 405 151Q244 158 38 145Z"/><path d="M660 77Q745 67 783 76Q813 63 844 77Q898 65 957 83Q847 88 660 77Z"/></g><g class="cloud slow"><path d="M503 191Q561 176 617 185Q657 167 705 187Q755 174 785 189Q875 177 934 199Q677 204 503 191Z"/><path d="M80 223Q169 199 259 218Q325 203 424 224Q225 234 80 223Z"/></g></g>`;
 }
@@ -159,6 +183,81 @@ function lamp(x, y, s = 1) {
   return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 0V-37" stroke="#8e8060" stroke-width="3"/><path d="M-8-57 0-65 8-57V-37H-8Z" fill="url(#lamp)"/><path d="M-10-57H10L0-67Z" fill="#46615a"/><path d="M-8-37H8M-6-55V-39M6-55V-39M0-55V-39" stroke="#626d56" stroke-width="1.5"/><circle class="glow" cy="-48" r="51" fill="url(#halo)"/></g>`;
 }
 
+// Separate architectural families make the categories recognisable at phone-card size.
+function desertMosque(x, y, s) {
+  const smallArch = (xx, yy, w, h) => `${arch(xx, yy, w, h, '#795943')}${arch(xx + 4, yy, w - 8, h - 6, 'url(#lamp)')}`;
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+  <path d="M-166 0V-108H164V0Z" fill="url(#stone)"/><path d="M164 0 216-25V-130L164-108Z" fill="url(#side)"/>
+  <path d="M164-108 216-130V-121L164-100Z" fill="url(#shaft)"/>
+  <path d="M-168-94H164V-101H-168Z" fill="url(#shaft)"/><path d="M-168-100H164V-107H-168Z" fill="url(#carving)"/>
+  <rect x="-167" y="-93" width="330" height="92" fill="url(#masonry)"/>
+  <path d="M-104 0V-212H-43V0Z" fill="url(#stone)"/><path d="M-43-212-16-226V-9L-43 0Z" fill="url(#side)"/>
+  <path d="M-111-212H-41L-13-226V-235L-41-221H-111Z" fill="url(#shaft)"/>
+  <path d="M-96-223V-258H-51V-222Z" fill="url(#stone)"/><path d="M-51-258-28-269V-233L-51-223Z" fill="url(#side)"/>
+  <path d="M-100-260H-49L-24-273H-75Z" fill="url(#stone)"/>
+  <path d="M-100-260H-49V-253H-100Z" fill="url(#shaft)"/><path d="M-49-260-24-273V-266L-49-253Z" fill="url(#side)"/>
+  <path d="M-73-264v-15" stroke="#d5a45d" stroke-width="2"/><circle cx="-73" cy="-281" r="5" fill="#d5a45d"/>
+  <path d="M-98-136H-50V-194H-98Z" fill="url(#carving)"/>
+  ${smallArch(-89, -150, 29, 42)}${smallArch(-86, -228, 23, 26)}
+  <path d="M-98-127H-50M-98-117H-50M-98-203H-50" stroke="#785c43" stroke-width="2" opacity=".35"/>
+  <path d="M16 0V-114H116V0Z" fill="url(#shaft)"/><path d="M21-111H111V-103H21Z" fill="url(#carving)"/>
+  <path d="M32 0V-44C10-83 37-108 66-104C95-108 121-83 100-44V0Z" fill="#715941"/>
+  <path d="M40 0V-42C22-76 43-98 66-96C89-98 110-76 92-42V0Z" fill="url(#lamp)"/>
+  <path d="M66-91V0M40-31H92" stroke="#966e40" stroke-width="1.8"/>
+  <g class="glow"><ellipse cx="66" cy="-34" rx="75" ry="68" fill="url(#halo)"/></g>
+  ${smallArch(-145, -6, 27, 61)}${smallArch(-4, -6, 19, 54)}${smallArch(131, -6, 22, 56)}
+  ${range(11, i => `<path d="M${-166 + i * 31}-104v-14h8v5h7v-5h8v14Z" fill="url(#stone)"/>`)}
+  <path d="M-179 0H168L223-26V-17L170 9H-179ZM-189 9H173L232-19V-11L176 18H-189Z" fill="url(#shaft)"/>
+  <path d="M47 0H88L139 18H16Z" fill="#ffe9a2" opacity=".2"/>
+  </g>`;
+}
+
+function tiledMosque(x, y, s) {
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+  <rect x="-86" y="-132" width="264" height="134" fill="url(#stone)"/><path d="M178-132 218-151V-17L178 2Z" fill="url(#side)"/>
+  <rect x="37" y="-192" width="120" height="64" fill="url(#shaft)"/>
+  ${range(8, i => arch(44 + i * 14, -139, 8, 39, 'url(#lamp)'))}
+  ${dome(97, -194, 73, 86)}
+  <path d="M-163 0V-208H7V0Z" fill="url(#shaft)"/>
+  <path d="M-155-200H-1V-4H-155Z" fill="#347b82"/><path d="M-151-197H-5V-4H-151Z" fill="url(#carving)"/>
+  <path d="M-137 0V-119Q-137-154-78-184Q-19-154-19-119V0Z" fill="#31585c"/>
+  <path d="M-128 0V-115Q-128-144-78-172Q-28-144-28-115V0Z" fill="url(#side)"/>
+  <path d="M-117 0V-107Q-117-132-78-155Q-39-132-39-107V0Z" fill="url(#lamp)"/>
+  <path d="M-78-148V0M-115-46H-41" stroke="#927647" stroke-width="2"/>
+  <path d="M-140-115Q-116-136-116-154M-130-139Q-96-147-96-169M-114-157Q-78-155-78-181M-62-170Q-62-148-25-132M-43-156Q-43-135-18-116" fill="none" stroke="#c0d8bb" stroke-width="2" opacity=".5"/>
+  <path d="M-168 0V-217H-153V0ZM-8 0V-217H7V0Z" fill="url(#shaft)"/>
+  <path d="M-169-217H-152V-225H-169ZM-9-217H8V-225H-9Z" fill="url(#dome)"/>
+  <path d="M-156-197H0M-147-181V-8M-10-181V-8" stroke="#d3c791" stroke-width="2"/>
+  ${range(5, i => `${arch(23 + i * 31, -7, 22, 72, '#456867')}${arch(27 + i * 31, -7, 14, 64, 'url(#lamp)')}`)}
+  <path d="M9-122H177V-112H9Z" fill="url(#carving)"/>
+  <g class="glow"><ellipse cx="-79" cy="-58" rx="83" ry="111" fill="url(#halo)"/></g>
+  <path d="M-181 0H181L223-19V-11L183 8H-181ZM-192 8H185L232-13V-6L188 16H-192Z" fill="url(#stone)"/>
+  </g>`;
+}
+
+function roundDome(cx, base, radius, height) {
+  return `<path d="M${cx - radius} ${base}C${cx - radius} ${base - height * 1.32} ${cx + radius} ${base - height * 1.32} ${cx + radius} ${base}Z" fill="url(#dome)"/>
+  <path d="M${cx - radius} ${base}C${cx - radius} ${base - height * 1.32} ${cx + radius} ${base - height * 1.32} ${cx + radius} ${base}" fill="none" stroke="#ccb9a1" stroke-width="1.2"/>
+  ${range(7, i => `<path d="M${cx} ${base - height}Q${cx + (i - 3) * radius * .2} ${base - height * .8} ${cx + (i - 3) * radius * .3} ${base}" fill="none" stroke="#dcc6ae" stroke-width=".9" opacity=".28"/>`)}
+  <path d="M${cx} ${base - height}v-12" stroke="#e8c489" stroke-width="2"/><circle cx="${cx}" cy="${base - height - 14}" r="3" fill="#e8c489"/>`;
+}
+
+function terracedMosque(x, y, s) {
+  const needle = (xx, yy, size) => `<g transform="translate(${xx} ${yy}) scale(${size})"><rect x="-7" y="-251" width="14" height="251" fill="url(#shaft)"/><path d="M-8-252 0-296 8-252Z" fill="url(#dome)"/><path d="M0-296v-13" stroke="#e6c69d" stroke-width="1.2"/>${[-164, -225].map(yy => `<path d="M-14 ${yy}H14L8 ${yy + 7}H-8Z" fill="url(#stone)"/><path d="M-12 ${yy - 7}V${yy}M-6 ${yy - 7}V${yy}M0 ${yy - 7}V${yy}M6 ${yy - 7}V${yy}M12 ${yy - 7}V${yy}" stroke="#ded0b4"/>`).join('')}</g>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+  ${needle(-165, 0, .95)}${needle(173, -13, 1.02)}${needle(-123, -31, .78)}${needle(135, -42, .75)}
+  <path d="M-171 0V-87H177V0Z" fill="url(#stone)"/><path d="M177 0 218-21V-105L177-87Z" fill="url(#side)"/>
+  <path d="M-106-85V-133H111V-85Z" fill="url(#stone)"/><path d="M-66-133V-184H71V-133Z" fill="url(#shaft)"/>
+  ${roundDome(3, -186, 84, 75)}
+  ${roundDome(-79, -130, 59, 47)}${roundDome(88, -130, 59, 47)}
+  ${[-129, -62, 5, 72, 139].map(cx => roundDome(cx, -87, 33, 27)).join('')}
+  ${range(8, i => `${arch(-151 + i * 41, -7, 24, 52, '#725e65')}${arch(-148 + i * 41, -7, 18, 48, 'url(#lamp)')}`)}
+  ${range(7, i => arch(-54 + i * 18, -145, 9, 26, 'url(#lamp)'))}
+  <path d="M-173-3H179V4H-173ZM-185 5H184V13H-185Z" fill="url(#shaft)"/>
+  <g class="glow"><ellipse cx="3" cy="-61" rx="146" ry="95" fill="url(#halo)"/></g>
+  </g>`;
+}
+
 function ripples(p, seed = 33, top = 390) {
   const r = random(seed);
   return `<g class="ripples" fill="none" stroke="${p[7]}" stroke-linecap="round">${range(54, () => {const y = top + r() * (520 - top);const x = r() * 1200;return `<path d="M${f(x)} ${f(y)}q${f(5 + r() * 20)}-1 ${f(9 + r() * 70)} 0" stroke-width="${f(.4 + (y - top) / 110)}" opacity="${f(.1 + r() * .4)}"/>`;})}</g>`;
@@ -197,11 +296,12 @@ function travel(p) {
   <path d="M0 314Q209 220 405 295Q561 351 766 277Q999 210 1200 284V520H0Z" fill="${p[3]}"/>
   <path d="M0 346Q209 255 438 325Q510 348 566 371Q317 357 0 411Z" fill="${p[4]}"/>
   <path d="M0 346Q209 255 438 325Q321 290 197 332Q93 358 0 395Z" fill="${p[2]}" opacity=".5"/>
-  <path d="M492 395Q848 257 1200 319V520H492Z" fill="${p[4]}"/>
+  <path d="M0 471Q331 418 492 395Q848 257 1200 319V520H0Z" fill="${p[4]}"/>
   <path d="M492 395Q848 257 1200 319Q1051 302 994 341Q738 400 492 395Z" fill="${p[7]}"/>
-  ${mosque(765, 350, .61)}${palm(977, 363, .68, p[5], 5)}${palm(1009, 368, .57, p[5], 9)}${palm(454, 389, .52, p[5], 4)}
+  ${desertMosque(765, 350, .71)}${palm(977, 363, .68, p[5], 5)}${palm(1009, 368, .57, p[5], 9)}${palm(454, 389, .52, p[5], 4)}
   <path d="M0 481Q227 333 568 389Q687 417 587 457Q338 464 195 520H0Z" fill="url(#water)"/>
-  ${ripples(p, 13, 415)}
+  <defs><clipPath id="travelPond"><path d="M0 481Q227 333 568 389Q687 417 587 457Q338 464 195 520H0Z"/></clipPath></defs>
+  <g clip-path="url(#travelPond)">${ripples(p, 13, 415)}</g>
   <path d="M1200 365Q980 355 921 385Q814 412 832 440Q851 468 679 520H361Q758 451 752 432Q692 382 926 368Q1041 343 1200 353Z" fill="${p[7]}"/>
   <path d="M1182 357Q992 351 912 380Q783 410 796 441Q781 475 507 520" fill="none" stroke="${p[8]}" stroke-width="2"/>
   ${range(17, i => `<path d="M${585 + i * 17} ${501 - i * 6}l${70 - i * 2}-5" stroke="${p[9]}" stroke-width=".8" opacity=".24"/>`)}
@@ -219,7 +319,7 @@ function pine(x, y, height, color, seed) {
     const xx = half * t * (.75 + r() * .3) * side;
     return `L${f(xx * .45)} ${f(yy - height * .017)}L${f(xx)} ${f(yy)}L${f(xx * .72)} ${f(yy + height * .012)}`;
   });
-  return `<g transform="translate(${x} ${y})"><path d="M-4 0-2 ${-height}H2L5 0Z" fill="${color}"/><path d="M0 ${-height}${outline(-1)}L0-19Z M0 ${-height}${outline(1)}L0-19Z" fill="${color}"/><path d="M-1-25V${-height * .95}" stroke="#c1cfa6" stroke-width="1" opacity=".17"/></g>`;
+  return `<g transform="translate(${x} ${y})"><g class="tree-sway"><path d="M-4 0-2 ${-height}H2L5 0Z" fill="${color}"/><path d="M0 ${-height}${outline(-1)}L0-19Z M0 ${-height}${outline(1)}L0-19Z" fill="${color}"/><path d="M-1-25V${-height * .95}" stroke="#c1cfa6" stroke-width="1" opacity=".17"/></g></g>`;
 }
 
 function dawn(p) {
@@ -233,7 +333,7 @@ function dawn(p) {
   <path d="M814 373Q679 386 728 397Q814 414 673 450Q556 486 579 520H625Q592 476 724 450Q847 411 757 395Q721 386 863 375Z" fill="${p[8]}" opacity=".6"/>
   <path d="M602 394Q598 381 705 375M679 416Q630 430 528 441M512 468Q478 479 482 487" stroke="${p[7]}" stroke-width="2" fill="none" opacity=".7"/>
   <path d="M742 352Q1003 320 1200 361V406Q967 375 707 390Z" fill="${p[4]}"/>
-  ${mosque(858, 350, .63)}${cypress(1061, 372, .51, p[5], 7)}
+  ${tiledMosque(805, 350, .69)}${cypress(1061, 372, .51, p[5], 7)}
   <path d="M913 230 381 501 532 520 936 230Z" fill="#fff0be" opacity=".08"/>
   <path d="M0 427Q188 366 469 431Q392 459 323 520H0Z" fill="${p[6]}"/>
   <path d="M1200 414Q1018 385 814 453L711 520H1200Z" fill="${p[6]}"/>
@@ -249,7 +349,7 @@ function dusk(p) {
   return `${sky(p, true, 33)}${ridge(354, 105, 66, p[3])}<rect y="240" width="1200" height="130" fill="url(#mist)"/>
   ${ridge(376, 64, 22, p[4], true)}
   <g fill="${p[4]}">${range(23, i => {const x = i * 58;const top = 331 + r() * 35;return `<path d="M${x} 390V${f(top)}h48v${f(390 - top)}Z"/><path d="M${x - 2} ${f(top)}h52v-4h-52Z"/>${range(3, j => arch(x + 7 + j * 13, top + 21, 5, 10, p[12]))}`;})}</g>
-  ${mosque(801, 370, .68)}${minaret(361, 384, .52)}${dome(477, 348, 37, 45)}<path d="M440 349H514V386H440Z" fill="${p[4]}"/>
+  ${terracedMosque(801, 370, .76)}${minaret(361, 384, .52)}${roundDome(477, 348, 37, 31)}<path d="M440 349H514V386H440Z" fill="${p[4]}"/>
   ${palm(1018, 410, .62, p[5], 14)}${palm(203, 400, .59, p[5], 10)}
   <path d="M0 397Q541 363 1200 406V520H0Z" fill="${p[5]}"/>
   <path d="M0 440H1200V520H0Z" fill="url(#side)"/>
@@ -310,9 +410,69 @@ function garden(p, sanctuary = false) {
   return bg + '<rect width="1200" height="520" fill="url(#vignette)"/>';
 }
 
+function oliveTree(p) {
+  const r = random(63);
+  return `<g><path d="M107 488Q161 378 137 288Q122 220 160 151Q204 132 268 90L278 91Q234 147 181 169Q158 225 172 287Q210 375 158 491Z" fill="${p[6]}"/>
+  <path d="M132 485Q183 374 151 283Q140 229 168 163" fill="none" stroke="${p[9]}" stroke-width="7" opacity=".55"/>
+  <path d="M152 242Q77 189 33 95L40 91Q94 167 165 204ZM162 177Q231 133 396 163L408 159Q277 102 174 148Z" fill="${p[6]}"/>
+  <g class="canopy">${range(91, i => {const x = 27 + r() * 422;const y = 60 + r() * 124 - Math.sin(x / 480 * Math.PI) * 24;const size = 9 + r() * 20;return `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(r() * 150)})"><path d="M${-size} 0Q0 ${-size * .5} ${size} 0Q0 ${size * .5} ${-size} 0Z" fill="${[p[6], p[5], p[9]][i % 3]}"/><path d="M${-size} 0H${size}" stroke="${p[7]}" stroke-width=".6" opacity=".18"/></g>`;})}</g></g>`;
+}
+
+function springSanctuary(p) {
+  const r = random(44);
+  return `${sky(p, true, 61)}${ridge(330, 88, 14, p[3])}<rect y="221" width="1200" height="142" fill="url(#mist)"/>
+  ${ridge(365, 65, 22, p[4], true)}
+  <path d="M0 387Q248 308 477 356T1200 345V520H0Z" fill="${p[5]}"/>
+  <path d="M398 389Q534 351 1021 359L1151 426H361Z" fill="${p[8]}"/>
+  <!-- A single complete sanctuary: joined roof, walls, porch, and continuous foundations. -->
+  <path d="M622 369V235H920V369Z" fill="url(#stone)"/>
+  <path d="M920 235 977 214V347L920 369Z" fill="url(#side)"/>
+  <rect x="624" y="241" width="294" height="121" fill="url(#masonry)"/>
+  <path d="M612 237 673 183H875L928 237Z" fill="url(#dome)"/>
+  <path d="M875 183 935 167 987 215 928 237Z" fill="${p[5]}"/>
+  <path d="M673 183H875L935 167H734Z" fill="${p[10]}"/>
+  <g stroke="${p[11]}" stroke-width="1" opacity=".38">${range(13,i=>`<path d="M${627+i*24} 230L${681+i*15} 188"/>`)}</g>
+  <path d="M610 235H929V245H610Z" fill="url(#shaft)"/><path d="M929 235 988 213V223L929 245Z" fill="url(#side)"/>
+  <path d="M643 252H898V263H643Z" fill="url(#carving)"/>
+  <path d="M714 365V311C694 279 716 251 746 252C777 251 799 279 779 311V365Z" fill="${p[9]}"/>
+  <path d="M722 365V310C705 281 724 261 746 261C769 261 787 281 771 310V365Z" fill="${p[6]}"/>
+  <path d="M730 365V310C716 285 730 270 746 270C763 270 777 285 763 310V365Z" fill="url(#lamp)"/>
+  <path d="M746 274V365M731 321H762" stroke="#7e7750" stroke-width="1.4"/>
+  ${arch(651,350,34,65,p[9])}${arch(655,350,26,59,'url(#lamp)')}
+  ${arch(831,350,34,65,p[9])}${arch(835,350,26,59,'url(#lamp)')}
+  <path d="M668 299V350M848 299V350" stroke="${p[9]}" stroke-width="2"/>
+  <path d="M638 360V267H646V360ZM889 360V267H897V360Z" fill="url(#shaft)"/>
+  <path d="M633 263H650V271H633ZM885 263H902V271H885Z" fill="url(#stone)"/>
+  <g class="glow"><ellipse cx="746" cy="321" rx="95" ry="88" fill="url(#halo)"/></g>
+  <path d="M610 366H922L982 344V354L924 378H610Z" fill="url(#shaft)"/>
+  <path d="M598 377H926L994 352V361L929 390H598Z" fill="url(#stone)"/>
+  <path d="M715 367H778L816 390H681Z" fill="#ffdd9b" opacity=".22"/>
+  <!-- A curved ornamental pool with one continuous stone rim and a supported fountain. -->
+  <ellipse cx="578" cy="463" rx="250" ry="65" fill="${p[6]}"/>
+  <ellipse cx="578" cy="452" rx="250" ry="65" fill="url(#stone)"/>
+  <ellipse cx="578" cy="451" rx="237" ry="55" fill="url(#water)"/>
+  <path d="M470 423Q577 394 687 423" stroke="${p[7]}" fill="none" opacity=".32"/>
+  <ellipse cx="590" cy="454" rx="49" ry="12" fill="${p[9]}"/>
+  <path d="M580 448V407H600V448Z" fill="url(#shaft)"/>
+  <ellipse cx="590" cy="407" rx="47" ry="11" fill="url(#stone)"/>
+  <ellipse cx="590" cy="404" rx="40" ry="8" fill="${p[10]}"/>
+  <path d="M585 402V393H595V402Z" fill="url(#shaft)"/>
+  <g class="flow" stroke="${p[7]}" fill="none" stroke-width="1.7" opacity=".75"><path d="M590 395Q570 367 563 401M590 395Q610 367 618 401M554 408Q545 430 548 449M626 408Q636 430 634 449"/></g>
+  <g class="water-drops" fill="${p[7]}">${range(12,i=>`<circle cx="${544+r()*94}" cy="${413+r()*36}" r="${f(.7+r())}" style="animation-delay:-${f(i*.2)}s"/>`)}</g>
+  <g class="ripples" stroke="${p[7]}" fill="none" opacity=".4"><ellipse cx="590" cy="451" rx="65" ry="14"/><ellipse cx="590" cy="451" rx="87" ry="20"/><path d="M380 455h59M710 460h66M448 478h65M632 484h51"/></g>
+  ${oliveTree(p)}
+  <path d="M0 472Q204 414 329 468L363 520H0ZM897 449Q1081 391 1200 427V520H886Z" fill="${p[6]}"/>
+  ${plant(204,490,.9,p[5],3)}${plant(311,525,.83,p[6],2)}
+  ${range(9,i=>plant(928+i*32,452+r()*58,.35+r()*.48,i%2?p[6]:p[5],i))}
+  ${lamp(855,401,.72)}${lamp(446,405,.57)}
+  <g class="fireflies" fill="#e5dea0">${range(18,i=>`<circle cx="${f(300+r()*275)}" cy="${f(266+r()*151)}" r="${f(1+r()*1.6)}" style="--delay:-${f(i*1.7)}s"/>`)}</g>
+  <rect width="1200" height="520" fill="url(#vignette)"/>`;
+}
+
 export function buildExteriors() {
   return Object.fromEntries(Object.entries(palettes).map(([name, p]) => {
-    const content = name === 'travel' ? travel(p) : name === 'moods' ? garden(p) : name === 'ruqyah' ? garden(p, true) : name === 'morning' ? dawn(p) : name === 'evening' ? dusk(p) : waterside(p, name);
-    return [name, `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">${defs(p)}${content}</svg>`];
+    const content = name === 'travel' ? travel(p) : name === 'moods' ? garden(p) : name === 'ruqyah' ? springSanctuary(p) : name === 'morning' ? dawn(p) : name === 'evening' ? dusk(p) : waterside(p, name);
+    const light = ['morning', 'travel', 'moods'].includes(name) ? '#ffc775' : '#7896bf';
+    return [name, `<svg data-motion="optimized" xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">${defs(p)}<g class="scene">${content}<rect class="ambient-light" width="1200" height="520" fill="${light}"/></g></svg>`];
   }));
 }

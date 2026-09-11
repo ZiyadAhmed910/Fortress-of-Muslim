@@ -1,4 +1,4 @@
-<svg data-motion="optimized" xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520"><defs>
+<svg data-motion="full" xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520"><defs>
   <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#091e36"/><stop offset=".63" stop-color="#325875"/><stop offset="1" stop-color="#91a4a0"/></linearGradient>
   <radialGradient id="halo"><stop stop-color="#f7c276" stop-opacity=".48"/><stop offset=".45" stop-color="#f7c276" stop-opacity=".14"/><stop offset="1" stop-color="#f7c276" stop-opacity="0"/></radialGradient>
   <radialGradient id="vignette" r=".7"><stop offset=".35" stop-color="#071e29" stop-opacity="0"/><stop offset="1" stop-color="#071e29" stop-opacity=".4"/></radialGradient>

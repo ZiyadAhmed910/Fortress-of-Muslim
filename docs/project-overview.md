@@ -154,7 +154,9 @@ What it actually contains today:
 - **Shell** — simple and advanced layouts, per-feature show/hide, dark mode, first-run walkthrough,
   and backup export/import covering favourites, settings, tasbih, layout and Quran preferences.
 - **Advanced card artwork** — nine text-free SVG scenes with shaded architecture and gentle
-  ambient animation. They respect reduced motion and use the optional offline artwork cache.
+  ambient animation. Appearance settings offer Optimized (default), Full and Still, persisted
+  locally and in backups. Device reduced motion overrides animation. All three file variants
+  use the optional offline artwork cache, so mode switching works without network access.
   `pwa-website/art-preview.html` displays the full collection; `tools/build-living-art.mjs`
   regenerates it from deterministic vector builders.
 
