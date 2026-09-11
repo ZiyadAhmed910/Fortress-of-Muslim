@@ -94,7 +94,13 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter1"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter1",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 2,
@@ -132,7 +138,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter2"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter2",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 3,
@@ -170,7 +179,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter3"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter3",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 4,
@@ -226,7 +238,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter4"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter4",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 5,
@@ -263,7 +279,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter5"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter5",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 6,
@@ -301,7 +320,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter6"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter6",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 7,
@@ -339,7 +361,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter7"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter7",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 8,
@@ -379,7 +404,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter8"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter8",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 9,
@@ -456,7 +484,12 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter9"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter9",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 10,
@@ -516,7 +549,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter10"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter10",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 11,
@@ -558,7 +595,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter11"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter11",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 12,
@@ -599,7 +639,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter12"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter12",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 13,
@@ -640,7 +683,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter13"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter13",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 14,
@@ -681,7 +727,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter14"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter14",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 15,
@@ -744,10 +793,6 @@
             "text": "يُصَلِّي عَلَى النَّبِيِّ صلى الله عليه وسلم بَعْدَ فَرَاغِهِ مِنْ إِجَابَةِ الْمُؤَذِّنِ"
           },
           {
-            "kind": "transliteration",
-            "text": "After replying to the call of Mu'adh-dhin. you should recite in Arabic Allah's blessings on the Prophet (ﷺ)."
-          },
-          {
             "kind": "translation",
             "text": "After replying to the call of Mu'adh-dhin. you should recite in Arabic Allah's blessings on the Prophet (ﷺ)."
           },
@@ -780,10 +825,6 @@
             "text": "يَدْعُو لِنَفسِهِ بَيْنَ الْأَذَانِ وَالْإِقَامَةِ فَإِنَّ الدُّعَاءَ حِينَئِذٍ لاَ يُرَدُّ"
           },
           {
-            "kind": "transliteration",
-            "text": "Between the call to prayer and the 'Iqamah, you should supplicate Allah for yourself. Invocation during this time is not rejected."
-          },
-          {
             "kind": "translation",
             "text": "Between the call to prayer and the 'Iqamah, you should supplicate Allah for yourself. Invocation during this time is not rejected."
           },
@@ -795,7 +836,14 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter15"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter15",
+      "partRoles": [
+        "framed",
+        "supplication",
+        "instruction",
+        "supplication",
+        "instruction"
+      ]
     },
     {
       "id": 16,
@@ -927,7 +975,15 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter16"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter16",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 17,
@@ -1040,7 +1096,14 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter17"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter17",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 18,
@@ -1119,7 +1182,12 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter18"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter18",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 19,
@@ -1267,7 +1335,16 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter19"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter19",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 20,
@@ -1325,7 +1402,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter20"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter20",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 21,
@@ -1385,7 +1466,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter21"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter21",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 22,
@@ -1424,7 +1509,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter22"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter22",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 23,
@@ -1485,7 +1573,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter23"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter23",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 24,
@@ -1708,7 +1800,20 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter24"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter24",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 25,
@@ -1874,7 +1979,17 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter25"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter25",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 26,
@@ -1919,7 +2034,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter26"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter26",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 27,
@@ -2391,7 +2509,34 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter27"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter27",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 28,
@@ -2614,10 +2759,6 @@
             "text": "يقرأ ((ألم * تنزيل)) السجدة، و((تبارك الذي بيده الملك))"
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "Recite Surah 32 (As-Sajdah) and Surah 67 (Al-Mulk) in Arabic."
           },
@@ -2647,7 +2788,22 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter28"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter28",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication",
+        "instruction",
+        "supplication"
+      ]
     },
     {
       "id": 29,
@@ -2690,7 +2846,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter29"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter29",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 30,
@@ -2743,7 +2902,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter30"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter30",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 31,
@@ -2770,10 +2932,6 @@
             "text": "يَنْفُثُ عَنْ يَسَارِهِ (ثلاثاً). يَسْتَعِيذُ بِاللَّهِ مِنَ الشَّيطَانِ وَمِنْ شَرِّ مَا رَأَى (ثَلاَثَ مَرَّاتٍ). لاَ يُحَدِّثْ بِهَا أَحَداً. يَــتَحَوَّلُ عَنْ جَنْبِهِ الَّذِي كَانَ عَلَيْهِ."
           },
           {
-            "kind": "transliteration",
-            "text": "Spit to your left (three times). 1 Seek refuge in Allah from the Devil and from the evil of what you have seen (three times). 2 Do not speak about it to anyone. 3 Turn over on your other side. 4"
-          },
-          {
             "kind": "translation",
             "text": "Spit to your left (three times).1 Seek refuge in Allah from the Devil and from the evil of what you have seen (three times).2 Do not speak about it to anyone.3 Turn over on your other side.4"
           },
@@ -2788,10 +2946,6 @@
             "text": "يقوم يصلي إن أراد ذلك.ويَقُومُ يُصَلِّي إِنْ أَرَادَ ذَلِكَ."
           },
           {
-            "kind": "transliteration",
-            "text": "Get up and pray if you desire to do so."
-          },
-          {
             "kind": "translation",
             "text": "Get up and pray if you desire to do so."
           },
@@ -2803,7 +2957,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter31"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter31",
+      "partRoles": [
+        "instruction",
+        "supplication"
+      ]
     },
     {
       "id": 32,
@@ -2879,7 +3037,12 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter32"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter32",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 33,
@@ -2922,7 +3085,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter33"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter33",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 34,
@@ -2983,7 +3149,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter34"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter34",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 35,
@@ -3079,7 +3249,13 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter35"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter35",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 36,
@@ -3163,7 +3339,12 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter36"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter36",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 37,
@@ -3226,7 +3407,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter37"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter37",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 38,
@@ -3271,7 +3456,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter38"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter38",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 39,
@@ -3318,7 +3506,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter39"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter39",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 40,
@@ -3397,7 +3588,12 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter40"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter40",
+      "partRoles": [
+        "supplication",
+        "framed",
+        "framed"
+      ]
     },
     {
       "id": 41,
@@ -3455,7 +3651,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter41"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter41",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 42,
@@ -3497,7 +3697,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter42"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter42",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 43,
@@ -3541,7 +3744,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter43"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter43",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 44,
@@ -3563,10 +3769,6 @@
             "text": "مَا مِنْ عَبْدٍ يُذنِبُ ذَنْباً فَيُحْسِنُ الطُّهُورَ، ثُمَّ يَقُومُ فَيُصَلِّي رَكْعَتَيْنِ، ثُمَّ يَسْتَغْفِرُ اللَّهَ إِلاَّ غَفَرَ اللَّهُ لَهُ"
           },
           {
-            "kind": "transliteration",
-            "text": "There is not any slave of Allah who commits a sin, then he perfects his purification and stands to pray two Rak'ahs of prayer, then seeks Allah's forgiveness, except that Allah will forgive him."
-          },
-          {
             "kind": "translation",
             "text": "There is not any slave of Allah who commits a sin, then he perfects his purification and stands to pray two Rak'ahs of prayer, then seeks Allah's forgiveness, except that Allah will forgive him."
           },
@@ -3578,7 +3780,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter44"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter44",
+      "partRoles": [
+        "instruction"
+      ]
     },
     {
       "id": 45,
@@ -3620,11 +3825,44 @@
             "kind": "reference",
             "text": "Source: Abu Dawud 1/206, At-Tirmidhi. See also Al-Albani, Sahih At-Tirmidhi 1/77, and Surat Al-Mu'minun, 23:98-9."
           }
+        ],
+        [
+          {
+            "kind": "arabic",
+            "text": "الْأَذَانُ"
+          },
+          {
+            "kind": "translation",
+            "text": "The call to prayer - 'Athan."
+          },
+          {
+            "kind": "reference",
+            "text": "Source: Muslim 1/291, Al-Bukhari 1/151."
+          }
+        ],
+        [
+          {
+            "kind": "arabic",
+            "text": "الْأَذْكَارُ وَقِرَاءَةُ الْقُرْآنِ"
+          },
+          {
+            "kind": "translation",
+            "text": "Saying words of Allah's remembrance (Thikr) and recitation of the Qur'an."
+          },
+          {
+            "kind": "reference",
+            "text": "Source: \"Do not turn your homes into graveyards, surely the Devil flees from the house in which Surat Al-Baqarah is read,\" Muslim 1/539. The Devil is also driven out by the invocations for morning and evening, those that are said before sleeping and upon waking up, those for entering and leaving the house, including those for entering and leaving the mosque, and by many other authentic invocations taught to us by the Prophet (ﷺ) such as the reading of 'Ayatul-Kursi, (Al-Baqarah 2:255), and the last two 'Ayat of Surat Al-Baqarah before going to sleep. Whoever says: \"There is none worthy of worship but Allah alone, Who has no partner, His is the dominion and His is the praise, and he is Able to do all things,\" one hundred times, it will be a protection for him from the Devil throughout the day.'"
+          }
         ]
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter45"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter45",
+      "partRoles": [
+        "supplication",
+        "instruction",
+        "instruction"
+      ]
     },
     {
       "id": 46,
@@ -3671,7 +3909,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter46"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter46",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 47,
@@ -3713,7 +3954,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter47"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter47",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 48,
@@ -3743,7 +3987,7 @@
             "text": "كان رسول الله صلى الله عليه وسلم يعوذ الحسن والحسين \" أعيذكما بكلمات الله التامة ، من كل شيطان وهامة ، ومن كل عينِ لامة \""
           },
           {
-            "kind": "transliteration",
+            "kind": "context",
             "text": "The Prophet (ﷺ) used to seek Allah's protection for Al-Hasan and Al-Husain by saying:"
           },
           {
@@ -3758,7 +4002,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter48"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter48",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 49,
@@ -3817,7 +4064,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter49"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter49",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 50,
@@ -3841,10 +4092,6 @@
             "text": "قَالَ صلى الله عليه وسلم: (إِذَا عَادَ الرَّجُلُ أَخَاهُ الْمُسْلِمَ مَشَى فِي خِرَافَةِ الْجَنَّةِ حَتَّى يَجْلِسَ، فَإِذَا جَلَسَ غَمَرَتْهُ الرَّحْمَةُ، فَإِنْ كَانَ غُدْوَةً صَلَّى عَلَيْهِ سَبْعُونَ أَلْفَ مَلَكٍ حَتَّى يُمْسِيَ، وَإِنْ كَانَ مَسَاءً صَلَّى عَلَيْهِ سَبْعُونَ أَلْفَ مَلَكٍ حَتَّى يُصْبِحَ)"
           },
           {
-            "kind": "transliteration",
-            "text": "When a man goes to visit his sick Muslim brother, he walks along a path of Paradise until he sits, and when he sits he is cloaked in mercy. If he comes in the morning, seventy thousand angels pray for him until evening, and if he comes in the evening, seventy thousand angels pray for him until morning."
-          },
-          {
             "kind": "translation",
             "text": "When a man goes to visit his sick Muslim brother, he walks along a path of Paradise until he sits, and when he sits he is cloaked in mercy. If he comes in the morning, seventy thousand angels pray for him until evening, and if he comes in the evening, seventy thousand angels pray for him until morning."
           },
@@ -3856,7 +4103,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter50"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter50",
+      "partRoles": [
+        "virtue"
+      ]
     },
     {
       "id": 51,
@@ -3903,7 +4153,7 @@
             "text": "جعل النبي صلى الله عليه وسلم عند موته يدخل يديه في الماء فيمسح بهما وجههُ ويقول : لا إله إلا الله إن للموت لسكرات"
           },
           {
-            "kind": "transliteration",
+            "kind": "context",
             "text": "As he was dying, the Prophet (ﷺ) dipped his hands in water and wiped his face saying:"
           },
           {
@@ -3936,7 +4186,12 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter51"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter51",
+      "partRoles": [
+        "supplication",
+        "framed",
+        "supplication"
+      ]
     },
     {
       "id": 52,
@@ -3974,7 +4229,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter52"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter52",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 53,
@@ -4017,7 +4275,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter53"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter53",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 54,
@@ -4056,7 +4317,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter54"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter54",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 55,
@@ -4148,7 +4412,13 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter55"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter55",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 56,
@@ -4207,7 +4477,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter56"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter56",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 57,
@@ -4246,7 +4520,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter57"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter57",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 58,
@@ -4284,7 +4561,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter58"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter58",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 59,
@@ -4322,7 +4602,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter59"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter59",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 60,
@@ -4359,7 +4642,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter60"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter60",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 61,
@@ -4421,7 +4707,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter61"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter61",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 62,
@@ -4459,7 +4749,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter62"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter62",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 63,
@@ -4534,7 +4827,12 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter63"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter63",
+      "partRoles": [
+        "supplication",
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 64,
@@ -4574,7 +4872,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter64"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter64",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 65,
@@ -4614,7 +4915,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter65"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter65",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 66,
@@ -4652,7 +4956,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter66"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter66",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 67,
@@ -4691,7 +4998,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter67"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter67",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 68,
@@ -4747,7 +5057,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter68"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter68",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 69,
@@ -4769,10 +5083,6 @@
             "text": "إِذَا أَكَلَ أَحَدُكُمْ طَعَاماً فَلْيَقُلْ بِسْمِ اللَّهِ، فَإِنْ نَسِيَ فِي أَوَّلِهِ فَلْيَقُلْ بسمِ اللَّهِ فِي أَوَّلِهِ وَآخِرِهِ"
           },
           {
-            "kind": "transliteration",
-            "text": "When anyone of you begins eating, say:"
-          },
-          {
             "kind": "translation",
             "text": "When anyone of you begins eating, say: With the Name of Allah. And if you forget then, when you remember, say: With the Name of Allah, in the beginning, and in the end."
           },
@@ -4787,10 +5097,6 @@
             "text": "مَنْ أَطْعَمَهُ اللَّهُ الطَّعَامَ فَلْيَقُلْ: \"اللَّهُمَّ بَارِكْ لَنَا فِيهِ وَأَطْعِمْنَا خَيْراً مِنْهُ\"، وَمَنْ سَقَاهُ اللَّهُ لَبَناً فَلْيَقُلْ \"اللَّهُمَّ بَارِكْ لَنَا فِيهِ وَزِدْنَا مِنْهُ\""
           },
           {
-            "kind": "transliteration",
-            "text": "Whomever Allah has given food, should say:"
-          },
-          {
             "kind": "translation",
             "text": "Whomever Allah has given food, should say: O Allah, bless us in it and provide us with better than it. Whomever Allah has given milk to drink, should say : O Allah, bless us in it and give us more of it."
           },
@@ -4802,7 +5108,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter69"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter69",
+      "partRoles": [
+        "framed",
+        "framed"
+      ]
     },
     {
       "id": 70,
@@ -4861,7 +5171,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter70"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter70",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 71,
@@ -4901,7 +5215,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter71"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter71",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 72,
@@ -4940,7 +5257,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter72"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter72",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 73,
@@ -4980,7 +5300,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter73"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter73",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 74,
@@ -5008,10 +5331,6 @@
             "text": "(إِذَا دُعِيَ أَحَدُكُمْ فَلْيُجِبْ، فَإِنْ كَانَ صَائِماً فَلْيُصَلِّ، وَإِنْ كَانَ مُفْطِراً فَلْيَطْعَمْ) ، وَمَعْنَى فَلْيُصَلِّ أَيْ فَلْيَدْعُ."
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "When you are invited (to eat) then reply to the invitation. If you are fasting then invoke Allah's blessings (on your host), and if you are not fasting then eat."
           },
@@ -5023,7 +5342,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter74"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter74",
+      "partRoles": [
+        "instruction"
+      ]
     },
     {
       "id": 75,
@@ -5062,7 +5384,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter75"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter75",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 76,
@@ -5105,7 +5430,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter76"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter76",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 77,
@@ -5127,10 +5455,6 @@
             "text": "إِذَا عَطَسَ أَحَدُكُم فَلْيَقُلِ (الْحَمْدُ لِلَّهِ)، وَلْيَقُلْ لَهُ أَخُوهُ أَوْ صَاحِبُهُ: (يَرْحَمُكَ اللَّهُ)، فَإِذَا قَالَ لَهُ: (يَرحَمُكَ اللَّهُ)، فَلْيَقُلْ: (يَهْدِيكُمُ اللَّهُ وَيُصْلِحُ بَالَكُمْ)"
           },
           {
-            "kind": "transliteration",
-            "text": "When you sneeze , then say :"
-          },
-          {
             "kind": "translation",
             "text": "When you sneeze, then say: All praises and thanks are to Allah. Your companion should say: May Allah have mercy upon you. When someone says Yarḥamukallāh to you then you should say: May Allah guide you and set your affairs in order."
           },
@@ -5142,7 +5466,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter77"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter77",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 78,
@@ -5183,7 +5510,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter78"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter78",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 79,
@@ -5219,7 +5549,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter79"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter79",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 80,
@@ -5244,10 +5577,6 @@
             "text": "إِذَا تَزَوَّجَ أَحَدُكُمُ امْرَأَةً، أَوْ إِذَا اشْتَرَى خَادِماً فَلْيَقُلْ: (اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا، وَخَيْرَ مَا جَبَلْتَهَا عَلَيْهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا، وَشَرِّ مَا جَبَلْتَهَا عَلَيْهِ)، وَإِذَا اشْتَرَى بَعِيراً فَلْيَأْخُذْ بِذِرْوَةِ سَنَامِهِ وَلْيَقُلْ مِثْلَ ذَلِكَ."
           },
           {
-            "kind": "transliteration",
-            "text": "When any of you marries a woman or purchases a maid-servant then let him say:"
-          },
-          {
             "kind": "translation",
             "text": "When any of you marries a woman or purchases a maid-servant then let him say : O Allah, I ask You for the goodness of her, and the goodness upon which You have created her, and I seek refuge in You from the evil of her, and from the evil upon which You have created her. If you purchase a camel then take hold of the top of its hump and say the same."
           },
@@ -5259,7 +5588,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter80"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter80",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 81,
@@ -5299,7 +5631,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter81"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter81",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 82,
@@ -5339,7 +5674,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter82"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter82",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 83,
@@ -5379,7 +5717,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter83"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter83",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 84,
@@ -5401,10 +5742,6 @@
             "text": "عن ابن عمر قال : كان يعد لرسول الله صلى الله عليه وسلم في المجلس الواحد مائة مرة من قبل أن يقوم \"رب اغفر لي وتب علي إنك أنت التواب الغفور\""
           },
           {
-            "kind": "transliteration",
-            "text": "Ibn Umar (ra) said:"
-          },
-          {
             "kind": "translation",
             "text": "Ibn Umar (ra) said: Allah's Messenger (ﷺ) used to repeat in a single sitting: My Lord, forgive me, and accept my repentance, You are the Ever-Relenting, the All-Forgiving."
           },
@@ -5416,7 +5753,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter84"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter84",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 85,
@@ -5457,7 +5797,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter85"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter85",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 86,
@@ -5495,7 +5838,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter86"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter86",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 87,
@@ -5535,7 +5881,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter87"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter87",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 88,
@@ -5565,10 +5914,6 @@
             "text": ".(مَنْ حَفِظَ عَشْرَ آيَاتٍ مِنْ أَوَّلِ سُورَةِ الْكَهْفِ عُصِمَ مِنَ الدَّجَّالِ) ، وَالْاسْتِعَاذَةُ بِاللَّهِ مِنْ فِتْنَتِهِ عَقِبَ التَّشَهُّدِ الْأَخِيرِ مِنْ كُلِّ صَلاَةٍ."
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "Whoever memorizes ten 'Ayat (Verses) from the beginning of Surat Al-Kahf, will be protected from the False Messiah 1 if he recites in every prayer after the final Tashahhud before ending the prayer, seeking the protection of Allah from the trials of the False Messiah."
           },
@@ -5580,7 +5925,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter88"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter88",
+      "partRoles": [
+        "instruction"
+      ]
     },
     {
       "id": 89,
@@ -5622,7 +5970,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter89"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter89",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 90,
@@ -5663,7 +6014,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter90"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter90",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 91,
@@ -5702,7 +6056,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter91"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter91",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 92,
@@ -5747,7 +6104,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter92"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter92",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 93,
@@ -5789,7 +6149,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter93"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter93",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 94,
@@ -5832,7 +6195,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter94"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter94",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 95,
@@ -5875,7 +6241,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter95"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter95",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 96,
@@ -5913,7 +6282,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter96"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter96",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 97,
@@ -5955,7 +6327,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter97"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter97",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 98,
@@ -5996,7 +6371,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter98"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter98",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 99,
@@ -6040,7 +6418,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter99"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter99",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 100,
@@ -6081,7 +6462,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter100"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter100",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 101,
@@ -6140,7 +6524,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter101"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter101",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 102,
@@ -6166,10 +6554,6 @@
             "text": "قَالَ جَابِرٌ رضي الله عنه: (كُنَّا إِذَا صَعَدْنَا كَبَّرْنَا، وَإِذَا نَزَلْنَا سَبَّحْنَا)"
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "Jabir (ra), said:"
           },
@@ -6181,7 +6565,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter102"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter102",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 103,
@@ -6223,7 +6610,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter103"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter103",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 104,
@@ -6265,7 +6655,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter104"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter104",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 105,
@@ -6291,10 +6684,6 @@
             "text": "يُكَبِّرُ عَلَى كُلِّ شَرَفٍ ثَلاَثَ تَكْبِيرَاتٍ ثُمَّ يَقُولُ: لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ الْمُلْكُ، وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، آيِبُونَ، تَائِبُونَ، عَابِدُونَ، لِرَبِّنا حَامِدُونَ، صَدَقَ اللَّهُ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الْأَحْزابَ وَحْدَهُ"
           },
           {
-            "kind": "transliteration",
-            "text": "From every elevated point say Allāhu Akbar (three times), and then recite:"
-          },
-          {
             "kind": "translation",
             "text": "From every elevated point say Allāhu Akbar (Allah is the Most Great) three times and then recite: None has the right to be worshipped but Allah alone, Who has no partner. His is the dominion and His is the praise, and He is Able to do all things. We return repentant to our Lord, worshipping our Lord, and praising our Lord. He fulfilled His Promise, He aided His slave, and He alone defeated the Confederates."
           },
@@ -6306,7 +6695,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter105"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter105",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 106,
@@ -6337,10 +6729,6 @@
             "text": "كَانَ النَّبِيُّ صلى الله عليه وسلم إِذَا أَتَاهُ الْأَمْرُ يَسُرُّهُ قَالَ: (الْحَمْدُ لِلَّهِ الَّذِي بِنِعْمَتِهِ تَتِمُّ الصَّالِحَاتُ) وَإِذَا أَتَاهُ الْأَمْرُ يَكْرَهُهُ قَالَ: (الْحَمْدُ لِلَّهِ عَلَى كُلِّ حَالٍ)"
           },
           {
-            "kind": "transliteration",
-            "text": "When something happened that pleased him, the Prophet (ﷺ) used to say:"
-          },
-          {
             "kind": "translation",
             "text": "When something happened that pleased him, the Prophet (ﷺ) used to say: Praise is to Allah Who by His blessings all good things are perfected. And if something happened that displeased him, he used to say: Praise is to Allah in all circumstances."
           },
@@ -6352,7 +6740,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter106"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter106",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 107,
@@ -6378,10 +6769,6 @@
             "text": "قَالَ النَّبِيُّ صلى الله عليه وسلم: (مَنْ صَلَّى عَلَيَّ صَلاَةً صَلَّى اللَّهُ عَلَيْهِ بِهَا عَشْراً)"
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "The Prophet (ﷺ) said:"
           },
@@ -6394,10 +6781,6 @@
           {
             "kind": "arabic",
             "text": "وَقَالَ صلى الله عليه وسلم: (لاَ تَجْعَلُوا قَبْرِي عِيداً وَصَلُّوا عَلَيَّ؛ فَإِنَّ صَلاَتَكُم تَبْلُغُنِي حَيْثُ كُنْتُمْ)"
-          },
-          {
-            "kind": "transliteration",
-            "text": "--"
           },
           {
             "kind": "translation",
@@ -6414,10 +6797,6 @@
             "text": "وَقَالَ صلى الله عليه وسلم: (الْبَخِيلُ مَنْ ذُكِرْتُ عِنْدَهُ فَلَمْ يُصَلِّ عَلَيَّ)"
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "The Prophet (ﷺ) said:"
           },
@@ -6430,10 +6809,6 @@
           {
             "kind": "arabic",
             "text": "وَقَالَ صلى الله عليه وسلم:(إِنَّ لِلَّهِ مَلاَئِكَةً سَيَّاحِينَ فِي الْأَرْضِ يُبَلِّغُونِي مِنْ أُمَّتِي السَّلاَمَ)"
-          },
-          {
-            "kind": "transliteration",
-            "text": "--"
           },
           {
             "kind": "translation",
@@ -6450,10 +6825,6 @@
             "text": "وَقَالَ صلى الله عليه وسلم: (مَا مِنْ أَحَدٍ يُسَلِّمُ عَلَيَّ إِلاَّ رَدَّ اللَّهُ عَلَيَّ رُوحِيَ حَتَّى أَرُدَّ عَلَيْهِ السَّلاَمَ)"
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "The Prophet (ﷺ) said:"
           },
@@ -6465,7 +6836,14 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter107"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter107",
+      "partRoles": [
+        "virtue",
+        "virtue",
+        "virtue",
+        "virtue",
+        "virtue"
+      ]
     },
     {
       "id": 108,
@@ -6489,10 +6867,6 @@
             "text": "قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم: (لاَ تَدْخُلُوا الْجَنَّةَ حَتَّى تُؤْمِنُوا، وَلاَ تُؤْمِنُوا حَتَّى تَحَابُّوا، أَوَلاَ أَدُلُّكُم عَلَى شَيْءٍ إِذَا فَعَلْتُمُوهُ تَحَابَبْتُم، أَفْشُوا السَّلاَمَ بَيْنَكُمْ)"
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "The Prophet (ﷺ) said:"
           },
@@ -6507,12 +6881,8 @@
             "text": "ثَلاَثٌ مَنْ جَمَعَهُنَّ فَقَدْ جَمَعَ الْإِيمَانَ: الْإِنْصَافُ مِنْ نَفْسِكَ، وَبَذْلُ السَّلاَمِ لِلْعَالَمِ، وَالْإِنْفَاقُ مِنَ الإِقْتَارِ"
           },
           {
-            "kind": "transliteration",
-            "text": "Three characteristics, whoever combines them, has completed his faith: to be just, to spread greetings to all people and to spend (charitably) out of the little you have."
-          },
-          {
             "kind": "translation",
-            "text": "Three characteristics, whoever combines them, has completed his faith:"
+            "text": "Three characteristics, whoever combines them, has completed his faith: to be just, to spread greetings to all people and to spend (charitably) out of the little you have."
           },
           {
             "kind": "reference",
@@ -6523,10 +6893,6 @@
           {
             "kind": "arabic",
             "text": "وَعَنْ عَبْدِ اللَّهِ بْنِ عُمَرَ رَضِيَ اللَّهُ عَنْهُمَا: أنَّ رَجُلاً سَأَلَ النَّبِيَّ صلى الله عليه وسلم أيُّ الْإِسْلاَمِ خَيْرٌ قَالَ: (تُطْعِمُ الطَّعَامَ، وَتَقْرأُ السَّلاَمَ عَلَى مَنْ عَرَفْتَ وَمَنْ لَمْ تَعْرِفْ)"
-          },
-          {
-            "kind": "transliteration",
-            "text": "--"
           },
           {
             "kind": "translation",
@@ -6540,7 +6906,12 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter108"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter108",
+      "partRoles": [
+        "virtue",
+        "virtue",
+        "virtue"
+      ]
     },
     {
       "id": 109,
@@ -6578,7 +6949,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter109"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter109",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 110,
@@ -6610,10 +6984,6 @@
             "text": "إِذَا سَمِعْتُمْ صِيَاحَ الدِّيَكَةِ فَاسْأَلُوا اللَّهَ مِنْ فَضْلِهِ؛ فَإِنَّهَا رَأَتْ مَلَكاً وَإِذَا سَمِعْتُمْ نَهِيقَ الْحِمَارِ فَتَعَوَّذُوا بِاللَّهِ مِنَ الشَّيطَانِ؛ فَإِنَّهُ رَأَى شَيْطَاناً"
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "When you hear the cock's crow, ask Allah for His favor upon you for surely it has seen an angel. When you hear the bray of a donkey, seek refuge in Allah from Satan, for surely it has seen a devil."
           },
@@ -6625,7 +6995,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter110"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter110",
+      "partRoles": [
+        "instruction"
+      ]
     },
     {
       "id": 111,
@@ -6656,10 +7029,6 @@
             "text": "إِذَا سَمِعْتُمْ نُبَاحَ الْكِلاَبِ وَنَهِيقَ الْحَمِيرِ بِاللَّيْلِ فَتَعَوَّذُوا بِاللَّهِ مِنْهُنَّ؛ فَإِنَّهُنَّ يَرَيْنَ مَا لاَ تَرَوْنَ"
           },
           {
-            "kind": "transliteration",
-            "text": "When you hear a dog barking or a donkey braying in the night, then seek refuge in Allah from them, for surely they have seen what you see not."
-          },
-          {
             "kind": "translation",
             "text": "When you hear a dog barking or a donkey braying in the night, then seek refuge in Allah from them, for surely they have seen what you see not."
           },
@@ -6671,7 +7040,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter111"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter111",
+      "partRoles": [
+        "instruction"
+      ]
     },
     {
       "id": 112,
@@ -6708,7 +7080,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter112"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter112",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 113,
@@ -6732,10 +7107,6 @@
             "text": "قال صلى الله عليه وسلم: \"إِذَا كَانَ أَحَدُكُم مَادِحاً صَاحِبَهُ لاَ مَحَالَةَ فَلْيَقُلْ: أَحْسِبُ فُلاَناً وَاللَّهُ حَسِيبُهُ، وَلاَ أُزَكِّي عَلَى اللَّهِ أَحَداً، أَحْسِبُهُ – إِنْ كَانَ يَعْلَمُ ذَاكَ – كَذَا وَكَذَا\""
           },
           {
-            "kind": "transliteration",
-            "text": "If any of you praises his companion then let him say:"
-          },
-          {
             "kind": "translation",
             "text": "If any of you praises his companion then let him say: I consider (such and such a person), and Allah is his Assessor, (meaning: and I cannot claim anyone to be pious before Allah) if you know of this (good character trait in the person) to be such and such (saying what he thinks is praiseworthy in that person)."
           },
@@ -6747,7 +7118,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter113"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter113",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 114,
@@ -6786,7 +7160,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter114"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter114",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 115,
@@ -6828,7 +7205,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter115"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter115",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 116,
@@ -6855,10 +7235,6 @@
             "text": "طَافَ النَّبيُّ صلى الله عليه وسلم بِالْبَيْتِ عَلَى بَعِيرٍ كُلَّمَا أَتَى الرُّكْنَ أَشَارَ إِلَيْهِ بِشَيْءٍ عِنْدَهُ وَكَبَّرَ"
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "The Prophet (ﷺ) performed Tawaf riding a camel. Every time he passed the corner (containing the Black Stone), he would point to it with something that he was holding and say:"
           },
@@ -6870,7 +7246,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter116"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter116",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 117,
@@ -6913,7 +7292,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter117"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter117",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 118,
@@ -6940,10 +7322,6 @@
             "text": "(لَمَّا دَنَا النَّبِيُّ صلى الله عليه وسلم مِنَ الصَّفَا قَرَأَ: ﴿إِنَّ الصَّفَا وَالْمَرْوَةَ مِنْ شَعَآئِرِ اللَّهِ﴾ \"أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ\" فَبَدَأَ بِالصَّفَا فَرَقِيَ عَلَيْهِ حَتَّى رَأَى الْبَيْتَ، فَاسْتَقْبَلَ الْقِبْلَةَ، فَوَحَّدَ اللَّهَ وَكبَّرَهُ وَقَالَ: لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الْأَحْزَابَ وَحْدَهُ، ثُمَّ دَعَا بَيْنَ ذلكَ. قَالَ مِثْلَ هَذَا ثَلاَثَ مَرَّاتٍ) الْحَدِيثُ. وَفِيهِ: (فَفَعَلَ عَلَى الْمَرْوَةِ كَمَا فَعَلَ عَلَى الصَّفَا)"
           },
           {
-            "kind": "transliteration",
-            "text": "Whenever the Prophet (ﷺ) approached Mount Safa, he would recite:"
-          },
-          {
             "kind": "translation",
             "text": "Whenever the Prophet (ﷺ) approached Mount Safa, he would recite: Surely Safa and Marwah are among the signs of Allah. I begin by that which Allah began. He began (his Sa'y) at Mount Safa climbing it until he could see the House. He then faced the Qiblah repeating the words: There is none worthy of worship but Allah, and Allah is the Most Great. Then he said: None has the right to be worshipped but Allah alone, Who has no partner, His is the dominion and His is the praise, and He is Able to do all things. None has the right to be worshipped but Allah alone, He fulfilled His Promise, He aided His slave, and He alone defeated Confederates. Then he would ask Allah for what he liked, repeating the same thing like this three times. He did at Mount Marwah as he did at Mount Safa."
           },
@@ -6955,7 +7333,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter118"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter118",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 119,
@@ -6994,7 +7375,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter119"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter119",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 120,
@@ -7019,10 +7403,6 @@
             "text": "رَكِبَ صلى الله عليه وسلم الْقَصْوَاءَ حَتَّى أَتَى الْمَشْعَرَ الْحَرَامَ فَاسْتَقْبَلَ الْقِبْلَةَ (فَدَعَاهُ، وَكَبَّرَهُ، وَهَللَّهُ، وَوَحَّدَهُ) فَلَمْ يَزَلْ وَاقِفاً حَتَّى أَسْفَرَ جِدَّاً فَدَفَعَ قَبْلَ أَنْ تَطْلُعَ الشَّمسُ."
           },
           {
-            "kind": "transliteration",
-            "text": "'He (ﷺ) rode Al-Qaswa until he reached Al-MashAAar Al-Haram, he then faced the qiblah, supplicated to Allah, and extoled His greatness and oneness. He stood until the sun shone but left before it rose.'"
-          },
-          {
             "kind": "translation",
             "text": "'He (ﷺ) rode Al-Qaswa until he reached Al-MashAAar Al-Haram, he then faced the qiblah, supplicated to Allah, and extoled His greatness and oneness. He stood until the sun shone but left before it rose.'"
           },
@@ -7034,7 +7414,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter120"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter120",
+      "partRoles": [
+        "instruction"
+      ]
     },
     {
       "id": 121,
@@ -7063,10 +7446,6 @@
             "text": "يُكَبِّرُ كُلَّمَا رَمَى بِحَصَاةٍ عِنْدَ الْجِمَارِ الثَّلاَثِ، ثُمَّ يَتَقَدَّمُ، ويَقِفُ يَدْعُو مُسْتَقْبِلَ الْقِبلَةِ، رَافِعاً يَدَيْهِ بَعْدَ الْجَمْرَةِ الْأُولَى وَالثَّانِيَةِ. أَمَّا جَمْرَةُ الْعَقَبَةِ فَيَرْمِيهَا وَيُكَبِّرُ عِنْدَ كُلِّ حَصَاةٍ وَيَنْصَرِفُ وَلاَ يَقِفُ عِنْدَهَا"
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "The Prophet (ﷺ) said Allāhu Akbar (Allah is the Most Great) with each pebble he threw at the three pillars. Then he went forward, stood facing the Qiblah, and raised his hands and called upon Allah. That was after (stoning) the first and second pillars. As for the third, he stoned it and called out Allāhu Akbar with every pebble he threw, but when he was finished he left without standing at it (for supplications)."
           },
@@ -7078,7 +7457,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter121"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter121",
+      "partRoles": [
+        "instruction"
+      ]
     },
     {
       "id": 122,
@@ -7139,7 +7521,11 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter122"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter122",
+      "partRoles": [
+        "supplication",
+        "supplication"
+      ]
     },
     {
       "id": 123,
@@ -7166,10 +7552,6 @@
             "text": "كَانَ النَّبيُّ صلى الله عليه وسلم إِذَا أَتَاهُ أَمْرٌ يَسُرُّهُ أَوْ يُسَرُّ بِهِ خَرَّ سَاجِداً شُكْراً لِلَّهِ تَبَارَكَ وَتَعَالَى"
           },
           {
-            "kind": "transliteration",
-            "text": "The Prophet (ﷺ), upon receiving news which pleased him or which caused pleasure, would prostrate in gratitude to Allah blessed and exalted."
-          },
-          {
             "kind": "translation",
             "text": "The Prophet (ﷺ), upon receiving news which pleased him or which caused pleasure, would prostrate in gratitude to Allah blessed and exalted."
           },
@@ -7181,7 +7563,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter123"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter123",
+      "partRoles": [
+        "instruction"
+      ]
     },
     {
       "id": 124,
@@ -7212,10 +7597,6 @@
             "text": "ضَعْ يَدَكَ عَلَى الَّذِي تَألَّمَ مِنْ جَسَدِكَ وَقُلْ: \"بِسْمِ اللَّهِ\" ثَلاَثاً، وَقُلْ سَبْعَ مَرَّاتٍ: \"أَعُوذُ بِاللَّهِ وَقُدْرَتِهِ مِنْ شَرِّ مَا أَجِدُ وَأُحَاذِرُ\""
           },
           {
-            "kind": "transliteration",
-            "text": "Put your hand on the place where you feel pain and say:"
-          },
-          {
             "kind": "translation",
             "text": "Put your hand on the place where you feel pain and say: With the Name of Allah (three times). Then say seven times: I seek refuge in Allah and in His Power from the evil of what I find and of what I guard against."
           },
@@ -7227,7 +7608,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter124"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter124",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 125,
@@ -7263,10 +7647,6 @@
             "text": "إِذَا رَأَى أَحَدُكُم مِنْ أَخِيهِ، أَوْ مِنْ نَفْسِهِ، أَوْ مِنْ مَالِهِ مَا يُعْجِبُهُ [فَلْيَدْعُ لَهُ بِالْبَرَكَةِ] فَإِنَّ الْعَيْنَ حَقٌّ"
           },
           {
-            "kind": "transliteration",
-            "text": "If you see something from your brother, yourself or wealth which you find impressing, then invoke blessings for it, for the evil eye is indeed true."
-          },
-          {
             "kind": "translation",
             "text": "If you see something from your brother, yourself or wealth which you find impressing, then invoke blessings for it, for the evil eye is indeed true."
           },
@@ -7278,7 +7658,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter125"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter125",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 126,
@@ -7321,7 +7704,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter126"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter126",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 127,
@@ -7360,7 +7746,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter127"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter127",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 128,
@@ -7407,7 +7796,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter128"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter128",
+      "partRoles": [
+        "supplication"
+      ]
     },
     {
       "id": 129,
@@ -7430,10 +7822,6 @@
             "text": "قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم: \"وَاللَّهِ إِنِّي لأَسْتَغفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ فِي الْيَوْمِ أَكْثَرَ مِنْ سَبْعِينَ مَرَّةٍ\""
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "Allah's Messenger (ﷺ) said:"
           },
@@ -7446,10 +7834,6 @@
           {
             "kind": "arabic",
             "text": "وَقَالَ صلى الله عليه وسلم: (يَا أَيُّهَا النَّاسُ تُوبُوا إِلَى اللَّهِ فَإِنِّي أَتُوبُ فِي الْيَوْمِ إِلَيْهِ مِائَةَ مَرَّةٍ)"
-          },
-          {
-            "kind": "transliteration",
-            "text": "--"
           },
           {
             "kind": "translation",
@@ -7466,10 +7850,6 @@
             "text": "وَقَالَ صلى الله عليه وسلم: مَنْ قَالَ (أَسْتَغْفِرُ اللَّهَ الْعَظيمَ الَّذِي لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ القَيّوُمُ وَأَتُوبُ إِلَيهِ)، غَفَرَ اللَّهُ لَهُ وَإِنْ كَانَ فَرَّ مِنَ الزَّحْفِ."
           },
           {
-            "kind": "transliteration",
-            "text": "Allah's Messenger (ﷺ) said:"
-          },
-          {
             "kind": "translation",
             "text": "Allah's Messenger (ﷺ) said: Whoever says: I seek the forgiveness of Allah the Mighty, Whom there is none worthy of worship except Him, the Living, the Eternal, and I repent to Him, Allah will forgive him even if he has deserted the army's ranks."
           },
@@ -7482,10 +7862,6 @@
           {
             "kind": "arabic",
             "text": "وَقَالَ صلى الله عليه وسلم: أَقْرَبُ مَا يَكُونُ الرَّبُّ مِنَ الْعَبْدِ فِي جَوْفِ اللَّيْلِ الآخِرِ فَإِنِ اسْتَطَعْتَ أَنْ تَكُونَ مِمَّنْ يَذْكُرُ اللَّهَ فِي تِلْكَ السَّاعَةِ فَكُنْ"
-          },
-          {
-            "kind": "transliteration",
-            "text": "--"
           },
           {
             "kind": "translation",
@@ -7502,10 +7878,6 @@
             "text": ".وَقَالَ صلى الله عليه وسلم: أَقْرَبُ مَا يَكُونُ الْعَبْدُ مِنْ رَبِّهِ وَهُوَ سَاجِدٌ فَأَكثِرُوا الدُّعَاءَ."
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "Allah's Messenger (ﷺ) said:"
           },
@@ -7520,10 +7892,6 @@
             "text": ".وَقَالَ صلى الله عليه وسلم: إِنَّهُ لَيُغَانُ عَلَى قَلْبِي وَإِنِّي لأَسْتَغْفِرُ اللَّهَ فِي الْيَوْمِ مِائَةَ مَرَّةٍ."
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "Allah's Messenger (ﷺ) said:"
           },
@@ -7535,7 +7903,15 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter129"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter129",
+      "partRoles": [
+        "framed",
+        "virtue",
+        "framed",
+        "virtue",
+        "virtue",
+        "framed"
+      ]
     },
     {
       "id": 130,
@@ -7563,10 +7939,6 @@
             "text": "قَالَ صلى الله عليه وسلم: مَنْ قَالَ (سُبْحَانَ اللَّهِ وَبِحَمْدِهِ) فِي يَوْمٍ مِائَةَ مَرَّةٍ حُطَّتْ خَطَايَاهُ وَلَوْ كَانَتْ مِثْلَ زَبَدِ الْبَحْر."
           },
           {
-            "kind": "transliteration",
-            "text": "Allah's Messenger (ﷺ) said:"
-          },
-          {
             "kind": "translation",
             "text": "Allah's Messenger (ﷺ) said: Whoever says: Glorified is Allah and praised is He. one hundred times a day, will have his sins forgiven even if they are like the foam of the sea."
           },
@@ -7579,10 +7951,6 @@
           {
             "kind": "arabic",
             "text": "وَقَالَ صلى الله عليه وسلم: مَنْ قَالَ (لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ الْمُلْكُ، وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ) عَشْرَ مِرَارٍ، كَانَ كَمَنْ أَعْتَقَ أَرْبَعَةَ أَنْفُسٍ مِنْ وَلَدِ إِسْمَاعِيلَ"
-          },
-          {
-            "kind": "transliteration",
-            "text": "Allah's Messenger (ﷺ) said:"
           },
           {
             "kind": "translation",
@@ -7599,10 +7967,6 @@
             "text": "وَقَالَ صلى الله عليه وسلم: كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ، ثَقِيلَتَانِ فِي الْمِيزَانِ، حَبِيبَتَانِ إِلَى الرَّحْمَنِ: (سُبْحَانَ اللَّهِ وَبِحَمْدِهِ)، (سُبْحانَ اللَّهِ الْعَظِيمِ)"
           },
           {
-            "kind": "transliteration",
-            "text": "Allah's Messenger (ﷺ) said:"
-          },
-          {
             "kind": "translation",
             "text": "Allah's Messenger (ﷺ) said: Two words are light on the tongue, weigh heavily in the balance, and are loved by the Most Merciful One: Glorified is Allah and praised is He, Glorified is Allah the Most Great."
           },
@@ -7615,10 +7979,6 @@
           {
             "kind": "arabic",
             "text": "وَقَالَ صلى الله عليه وسلم: لَأَنْ أَقُولَ (سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَلاَ إِلَهَ إِلاَّ اللَّهُ، وَاللَّهُ أَكْبَرُ)، أَحَبُّ إِلَيَّ مِمَّا طَلَعَتْ عَلَيْهِ الشَّمسُ."
-          },
-          {
-            "kind": "transliteration",
-            "text": "Allah's Messenger (ﷺ) said:"
           },
           {
             "kind": "translation",
@@ -7635,10 +7995,6 @@
             "text": "وَقَالَ صلى الله عليه وسلم: أَيَعْجِزُ أَحَدُكُم أَنْ يَكْسِبَ كُلَّ يَوْمٍ أَلْفَ حَسَنَةٍ؟ فَسَأَلَهُ سَائِلٌ مِنْ جُلَسَائِهِ كَيْفَ يَكْسِبُ أَحَدُنَا أَلْفَ حَسَنَةٍ؟ قَالَ: يُسَبِّحُ مِائَةَ تَسْبِيحَةٍ، فَيُكتَبُ لَهُ أَلْفُ حَسَنَةٍ أَوْ يُحَطُّ عَنْهُ أَلْفُ خَطِيئَةٍ."
           },
           {
-            "kind": "transliteration",
-            "text": "--"
-          },
-          {
             "kind": "translation",
             "text": "Allah's Messenger (ﷺ) said:"
           },
@@ -7651,10 +8007,6 @@
           {
             "kind": "arabic",
             "text": "مَنْ قَالَ (سُبْحَانَ اللَّهِ الْعَظِيمِ وَبِحَمْدِهِ) غُرِسَتْ لَهُ نَخْلَةٌ فِي الْجَنَّةِ"
-          },
-          {
-            "kind": "transliteration",
-            "text": "Whoever says:"
           },
           {
             "kind": "translation",
@@ -7671,10 +8023,6 @@
             "text": "وَقَالَ صلى الله عليه وسلم: يَا عَبْدَ اللَّهِ بْنَ قَيْسٍ أَلاَ أَدُلُّكَ عَلَى كَنْزٍ مِنْ كُنُوزِ الْجَنَّةِ؟ فَقُلْتُ: بَلَى يَا رَسُولَ اللَّهِ، قَالَ: قُلْ (لاَ حَوْلَ وَلاَ قُوَّةَ إِلاَّ بِاللَّهِ)."
           },
           {
-            "kind": "transliteration",
-            "text": "Allah's Messenger (ﷺ) said:"
-          },
-          {
             "kind": "translation",
             "text": "Allah's Messenger (ﷺ) said: \"O Abdullah bin Qais, should I not point you to one of the treasures of Paradise?\" I said, \"Yes, O Messenger of Allah.\" So he told me to say: There is no power and no might except by Allah."
           },
@@ -7687,10 +8035,6 @@
           {
             "kind": "arabic",
             "text": "وَقَالَ صلى الله عليه وسلم: أَحَبُّ الْكَلاَمِ إِلَى اللَّهِ أَرْبَعٌ: (سُبْحَانَ اللَّهِ)، وَ(الْحَمْدُ لِلَّهِ)، وَ(لاَ إِلَهَ إِلاَّ اللَّهُ)، وَ(اللَّهُ أَكْبَرُ)، لاَ يَضُرُّكَ بِأَيِّهِنَّ بَدَأتَ"
-          },
-          {
-            "kind": "transliteration",
-            "text": "Allah's Messenger (ﷺ) said:"
           },
           {
             "kind": "translation",
@@ -7707,10 +8051,6 @@
             "text": "جَاءَ أَعْرَابِيٌّ إِلَى رَسُولِ اللَّهِ صلى الله عليه وسلم فَقَالَ: عَلِّمْنِي كَلاماً أَقُولُهُ: قَالَ: قُلْ (لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، اللَّهُ أَكْبَرُ كَبِيراً، وَالْحَمْدُ لِلَّهِ كَثِيراً، سُبْحَانَ اللَّهِ رَبِّ العَالَمِينَ، لاَ حَوْلَ وَلاَ قُوَّةَ إِلاَّ بِاللَّهِ الْعَزِيزِ الْحَكِيمِ). قَالَ: فَهَؤُلاَءِ لِرَبِّي، فَمَا لِي؟ قَالَ: قُلْ (اللَّهُمَّ اغْفِرْ لِي، وَارْحَمْنِي، وَاهْدِنِي، وَارْزُقْنِي)."
           },
           {
-            "kind": "transliteration",
-            "text": "A desert Arab came to Allah's Messenger (ﷺ) and said, \"Teach me a word that I can say. \" The Prophet told him to say:"
-          },
-          {
             "kind": "translation",
             "text": "A desert Arab came to Allah's Messenger (ﷺ) and said, \"Teach me a word that I can say. \" The Prophet told him to say: There is none worthy of worship but Allah, Who has no partner, Allah is the Great, the Most Great, and praise is to Allah in abundance, glory is to Allah, Lord of the worlds. There is no power and no might but by Allah the Mighty, the Wise. He said, \"That is for my Lord, but what about me?\" The Prophet (ﷺ) told him to say: O Allah forgive me, and have mercy on me and guide me, and provide for me."
           },
@@ -7723,10 +8063,6 @@
           {
             "kind": "arabic",
             "text": "كَانَ الرَّجُلُ إِذَا أَسْلَمَ عَلَّمَهُ النَّبيُّ صلى الله عليه وسلم الصَّلاَةَ ثُمَّ أَمَرَهُ أَنْ يَدْعُوَ بِهَؤُلاَءِ الْكَلِمَاتِ: (اللَّهُمَّ اغْفِرِ لِي، وَارْحَمْنِي، وَاهْدِنِي، وَعَافِنِي وَارْزُقْنِي)"
-          },
-          {
-            "kind": "transliteration",
-            "text": "Whenever anyone accepted Islam, the Prophet (ﷺ) used to teach him how to pray then he would instruct him to invoke Allah with the following words:"
           },
           {
             "kind": "translation",
@@ -7743,10 +8079,6 @@
             "text": "إِنَّ أَفْضَلَ الدُّعَاءِ (الْحَمْدُ لِلَّهِ)، وَأَفْضَلَ الذِّكْرِ (لاَ إِلَهَ إِلاَّ اللَّهُ)"
           },
           {
-            "kind": "transliteration",
-            "text": "The most excellent invocation is:"
-          },
-          {
             "kind": "translation",
             "text": "The most excellent invocation is: Praise is for Allah. and the most excellent words of remembrance are: There is none worthy of worship but Allah."
           },
@@ -7761,10 +8093,6 @@
             "text": "الباقيات الصالحات : (سبحان الله) و(الحمد لله )، و(لا إله إلا الله)، و(الله أكبر) ،و (لا حول ولا قوة إلا بالله)."
           },
           {
-            "kind": "transliteration",
-            "text": "The good deeds which endure are:"
-          },
-          {
             "kind": "translation",
             "text": "The good deeds which endure are: Glorified is Allah, and The praise is for Allah, and There is none worthy of worship but Allah, and Allah is the Most Great, and There is no power and no might except by Allah."
           },
@@ -7776,7 +8104,21 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter130"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter130",
+      "partRoles": [
+        "framed",
+        "framed",
+        "framed",
+        "framed",
+        "framed",
+        "framed",
+        "framed",
+        "framed",
+        "framed",
+        "framed",
+        "framed",
+        "framed"
+      ]
     },
     {
       "id": 131,
@@ -7799,12 +8141,8 @@
             "text": "عَنْ عَبْدِ اللَّهِ بْنِ عَمْرٍو رضي الله عنهما قَالَ: رَأَيْتُ النَّبيَّ صلى الله عليه وسلم يَعْقِدُ التَّسْبِيحَ بِيَمِينِهِ."
           },
           {
-            "kind": "transliteration",
-            "text": "Abdullah bin 'Amr (RA) said: \"I saw the Prophet (ﷺ) counting the glorification of his Lord on his right hand.\""
-          },
-          {
             "kind": "translation",
-            "text": "Abdullah bin 'Amr (RA) said:"
+            "text": "Abdullah bin 'Amr (RA) said: \"I saw the Prophet (ﷺ) counting the glorification of his Lord on his right hand.\""
           },
           {
             "kind": "reference",
@@ -7814,7 +8152,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter131"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter131",
+      "partRoles": [
+        "framed"
+      ]
     },
     {
       "id": 132,
@@ -7841,10 +8182,6 @@
             "text": "إِذَا كَانَ جُنْحُ اللَّيْلِ – أَوْ أَمْسَيْتُم – فَـكُفُّوا صِبْيانَـكُم، فَإِنَّ الشَّيَاطِينَ تَنْتَشِرُ حِينَئِذٍ، فَإِذَا ذَهَبَ سَاعَةٌ مِنَ اللَّيلِ فَخَلُّوهُمْ، وَأَغْلِقُوا الأَبْوَابَ وَاذْكُرُوا اسْمَ اللَّهِ؛ فَإِنَّ الشَّيطَانَ لاَ يَفْتَحُ بَاباً مُغلَقاً، وَأَوْكُوا قِرَبَكُمْ، وَاذْكُرُوا اسْمَ اللَّهِ، وَخَمِّرُوا آنِيَتَكُم، وَاذْكُرُوا اسْمَ اللَّهِ، وَلَوْ أَنْ تَعْرُضُوا عَلَيْهَا شَيْئاً، وَأَطْفِئُوا مَصَابِيحَكُمْ."
           },
           {
-            "kind": "transliteration",
-            "text": "When night falls, restrain your children (from going out) because at such time the devils spread about. After a period of time has passed, let them be. Shut your doors and mention Allah’s name, for verily the devil does not open a shut door, tie up your water-skins and mention Allah’s name, cover your vessels with anything and mention Allah’s name and put out your lamps."
-          },
-          {
             "kind": "translation",
             "text": "When night falls, restrain your children (from going out) because at such time the devils spread about. After a period of time has passed, let them be. Shut your doors and mention Allah’s name, for verily the devil does not open a shut door, tie up your water-skins and mention Allah’s name, cover your vessels with anything and mention Allah’s name and put out your lamps."
           },
@@ -7856,7 +8193,10 @@
       ],
       "verificationStatus": "verified",
       "revisionNumber": 1,
-      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter132"
+      "canonicalUrl": "https://fortressofmuslim.org/hisn/chapter132",
+      "partRoles": [
+        "virtue"
+      ]
     }
   ],
   "canonicalDataset": "hisn-local-approved-2026-07-23",

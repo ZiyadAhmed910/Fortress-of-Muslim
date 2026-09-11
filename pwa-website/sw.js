@@ -54,7 +54,7 @@ const ASSETS = [
   `./js/utils.js?v=${APP_VERSION}`,
   './manifest.json',
   './data/duas.json',
-  './data/duas.json?v=2026-07-23-hisn-v4',
+  './data/duas.json?v=2026-09-11-hisn-roles',
   './data/quran/index.json',
   './icons/favicon.svg',
   './icons/icon-192.png',

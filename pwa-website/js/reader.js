@@ -44,10 +44,27 @@ export function renderReader() {
   els.readerFavouriteButton.classList.toggle('active', state.favourites.has(entry.uid));
   els.previousButton.disabled = state.currentIndex === 0 && state.currentPart === 0;
   els.nextButton.disabled = state.currentIndex === state.filtered.length - 1 && state.currentPart === entry.parts.length - 1;
-  els.duaContent.innerHTML = part.map((segment) => {
-    return `<p class="segment ${segmentClass(segment)}">${escapeHtml(segment.text)}</p>`;
-  }).join('');
+  const role = entry.partRoles?.[state.currentPart] || 'supplication';
+  const note = ROLE_NOTES[role];
+  els.duaContent.dataset.role = role;
+  els.duaContent.innerHTML = (note
+    ? `<p class="reading-role reading-role-${role}"><span class="reading-role-label">${note.label}</span>${note.detail ? `<span class="reading-role-detail">${note.detail}</span>` : ''}</p>`
+    : '')
+    + part.map((segment) => `<p class="segment ${segmentClass(segment)}">${escapeHtml(segment.text)}</p>`).join('');
 }
+
+/**
+ * Hisn al-Muslim holds four kinds of reading, and each is read differently. Most are supplications
+ * and get no label at all. The others say what they are before they are read: an instruction or a
+ * virtue narration has no words to recite -- and so no transliteration line, which without this note
+ * would look like missing data -- and a framed reading carries its narration in the Arabic, so the
+ * reader knows not every word of it is the dua itself.
+ */
+const ROLE_NOTES = {
+  framed: { label: 'In context', detail: 'The narration around the words, as the book gives them.' },
+  instruction: { label: 'Guidance', detail: 'What to do here -- there are no set words to recite.' },
+  virtue: { label: 'Virtue', detail: 'The reward of a deed, not words to recite.' },
+};
 
 export function currentEntry() {
   return state.filtered[state.currentIndex];
@@ -103,6 +120,7 @@ export async function copyCurrentEntry() {
 }
 
 export function segmentClass(segment) {
+  if (segment.kind === 'context') return 'context';
   const text = segment.text.trim();
   if (/[\u0600-\u06FF]/.test(text)) return 'arabic';
   if (/^[‘“]/.test(text)) return 'translation';
