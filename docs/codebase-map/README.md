@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-11T15:35:39.881Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-11T15:43:50.999Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -65,7 +65,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/lib/record-query.ts` | ts | 88 |  | type RecordQueryDefinition, function executeRecordQuery |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 41 |  | function expandRetrievalQuery |
-| `apps/api/src/rag.ts` | ts | 611 |  | type RagSource, function indexRecordBatch, function indexNextPendingBatch, function getRagStatus, function answerQuestion, class RagRateLimitError |
+| `apps/api/src/rag.ts` | ts | 639 |  | type RagSource, function indexRecordBatch, function indexNextPendingBatch, function getRagStatus, function answerQuestion, const EMBEDDING_CALL_TOKEN_BUDGET, +2 more |
 | `apps/api/src/repositories/content-repository.ts` | ts | 60 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 726 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
@@ -75,7 +75,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/test/fuzzy-title.test.ts` | ts | 30 |  |  |
 | `apps/api/test/hadith-reference.test.ts` | ts | 127 |  |  |
 | `apps/api/test/rag-filters.test.ts` | ts | 208 |  |  |
-| `apps/api/test/rag-index.test.ts` | ts | 62 |  |  |
+| `apps/api/test/rag-index.test.ts` | ts | 125 |  |  |
 | `apps/api/test/rag-quality.test.ts` | ts | 174 |  |  |
 | `apps/api/test/rag-reference.test.ts` | ts | 28 |  |  |
 | `apps/api/test/rag-synonyms.test.ts` | ts | 27 |  |  |
@@ -294,6 +294,7 @@ Not all of these are bugs; verify before assuming.
 | before | unknown | `(not defined in scanned files)` | `pwa-website/js/userData.js` |
 | books | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | both | unknown | `(not defined in scanned files)` | `apps/api/src/repositories/d1-content-repository.ts` |
+| calls | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | canonical_dataset_items | table | `apps/api/migrations/0008_publication_snapshots.sql` | `apps/api/src/rag.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | canonical_dataset_versions | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/src/rag.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/arabic-search.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts` |
 | canonical_publication_history | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts` |

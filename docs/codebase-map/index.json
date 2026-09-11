@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T15:35:39.881Z",
+  "generatedAt": "2026-09-11T15:43:50.999Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -96,7 +96,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 611,
+      "lines": 639,
       "language": "ts",
       "exports": [
         "type RagSource",
@@ -104,6 +104,8 @@
         "function indexNextPendingBatch",
         "function getRagStatus",
         "function answerQuestion",
+        "const EMBEDDING_CALL_TOKEN_BUDGET",
+        "function embeddingCalls",
         "class RagRateLimitError"
       ],
       "imports": [
@@ -238,7 +240,7 @@
     },
     {
       "path": "apps/api/test/rag-index.test.ts",
-      "lines": 62,
+      "lines": 125,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -2233,6 +2235,14 @@
       "definedIn": [],
       "referencedBy": [
         "apps/api/src/repositories/d1-content-repository.ts"
+      ]
+    },
+    {
+      "name": "calls",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
       ]
     },
     {

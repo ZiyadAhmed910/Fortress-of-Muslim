@@ -94,15 +94,18 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
 
   if (rows.results.length > 0) {
     try {
-      const texts = rows.results.map(indexText);
-      const embeddings = await env.AI.run(EMBEDDING_MODEL, { text: texts }) as EmbeddingResponse;
-      if (embeddings.data.length !== rows.results.length) {
-        throw new Error('Embedding response count did not match the indexing batch.');
+      const vectors: number[][] = [];
+      for (const texts of embeddingCalls(rows.results.map(indexText))) {
+        const embeddings = await env.AI.run(EMBEDDING_MODEL, { text: texts }) as EmbeddingResponse;
+        if (embeddings.data.length !== texts.length) {
+          throw new Error('Embedding response count did not match the indexing batch.');
+        }
+        vectors.push(...embeddings.data);
       }
       await env.VECTOR_INDEX.upsert(rows.results.map((row, index) => ({
         id: row.recordId,
         namespace: dataset.id,
-        values: embeddings.data[index]!,
+        values: vectors[index]!,
         metadata: {
           recordId: row.recordId,
           contentType: row.contentType,
@@ -506,6 +509,31 @@ async function updateIndexState(
       updated_at = CURRENT_TIMESTAMP,
       completed_at = CASE WHEN excluded.status = 'ready' THEN CURRENT_TIMESTAMP ELSE rag_index_state.completed_at END
   `).bind(datasetId, expected, indexed, status, error, status).run();
+}
+
+// Workers AI pads every input in an embedding call to the longest one, and rejects a call whose
+// padded total exceeds the model's context -- 60,000 tokens for bge-m3. Fifty Hisn readings in one
+// call failed as "Max context reached 81200 tokens": 50 inputs x the 1,624 tokens of the longest.
+// So a batch is split into calls sized by that padded cost. Tokens are estimated at one per
+// character, which overstates the ~0.6 measured on this corpus and leaves room for denser text.
+export const EMBEDDING_CALL_TOKEN_BUDGET = 40_000;
+
+export function embeddingCalls(texts: string[]): string[][] {
+  const calls: string[][] = [];
+  let call: string[] = [];
+  let longest = 0;
+  for (const text of texts) {
+    const widened = Math.max(longest, text.length);
+    if (call.length > 0 && (call.length + 1) * widened > EMBEDDING_CALL_TOKEN_BUDGET) {
+      calls.push(call);
+      call = [];
+      longest = 0;
+    }
+    call.push(text);
+    longest = Math.max(longest, text.length);
+  }
+  if (call.length > 0) calls.push(call);
+  return calls;
 }
 
 function indexText(row: IndexRow) {

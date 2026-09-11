@@ -199,6 +199,11 @@ _2026-09-11_
 - **Arabic search over Hisn fixed.** 0013 wrote the dua search rows with their diacritics, and FTS5
   does not strip Arabic tashkeel, so a query typed without diacritics found nothing. The dua rows
   are rebuilt with the same normalisation every application write path uses.
+- **Ask re-indexing fixed.** Workers AI pads every input in an embedding call to the longest one and
+  refuses a call over the model's 60,000-token context. The indexer sent 50 records per call, so
+  republishing Hisn failed at once ("Max context reached 81200 tokens": 50 x the longest reading's
+  1,624) and retried the same batch every minute. Any republish would have hit it. Calls are now
+  sized by that padded cost.
 - Verified before shipping by running the migration against a full copy of the test database:
   all 268 readings match the PWA's data in text and role, no existing revision changed, and a
   record with drifted text is skipped. `apps/api/test/reading-roles-migration.test.ts` runs it
