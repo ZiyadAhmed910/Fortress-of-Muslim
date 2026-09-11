@@ -56,6 +56,15 @@ def stamp_artwork(build_version: str) -> None:
                 rf"\1?v={build_version}")
 
 
+def stamp_brand(build_version: str) -> None:
+    # Keep HTML, installed-app icons, media artwork and notification icons at the same build.
+    # Service-worker icon URLs already interpolate APP_VERSION in its precache manifest.
+    paths = [*ROOT.glob("*.html"), ROOT / "manifest.json", *(ROOT / "js").glob("*.js")]
+    for path in paths:
+        replace(path, r"(icons/[a-z0-9-]+\.(?:svg|png|ico))(?:\?v=[^\"']*)?",
+                rf"\1?v={build_version}")
+
+
 def main() -> None:
     count = int(git_value("rev-list", "--count", "HEAD", fallback="13"))
     sha = git_value("rev-parse", "--short=10", "HEAD", fallback="local")
@@ -100,6 +109,7 @@ def main() -> None:
 
     stamped_modules = stamp_module_imports(build_version)
     stamp_artwork(build_version)
+    stamp_brand(build_version)
 
     print(f"Stamped app version {display_version} ({build_version}); {stamped_modules} module file(s) re-imported at this build")
 

@@ -14,6 +14,19 @@ Then open `http://localhost:8080`.
 
 Service workers require `localhost` or HTTPS, so opening `index.html` directly will not fully test install/offline behavior.
 
+## Brand assets
+
+The PWA uses a gold crescent, a pointed gateway and a four-point star on deep teal.
+`icons/logo.svg` is the header mark. The favicon drops the gateway for clarity at 16 pixels;
+SVG, ICO and 16/32px PNG versions are available. Install icons are generated at 192/512px,
+with separate opaque maskable versions that keep the symbol inside the central safe area.
+The Apple touch icon is 180px with square edges for the platform to mask.
+
+Rebuild all brand files with `node pwa-website/tools/build-brand.mjs` from the repository root.
+The generator uses installed Edge (or `EDGE_EXECUTABLE_PATH`) to rasterize the same vector
+geometry for every size. Header, gallery, manifest, media-session and notification references
+are versioned at deployment, and the app's brand assets are included in its offline cache.
+
 ## Living card artwork
 
 Open `http://localhost:8080/art-preview.html` to review all nine animated, text-free banners.

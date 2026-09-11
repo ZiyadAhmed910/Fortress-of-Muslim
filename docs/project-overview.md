@@ -160,6 +160,9 @@ What it actually contains today:
 - **Reminders** — opt-in local notifications for the five prayers and morning/evening adhkar.
 - **Shell** — simple and advanced layouts, per-feature show/hide, dark mode, first-run walkthrough,
   and backup export/import covering favourites, settings, tasbih, layout and Quran preferences.
+- **PWA identity** — a shared gold crescent/gateway mark with a simplified favicon, separate
+  maskable install icons and an Apple touch icon, generated from one vector source. References
+  are versioned for each deployment and precached for offline use.
 - **Advanced card artwork** — nine text-free SVG scenes with shaded architecture and gentle
   ambient animation. Each card's title, description and reading count are HTML over the art, in
   the same words as the screen the card opens (`test/card-labels.test.js` holds the two together). Appearance settings offer Optimized (default), Full and Still, persisted

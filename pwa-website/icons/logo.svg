@@ -4,10 +4,10 @@
     <linearGradient id="gold" x1=".15" y1="0" x2=".75" y2="1"><stop stop-color="#fff0c5"/><stop offset=".45" stop-color="#e7c581"/><stop offset="1" stop-color="#bd8c4e"/></linearGradient>
   </defs>
   <rect width="128" height="128" rx="28" fill="url(#teal)"/>
-
-  <g transform="translate(64 64) scale(0.92) translate(-64 -64)" fill="#f3d99e">
+  <rect x="2" y="2" width="124" height="124" rx="26" fill="none" stroke="#f3dbac" stroke-opacity=".18"/>
+  <g transform="translate(64 64) scale(0.92) translate(-64 -64)" fill="url(#gold)">
     <path d="M64.26 17.06A45 45 0 1 0 106.94 59.74A40 40 0 1 1 64.26 17.06Z"/>
     <path d="M94 24L97 31 104 34 97 37 94 44 91 37 84 34 91 31Z"/>
-
+    <path d="M65 74V63C65 53 74 50 78 44C82 50 91 53 91 63V74H84V63C84 59 80 57 78 55C76 57 72 59 72 63V74Z"/>
   </g>
 </svg>

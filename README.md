@@ -757,6 +757,14 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### Unreleased — refined PWA identity
+
+- Replaced the crescent artwork with a consistent gold-and-teal mark with a pointed gateway,
+  plus a simplified small favicon. Updated the app header, artwork gallery and UI preview.
+- Generated matching install icons, separate maskable icons, Apple touch icon and ICO fallback
+  from one SVG source. Versioned icon references across install, media and notifications, and
+  included the new assets in the offline cache.
+
 ### Unreleased — reading roles, card titles and background recitation
 
 - Duas that are not words to recite no longer pretend to be. Each reading has a role, and the reader

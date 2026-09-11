@@ -56,9 +56,14 @@ const ASSETS = [
   './data/duas.json',
   './data/duas.json?v=2026-09-11-hisn-roles',
   './data/quran/index.json',
-  './icons/favicon.svg',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  `./icons/logo.svg?v=${APP_VERSION}`,
+  `./icons/favicon.svg?v=${APP_VERSION}`,
+  `./icons/favicon.ico?v=${APP_VERSION}`,
+  `./icons/apple-touch-icon.png?v=${APP_VERSION}`,
+  `./icons/icon-192.png?v=${APP_VERSION}`,
+  `./icons/icon-512.png?v=${APP_VERSION}`,
+  `./icons/icon-maskable-192.png?v=${APP_VERSION}`,
+  `./icons/icon-maskable-512.png?v=${APP_VERSION}`,
 ];
 
 // Decorative card art. Kept out of ASSETS deliberately: a single failed image must not fail the
