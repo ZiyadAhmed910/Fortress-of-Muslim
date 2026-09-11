@@ -37,6 +37,14 @@ let audio = null;
 let wordAudio = null;
 let context = null;
 let downloadAbort = null;
+// Names for the lock screen: set when a surah opens, so the OS can say "Al-Kahf · Ayah 10" rather
+// than a bare number.
+let surahMeta = null;
+// Fetches the next ayah while this one plays, so the gap between files is a cache hit rather than a
+// network round trip -- see preloadNextAyah.
+let preloader = null;
+let wakeLock = null;
+let wakeLockPending = false;
 
 // Which ayah is sounding right now is deliberately not a stored preference: persisting it would
 // mean a cold start resumes audio nobody asked to hear.
@@ -102,6 +110,16 @@ export function initQuranAudio({ ensureAyahVisible, onAyahChange }) {
   audio.addEventListener('error', onAudioError);
   audio.addEventListener('play', renderPlayerBar);
   audio.addEventListener('pause', renderPlayerBar);
+  audio.addEventListener('playing', preloadNextAyah);
+  bindMediaSession();
+  // Visual sync is skipped while the screen is off (see step), so catch the page up to wherever the
+  // recitation has got to the moment it is looked at again, and put the wake lock back -- the
+  // browser releases it automatically whenever the page is hidden.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden || !playing) return;
+    Promise.resolve(context?.ensureAyahVisible?.(playing.surah, playing.ayah)).then(() => highlightPlaying());
+    syncWakeLock();
+  });
 
   els.quranPlayerReciter.innerHTML = RECITERS
     .map((r) => `<option value="${r.id}">${escapeHtml(r.name)}</option>`)
@@ -131,6 +149,7 @@ export function initQuranAudioSettings({ onWordModeChange } = {}) {
   els.quranAutoScrollToggle.addEventListener('change', () => {
     prefs.autoScroll = els.quranAutoScrollToggle.checked;
     savePrefs();
+    syncWakeLock();
   });
   els.quranReciterSelect.addEventListener('change', () => {
     prefs.reciter = els.quranReciterSelect.value;
@@ -180,6 +199,7 @@ export function renderAyahWords(surahNumber, ayahNumber) {
 // ---------------------------------------------------------------------------
 
 export function setPlaybackSurah(surah) {
+  surahMeta = surah;
   // Opening a different surah ends playback rather than carrying it: hearing Al-Baqarah while
   // looking at Yasin is never what was meant.
   if (playing && playing.surah !== surah.number) stopPlayback();
@@ -193,7 +213,7 @@ export async function playAyah(surahNumber, ayahNumber, { autoplay = true, total
   // recitation reached, not where they last happened to scroll.
   context?.onAyahChange?.(surahNumber, ayahNumber);
   audio.src = ayahAudioUrl(prefs.reciter, surahNumber, ayahNumber);
-  highlightPlaying();
+  if (!document.hidden) highlightPlaying();
   renderPlayerBar();
   if (!autoplay) return;
   try {
@@ -221,6 +241,7 @@ export function stopPlayback() {
     audio.load();
   }
   playing = null;
+  if (preloader) preloader.removeAttribute('src');
   clearHighlight();
   renderPlayerBar();
 }
@@ -264,7 +285,12 @@ async function step(delta) {
   // In paginated mode the next ayah may sit on a page that is not rendered. Turning the page is the
   // reader's job, so ask it first -- otherwise the highlight would target an element that does not
   // exist and the reader would silently stop following the recitation.
-  await context?.ensureAyahVisible?.(playing.surah, next);
+  //
+  // Not while the screen is off, though. Waiting on a page render between ayahs left a gap with
+  // nothing playing, and that gap is exactly when a locked phone decides the page is idle and
+  // freezes it -- which stopped the recitation at the next ayah boundary. With the page hidden,
+  // the next file starts immediately and the reader catches up on visibilitychange.
+  if (!document.hidden) await context?.ensureAyahVisible?.(playing.surah, next);
   playAyah(playing.surah, next);
 }
 
@@ -315,6 +341,8 @@ export function restoreHighlight() {
 // ---------------------------------------------------------------------------
 
 function renderPlayerBar() {
+  updateMediaSession();
+  syncWakeLock();
   const bar = els.quranPlayer;
   if (!bar) return;
   if (!playing) {
@@ -343,6 +371,114 @@ function measureReaderControls() {
   if (!strip) return;
   const { height } = strip.getBoundingClientRect();
   if (height > 0) document.body.style.setProperty('--reader-controls-height', `${Math.round(height)}px`);
+}
+
+// ---------------------------------------------------------------------------
+// Background playback
+// ---------------------------------------------------------------------------
+
+/**
+ * Registers the recitation with the operating system as media.
+ *
+ * Without this, a locked Android phone had no reason to keep a web page running: to the OS it was
+ * an idle tab, free to freeze between one ayah's file and the next. A media session is what tells
+ * it otherwise, and it is also what puts play, pause and skip on the lock screen and in the
+ * notification shade -- so someone listening with the screen off can still move between ayahs.
+ */
+function bindMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+  const handlers = {
+    play: () => audio?.play().catch(() => {}),
+    pause: () => audio?.pause(),
+    previoustrack: () => playPrevious(),
+    nexttrack: () => playNext(),
+    stop: () => stopPlayback(),
+  };
+  for (const [action, handler] of Object.entries(handlers)) {
+    try {
+      navigator.mediaSession.setActionHandler(action, handler);
+    } catch {
+      // Not every browser supports every action; the ones it does support still register.
+    }
+  }
+}
+
+function updateMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+  const session = navigator.mediaSession;
+  if (!playing) {
+    session.metadata = null;
+    session.playbackState = 'none';
+    return;
+  }
+  const name = surahMeta?.number === playing.surah ? surahMeta.nameSimple : `Surah ${playing.surah}`;
+  if (typeof MediaMetadata === 'function') {
+    session.metadata = new MediaMetadata({
+      title: `${name} · Ayah ${playing.ayah}`,
+      artist: currentReciter().name,
+      album: 'The Quran',
+      artwork: [
+        { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      ],
+    });
+  }
+  session.playbackState = audio && !audio.paused ? 'playing' : 'paused';
+}
+
+/**
+ * Starts fetching the next ayah while this one plays. The recitation host sends
+ * cache-control: max-age of roughly ten months, so when the player switches to that file it comes
+ * straight from the HTTP cache: no stutter between ayahs in the foreground, and in the background a
+ * shorter window in which nothing is sounding.
+ */
+function preloadNextAyah() {
+  if (!playing || prefs.repeat === 'ayah') return;
+  const next = playing.ayah + 1;
+  if (playing.total && next > playing.total) return;
+  if (!preloader) {
+    preloader = new Audio();
+    preloader.preload = 'auto';
+    preloader.muted = true;
+  }
+  const url = ayahAudioUrl(prefs.reciter, playing.surah, next);
+  if (preloader.getAttribute('src') !== url) preloader.src = url;
+}
+
+/**
+ * Keeps the screen awake while a recitation plays -- but only when "Follow the recitation" is on.
+ *
+ * Someone following along needs the page on screen, and a phone that dims mid-surah loses their
+ * place. Someone listening with the screen off wants exactly that, and should not pay for a lit
+ * screen in their pocket. The setting that already means "I am reading along" decides between
+ * them. Pressing the power button still turns the screen off either way; this only suppresses the
+ * automatic timeout.
+ */
+async function syncWakeLock() {
+  const wanted = Boolean(playing && audio && !audio.paused && prefs.autoScroll && !document.hidden);
+  // renderPlayerBar fires on every play, pause and ayah change, so two calls can arrive before the
+  // first request resolves; without the pending flag both would take a lock and one would leak.
+  if (wanted && !wakeLock && !wakeLockPending && 'wakeLock' in navigator) {
+    wakeLockPending = true;
+    try {
+      const lock = await navigator.wakeLock.request('screen');
+      // The wait above is a window in which playback can stop; do not keep a lock nobody wants.
+      if (!playing || audio.paused) {
+        lock.release().catch(() => {});
+        return;
+      }
+      wakeLock = lock;
+      lock.addEventListener('release', () => { if (wakeLock === lock) wakeLock = null; });
+    } catch {
+      // Refused when the page is not visible or battery saver is on; the screen simply sleeps.
+    } finally {
+      wakeLockPending = false;
+    }
+  } else if (!wanted && wakeLock) {
+    const lock = wakeLock;
+    wakeLock = null;
+    lock.release().catch(() => {});
+  }
 }
 
 function onPlayerClick(event) {
