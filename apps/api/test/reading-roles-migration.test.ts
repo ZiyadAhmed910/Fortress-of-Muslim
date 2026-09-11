@@ -57,6 +57,11 @@ const SEEDS: Seed[] = [
   { id: 'dua.hisn.266', chapter: 131, sequence: 267, segments: [
     ['arabic', 'رَأَيْتُ النَّبِيَّ يَعْقِدُ التَّسْبِيحَ بِيَمِينِهِ'], ['translation', "Abdullah bin 'Amr (RA) said:"],
   ] },
+  // Its text spans lines. A raw line break in the migration's literal became CR LF on a Windows
+  // checkout and silently stopped matching, so the literal is built with char(10) instead.
+  { id: 'dua.hisn.217', chapter: 105, sequence: 218, segments: [
+    ['arabic', 'اللَّهُ أَكْبَرُ'], ['transliteration', 'From every elevated point say\nAllāhu Akbar (three times),\nand then recite:'], ['translation', 'Placeholder.'],
+  ] },
   // Drifted: 0018 expects "--" here. Something else is present, so this record must not be revised.
   { id: 'dua.hisn.219', chapter: 107, sequence: 220, segments: [
     ['arabic', 'مَنْ صَلَّى عَلَيَّ صَلَاةً'], ['transliteration', 'edited since the migration was written'], ['translation', 'Placeholder.'],
@@ -109,25 +114,35 @@ const fingerprint = () => new Map((db.prepare(`
   GROUP BY revision.id
 `).all() as Array<{ id: string; body: string | null }>).map((row) => [row.id, row.body ?? '']));
 
-beforeAll(() => {
-  db = new Database(':memory:');
-  db.exec('PRAGMA foreign_keys = ON;');
+/** The seeded database just before 0018, with its line endings forced one way or the other. */
+function databaseBefore0018() {
+  const database = new Database(':memory:');
+  database.exec('PRAGMA foreign_keys = ON;');
   const files = readdirSync(MIGRATIONS).filter((name) => name.endsWith('.sql')).sort();
   for (const file of files.filter((name) => name < ROLES_MIGRATION)) {
-    if (file === '0006_canonical_editorial.sql') db.exec(SEED_BEFORE_0006);
-    db.exec(readFileSync(resolve(MIGRATIONS, file), 'utf8'));
+    if (file === '0006_canonical_editorial.sql') database.exec(SEED_BEFORE_0006);
+    database.exec(readFileSync(resolve(MIGRATIONS, file), 'utf8'));
   }
-  db.exec(`
+  database.exec(`
     INSERT OR IGNORE INTO collections (id, slug, content_type, title, default_language_code, verification_status)
       VALUES ('collection.sunnah.hisn', 'hisn', 'dua', 'Hisn al-Muslim', 'en', 'verified');
     INSERT OR IGNORE INTO books (id, collection_id, book_number, title, position)
       VALUES ('book.sunnah.hisn.1', 'collection.sunnah.hisn', '1', 'Hisn al-Muslim', 1);
   `);
-  for (const seed of SEEDS) seedHisnRecord(db, seed);
+  for (const seed of SEEDS) seedHisnRecord(database, seed);
   // As 0017 left chapter 45 on test: withdrawn.
-  db.exec("INSERT INTO canonical_withdrawals (canonical_id, reason) VALUES ('dua.hisn.142', 'Withdrawn by 0017.')");
+  database.exec("INSERT INTO canonical_withdrawals (canonical_id, reason) VALUES ('dua.hisn.142', 'Withdrawn by 0017.')");
+  return database;
+}
+
+const migrationWith = (lineBreak: string) =>
+  readFileSync(resolve(MIGRATIONS, ROLES_MIGRATION), 'utf8').replace(/\r?\n/g, lineBreak);
+
+beforeAll(() => {
+  db = databaseBefore0018();
   revisionsBefore = fingerprint();
-  db.exec(readFileSync(resolve(MIGRATIONS, ROLES_MIGRATION), 'utf8'));
+  // CR LF: what a Windows checkout with core.autocrlf hands to `wrangler d1 migrations apply`.
+  db.exec(migrationWith('\r\n'));
 });
 
 describe('migration 0018: reading roles', () => {
@@ -152,6 +167,18 @@ describe('migration 0018: reading roles', () => {
     expect(translation?.text).toBe('Abdullah bin \'Amr (RA) said: "I saw the Prophet (ﷺ) counting the glorification of his Lord on his right hand."');
   });
 
+  it('matches text that spans lines whatever line endings the file was checked out with', () => {
+    expect(currentRevision('dua.hisn.217')).toBe('revision.dua.hisn.217.2');
+    expect(currentSegments('dua.hisn.217').map((segment) => segment.kind)).toEqual(['arabic', 'translation']);
+    const lf = databaseBefore0018();
+    lf.exec(migrationWith('\n'));
+    const revised = lf.prepare(`
+      SELECT canonical_id AS id FROM content_revisions
+      WHERE correction_reason LIKE 'Four-role reading model%' ORDER BY canonical_id
+    `).all();
+    expect(revised).toEqual([{ id: 'dua.hisn.142' }, { id: 'dua.hisn.146' }, { id: 'dua.hisn.217' }, { id: 'dua.hisn.266' }]);
+  });
+
   it('leaves a record alone when its text is not what the migration expects', () => {
     expect(currentRevision('dua.hisn.219')).toBe('revision.dua.hisn.219.1');
     expect(currentSegments('dua.hisn.219').find((segment) => segment.kind === 'transliteration')?.text)
@@ -166,7 +193,7 @@ describe('migration 0018: reading roles', () => {
   it('never modifies an existing revision -- corrections are new revisions', () => {
     const after = fingerprint();
     for (const [id, body] of revisionsBefore) expect(after.get(id), id).toBe(body);
-    expect(after.size - revisionsBefore.size).toBe(3);
+    expect(after.size - revisionsBefore.size).toBe(4);
     const newRevision = db.prepare("SELECT supersedes_revision_id AS supersedes, correction_reason AS reason FROM content_revisions WHERE id = 'revision.dua.hisn.146.2'").get() as { supersedes: string; reason: string };
     expect(newRevision.supersedes).toBe('revision.dua.hisn.146.1');
     expect(newRevision.reason).toMatch(/^Four-role reading model/);
@@ -178,7 +205,7 @@ describe('migration 0018: reading roles', () => {
 
   it('records each correction in the audit trail with its reason', () => {
     const rows = db.prepare("SELECT field_path AS field, reason FROM correction_history WHERE id LIKE 'correction.revision.dua.hisn.%' ORDER BY id").all() as Array<{ field: string; reason: string }>;
-    expect(rows).toHaveLength(3);
+    expect(rows).toHaveLength(4);
     for (const row of rows) expect(row.reason.length).toBeGreaterThan(20);
   });
 
