@@ -18,6 +18,7 @@ export const els = {
   darkModeToggle: document.getElementById('darkModeToggle'),
   arabicSizeToggle: document.getElementById('arabicSizeToggle'),
   advancedUiToggle: document.getElementById('advancedUiToggle'),
+  artMotionRow: document.getElementById('artMotionRow'),
   artMotionSelect: document.getElementById('artMotion'),
   artMotionDescription: document.getElementById('artMotionDescription'),
   artMotionSystemNote: document.getElementById('artMotionSystemNote'),

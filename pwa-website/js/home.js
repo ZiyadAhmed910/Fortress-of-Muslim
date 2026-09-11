@@ -3,7 +3,7 @@ import { els } from './dom.js';
 import { escapeHtml } from './utils.js';
 import { applyFilters, shouldUseFavouriteFilter } from './filters.js';
 import { applySettings, updateAdvancedNavActive } from './settings.js';
-import { CATEGORY_GROUPS, countByGroup, countByMood, DEFAULT_MOOD, MOOD_GROUPS, QUICK_FILTERS, groupLabel, normalizeSearch } from './categories.js';
+import { CATEGORY_GROUPS, countByGroup, countByMood, DEFAULT_MOOD, filterEntryByGroup, MOOD_GROUPS, QUICK_FILTERS, groupLabel, normalizeSearch } from './categories.js';
 
 let openEntryHandler = () => {};
 
@@ -15,6 +15,37 @@ export function filterList() {
   state.visibleCount = 36;
   applyFilters();
   renderList();
+  renderAdvancedCardCounts();
+}
+
+/**
+ * Puts a count on each Advanced-home card, so someone can see what is inside before tapping in --
+ * the same reason the Simple-UI chips carry counts. Runs from filterList, which fires both when the
+ * data first arrives and after every favourite toggle, so the Favourites card is never stale.
+ */
+export function renderAdvancedCardCounts() {
+  if (!state.entries?.length) return;
+  document.querySelectorAll('[data-card-count]').forEach((badge) => {
+    const key = badge.dataset.cardCount;
+    let text;
+    if (key === 'favourites') {
+      const saved = state.favourites.size;
+      text = saved ? `${saved} saved` : 'None saved yet';
+    } else if (key === 'moods') {
+      // A mood card opens a picker rather than a list, so count the moods on offer, not the duas.
+      const moods = Object.keys(MOOD_GROUPS).filter((mood) => countByMood(state.entries, mood) > 0).length;
+      text = `${moods} moods`;
+    } else {
+      // Readings, not chapters. Counting chapters had the Evening card announce "1 dua" when that
+      // one chapter is the complete evening adhkar -- 25 readings -- and Morning "2 duas" for 29.
+      // A count that makes the fullest daily section look empty is worse than no count at all.
+      const pool = key === 'all' ? state.entries : state.entries.filter((entry) => filterEntryByGroup(entry, key));
+      const n = pool.reduce((total, entry) => total + (entry.parts?.length || 1), 0);
+      text = `${n} ${n === 1 ? 'reading' : 'readings'}`;
+    }
+    badge.textContent = text;
+    badge.hidden = false;
+  });
 }
 
 export function renderList() {
@@ -173,8 +204,14 @@ function highlightMatch(value) {
   ].join('');
 }
 
-function subtitleForFilter(filter) {
-  if (filter === 'all') return 'All supplications';
+// The Advanced-home cards print this same subtitle under their title, so a card and the screen it
+// opens always describe the destination in the same words. test/card-labels.test.js holds the
+// markup and this function in step.
+export function subtitleForFilter(filter) {
+  if (filter === 'all') return 'Every supplication in the collection';
+  // Previously fell through to the generic "Filtered supplications", which described the mechanism
+  // rather than the content.
+  if (filter === 'favourites') return 'The duas you have saved';
   if (filter === 'moods') return state.activeMood ? `${groupLabel(state.activeMood)} duas` : 'Duas by feeling';
   if (filter === 'ruqyah') return 'Protection and healing';
   return CATEGORY_GROUPS[filter]?.description || 'Filtered supplications';

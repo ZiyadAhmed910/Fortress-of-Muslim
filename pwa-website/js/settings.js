@@ -10,6 +10,10 @@ export function applySettings() {
   document.documentElement.classList.toggle('dark', state.darkMode);
   document.documentElement.classList.toggle('large-arabic', state.largeArabic);
   document.documentElement.classList.toggle('advanced-ui', state.advancedUi);
+  // The card artwork only exists in the Advanced home, so its motion setting is hidden in Simple UI
+  // rather than offered as a control that visibly does nothing -- the same rule the other settings
+  // for switched-off features follow.
+  if (els.artMotionRow) els.artMotionRow.hidden = !state.advancedUi;
   document.documentElement.classList.toggle('advanced-list', state.advancedListMode);
   document.documentElement.style.setProperty('--font-scale', state.fontScale.toFixed(2));
   document.querySelector('meta[name="theme-color"]').setAttribute('content', state.darkMode || state.advancedUi ? '#071827' : '#f3f3f0');
