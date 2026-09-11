@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T15:14:51.774Z",
+  "generatedAt": "2026-09-11T15:35:39.881Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -283,7 +283,7 @@
     },
     {
       "path": "apps/api/test/reading-roles-migration.test.ts",
-      "lines": 237,
+      "lines": 264,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -1064,7 +1064,7 @@
     },
     {
       "path": "apps/api/migrations/0018_hisn_reading_roles.sql",
-      "lines": 731,
+      "lines": 729,
       "language": "sql",
       "exports": [],
       "imports": [],
@@ -2662,6 +2662,7 @@
       "definedIn": [],
       "referencedBy": [
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/test/admin-mfa-gate.test.ts",
         "pwa-website/js/onboarding.js"
       ]

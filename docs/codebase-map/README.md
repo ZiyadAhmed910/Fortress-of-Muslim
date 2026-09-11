@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-11T15:14:51.774Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-11T15:35:39.881Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -57,7 +57,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/migrations/0015_taxonomy_seed.sql` | sql | 23 |  |  |
 | `apps/api/migrations/0016_editorial_notifications.sql` | sql | 18 |  |  |
 | `apps/api/migrations/0017_canonical_withdrawals.sql` | sql | 83 |  |  |
-| `apps/api/migrations/0018_hisn_reading_roles.sql` | sql | 731 |  |  |
+| `apps/api/migrations/0018_hisn_reading_roles.sql` | sql | 729 |  |  |
 | `apps/api/src/app.ts` | ts | 623 | 26 | function createApp, const app |
 | `apps/api/src/index.ts` | ts | 51 |  | class ApiWorker |
 | `apps/api/src/lib/fuzzy-title.ts` | ts | 75 |  | type TitleCandidate, type RankedTitle, function rankDuaTitles |
@@ -79,7 +79,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/test/rag-quality.test.ts` | ts | 174 |  |  |
 | `apps/api/test/rag-reference.test.ts` | ts | 28 |  |  |
 | `apps/api/test/rag-synonyms.test.ts` | ts | 27 |  |  |
-| `apps/api/test/reading-roles-migration.test.ts` | ts | 237 |  |  |
+| `apps/api/test/reading-roles-migration.test.ts` | ts | 264 |  |  |
 | `apps/api/test/record-query.test.ts` | ts | 182 |  |  |
 | `apps/auth/auth.config.ts` | ts | 19 |  | const auth, default export |
 | `apps/auth/migrations/0001_identity.sql` | sql | 81 |  |  |
@@ -329,7 +329,7 @@ Not all of these are bugs; verify before assuming.
 | editorial_record_state | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/test/hadith-reference.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | editorial_role_grants | table | `apps/auth/migrations/0006_editorial_roles.sql` | (none) |
 | either | unknown | `(not defined in scanned files)` | `apps/api/test/rag-synonyms.test.ts`, `pwa-website/js/prayer.js` |
-| every | unknown | `(not defined in scanned files)` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/test/admin-mfa-gate.test.ts`, `pwa-website/js/onboarding.js` |
+| every | unknown | `(not defined in scanned files)` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/test/admin-mfa-gate.test.ts`, `pwa-website/js/onboarding.js` |
 | everyayah | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js` |
 | exactly | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | favourites | unknown | `(not defined in scanned files)` | `pwa-website/js/quran.js` |
