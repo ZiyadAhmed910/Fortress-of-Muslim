@@ -22,6 +22,11 @@ SVG, ICO and 16/32px PNG versions are available. Install icons are generated at 
 with separate opaque maskable versions that keep the symbol inside the central safe area.
 The Apple touch icon is 180px with square edges for the platform to mask.
 
+`SYMBOL_SCALE` in the generator sizes the symbol per rendition. The maskable one is sized against
+the area a launcher actually shows -- Android displays the middle 72dp of a 108dp canvas and crops
+the rest -- not against the 80% safe zone, because a symbol drawn to the safe zone fills almost
+all of the visible circle and looks cramped on a home screen.
+
 Rebuild all brand files with `node pwa-website/tools/build-brand.mjs` from the repository root.
 The generator uses installed Edge (or `EDGE_EXECUTABLE_PATH`) to rasterize the same vector
 geometry for every size. Header, gallery, manifest, media-session and notification references

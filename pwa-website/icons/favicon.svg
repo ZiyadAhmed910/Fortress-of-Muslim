@@ -5,7 +5,7 @@
   </defs>
   <rect width="128" height="128" rx="28" fill="url(#teal)"/>
 
-  <g transform="translate(64 64) scale(0.92) translate(-64 -64)" fill="#f3d99e">
+  <g transform="translate(64 64) scale(0.88) translate(-64 -64)" fill="#f3d99e">
     <path d="M64.26 17.06A45 45 0 1 0 106.94 59.74A40 40 0 1 1 64.26 17.06Z"/>
     <path d="M94 24L97 31 104 34 97 37 94 44 91 37 84 34 91 31Z"/>
 

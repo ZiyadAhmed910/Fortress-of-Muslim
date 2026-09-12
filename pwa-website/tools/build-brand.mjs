@@ -45,7 +45,14 @@ function compressPng(png) {
   return Buffer.concat([png.subarray(0, 8), ...before, chunk, ...after]);
 }
 
+// How much of the tile the symbol fills. A launcher shows only the middle ~67% of a maskable icon
+// (Android's 72dp of a 108dp canvas) and crops the rest, so a symbol sized to the 80% safe zone
+// ends up filling almost all of what anyone actually sees. These leave it room to breathe:
+// maskable lands at ~48% of the canvas, which is ~70% of the visible circle.
+const SYMBOL_SCALE = { maskable: 0.68, square: 0.84, rounded: 0.88 };
+
 function svg({ simple = false, square = false, maskable = false } = {}) {
+  const scale = maskable ? SYMBOL_SCALE.maskable : square ? SYMBOL_SCALE.square : SYMBOL_SCALE.rounded;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Fortress of Muslim">
   <defs>
     <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#245d60"/><stop offset=".55" stop-color="#113f45"/><stop offset="1" stop-color="#092c35"/></linearGradient>
@@ -53,7 +60,7 @@ function svg({ simple = false, square = false, maskable = false } = {}) {
   </defs>
   <rect width="128" height="128" rx="${square ? 0 : 28}" fill="url(#teal)"/>
   ${simple || square ? '' : '<rect x="2" y="2" width="124" height="124" rx="26" fill="none" stroke="#f3dbac" stroke-opacity=".18"/>'}
-  <g transform="translate(64 64) scale(${maskable ? .84 : .92}) translate(-64 -64)" fill="${simple ? '#f3d99e' : 'url(#gold)'}">
+  <g transform="translate(64 64) scale(${scale}) translate(-64 -64)" fill="${simple ? '#f3d99e' : 'url(#gold)'}">
     <path d="${crescent}"/>
     <path d="${star}"/>
     ${simple ? '' : `<path d="${gate}"/>`}

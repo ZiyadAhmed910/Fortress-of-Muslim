@@ -50,13 +50,15 @@
   font-weight: 800;
 }
 
-.update-banner #updateButton {
+.update-banner #updateButton,
+.update-banner #installBannerButton {
   padding: 0.48rem 0.75rem;
   color: white;
   background: var(--accent-strong);
 }
 
-.update-banner #dismissUpdateButton {
+.update-banner #dismissUpdateButton,
+.update-banner #dismissInstallButton {
   width: 2rem;
   height: 2rem;
   font-size: 1.25rem;
@@ -196,6 +198,15 @@
   height: 3rem;
   color: var(--accent-strong);
   stroke-width: 1.4;
+}
+
+/* The Settings step shows the real control -- the same glyph in the same round button the header
+   uses -- scaled up to sit alongside the other steps' large glyphs. */
+.onboarding-control {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.75rem;
+  line-height: 1;
 }
 
 .onboarding-plus {

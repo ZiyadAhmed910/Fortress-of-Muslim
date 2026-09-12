@@ -11,6 +11,10 @@ export const els = {
   settingsPanels: [...document.querySelectorAll('[data-settings-panel]')],
   installRow: document.getElementById('installRow'),
   installButton: document.getElementById('installButton'),
+  installHint: document.getElementById('installHint'),
+  installBanner: document.getElementById('installBanner'),
+  installBannerButton: document.getElementById('installBannerButton'),
+  dismissInstallButton: document.getElementById('dismissInstallButton'),
   appVersion: document.getElementById('appVersion'),
   exportDataButton: document.getElementById('exportDataButton'),
   importDataButton: document.getElementById('importDataButton'),
@@ -146,5 +150,5 @@ export const els = {
   tasbihLifetime: document.getElementById('tasbihLifetime'),
   tasbihPresetDialog: document.getElementById('tasbihPresetDialog'),
   tasbihPresetForm: document.getElementById('tasbihPresetForm'),
-  tasbihResetConfirmDialog: document.getElementById('tasbihResetConfirmDialog'),
+  tasbihDeleteConfirmDialog: document.getElementById('tasbihDeleteConfirmDialog'),
 };

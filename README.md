@@ -757,6 +757,21 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### Unreleased — install, reset and guide fixes
+
+- Installing is findable again. The Install row in Settings used to be hidden unless the browser
+  offered a prompt -- an event that never fires on iOS and never fires again once installed -- so
+  on a phone there was nothing to find and nothing explaining why. The row is always there now and
+  says which case you are in: an Install button when the browser will prompt, "already installed",
+  or where to find it in your browser's own menu. A dismissible banner offers it once when the
+  browser says the app is installable.
+- Reset this count on the tasbih applies immediately instead of asking first. Deleting a phrase
+  still asks, and that dialog no longer labels its confirm button "Reset".
+- The first-run guide's Settings step drew its own gear, which looked nothing like the real
+  control. It now shows the same glyph the header shows.
+- The app icon leaves room for the launcher to crop it. Android shows only the middle ~67% of a
+  maskable icon, so a symbol sized to the safe zone filled nearly all of what you could see.
+
 ### Unreleased — refined PWA identity
 
 - Replaced the crescent artwork with a consistent gold-and-teal mark with a pointed gateway,

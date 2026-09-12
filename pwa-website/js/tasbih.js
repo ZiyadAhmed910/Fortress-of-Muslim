@@ -14,7 +14,6 @@ const DEFAULT_PRESETS = [
 const DEFAULT_PRESET_IDS = new Set(DEFAULT_PRESETS.map((preset) => preset.id));
 
 let data = loadData();
-let pendingConfirmAction = null;
 
 function loadData() {
   try {
@@ -75,26 +74,22 @@ export function initTasbih() {
     }
   }, { passive: false });
 
+  // Reset takes effect on the tap, with no confirmation: the only thing it costs is a count you
+  // can tap back up, and a dialog between every reset and the person doing it is friction on the
+  // most repeated action here. Deleting a phrase still asks, because that cannot be tapped back.
   els.tasbihResetButton.addEventListener('click', () => {
-    pendingConfirmAction = 'reset';
-    els.tasbihResetConfirmDialog.querySelector('p').textContent = `Reset "${activePreset().label}" back to 0? This can't be undone.`;
-    els.tasbihResetConfirmDialog.showModal();
+    activePreset().count = 0;
+    persist();
+    renderCount();
+    vibrate(10);
   });
   // Reacts on the form's own submit event (fires synchronously on the click that submits it)
   // rather than the dialog's close event -- functionally equivalent for a real click, but doesn't
   // depend on <dialog>'s close-event indirection, which some automated/embedded browser contexts
   // don't fire reliably for a programmatically-triggered method="dialog" submission.
-  els.tasbihResetConfirmDialog.querySelector('form').addEventListener('submit', (event) => {
-    const action = pendingConfirmAction;
-    pendingConfirmAction = null;
+  els.tasbihDeleteConfirmDialog.querySelector('form').addEventListener('submit', (event) => {
     if (event.submitter?.value !== 'confirm') return;
-    if (action === 'reset') {
-      activePreset().count = 0;
-      persist();
-      renderCount();
-    } else if (action === 'delete') {
-      deleteActivePreset();
-    }
+    deleteActivePreset();
   });
 
   els.tasbihAddPresetButton.addEventListener('click', () => {
@@ -119,9 +114,8 @@ export function initTasbih() {
   els.tasbihDeletePresetButton.addEventListener('click', () => {
     const preset = activePreset();
     if (!preset || DEFAULT_PRESET_IDS.has(preset.id)) return;
-    pendingConfirmAction = 'delete';
-    els.tasbihResetConfirmDialog.querySelector('p').textContent = `Delete "${preset.label}"? This can't be undone.`;
-    els.tasbihResetConfirmDialog.showModal();
+    els.tasbihDeleteConfirmDialog.querySelector('p').textContent = `Delete "${preset.label}"? This can't be undone.`;
+    els.tasbihDeleteConfirmDialog.showModal();
   });
 
   renderAll();

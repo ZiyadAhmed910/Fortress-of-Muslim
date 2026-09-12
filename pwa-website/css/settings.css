@@ -367,12 +367,11 @@
   display: none;
 }
 
-.install-row {
-  display: none;
-}
-
-.install-row.available {
-  display: flex;
+/* Always shown. It used to be hidden unless the browser offered an install prompt, which meant
+   iOS -- where that event never fires -- and anyone who had already installed saw nothing at all,
+   with no way to tell which case they were in. The row now says which. */
+.install-row small {
+  text-wrap: pretty;
 }
 
 .small-action-button {

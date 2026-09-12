@@ -370,12 +370,12 @@
             </form>
           </dialog>
 
-          <dialog class="settings-dialog tasbih-confirm-dialog" id="tasbihResetConfirmDialog">
+          <dialog class="settings-dialog tasbih-confirm-dialog" id="tasbihDeleteConfirmDialog">
             <form method="dialog">
-              <p>Reset this count to 0? This can't be undone.</p>
+              <p>Delete this phrase? This can't be undone.</p>
               <div class="tasbih-preset-form-actions">
                 <button class="small-action-button secondary" value="cancel" type="submit">Cancel</button>
-                <button class="small-action-button" value="confirm" type="submit">Reset</button>
+                <button class="small-action-button" value="confirm" type="submit">Delete</button>
               </div>
             </form>
           </dialog>
@@ -695,9 +695,9 @@
             <div class="setting-row install-row" id="installRow">
               <span>
                 <strong>Install app</strong>
-                <small>Add this PWA to your device home screen.</small>
+                <small id="installHint">Add this app to your home screen.</small>
               </span>
-              <button class="small-action-button" id="installButton" type="button">Install</button>
+              <button class="small-action-button" id="installButton" type="button" hidden>Install</button>
             </div>
 <div class="setting-row setting-row-stack">
               <span>
@@ -762,6 +762,12 @@
         </label>
       </div>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="update-banner" id="installBanner" role="status" aria-live="polite">
+        <span>Install Fortress of Muslim on this device?</span>
+        <button id="installBannerButton" type="button">Install</button>
+        <button id="dismissInstallButton" type="button" aria-label="Dismiss install message">&times;</button>
+      </div>
+
       <div class="update-banner" id="updateBanner" role="status" aria-live="polite">
         <span>New version available.</span>
         <button id="updateButton" type="button">Update</button>
