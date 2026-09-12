@@ -64,6 +64,7 @@ type IndexRow = {
   collectionSlug: string;
   title: string;
   narrator: string | null;
+  aliases: string | null;
   translation: string | null;
   arabic: string | null;
   datasetId: string;
@@ -211,6 +212,7 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
            COALESCE(collection.slug, CASE WHEN canonical.content_type = 'dua' THEN 'hisn' ELSE 'unknown' END) AS collectionSlug,
            revision.title,
            metadata.narrator,
+           alias.aliases,
            publication.dataset_version_id AS datasetId,
            GROUP_CONCAT(CASE WHEN segment.kind = 'translation' THEN segment.text END, '\n') AS translation,
            GROUP_CONCAT(CASE WHEN segment.kind = 'arabic' THEN segment.text END, '\n') AS arabic
@@ -218,6 +220,7 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
     JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
     JOIN content_revisions revision ON revision.id = publication.revision_id
     LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    LEFT JOIN canonical_search_aliases alias ON alias.chapter_id = metadata.chapter_id
     LEFT JOIN collections collection ON collection.id = metadata.collection_id
     LEFT JOIN revision_parts part ON part.revision_id = revision.id
     LEFT JOIN revision_segments segment ON segment.revision_part_id = part.id
@@ -695,7 +698,9 @@ export function embeddingCalls(texts: string[]): string[][] {
 }
 
 function indexText(row: IndexRow) {
-  return [row.title, row.collectionSlug, row.narrator, row.translation, row.arabic]
+  // Aliases ride along in the embedded text for the same reason they are in the lexical index: the
+  // words a reader uses are often not the words the book uses.
+  return [row.title, row.collectionSlug, row.narrator, row.aliases, row.translation, row.arabic]
     .filter(Boolean)
     .join('\n')
     .slice(0, 4_000);

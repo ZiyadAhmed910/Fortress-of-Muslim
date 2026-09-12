@@ -1,10 +1,10 @@
 {
   "name": "@fortress/mcp",
-  "version": "0.25.0",
+  "version": "0.26.0",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@fortress/contracts": "0.25.0"
+    "@fortress/contracts": "0.26.0"
   },
   "scripts": {
     "dev": "wrangler dev --env test",
