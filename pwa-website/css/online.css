@@ -978,3 +978,13 @@ body.has-player .reader-controls {
   font-size: 0.66rem;
   line-height: 1.25;
 }
+
+/* Shown when a location attempt fails. A toast disappears before anyone can act on it, and a
+   browser-level block cannot be undone from inside the page -- so the way out has to stay put. */
+.prayer-location-hint {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}

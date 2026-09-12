@@ -757,6 +757,21 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### Unreleased — qibla compass, location recovery and a teal splash
+
+- The live compass works, and explains itself when it cannot. Three separate faults: readings with
+  no north reference were being used as if they had one; a phone held sideways read 90 degrees off;
+  and the dial spun the long way round every time you faced north. It also claimed to be "active"
+  over a needle that never moved -- a refused permission only produced a toast that vanished. There
+  is now a persistent explanation naming the setting to change, and a retry.
+- Getting a location after refusing it once is no longer a dead end. A browser that has been told
+  no cannot be asked again from inside the page, so "Allow location" could never succeed and said
+  nothing about why. The screen now says where the switch lives, and offers manual coordinates.
+- Entering coordinates by hand used to leave the Qibla card and the prayer list hidden: the
+  location was saved, the bearing computed, and nothing appeared on screen.
+- The install splash uses the icon's own teal, so the icon's square background no longer sits on a
+  near-white plate.
+
 ### Unreleased — install, reset and guide fixes
 
 - Installing is findable again. The Install row in Settings used to be hidden unless the browser

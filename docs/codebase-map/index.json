@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T08:54:01.526Z",
+  "generatedAt": "2026-09-12T09:14:58.408Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -682,7 +682,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 155,
+      "lines": 157,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -762,7 +762,7 @@
     },
     {
       "path": "pwa-website/js/prayer.js",
-      "lines": 431,
+      "lines": 534,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -907,6 +907,14 @@
     {
       "path": "pwa-website/test/prayer-times.test.js",
       "lines": 167,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/qibla-compass.test.js",
+      "lines": 114,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3424,6 +3432,7 @@
         "pwa-website/test/categories.test.js",
         "pwa-website/test/guide-and-tasbih.test.js",
         "pwa-website/test/prayer-times.test.js",
+        "pwa-website/test/qibla-compass.test.js",
         "pwa-website/test/quran-words.test.js",
         "pwa-website/test/reading-roles.test.js"
       ]
@@ -3561,6 +3570,14 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "wherever",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/qibla-compass.test.js"
       ]
     }
   ]

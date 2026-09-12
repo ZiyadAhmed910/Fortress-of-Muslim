@@ -20,7 +20,9 @@ The PWA uses a gold crescent, a pointed gateway and a four-point star on deep te
 `icons/logo.svg` is the header mark. The favicon drops the gateway for clarity at 16 pixels;
 SVG, ICO and 16/32px PNG versions are available. Install icons are generated at 192/512px,
 with separate opaque maskable versions that keep the symbol inside the central safe area.
-The Apple touch icon is 180px with square edges for the platform to mask.
+The Apple touch icon is 180px with square edges for the platform to mask. The manifest's
+`background_color` is the icon's own teal, so the splash screen an installed app shows does not
+frame the square icon against a pale plate.
 
 `SYMBOL_SCALE` in the generator sizes the symbol per rendition. The maskable one is sized against
 the area a launcher actually shows -- Android displays the middle 72dp of a 108dp canvas and crops
