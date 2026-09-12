@@ -26,7 +26,6 @@ const ICONS = {
   tasbih: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6"/><circle cx="20" cy="12" r="1.6"/><circle cx="12" cy="20" r="1.6"/><circle cx="4" cy="12" r="1.6"/>',
   play: '<path d="M8 5v14l11-7z"/>',
   offline: '<path d="M3 15a4 4 0 0 1 3.6-4 6 6 0 0 1 11.6 1.2A3.5 3.5 0 0 1 17.5 19H7a4 4 0 0 1-4-4Z"/><path d="m9 12 2 2 4-4"/>',
-  settings: '<circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="8" stroke-dasharray="3.4 2.9"/>',
 };
 
 const icon = (name, className = '') => `<svg class="onboarding-glyph ${className}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -41,6 +40,15 @@ const navStrip = (active) => `
           ${icon(key)}<small>${label}</small>
         </span>
       `).join('')}
+  </div>
+`;
+
+// Settings is a text glyph in a round button, not an SVG like the nav icons, so the tour shows that
+// same glyph in the same chrome rather than a drawing of a gear. The drawn one looked nothing like
+// the control it was pointing at, which is the whole thing this tour is supposed to avoid.
+const settingsControl = () => `
+  <div class="onboarding-hero">
+    <span class="icon-button onboarding-control" aria-hidden="true">⚙</span>
   </div>
 `;
 
@@ -70,7 +78,7 @@ const STEPS = [
   {
     title: 'Make it yours',
     body: 'Settings is behind this icon, at the top right. Hide anything you do not use, choose a reciter, turn on word-by-word meanings, or set reminders.',
-    visual: () => `<div class="onboarding-hero">${icon('settings', 'is-large')}</div>`,
+    visual: () => settingsControl(),
     action: { label: 'Open Settings', settings: true },
   },
 ];

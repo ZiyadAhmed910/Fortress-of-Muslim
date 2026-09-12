@@ -146,5 +146,5 @@ export const els = {
   tasbihLifetime: document.getElementById('tasbihLifetime'),
   tasbihPresetDialog: document.getElementById('tasbihPresetDialog'),
   tasbihPresetForm: document.getElementById('tasbihPresetForm'),
-  tasbihResetConfirmDialog: document.getElementById('tasbihResetConfirmDialog'),
+  tasbihDeleteConfirmDialog: document.getElementById('tasbihDeleteConfirmDialog'),
 };

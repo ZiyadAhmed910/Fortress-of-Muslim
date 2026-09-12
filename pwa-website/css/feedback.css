@@ -198,6 +198,15 @@
   stroke-width: 1.4;
 }
 
+/* The Settings step shows the real control -- the same glyph in the same round button the header
+   uses -- scaled up to sit alongside the other steps' large glyphs. */
+.onboarding-control {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
 .onboarding-plus {
   color: var(--muted);
   font-size: 1.1rem;
