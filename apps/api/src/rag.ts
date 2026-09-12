@@ -676,19 +676,30 @@ async function retrieveLexicalRecords(
   return records.filter((item): item is NonNullable<typeof item> => Boolean(item));
 }
 
-// Candidates for the reranker to judge, deduplicated across both retrieval paths. There is
-// deliberately no score cut here any more: vector and lexical scores are not comparable to each
-// other, and the floor that used to live here is why an unfamiliar wording surfaced six loosely
-// related readings. The reranker decides what survives.
+// Candidates for the reranker to judge, taken from both retrieval paths in turn rather than
+// pooled and sorted together. Their scores are not comparable -- a vector cosine and a bm25-derived
+// lexical score mean different things -- so ranking them against each other and keeping the top 16
+// silently starved the reranker of the very record it needed: "what should I recite when I am
+// angry?" retrieved the chapter literally titled "When angry" lexically, lost it in that sort, and
+// answered that nothing was found. Interleaving guarantees each path gets its best candidates in
+// front of the judge; the judge then decides on merit.
 export function mergeCandidates(vector: GroundedRecord[], lexical: GroundedRecord[]) {
+  const byPath = [
+    [...vector].sort((left, right) => right.score - left.score),
+    [...lexical].sort((left, right) => right.score - left.score),
+  ];
   const merged = new Map<string, GroundedRecord>();
-  for (const item of [...vector, ...lexical]) {
-    const current = merged.get(item.record.id);
-    if (!current || item.score > current.score) merged.set(item.record.id, item);
+  for (let rank = 0; merged.size < RERANK_CANDIDATES; rank += 1) {
+    const exhausted = byPath.every((path) => rank >= path.length);
+    if (exhausted) break;
+    for (const path of byPath) {
+      const candidate = path[rank];
+      if (!candidate || merged.size >= RERANK_CANDIDATES) continue;
+      const current = merged.get(candidate.record.id);
+      if (!current || candidate.score > current.score) merged.set(candidate.record.id, candidate);
+    }
   }
-  return [...merged.values()]
-    .sort((left, right) => right.score - left.score)
-    .slice(0, RERANK_CANDIDATES);
+  return [...merged.values()];
 }
 
 // The count is kept even when the limit is off, so turning the limit back on has real numbers

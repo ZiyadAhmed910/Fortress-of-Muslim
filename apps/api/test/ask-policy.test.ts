@@ -170,6 +170,20 @@ describe('reranking what retrieval found', () => {
     expect(records).toHaveLength(3);
   });
 
+  it('gives the reranker the best from each path, not a pooled sort of incomparable scores', () => {
+    // A vector cosine and a bm25-derived lexical score do not mean the same thing. Ranking them
+    // against each other and keeping the top N dropped the chapter literally titled "When angry"
+    // from a question about anger, and Ask answered that nothing was found.
+    const vector = Array.from({ length: 20 }, (_, index) => ({
+      ...dua(`dua.vector.${index}`, `Vector match ${index}`, 'text'),
+      score: 0.9 - index * 0.01,
+    }));
+    const lexical = [{ ...dua('dua.hisn.082', 'When angry', 'I seek refuge with Allah.'), retrieval: 'lexical' as const, score: 0.44 }];
+    const merged = mergeCandidates(vector, lexical);
+    expect(merged.map((item) => item.record.id)).toContain('dua.hisn.082');
+    expect(merged.length).toBeLessThanOrEqual(16);
+  });
+
   it('merges both retrieval paths without a score floor of its own', () => {
     // Vector and lexical scores are not comparable to each other; the floor that used to judge them
     // together is what let loosely-related readings through. Everything goes to the reranker.
