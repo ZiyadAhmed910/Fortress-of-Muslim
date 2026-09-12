@@ -34,10 +34,18 @@ const MAX_CONTEXTS = 6;
 // Retrieve wide, then let the reranker decide. Recall is cheap (a vector query and an FTS query);
 // being wrong about which six to show is not.
 const RERANK_CANDIDATES = 16;
-// Below this the reranker is saying the passage does not answer the question. Sources under it are
-// dropped even when nothing better exists -- six confident-looking wrong citations are worse than
-// saying nothing was found.
-const RERANK_FLOOR = 0.15;
+// Two cuts, because one flat threshold gets both cases wrong. The absolute floor throws out
+// nonsense. The relative cut keeps only what is in the same league as the best match, which is what
+// removes the tail of near-misses that made "toilet" cite five unrelated readings.
+//
+// The floor is deliberately low. A cross-encoder's scores are not comparable across questions: a
+// plainly-worded one scores 0.98 where an indirect one ("I cannot sleep at night, what should I
+// read?") scores a fraction of that against the very reading that answers it. Set high enough to
+// look tidy, the floor returns "nothing found" for questions the corpus does answer -- a worse
+// failure than passing a weak source to a model that must cite it and can say so when the evidence
+// is thin.
+const RERANK_FLOOR = 0.05;
+const RERANK_RELATIVE_CUT = 0.35;
 // Below this many verified/published sources, also try the unverified-content fallback --
 // verified is still the primary path, this only fills gaps when it's thin.
 const MIN_VERIFIED_SOURCES = 2;
@@ -219,10 +227,21 @@ export async function rankByRelevance(env: Bindings, question: string, candidate
     const ranked = scored
       .filter((entry) => typeof entry.id === 'number' && typeof entry.score === 'number' && candidates[entry.id])
       .map((entry) => ({ ...candidates[entry.id!]!, score: entry.score! }))
-      .filter((entry) => entry.score >= RERANK_FLOOR)
-      .sort((left, right) => right.score - left.score)
+      .sort((left, right) => right.score - left.score);
+    const best = ranked[0]?.score ?? 0;
+    const kept = ranked
+      .filter((entry) => entry.score >= RERANK_FLOOR && entry.score >= best * RERANK_RELATIVE_CUT)
       .slice(0, MAX_CONTEXTS);
-    return { records: ranked, reranked: true };
+    if (kept.length === 0 && ranked.length > 0) {
+      // Worth seeing: everything judged unrelated is either a question the corpus does not answer,
+      // or a floor set too high for how this one is worded.
+      console.error(JSON.stringify({
+        event: 'rag_rerank_dropped_all',
+        candidates: ranked.length,
+        bestScore: Number(best.toFixed(4)),
+      }));
+    }
+    return { records: kept, reranked: true };
   } catch (error) {
     console.error(JSON.stringify({ event: 'rag_rerank_failed', message: errorMessage(error) }));
     return { records: candidates.slice(0, MAX_CONTEXTS), reranked: false };

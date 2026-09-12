@@ -131,13 +131,30 @@ describe('reranking what retrieval found', () => {
   });
 
   it('orders by how well each source answers, not by how it was found', async () => {
-    const env = rerankerScoring((text) => (/mosque/i.test(text) ? 0.9 : /bathroom/i.test(text) ? 0.6 : 0.3));
+    const env = rerankerScoring((text) => (/mosque/i.test(text) ? 0.9 : /bathroom/i.test(text) ? 0.6 : 0.45));
     const { records } = await rankByRelevance(env, 'entering the mosque', candidates);
     expect(records.map((record) => record.record.title)).toEqual([
       'Upon entering the mosque',
       'Before entering the bathroom',
       'Before undressing',
     ]);
+  });
+
+  it('cuts the tail that is nowhere near the best match', async () => {
+    // The reported failure: one good match, and five others close enough in embedding space to be
+    // retrieved and nowhere near close enough to cite.
+    const env = rerankerScoring((text) => (/mosque/i.test(text) ? 0.9 : 0.2));
+    const { records } = await rankByRelevance(env, 'entering the mosque', candidates);
+    expect(records.map((record) => record.record.title)).toEqual(['Upon entering the mosque']);
+  });
+
+  it('keeps a weak best match rather than answering nothing at all', async () => {
+    // A cross-encoder scores an indirectly-worded question far lower against the very reading that
+    // answers it. "I cannot sleep at night" scored every candidate under a tidy-looking floor and
+    // returned nothing for a question the book does answer.
+    const env = rerankerScoring((text) => (/bathroom/i.test(text) ? 0.09 : 0.02));
+    const { records } = await rankByRelevance(env, 'somewhere to wash', candidates);
+    expect(records.map((record) => record.record.title)).toEqual(['Before entering the bathroom']);
   });
 
   it('says nothing rather than citing six near-misses', async () => {
