@@ -702,7 +702,13 @@ components:
                 datasetId: { type: string }
                 model: { type: string, nullable: true }
                 generated: { type: boolean }
-                remainingToday: { type: integer, minimum: 0 }
+                remainingToday:
+                  type: integer
+                  minimum: 0
+                  nullable: true
+                  description: >-
+                    Questions left today for this client, or null when no per-client limit is set
+                    (an administrator may switch the limit off) or when no dataset is published.
                 retrievalMode: { type: string, enum: [empty_dataset, vector, lexical, hybrid] }
                 vectorAvailable: { type: boolean }
         meta:

@@ -126,3 +126,22 @@
   color: var(--ink);
   background: var(--surface);
 }
+
+/* Ask controls: a small settings form under the RAG monitor. Kept in one column on a phone, since
+   the Admin Console is used from one often enough to matter. */
+.section-heading { margin: 1.6rem 0 0.2rem; font-size: 1.05rem; }
+.section-note { margin: 0 0 0.8rem; color: var(--muted); font-size: 0.85rem; max-width: 60ch; }
+.ask-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: var(--surface);
+}
+.ask-controls label { display: grid; gap: 0.3rem; font-weight: 600; font-size: 0.85rem; }
+.ask-controls input, .ask-controls select { padding: 0.5rem 0.6rem; border: 1px solid var(--line); border-radius: 0.5rem; font: inherit; }
+.ask-controls small { color: var(--muted); font-weight: 400; }
+.ask-controls footer { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.75rem; }
+.ask-controls footer span { color: var(--muted); font-size: 0.85rem; }
