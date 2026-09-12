@@ -140,7 +140,16 @@ describe('Ask evidence quality', () => {
       getHadith: async () => undefined,
     } as unknown as ContentRepository;
     const env = {
-      CONTENT_DB: { prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }) },
+      // The unverified fallback is off by default -- its query has no index and one question can
+      // read ~200,000 rows (migration 0021) -- so this test turns it on, which is what it is about.
+      CONTENT_DB: {
+        prepare: (sql: string) => ({
+          bind: () => ({ first: async () => ({ requestCount: 1 }), run: async () => ({}) }),
+          first: async () => (sql.includes('ask_settings') ? { unverifiedFallback: 1 } : { requestCount: 1 }),
+          all: async () => ({ results: [] }),
+          run: async () => ({}),
+        }),
+      },
       AI: {
         run: async (model: string, input: { messages?: Array<{ content: string }> }) => {
           if (model.includes('bge')) throw new Error('Vector unavailable in quality test.');

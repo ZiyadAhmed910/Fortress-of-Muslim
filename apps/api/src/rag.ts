@@ -29,6 +29,8 @@ const DEFAULT_ASK_SETTINGS = {
   primarySwitchPercent: 75,
   secondaryModel: '@cf/openai/gpt-oss-20b',
   secondaryDailyLimit: 600,
+  // Off: the query behind it has no index, and one question can read ~200,000 rows. See 0021.
+  unverifiedFallback: 0,
 };
 const MAX_CONTEXTS = 6;
 // Retrieve wide, then let the reranker decide. Recall is cheap (a vector query and an FTS query);
@@ -142,7 +144,8 @@ export async function loadAskSettings(database: D1Database): Promise<AskSettings
     const row = await database.prepare(`
       SELECT per_ip_daily_limit AS perIpDailyLimit, primary_model AS primaryModel,
              primary_daily_limit AS primaryDailyLimit, primary_switch_percent AS primarySwitchPercent,
-             secondary_model AS secondaryModel, secondary_daily_limit AS secondaryDailyLimit
+             secondary_model AS secondaryModel, secondary_daily_limit AS secondaryDailyLimit,
+             unverified_fallback AS unverifiedFallback
       FROM ask_settings WHERE id = 1
     `).first<AskSettings>();
     return row ? { ...DEFAULT_ASK_SETTINGS, ...row } : DEFAULT_ASK_SETTINGS;
@@ -461,7 +464,7 @@ export async function answerQuestion(
   const grounded = ranked;
 
   let includesUnverifiedSource = false;
-  if (grounded.length < MIN_VERIFIED_SOURCES) {
+  if (settings.unverifiedFallback === 1 && grounded.length < MIN_VERIFIED_SOURCES) {
     const fallback = await retrieveUnverifiedFallback(repository, retrievalQueries[0]!, grounded, MAX_CONTEXTS - grounded.length, filters);
     if (fallback.length) {
       includesUnverifiedSource = true;

@@ -864,6 +864,7 @@ async function loadAskControls() {
     <label>Hand over at<input name="primarySwitchPercent" type="number" min="1" max="100" step="1" value="${esc(settings.primarySwitchPercent)}"><small>Percent of the primary allowance to spend before switching.</small></label>
     <label>Secondary model<select name="secondaryModel">${modelOptions(settings.secondaryModel)}</select><small>Takes over for the rest of the day.</small></label>
     <label>Secondary answers per day<input name="secondaryDailyLimit" type="number" min="0" max="100000" step="1" value="${esc(settings.secondaryDailyLimit)}"></label>
+    <label class="ask-controls-switch"><span><input type="checkbox" name="unverifiedFallback" value="1"${settings.unverifiedFallback ? ' checked' : ''}> Answer from unverified records when verified sources are thin</span><small>Off by default. That search has no index behind it: one question can read ~200,000 database rows, about 25 questions against the whole free daily allowance.</small></label>
     <footer><button type="submit">Save Ask controls</button><span id="ask-controls-status"></span></footer>
   `;
 }
@@ -1323,6 +1324,8 @@ $('#ask-controls').addEventListener('submit', async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
   const body = Object.fromEntries(new FormData(form).entries());
+  // An unchecked box sends nothing, which would otherwise read as "leave unchanged".
+  body.unverifiedFallback = form.elements.unverifiedFallback.checked ? 1 : 0;
   const status = $('#ask-controls-status');
   status.textContent = 'Saving...';
   try {
