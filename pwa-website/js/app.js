@@ -14,7 +14,7 @@ import {
   shareCurrentEntry,
   showHome,
 } from './reader.js';
-import { applyWaitingUpdate, promptInstall, setupInstallPrompt, setupServiceWorker } from './pwa.js';
+import { applyWaitingUpdate, dismissInstallBanner, promptInstall, setupInstallPrompt, setupServiceWorker } from './pwa.js';
 import { exportUserData, importUserDataFile } from './userData.js';
 import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
@@ -123,6 +123,8 @@ function bindEvents() {
     importUserDataFile(els.importDataInput.files[0]);
     els.importDataInput.value = '';
   });
+  els.installBannerButton.addEventListener('click', promptInstall);
+  els.dismissInstallButton.addEventListener('click', dismissInstallBanner);
   els.updateButton.addEventListener('click', applyWaitingUpdate);
   els.dismissUpdateButton.addEventListener('click', () => {
     els.updateBanner.classList.remove('visible');

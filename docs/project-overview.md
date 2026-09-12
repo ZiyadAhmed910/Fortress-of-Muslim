@@ -160,6 +160,9 @@ What it actually contains today:
 - **Reminders** — opt-in local notifications for the five prayers and morning/evening adhkar.
 - **Shell** — simple and advanced layouts, per-feature show/hide, dark mode, first-run walkthrough,
   and backup export/import covering favourites, settings, tasbih, layout and Quran preferences.
+  Installing is always offered in Settings: an Install button where the browser supports prompting,
+  and otherwise the platform's own route (iOS has no prompt event at all), plus a dismissible
+  banner when the browser reports the app installable.
 - **PWA identity** — a shared gold crescent/gateway mark with a simplified favicon, separate
   maskable install icons and an Apple touch icon, generated from one vector source
   (`tools/build-brand.mjs`). References are versioned for each deployment. The icons the app

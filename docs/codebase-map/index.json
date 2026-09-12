@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T16:25:52.480Z",
+  "generatedAt": "2026-09-12T08:54:01.526Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -634,7 +634,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 208,
+      "lines": 210,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -682,7 +682,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 151,
+      "lines": 155,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -738,7 +738,7 @@
     },
     {
       "path": "pwa-website/js/onboarding.js",
-      "lines": 174,
+      "lines": 182,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -770,7 +770,7 @@
     },
     {
       "path": "pwa-website/js/pwa.js",
-      "lines": 101,
+      "lines": 146,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -834,7 +834,7 @@
     },
     {
       "path": "pwa-website/js/tasbih.js",
-      "lines": 211,
+      "lines": 205,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -875,6 +875,22 @@
     {
       "path": "pwa-website/test/categories.test.js",
       "lines": 121,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/guide-and-tasbih.test.js",
+      "lines": 61,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/install-affordance.test.js",
+      "lines": 70,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2207,6 +2223,14 @@
       ]
     },
     {
+      "name": "banner",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/install-affordance.test.js"
+      ]
+    },
+    {
       "name": "before",
       "kind": "unknown",
       "definedIn": [],
@@ -2983,6 +3007,14 @@
       "referencedBy": []
     },
     {
+      "name": "one",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/pwa.js"
+      ]
+    },
+    {
       "name": "opening",
       "kind": "unknown",
       "definedIn": [],
@@ -3364,7 +3396,8 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "pwa-website/js/prayer-times.js"
+        "pwa-website/js/prayer-times.js",
+        "pwa-website/test/guide-and-tasbih.test.js"
       ]
     },
     {
@@ -3389,6 +3422,7 @@
         "pwa-website/js/quran-audio.js",
         "pwa-website/js/quran.js",
         "pwa-website/test/categories.test.js",
+        "pwa-website/test/guide-and-tasbih.test.js",
         "pwa-website/test/prayer-times.test.js",
         "pwa-website/test/quran-words.test.js",
         "pwa-website/test/reading-roles.test.js"

@@ -50,13 +50,15 @@
   font-weight: 800;
 }
 
-.update-banner #updateButton {
+.update-banner #updateButton,
+.update-banner #installBannerButton {
   padding: 0.48rem 0.75rem;
   color: white;
   background: var(--accent-strong);
 }
 
-.update-banner #dismissUpdateButton {
+.update-banner #dismissUpdateButton,
+.update-banner #dismissInstallButton {
   width: 2rem;
   height: 2rem;
   font-size: 1.25rem;
