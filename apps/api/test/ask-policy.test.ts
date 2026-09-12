@@ -14,6 +14,7 @@ const settings = {
   primarySwitchPercent: 75,
   secondaryModel: '@cf/openai/gpt-oss-20b',
   secondaryDailyLimit: 600,
+  unverifiedFallback: 0,
 };
 
 describe('choosing which model answers', () => {
@@ -49,8 +50,16 @@ describe('the policy stored in the database', () => {
   const askMigration = () => {
     const database = new Database(':memory:');
     database.exec(readFileSync(resolve(__dirname, '../migrations/0019_ask_controls.sql'), 'utf8'));
+    database.exec(readFileSync(resolve(__dirname, '../migrations/0021_ask_unverified_fallback.sql'), 'utf8'));
     return database;
   };
+
+  it('leaves the unindexed fallback switched off', () => {
+    // One question on that path reads up to ~200,000 rows -- about 25 questions against D1's whole
+    // free daily allowance. It took the test environment down before it became a switch.
+    const row = askMigration().prepare('SELECT unverified_fallback AS off FROM ask_settings').get() as { off: number };
+    expect(row.off).toBe(0);
+  });
 
   it('ships defaults an environment can answer questions with', () => {
     const row = askMigration().prepare('SELECT * FROM ask_settings WHERE id = 1').get() as Record<string, unknown>;

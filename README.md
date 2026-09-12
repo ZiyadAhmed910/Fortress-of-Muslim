@@ -200,6 +200,14 @@ _2026-09-12_
   the lexical index and to the text each record is embedded from. They are search terms only: never
   displayed, never part of a revision, never religious text. Measured against the real corpus,
   seven of nine sample searches went from no result at all to the correct chapter.
+- **The unverified-content fallback is now a switch, and it starts off (`0021`).** When verified
+  sources came up thin, Ask supplemented them with current-but-unverified records through a query
+  with no index behind it: a LIKE over every segment of all 14,625 current records, once per word
+  in the question, up to ~200,000 row reads for a single question. Against D1's free allowance of
+  5,000,000 row reads a day that is roughly 25 unanswered questions before the database stops
+  serving reads -- which is exactly what took the test environment down while this was being
+  built. Ask's own rule is that it answers from verified, published sources; this was always the
+  exception, so the exception is opt-in, with the cost stated in the Admin Console beside it.
 - **`remainingToday` is now nullable** in the Ask response: with no per-visitor limit configured
   there is no number to report. The OpenAPI schema says so, and the PWA no longer risks printing
   "null questions remaining today".

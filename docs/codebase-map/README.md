@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-12T13:51:01.596Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-12T18:36:48.271Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -39,7 +39,7 @@ Not all of these are bugs; verify before assuming.
 
 | File | Lang | Lines | Routes | Exports |
 | --- | --- | --- | --- | --- |
-| `apps/admin/public/app.js` | js | 1523 |  |  |
+| `apps/admin/public/app.js` | js | 1526 |  |  |
 | `apps/api/migrations/0001_content_schema.sql` | sql | 62 |  |  |
 | `apps/api/migrations/0002_import_legacy_dataset.sql` | sql | 1566 |  |  |
 | `apps/api/migrations/0003_canonical_knowledge.sql` | sql | 305 |  |  |
@@ -60,6 +60,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/migrations/0018_hisn_reading_roles.sql` | sql | 729 |  |  |
 | `apps/api/migrations/0019_ask_controls.sql` | sql | 44 |  |  |
 | `apps/api/migrations/0020_search_aliases.sql` | sql | 193 |  |  |
+| `apps/api/migrations/0021_ask_unverified_fallback.sql` | sql | 15 |  |  |
 | `apps/api/src/app.ts` | ts | 623 | 26 | function createApp, const app |
 | `apps/api/src/index.ts` | ts | 51 |  | class ApiWorker |
 | `apps/api/src/lib/fuzzy-title.ts` | ts | 75 |  | type TitleCandidate, type RankedTitle, function rankDuaTitles |
@@ -67,19 +68,19 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/lib/record-query.ts` | ts | 88 |  | type RecordQueryDefinition, function executeRecordQuery |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 41 |  | function expandRetrievalQuery |
-| `apps/api/src/rag.ts` | ts | 802 |  | type RagSource, type AskSettings, function loadAskSettings, function chooseAskModel, function rankByRelevance, function indexRecordBatch, +7 more |
+| `apps/api/src/rag.ts` | ts | 805 |  | type RagSource, type AskSettings, function loadAskSettings, function chooseAskModel, function rankByRelevance, function indexRecordBatch, +7 more |
 | `apps/api/src/repositories/content-repository.ts` | ts | 60 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 726 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
 | `apps/api/test/api.test.ts` | ts | 726 |  |  |
 | `apps/api/test/arabic-search.test.ts` | ts | 133 |  |  |
-| `apps/api/test/ask-policy.test.ts` | ts | 164 |  |  |
+| `apps/api/test/ask-policy.test.ts` | ts | 173 |  |  |
 | `apps/api/test/canonical-withdrawal.test.ts` | ts | 111 |  |  |
 | `apps/api/test/fuzzy-title.test.ts` | ts | 30 |  |  |
 | `apps/api/test/hadith-reference.test.ts` | ts | 127 |  |  |
 | `apps/api/test/rag-filters.test.ts` | ts | 208 |  |  |
 | `apps/api/test/rag-index.test.ts` | ts | 125 |  |  |
-| `apps/api/test/rag-quality.test.ts` | ts | 184 |  |  |
+| `apps/api/test/rag-quality.test.ts` | ts | 193 |  |  |
 | `apps/api/test/rag-reference.test.ts` | ts | 28 |  |  |
 | `apps/api/test/rag-synonyms.test.ts` | ts | 27 |  |  |
 | `apps/api/test/reading-roles-migration.test.ts` | ts | 264 |  |  |
@@ -97,7 +98,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/migrations/0009_operational_alerts.sql` | sql | 21 |  |  |
 | `apps/auth/migrations/0010_rate_limits.sql` | sql | 26 |  |  |
 | `apps/auth/migrations/0011_webhooks.sql` | sql | 32 |  |  |
-| `apps/auth/src/admin-plane.ts` | ts | 1050 | 26 | function requiresMfaEnrollment, function handleAdminPlane |
+| `apps/auth/src/admin-plane.ts` | ts | 1060 | 26 | function requiresMfaEnrollment, function handleAdminPlane |
 | `apps/auth/src/auth.ts` | ts | 117 |  | const FORTRESS_SCOPES, function createAuth |
 | `apps/auth/src/editorial-plane.ts` | ts | 2340 | 34 | type EditorialRole, function handleEditorialPlane, class EditorialForbiddenError |
 | `apps/auth/src/index.ts` | ts | 895 | 30 | class AuthWorker |
@@ -429,6 +430,7 @@ Not all of these are bugs; verify before assuming.
 | travel | unknown | `(not defined in scanned files)` | `apps/api/test/fuzzy-title.test.ts` |
 | true | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js` |
 | twoFactor | table | `apps/auth/migrations/0008_account_security.sql` | (none) |
+| unverified | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
 | usage_events | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | user | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
 | vector | unknown | `(not defined in scanned files)` | `apps/api/test/api.test.ts` |

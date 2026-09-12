@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T13:51:01.596Z",
+  "generatedAt": "2026-09-12T18:36:48.271Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -96,7 +96,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 802,
+      "lines": 805,
       "language": "ts",
       "exports": [
         "type RagSource",
@@ -193,7 +193,7 @@
     },
     {
       "path": "apps/api/test/ask-policy.test.ts",
-      "lines": 164,
+      "lines": 173,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -270,7 +270,7 @@
     },
     {
       "path": "apps/api/test/rag-quality.test.ts",
-      "lines": 184,
+      "lines": 193,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -359,7 +359,7 @@
     },
     {
       "path": "apps/auth/src/admin-plane.ts",
-      "lines": 1050,
+      "lines": 1060,
       "language": "ts",
       "exports": [
         "function requiresMfaEnrollment",
@@ -610,7 +610,7 @@
     },
     {
       "path": "apps/admin/public/app.js",
-      "lines": 1523,
+      "lines": 1526,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1139,6 +1139,14 @@
     {
       "path": "apps/api/migrations/0020_search_aliases.sql",
       "lines": 193,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0021_ask_unverified_fallback.sql",
+      "lines": 15,
       "language": "sql",
       "exports": [],
       "imports": [],
@@ -3632,6 +3640,14 @@
         "apps/auth/migrations/0008_account_security.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "unverified",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js"
+      ]
     },
     {
       "name": "usage_events",

@@ -852,6 +852,7 @@ async function askControls({ env }: AdminContext) {
       SELECT per_ip_daily_limit AS perIpDailyLimit, primary_model AS primaryModel,
              primary_daily_limit AS primaryDailyLimit, primary_switch_percent AS primarySwitchPercent,
              secondary_model AS secondaryModel, secondary_daily_limit AS secondaryDailyLimit,
+             unverified_fallback AS unverifiedFallback,
              updated_by_external_id AS updatedBy, updated_at AS updatedAt
       FROM ask_settings WHERE id = 1
     `).first<Record<string, unknown>>(),
@@ -881,11 +882,13 @@ async function updateAskControls(context: AdminContext, body: Record<string, unk
   const settings = await context.env.CONTENT_DB.prepare(`
     SELECT per_ip_daily_limit AS perIpDailyLimit, primary_model AS primaryModel,
            primary_daily_limit AS primaryDailyLimit, primary_switch_percent AS primarySwitchPercent,
-           secondary_model AS secondaryModel, secondary_daily_limit AS secondaryDailyLimit
+           secondary_model AS secondaryModel, secondary_daily_limit AS secondaryDailyLimit,
+           unverified_fallback AS unverifiedFallback
     FROM ask_settings WHERE id = 1
   `).first<{
     perIpDailyLimit: number; primaryModel: string; primaryDailyLimit: number;
     primarySwitchPercent: number; secondaryModel: string; secondaryDailyLimit: number;
+    unverifiedFallback: number;
   }>();
   if (!settings) return json({ error: { code: 'not_found', message: 'Ask controls have not been provisioned in this environment.' } }, 404);
 
@@ -916,14 +919,20 @@ async function updateAskControls(context: AdminContext, body: Record<string, unk
   const secondaryModel = model(body.secondaryModel, settings.secondaryModel);
   if (primaryModel.error || secondaryModel.error) return invalid('Choose a model Workers AI offers for this account.');
 
+  // Off unless explicitly asked for: the query behind it has no index and one question can read
+  // ~200,000 rows, which is roughly 25 questions against D1's whole free daily allowance.
+  const fallback = body.unverifiedFallback === undefined || body.unverifiedFallback === null
+    ? settings.unverifiedFallback
+    : (body.unverifiedFallback === true || body.unverifiedFallback === 1 || body.unverifiedFallback === '1' || body.unverifiedFallback === 'on' ? 1 : 0);
+
   await context.env.CONTENT_DB.prepare(`
     UPDATE ask_settings SET per_ip_daily_limit = ?, primary_model = ?, primary_daily_limit = ?,
       primary_switch_percent = ?, secondary_model = ?, secondary_daily_limit = ?,
-      updated_by_external_id = ?, updated_at = CURRENT_TIMESTAMP
+      unverified_fallback = ?, updated_by_external_id = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = 1
   `).bind(
     perIp.value, primaryModel.value, primaryLimit.value, switchPercent.value,
-    secondaryModel.value, secondaryLimit.value, context.user.id,
+    secondaryModel.value, secondaryLimit.value, fallback, context.user.id,
   ).run();
   const updated = {
     perIpDailyLimit: perIp.value,
@@ -932,6 +941,7 @@ async function updateAskControls(context: AdminContext, body: Record<string, unk
     primarySwitchPercent: switchPercent.value,
     secondaryModel: secondaryModel.value,
     secondaryDailyLimit: secondaryLimit.value,
+    unverifiedFallback: fallback,
   };
   await audit(context, 'ask.controls_changed', 'ask', 'settings', updated);
   return json({ data: { settings: updated } });

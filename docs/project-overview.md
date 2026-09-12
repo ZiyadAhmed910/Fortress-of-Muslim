@@ -76,8 +76,10 @@ embeddings can only say "near this question", which is why an unfamiliar wording
 half a dozen loosely-related readings. Also: curated synonym expansion plus LLM query-expansion
 before retrieval, chapter search aliases (`canonical_search_aliases`, migration `0020`) folded into
 both indexes, an exact-reference fast path for questions like `"Bukhari 52"`, optional
-`contentType`/`collection` metadata filters, a supplementary unverified-content fallback (clearly
-labeled) when verified results are thin, and citation-validated generated answers with a
+`contentType`/`collection` metadata filters, an optional unverified-content fallback (clearly
+labeled) when verified results are thin — `ask_settings.unverified_fallback`, off by default:
+its LIKE-over-every-segment query has no index and can read ~200,000 rows for one question — and
+citation-validated generated answers with a
 deterministic non-generated fallback when citations don't check out. Which model answers, how much
 of each model may be spent per day, and the per-client daily limit are admin-set (`ask_settings`,
 `ask_model_usage`, migration `0019`): the better reasoning model answers until a configured share of
