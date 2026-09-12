@@ -149,16 +149,20 @@ describe('reranking what retrieval found', () => {
   });
 
   it('keeps a weak best match rather than answering nothing at all', async () => {
-    // A cross-encoder scores an indirectly-worded question far lower against the very reading that
-    // answers it. "I cannot sleep at night" scored every candidate under a tidy-looking floor and
-    // returned nothing for a question the book does answer.
-    const env = rerankerScoring((text) => (/bathroom/i.test(text) ? 0.09 : 0.02));
+    // Measured on the live corpus: the reading titled "When angry" scores 0.81 for the question
+    // "When angry" and under 0.05 for "what should I recite when I am angry?". Its scores order
+    // candidates well and mean little in absolute terms, so a tidy-looking floor answers "nothing
+    // found" to ordinary questions. Sufficiency is the model's job, not the threshold's.
+    const env = rerankerScoring((text) => (/bathroom/i.test(text) ? 0.03 : 0.005));
     const { records } = await rankByRelevance(env, 'somewhere to wash', candidates);
     expect(records.map((record) => record.record.title)).toEqual(['Before entering the bathroom']);
   });
 
-  it('says nothing rather than citing six near-misses', async () => {
-    const env = rerankerScoring(() => 0.02);
+  it('returns nothing for a question this corpus has no answer to', async () => {
+    // The floor only catches nonsense now. Whether a weak-but-plausible source is enough to answer
+    // from is decided by the model, which has to cite what it uses and is told to say when the
+    // sources do not answer the question.
+    const env = rerankerScoring(() => 0.002);
     const { records } = await rankByRelevance(env, 'how do I file a tax return', candidates);
     expect(records).toEqual([]);
   });

@@ -34,17 +34,17 @@ const MAX_CONTEXTS = 6;
 // Retrieve wide, then let the reranker decide. Recall is cheap (a vector query and an FTS query);
 // being wrong about which six to show is not.
 const RERANK_CANDIDATES = 16;
-// Two cuts, because one flat threshold gets both cases wrong. The absolute floor throws out
-// nonsense. The relative cut keeps only what is in the same league as the best match, which is what
-// removes the tail of near-misses that made "toilet" cite five unrelated readings.
+// The reranker is used to order candidates, not to judge whether an answer exists. bge-reranker-base
+// is the only reranker Workers AI offers, and its absolute scores are not comparable across
+// questions: the same reading scores 0.81 for "When angry" and under 0.05 for "what should I recite
+// when I am angry?". Every threshold high enough to look tidy therefore answered "nothing found" to
+// ordinary questions the book plainly answers.
 //
-// The floor is deliberately low. A cross-encoder's scores are not comparable across questions: a
-// plainly-worded one scores 0.98 where an indirect one ("I cannot sleep at night, what should I
-// read?") scores a fraction of that against the very reading that answers it. Set high enough to
-// look tidy, the floor returns "nothing found" for questions the corpus does answer -- a worse
-// failure than passing a weak source to a model that must cite it and can say so when the evidence
-// is thin.
-const RERANK_FLOOR = 0.05;
+// So: a floor low enough to catch only nonsense, and a relative cut that keeps what is in the same
+// league as the best match -- which is what actually removes the tail of near-misses that had
+// "toilet" citing five unrelated readings. Sufficiency is judged where it can be judged properly,
+// by a model that must cite every paragraph and is told to say when the sources do not answer.
+const RERANK_FLOOR = 0.01;
 const RERANK_RELATIVE_CUT = 0.35;
 // Below this many verified/published sources, also try the unverified-content fallback --
 // verified is still the primary path, this only fills gaps when it's thin.
