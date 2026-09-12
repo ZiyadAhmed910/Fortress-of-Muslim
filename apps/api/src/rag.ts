@@ -49,7 +49,11 @@ const GENERATION_SYSTEM_PROMPT = 'You are the Fortress of Muslim canonical sourc
   + 'explicitly in the sentence that cites it (for example, "this is not yet independently '
   + 'verified") -- never present unverified material with the same confidence as verified material. '
   + 'If the contexts are insufficient, say so. Keep the answer concise and do not provide medical, '
-  + 'legal, or religious verdicts.';
+  + 'legal, or religious verdicts. '
+  + 'Formatting, which is enforced: write ONE short paragraph, with no headings, no bullet points '
+  + 'and no blank lines. Every paragraph you write must contain a bracketed citation such as [1], '
+  + 'including any paragraph that only quotes the words of a supplication. An answer whose '
+  + 'paragraphs are not all cited is discarded and never reaches the reader.';
 const QUERY_EXPANSION_SYSTEM_PROMPT = 'Rewrite the user question into exactly 2 short alternate '
   + 'search phrasings using different but related wording -- synonyms, alternate transliterations '
   + 'of Islamic terms, or closely related concepts. Reply with exactly 2 lines, one phrasing per '
@@ -512,6 +516,16 @@ async function generateGroundedAnswer(
       }));
     }
     if (!hasValidCitations(answer, sources.length)) {
+      // Answers are discarded unless every paragraph carries a citation. That rule protects the
+      // one commitment that matters most here -- nothing is asserted about religious content
+      // without a source -- but discarding silently made a well-behaved model look broken, so the
+      // rejected text is logged. It is generated prose about published records, not user data.
+      console.error(JSON.stringify({
+        event: 'rag_generation_uncited',
+        model: chosenModel,
+        sourceCount: sources.length,
+        answer: answer.slice(0, 300),
+      }));
       answer = groundedFallback(sources);
       generated = false;
       model = null;
