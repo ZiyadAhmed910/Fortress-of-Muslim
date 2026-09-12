@@ -155,11 +155,14 @@ What it actually contains today:
   high-latitude conventions plus a nearest-latitude fallback inside the polar circles, with derived
   times labelled as estimated. `test/prayer-times.test.js` covers ordering across a full year,
   Hanafi vs standard Asr, all three night-division rules at Oslo, and the polar case at Tromsø.
-- **Qibla** — great-circle bearing plus a live compass where a north-referenced heading is
-  available: readings without one are refused rather than pointed somewhere confidently wrong, the
-  screen's own rotation is accounted for, and the dial is smoothed and never spins the long way
-  round at north. When no usable reading arrives within 2.5s, or the browser refuses sensor access,
-  the card says so and how to fix it instead of claiming to be live.
+- **Qibla** — great-circle bearing plus a live compass that works in any pose. The device's top
+  edge and its back are both derived from the spec's rotation matrix, and whichever is more
+  horizontal is used: flat in the palm follows the top edge, held upright follows where the phone
+  points (roll-invariant, so landscape is fine). Readings with no north reference are refused
+  rather than pointed somewhere confidently wrong, the screen's own rotation is accounted for in
+  the flat pose, and the dial is smoothed and never spins the long way round at north. When no
+  usable reading arrives within 2.5s, or the browser refuses sensor access, the card says so and
+  how to fix it instead of claiming to be live.
 - **Tasbih** — presets, custom phrases, lifetime totals.
 - **Reminders** — opt-in local notifications for the five prayers and morning/evening adhkar.
 - **Shell** — simple and advanced layouts, per-feature show/hide, dark mode, first-run walkthrough,

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T09:14:58.408Z",
+  "generatedAt": "2026-09-12T09:32:08.254Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -762,7 +762,7 @@
     },
     {
       "path": "pwa-website/js/prayer.js",
-      "lines": 534,
+      "lines": 594,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -914,7 +914,7 @@
     },
     {
       "path": "pwa-website/test/qibla-compass.test.js",
-      "lines": 114,
+      "lines": 209,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2831,6 +2831,15 @@
       "definedIn": [],
       "referencedBy": [
         "apps/auth/src/taxonomy.ts"
+      ]
+    },
+    {
+      "name": "landscape",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer.js",
+        "pwa-website/test/qibla-compass.test.js"
       ]
     },
     {

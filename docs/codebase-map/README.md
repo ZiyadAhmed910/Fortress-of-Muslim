@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-12T09:14:58.408Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-12T09:32:08.254Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -130,7 +130,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/onboarding.js` | js | 182 |  |  |
 | `pwa-website/js/online.js` | js | 21 |  |  |
 | `pwa-website/js/prayer-times.js` | js | 274 |  |  |
-| `pwa-website/js/prayer.js` | js | 534 |  |  |
+| `pwa-website/js/prayer.js` | js | 594 |  |  |
 | `pwa-website/js/pwa.js` | js | 146 |  |  |
 | `pwa-website/js/quran-audio.js` | js | 556 |  |  |
 | `pwa-website/js/quran.js` | js | 778 |  |  |
@@ -149,7 +149,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/install-affordance.test.js` | js | 70 |  |  |
 | `pwa-website/test/layout.test.js` | js | 91 |  |  |
 | `pwa-website/test/prayer-times.test.js` | js | 167 |  |  |
-| `pwa-website/test/qibla-compass.test.js` | js | 114 |  |  |
+| `pwa-website/test/qibla-compass.test.js` | js | 209 |  |  |
 | `pwa-website/test/quran-words.test.js` | js | 129 |  |  |
 | `pwa-website/test/reading-roles.test.js` | js | 101 |  |  |
 | `pwa-website/test/reciters.test.js` | js | 39 |  |  |
@@ -350,6 +350,7 @@ Not all of these are bugs; verify before assuming.
 | json_each | unknown | `(not defined in scanned files)` | `apps/auth/src/webhooks.ts` |
 | jwks | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | keyword | unknown | `(not defined in scanned files)` | `apps/auth/src/taxonomy.ts` |
+| landscape | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js`, `pwa-website/test/qibla-compass.test.js` |
 | languages | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/auth/src/admin-plane.ts` |
 | localStorage | unknown | `(not defined in scanned files)` | `pwa-website/js/layout.js` |
 | Maghrib | unknown | `(not defined in scanned files)` | `pwa-website/test/prayer-times.test.js` |
