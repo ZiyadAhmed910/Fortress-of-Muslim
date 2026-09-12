@@ -1,13 +1,34 @@
 import { access, readFile } from 'node:fs/promises';
 
 const repositoryRoot = new URL('../../../', import.meta.url);
+
+// A portal's mark and the app's are the same drawing, generated together by
+// pwa-website/tools/build-brand.mjs. The first portal mark was a hand-drawn copy and quietly kept
+// the old logo through an entire rebrand, so what ships is compared against the app's own icon
+// here: the only difference either file may carry is the product name it announces.
+const withoutLabel = (svg) => svg.replace(/ aria-label="[^"]*"/, '').replace(/\s+/g, ' ').trim();
+async function checkMarkMatchesTheApp(output, portal) {
+  for (const [shipped, drawn] of [
+    ['assets/fortress-mark.svg', 'pwa-website/icons/logo.svg'],
+    ['assets/fortress-favicon.svg', 'pwa-website/icons/favicon.svg'],
+  ]) {
+    const shippedMark = withoutLabel(await readFile(new URL(shipped, output), 'utf8'));
+    const appMark = withoutLabel(await readFile(new URL(drawn, repositoryRoot), 'utf8'));
+    if (shippedMark !== appMark) {
+      throw new Error(`${portal} ships ${shipped}, which no longer matches ${drawn}. Run node pwa-website/tools/build-brand.mjs.`);
+    }
+  }
+}
+
 for (const portal of ['developers', 'status', 'admin']) {
   const output = new URL(`apps/${portal}/dist/`, repositoryRoot);
   const portalStylesheet = portal === 'admin' ? 'admin.css' : 'styles.css';
-  for (const path of ['index.html', 'app.js', portalStylesheet, '_headers', 'assets/portal.css', 'assets/portal.js', 'assets/fortress-mark.svg']) {
+  for (const path of ['index.html', 'app.js', portalStylesheet, '_headers', 'assets/portal.css', 'assets/portal.js', 'assets/fortress-mark.svg', 'assets/fortress-favicon.svg']) {
     await access(new URL(path, output));
   }
+  await checkMarkMatchesTheApp(output, portal);
   const html = await readFile(new URL('index.html', output), 'utf8');
+  if (!html.includes('/assets/fortress-favicon.svg')) throw new Error(`${portal} does not use the simplified mark as its favicon.`);
   if (!html.includes('Fortress Platform')) throw new Error(`${portal} is missing the platform brand.`);
   const responseHeaders = await readFile(new URL('_headers', output), 'utf8');
   for (const header of ['Access-Control-Allow-Origin: *', 'X-Frame-Options: DENY', 'X-Content-Type-Options: nosniff', 'Strict-Transport-Security:', "Content-Security-Policy: default-src 'self'"]) {
