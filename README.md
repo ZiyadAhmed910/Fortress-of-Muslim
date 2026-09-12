@@ -824,8 +824,10 @@ The service worker build/cache version is stamped from the current commit SHA. T
   nothing about why. The screen now says where the switch lives, and offers manual coordinates.
 - Entering coordinates by hand used to leave the Qibla card and the prayer list hidden: the
   location was saved, the bearing computed, and nothing appeared on screen.
-- The install splash uses the icon's own teal, so the icon's square background no longer sits on a
-  near-white plate.
+- The install splash stays the app's own off-white. Matching it to the icon's teal was tried and
+  reverted: a manifest can only give the splash one flat colour, and the icon's background is a
+  gradient, so its corners still drew a visible square against any single colour. Removing the
+  gradient would have flattened the icon, which is where its depth comes from.
 
 ### Unreleased — install, reset and guide fixes
 
