@@ -48,6 +48,6 @@ function renderAnswer(data) {
     <article class="assistant-answer"><p>${answer}</p></article>
     <div class="assistant-sources">${sources}</div>
     ${data.meta.includesUnverifiedSource ? '<p class="assistant-note">This answer draws on at least one source that is not yet independently verified -- clearly marked above.</p>' : ''}
-    ${data.meta.retrievalMode === 'empty_dataset' ? '' : `<p class="assistant-remaining">${data.meta.remainingToday} questions remaining today on this connection.</p>`}
+    ${typeof data.meta.remainingToday === 'number' ? `<p class="assistant-remaining">${data.meta.remainingToday} questions remaining today on this connection.</p>` : ''}
   `;
 }

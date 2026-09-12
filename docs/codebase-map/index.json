@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T09:32:08.254Z",
+  "generatedAt": "2026-09-12T13:51:01.596Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -96,14 +96,19 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 639,
+      "lines": 802,
       "language": "ts",
       "exports": [
         "type RagSource",
+        "type AskSettings",
+        "function loadAskSettings",
+        "function chooseAskModel",
+        "function rankByRelevance",
         "function indexRecordBatch",
         "function indexNextPendingBatch",
         "function getRagStatus",
         "function answerQuestion",
+        "function mergeCandidates",
         "const EMBEDDING_CALL_TOKEN_BUDGET",
         "function embeddingCalls",
         "class RagRateLimitError"
@@ -161,7 +166,7 @@
     },
     {
       "path": "apps/api/test/api.test.ts",
-      "lines": 724,
+      "lines": 726,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -183,6 +188,20 @@
         "node:path",
         "vitest",
         "../src/repositories/d1-content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/ask-policy.test.ts",
+      "lines": 164,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/rag"
       ],
       "routeCount": 0
     },
@@ -251,7 +270,7 @@
     },
     {
       "path": "apps/api/test/rag-quality.test.ts",
-      "lines": 174,
+      "lines": 184,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -312,6 +331,19 @@
       "routeCount": 0
     },
     {
+      "path": "apps/api/test/search-aliases.test.ts",
+      "lines": 123,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest"
+      ],
+      "routeCount": 0
+    },
+    {
       "path": "apps/auth/auth.config.ts",
       "lines": 19,
       "language": "ts",
@@ -327,7 +359,7 @@
     },
     {
       "path": "apps/auth/src/admin-plane.ts",
-      "lines": 938,
+      "lines": 1050,
       "language": "ts",
       "exports": [
         "function requiresMfaEnrollment",
@@ -337,7 +369,7 @@
         "./types",
         "./editorial-plane"
       ],
-      "routeCount": 24
+      "routeCount": 26
     },
     {
       "path": "apps/auth/src/auth.ts",
@@ -578,7 +610,7 @@
     },
     {
       "path": "apps/admin/public/app.js",
-      "lines": 1465,
+      "lines": 1523,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1097,6 +1129,22 @@
       "routeCount": 0
     },
     {
+      "path": "apps/api/migrations/0019_ask_controls.sql",
+      "lines": 44,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0020_search_aliases.sql",
+      "lines": 193,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "apps/auth/migrations/0001_identity.sql",
       "lines": 81,
       "language": "sql",
@@ -1475,15 +1523,15 @@
     {
       "style": "manual",
       "method": "GET",
-      "path": "/v1/admin/audit",
+      "path": "/v1/admin/ask-controls",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
       "line": 136
     },
     {
       "style": "manual",
-      "method": "GET",
-      "path": "/v1/admin/alerts",
+      "method": "PATCH",
+      "path": "/v1/admin/ask-controls",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
       "line": 137
@@ -1491,10 +1539,26 @@
     {
       "style": "manual",
       "method": "GET",
+      "path": "/v1/admin/audit",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 141
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/alerts",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 142
+    },
+    {
+      "style": "manual",
+      "method": "GET",
       "path": "/v1/admin/rate-limits",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 138
+      "line": 143
     },
     {
       "style": "manual",
@@ -1502,7 +1566,7 @@
       "path": "/v1/admin/access-requests",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 139
+      "line": 144
     },
     {
       "style": "manual",
@@ -1510,7 +1574,7 @@
       "path": "/^\\/v1\\/admin\\/users\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 141
+      "line": 146
     },
     {
       "style": "manual",
@@ -1518,7 +1582,7 @@
       "path": "/^\\/v1\\/admin\\/sessions\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 148
+      "line": 153
     },
     {
       "style": "manual",
@@ -1526,7 +1590,7 @@
       "path": "/^\\/v1\\/admin\\/services\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 153
+      "line": 158
     },
     {
       "style": "manual",
@@ -1534,7 +1598,7 @@
       "path": "/^\\/v1\\/admin\\/rate-limits\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 159
+      "line": 164
     },
     {
       "style": "manual",
@@ -1542,7 +1606,7 @@
       "path": "\r",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 165
+      "line": 170
     },
     {
       "style": "manual",
@@ -1550,7 +1614,7 @@
       "path": "/^\\/v1\\/admin\\/alerts\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 173
+      "line": 178
     },
     {
       "style": "manual",
@@ -1558,7 +1622,7 @@
       "path": "/^\\/v1\\/admin\\/access-requests\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 179
+      "line": 184
     },
     {
       "style": "manual",
@@ -2158,6 +2222,14 @@
       "referencedBy": []
     },
     {
+      "name": "admin",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
       "name": "an",
       "kind": "unknown",
       "definedIn": [],
@@ -2218,6 +2290,29 @@
       ]
     },
     {
+      "name": "ask_model_usage",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0019_ask_controls.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "ask_settings",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0019_ask_controls.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-policy.test.ts",
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
       "name": "audit_events",
       "kind": "table",
       "definedIn": [
@@ -2243,6 +2338,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "apps/api/src/rag.ts",
         "pwa-website/js/userData.js"
       ]
     },
@@ -2294,6 +2390,7 @@
       "name": "canonical_dataset_versions",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
@@ -2302,6 +2399,7 @@
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -2319,6 +2417,7 @@
       "name": "canonical_publications",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
@@ -2328,6 +2427,7 @@
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/rag-index.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -2346,6 +2446,7 @@
       "name": "canonical_records",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
@@ -2357,6 +2458,7 @@
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -2376,11 +2478,22 @@
       ]
     },
     {
+      "name": "canonical_search_aliases",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0020_search_aliases.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
       "name": "canonical_search_fts",
       "kind": "virtual_table",
       "definedIn": [
         "apps/api/test/record-query.test.ts",
         "apps/api/test/record-query.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/test/editorial-pilot.test.ts",
         "apps/auth/test/editorial-pilot.test.ts",
         "apps/api/migrations/0006_canonical_editorial.sql"
@@ -2389,6 +2502,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]
@@ -2397,6 +2511,7 @@
       "name": "canonical_withdrawals",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0017_canonical_withdrawals.sql"
       ],
       "referencedBy": [
@@ -2424,6 +2539,7 @@
       "name": "collections",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": [
@@ -2482,6 +2598,7 @@
       "name": "content_revisions",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
@@ -2494,6 +2611,7 @@
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -2715,6 +2833,15 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/quran-audio.js"
+      ]
+    },
+    {
+      "name": "evil",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/ask-policy.test.ts",
+        "apps/api/test/search-aliases.test.ts"
       ]
     },
     {
@@ -3168,18 +3295,21 @@
         "apps/api/migrations/0005_rag_usage.sql"
       ],
       "referencedBy": [
-        "apps/api/src/rag.ts"
+        "apps/api/src/rag.ts",
+        "apps/auth/src/admin-plane.ts"
       ]
     },
     {
       "name": "rag_index_state",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0007_rag_index_state.sql"
       ],
       "referencedBy": [
         "apps/api/src/rag.ts",
         "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -3250,6 +3380,7 @@
       "name": "revision_metadata",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
@@ -3260,6 +3391,7 @@
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -3267,6 +3399,7 @@
       "name": "revision_parts",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
@@ -3276,6 +3409,7 @@
         "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -3283,6 +3417,7 @@
       "name": "revision_segments",
       "kind": "table",
       "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
         "apps/api/migrations/0006_canonical_editorial.sql"
       ],
       "referencedBy": [
@@ -3291,6 +3426,7 @@
         "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -3409,6 +3545,14 @@
       ]
     },
     {
+      "name": "text",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/search-aliases.test.ts"
+      ]
+    },
+    {
       "name": "that",
       "kind": "unknown",
       "definedIn": [],
@@ -3425,6 +3569,7 @@
         "apps/admin/public/app.js",
         "apps/api/src/rag.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts",

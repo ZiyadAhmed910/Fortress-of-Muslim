@@ -610,12 +610,14 @@ describe('Fortress Platform API', () => {
       AI: { run: unavailable },
       VECTOR_INDEX: { query: unavailable },
     } as never);
-    const body = await response.json() as { data: { sources: unknown[]; meta: { retrievalMode: string; remainingToday: number } } };
+    const body = await response.json() as { data: { sources: unknown[]; meta: { retrievalMode: string; remainingToday: number | null } } };
 
     expect(response.status).toBe(200);
     expect(body.data.sources).toEqual([]);
     expect(body.data.meta.retrievalMode).toBe('empty_dataset');
-    expect(body.data.meta.remainingToday).toBe(20);
+    // Null rather than a number: nothing was consumed, and the limit is configurable now, so the
+    // old fixed 20 would be stating a figure this path never read.
+    expect(body.data.meta.remainingToday).toBeNull();
   });
 
   it('falls back to published lexical retrieval when Vectorize is unavailable', async () => {

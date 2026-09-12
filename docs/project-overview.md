@@ -23,7 +23,7 @@ Two commitments shape every other decision in this codebase:
 
 ## Current version
 
-`0.25.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
+`0.26.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
 `package.json`). See `README.md` → `## Platform Releases` for the full version history — it is
 the closest thing this repo has to a changelog and should be treated as one.
 
@@ -70,11 +70,19 @@ through `api_current_content` (current editorial state, including unverified can
 labeled with `verificationStatus`/`workflowState`) or `api_published_content` (verified + published
 only, used by RAG). `POST /v1/ask` is the source-grounded assistant: hybrid vector (Cloudflare
 Vectorize) + lexical (D1 FTS5, Arabic-diacritic/alef-form normalized on both the index and query
-side) retrieval, synonym expansion + LLM query-expansion before retrieval, an exact-reference fast
-path for questions like `"Bukhari 52"`, optional `contentType`/`collection` metadata filters, a
-supplementary unverified-content fallback (clearly labeled) when verified results are thin, 20
-requests/day per client IP (hashed, D1-backed counter), citation-validated generated answers with a
-deterministic non-generated fallback when citations don't check out. `GET /v1/queries/:id` executes
+side) retrieval widened to 16 candidates, then a cross-encoder rerank (`@cf/baai/bge-reranker-base`)
+that scores each candidate against the question and drops everything below the relevance floor —
+embeddings can only say "near this question", which is why an unfamiliar wording used to surface
+half a dozen loosely-related readings. Also: curated synonym expansion plus LLM query-expansion
+before retrieval, chapter search aliases (`canonical_search_aliases`, migration `0020`) folded into
+both indexes, an exact-reference fast path for questions like `"Bukhari 52"`, optional
+`contentType`/`collection` metadata filters, a supplementary unverified-content fallback (clearly
+labeled) when verified results are thin, and citation-validated generated answers with a
+deterministic non-generated fallback when citations don't check out. Which model answers, how much
+of each model may be spent per day, and the per-client daily limit are admin-set (`ask_settings`,
+`ask_model_usage`, migration `0019`): the better reasoning model answers until a configured share of
+its allowance is gone, then the cheaper one does, so a busy day serves more questions rather than
+refusing them. A limit of 0 means unlimited. `GET /v1/queries/:id` executes
 developer-owned named queries — the only credentialed route family on this Worker (Fortress API key
 or OAuth bearer token required).
 

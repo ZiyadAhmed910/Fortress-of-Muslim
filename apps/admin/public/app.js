@@ -826,6 +826,49 @@ $('#assignments-table').addEventListener('click', async (event) => {
 });
 
 async function loadRag() {
+  await Promise.all([loadRagIndex(), loadAskControls()]);
+}
+
+// Ask's answering policy. The better reasoning model costs roughly twice the cheaper one per
+// answer, so the point of these numbers is to spend the good model where it counts and let the
+// cheaper one carry the rest of the day rather than turning anyone away.
+async function loadAskControls() {
+  let data;
+  try {
+    data = (await api('/v1/admin/ask-controls')).data;
+  } catch (error) {
+    $('#ask-usage').innerHTML = `<div class="metric"><span>Ask controls</span><strong>${esc(error.message || 'unavailable')}</strong></div>`;
+    return;
+  }
+  const settings = data.settings;
+  const used = Object.fromEntries((data.today.perModel || []).map((row) => [row.model, row.requestCount]));
+  const share = settings.primaryDailyLimit === 0
+    ? 'unlimited'
+    : `${Math.floor((settings.primaryDailyLimit * settings.primarySwitchPercent) / 100)} before handover`;
+  $('#ask-usage').innerHTML = [
+    ['Questions today', data.today.questions],
+    ['Visitors today', data.today.clients],
+    ['Primary model used', `${used[settings.primaryModel] || 0} (${share})`],
+    ['Secondary model used', used[settings.secondaryModel] || 0],
+  ].map(([label, value]) => `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
+
+  const modelOptions = (selected) => data.availableModels
+    .map((model) => `<option value="${esc(model)}"${model === selected ? ' selected' : ''}>${esc(model.replace('@cf/', ''))}</option>`)
+    .join('');
+  const form = $('#ask-controls');
+  form.hidden = false;
+  form.innerHTML = `
+    <label>Questions per visitor per day<input name="perIpDailyLimit" type="number" min="0" max="100000" step="1" value="${esc(settings.perIpDailyLimit)}"><small>0 turns the limit off, for testing.</small></label>
+    <label>Primary model<select name="primaryModel">${modelOptions(settings.primaryModel)}</select><small>Answers while its allowance lasts.</small></label>
+    <label>Primary answers per day<input name="primaryDailyLimit" type="number" min="0" max="100000" step="1" value="${esc(settings.primaryDailyLimit)}"></label>
+    <label>Hand over at<input name="primarySwitchPercent" type="number" min="1" max="100" step="1" value="${esc(settings.primarySwitchPercent)}"><small>Percent of the primary allowance to spend before switching.</small></label>
+    <label>Secondary model<select name="secondaryModel">${modelOptions(settings.secondaryModel)}</select><small>Takes over for the rest of the day.</small></label>
+    <label>Secondary answers per day<input name="secondaryDailyLimit" type="number" min="0" max="100000" step="1" value="${esc(settings.secondaryDailyLimit)}"></label>
+    <footer><button type="submit">Save Ask controls</button><span id="ask-controls-status"></span></footer>
+  `;
+}
+
+async function loadRagIndex() {
   const data = (await api('/v1/admin/editorial/rag')).data;
   const progress = data.index.expectedCount
     ? Math.round((Number(data.index.indexedCount) / Number(data.index.expectedCount)) * 100)
@@ -1276,6 +1319,21 @@ document.addEventListener('click', async (event) => {
   notify('Session ended.');
   loadSecurity();
 });
+$('#ask-controls').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const body = Object.fromEntries(new FormData(form).entries());
+  const status = $('#ask-controls-status');
+  status.textContent = 'Saving...';
+  try {
+    await api('/v1/admin/ask-controls', { method: 'PATCH', body: JSON.stringify(body) });
+    status.textContent = 'Saved.';
+    await loadAskControls();
+  } catch (error) {
+    status.textContent = error.message || 'Could not save.';
+  }
+});
+
 $('#services-grid').addEventListener('click', async (event) => {
   const button = event.target.closest('[data-service]');
   if (!button) return;

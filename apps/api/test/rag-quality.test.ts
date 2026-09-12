@@ -10,7 +10,7 @@ const exact = dua(
 const weak = dua('dua.weak', 'After leaving the bathroom', 'All praise is for Allah.');
 
 describe('Ask evidence quality', () => {
-  it('drops weak matches and repairs legacy typography before generation', async () => {
+  it('drops sources that do not answer the question, and repairs legacy typography before generation', async () => {
     let generationContext = '';
     const repository = {
       getCurrentDataset: async () => ({
@@ -38,8 +38,18 @@ describe('Ask evidence quality', () => {
         }),
       },
       AI: {
-        run: async (model: string, input: { messages?: Array<{ content: string }> }) => {
-          if (model.includes('bge')) throw new Error('Vector unavailable in quality test.');
+        run: async (model: string, input: { messages?: Array<{ content: string }>; contexts?: Array<{ text: string }> }) => {
+          if (model.includes('bge-m3')) throw new Error('Vector unavailable in quality test.');
+          // The reranker is what decides relevance now, so the quality bar this test describes is
+          // its judgement rather than a gap between two retrieval scores.
+          if (model.includes('reranker')) {
+            return {
+              response: (input.contexts ?? []).map((context, id) => ({
+                id,
+                score: context.text.includes(weak.title) ? 0.03 : 0.95,
+              })),
+            };
+          }
           generationContext = input.messages?.[1]?.content ?? '';
           return { response: 'Use the cited supplication [1].' };
         },

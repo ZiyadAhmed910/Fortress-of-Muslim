@@ -46,6 +46,10 @@ The API Worker incrementally indexes the pending active dataset through a Cron T
 
 A dua record has a role (`canonical_reading_roles`, served as `readingRole`): `supplication` is words to recite; `framed` is a narration or instruction containing words to recite, whose narration is a `comment` segment; `instruction` says what to do with no fixed words; `virtue` describes a merit with nothing to recite. Instruction and virtue records have no transliteration segment, because there is nothing to transliterate. A dua without a row reads as `supplication`. Migration `0018` assigned all 268 Hisn readings; roles are not yet editable in the Admin Console.
 
+## Search Aliases
+
+`canonical_search_aliases` holds, per chapter, the everyday words people type when the book uses a different one: "toilet" for the bathroom readings, "wudu" for ablution, "qurbani" for the sacrifice. They are appended to the lexical index and to the text each record is embedded from, and are never displayed, never part of a revision, and never religious text — a reader sees only what the source says. The reviewed source is `apps/api/data/search-aliases.json`; changing it means regenerating migration `0020` and re-embedding the corpus, because the vectors are built from text that includes them.
+
 ## Withdrawal
 
 Revisions, parts and segments cannot be deleted. To take a record out of public service, insert a row into `canonical_withdrawals` with a reason: both public views, lexical search, Ask and record counts exclude it, and its history stays intact. Deleting the row restores it. No record is currently withdrawn.

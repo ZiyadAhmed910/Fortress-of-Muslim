@@ -10,9 +10,34 @@ import type { Bindings } from './types';
 // embedding model can't represent well. Vectorize indexes are dimension-locked at creation, so this
 // requires a new index (fortress-rag-test-m3), not an in-place resize -- see wrangler.jsonc.
 const EMBEDDING_MODEL = '@cf/baai/bge-m3';
-const GENERATION_MODEL = '@cf/meta/llama-3.2-3b-instruct';
-const DAILY_ASK_LIMIT = 20;
+// Reads the question and each candidate together rather than comparing two embeddings made in
+// isolation, which is what a bi-encoder does. That difference is the whole point here: embeddings
+// happily place "before entering the toilet" near half a dozen bathroom-adjacent readings, and
+// nothing downstream could tell which of them actually answered the question. A cross-encoder can.
+// It costs 283 Neurons per million tokens -- about half a Neuron per question -- so this is the
+// cheapest part of the pipeline by two orders of magnitude.
+const RERANK_MODEL = '@cf/baai/bge-reranker-base';
+// Query rewriting only needs to produce a couple of alternate phrasings, so it stays on the small
+// model no matter which model is answering.
+const QUERY_EXPANSION_MODEL = '@cf/meta/llama-3.2-3b-instruct';
+// Used when the configured models are unavailable, and for the deterministic answer path.
+const FALLBACK_GENERATION_MODEL = '@cf/meta/llama-3.2-3b-instruct';
+const DEFAULT_ASK_SETTINGS = {
+  perIpDailyLimit: 20,
+  primaryModel: '@cf/openai/gpt-oss-120b',
+  primaryDailyLimit: 80,
+  primarySwitchPercent: 75,
+  secondaryModel: '@cf/openai/gpt-oss-20b',
+  secondaryDailyLimit: 600,
+};
 const MAX_CONTEXTS = 6;
+// Retrieve wide, then let the reranker decide. Recall is cheap (a vector query and an FTS query);
+// being wrong about which six to show is not.
+const RERANK_CANDIDATES = 16;
+// Below this the reranker is saying the passage does not answer the question. Sources under it are
+// dropped even when nothing better exists -- six confident-looking wrong citations are worse than
+// saying nothing was found.
+const RERANK_FLOOR = 0.15;
 // Below this many verified/published sources, also try the unverified-content fallback --
 // verified is still the primary path, this only fills gaps when it's thin.
 const MIN_VERIFIED_SOURCES = 2;
@@ -39,6 +64,7 @@ type IndexRow = {
   collectionSlug: string;
   title: string;
   narrator: string | null;
+  aliases: string | null;
   translation: string | null;
   arabic: string | null;
   datasetId: string;
@@ -63,6 +89,121 @@ export type RagSource = {
   score: number;
 };
 
+export type AskSettings = typeof DEFAULT_ASK_SETTINGS;
+
+/** Admin-controlled Ask policy. Falls back to the defaults if the row is missing or unreadable. */
+export async function loadAskSettings(database: D1Database): Promise<AskSettings> {
+  try {
+    const row = await database.prepare(`
+      SELECT per_ip_daily_limit AS perIpDailyLimit, primary_model AS primaryModel,
+             primary_daily_limit AS primaryDailyLimit, primary_switch_percent AS primarySwitchPercent,
+             secondary_model AS secondaryModel, secondary_daily_limit AS secondaryDailyLimit
+      FROM ask_settings WHERE id = 1
+    `).first<AskSettings>();
+    return row ? { ...DEFAULT_ASK_SETTINGS, ...row } : DEFAULT_ASK_SETTINGS;
+  } catch {
+    // Ask answering questions matters more than reading its own configuration, so a missing table
+    // (an environment that has not run the migration yet) falls back rather than failing the request.
+    return DEFAULT_ASK_SETTINGS;
+  }
+}
+
+/**
+ * Which model answers this question. The better model is used until the configured share of its
+ * daily allowance is spent, then the cheaper one takes over for the rest of the day: everyone still
+ * gets an answer, and the day's Neurons stretch further. A limit of 0 means unlimited.
+ */
+export function chooseAskModel(settings: AskSettings, usage: Record<string, number>) {
+  const used = (model: string) => usage[model] ?? 0;
+  const primaryAllowance = settings.primaryDailyLimit === 0
+    ? Number.POSITIVE_INFINITY
+    : Math.floor((settings.primaryDailyLimit * settings.primarySwitchPercent) / 100);
+  if (used(settings.primaryModel) < primaryAllowance) {
+    return { model: settings.primaryModel, tier: 'primary' as const };
+  }
+  const secondaryAllowance = settings.secondaryDailyLimit === 0
+    ? Number.POSITIVE_INFINITY
+    : settings.secondaryDailyLimit;
+  if (used(settings.secondaryModel) < secondaryAllowance) {
+    return { model: settings.secondaryModel, tier: 'secondary' as const };
+  }
+  // Both allowances are spent. The question still gets an answer, from the cheapest model there is.
+  return { model: FALLBACK_GENERATION_MODEL, tier: 'fallback' as const };
+}
+
+async function todayModelUsage(database: D1Database): Promise<Record<string, number>> {
+  try {
+    const rows = await database.prepare(`
+      SELECT model, request_count AS requestCount FROM ask_model_usage WHERE usage_date = ?
+    `).bind(utcDate()).all<{ model: string; requestCount: number }>();
+    return Object.fromEntries(rows.results.map((row) => [row.model, Number(row.requestCount)]));
+  } catch {
+    return {};
+  }
+}
+
+async function recordModelUse(database: D1Database, model: string) {
+  try {
+    await database.prepare(`
+      INSERT INTO ask_model_usage (usage_date, model, request_count, updated_at)
+      VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+      ON CONFLICT (usage_date, model) DO UPDATE SET
+        request_count = request_count + 1,
+        updated_at = CURRENT_TIMESTAMP
+    `).bind(utcDate(), model).run();
+  } catch (error) {
+    // Losing a counter is not worth failing an answered question over.
+    console.error(JSON.stringify({ event: 'ask_usage_record_failed', model, message: errorMessage(error) }));
+  }
+}
+
+const utcDate = () => new Date().toISOString().slice(0, 10);
+
+/**
+ * Scores every candidate against the question with a cross-encoder and keeps the ones that actually
+ * answer it. This is what separates "before entering the bathroom" from "before undressing" when
+ * someone asks about a toilet: both sit near the question in embedding space, only one answers it.
+ * If the reranker is unavailable the retrieval order is kept, so Ask degrades rather than breaks.
+ */
+export async function rankByRelevance(env: Bindings, question: string, candidates: GroundedRecord[]) {
+  if (candidates.length === 0) return { records: [] as GroundedRecord[], reranked: false };
+  try {
+    const contexts = candidates.map((candidate) => ({ text: rerankText(candidate) }));
+    // @cloudflare/workers-types describes this model without its `query` field -- the doc comment
+    // for it survives in the interface but the property does not -- so the input is cast. The field
+    // is required by the model itself; without it the call returns nothing useful.
+    const response = await env.AI.run(RERANK_MODEL, {
+      query: question,
+      contexts,
+      top_k: candidates.length,
+    } as unknown as Ai_Cf_Baai_Bge_Reranker_Base_Input) as Ai_Cf_Baai_Bge_Reranker_Base_Output;
+    const scored = response.response;
+    if (!Array.isArray(scored) || scored.length === 0) throw new Error('Reranker returned no scores.');
+    const ranked = scored
+      .filter((entry) => typeof entry.id === 'number' && typeof entry.score === 'number' && candidates[entry.id])
+      .map((entry) => ({ ...candidates[entry.id!]!, score: entry.score! }))
+      .filter((entry) => entry.score >= RERANK_FLOOR)
+      .sort((left, right) => right.score - left.score)
+      .slice(0, MAX_CONTEXTS);
+    return { records: ranked, reranked: true };
+  } catch (error) {
+    console.error(JSON.stringify({ event: 'rag_rerank_failed', message: errorMessage(error) }));
+    return { records: candidates.slice(0, MAX_CONTEXTS), reranked: false };
+  }
+}
+
+// Title plus the reading's own words, which is what the question is really being matched against.
+function rerankText(candidate: GroundedRecord) {
+  const segments = candidate.contentType === 'dua'
+    ? (candidate.record as Dua).parts.flat()
+    : (candidate.record as Hadith).segments;
+  const body = segments
+    .filter((segment) => segment.kind === 'translation' || segment.kind === 'comment')
+    .map((segment) => segment.text)
+    .join(' ');
+  return `${candidate.record.title}. ${body}`.slice(0, 1_200);
+}
+
 export async function indexRecordBatch(env: Bindings, cursor: number, limit: number) {
   const dataset = await currentDatasetRow(env.CONTENT_DB);
   const rows = await env.CONTENT_DB.prepare(`
@@ -71,6 +212,7 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
            COALESCE(collection.slug, CASE WHEN canonical.content_type = 'dua' THEN 'hisn' ELSE 'unknown' END) AS collectionSlug,
            revision.title,
            metadata.narrator,
+           alias.aliases,
            publication.dataset_version_id AS datasetId,
            GROUP_CONCAT(CASE WHEN segment.kind = 'translation' THEN segment.text END, '\n') AS translation,
            GROUP_CONCAT(CASE WHEN segment.kind = 'arabic' THEN segment.text END, '\n') AS arabic
@@ -78,6 +220,7 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
     JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
     JOIN content_revisions revision ON revision.id = publication.revision_id
     LEFT JOIN revision_metadata metadata ON metadata.revision_id = revision.id
+    LEFT JOIN canonical_search_aliases alias ON alias.chapter_id = metadata.chapter_id
     LEFT JOIN collections collection ON collection.id = metadata.collection_id
     LEFT JOIN revision_parts part ON part.revision_id = revision.id
     LEFT JOIN revision_segments segment ON segment.revision_part_id = part.id
@@ -197,6 +340,8 @@ export async function answerQuestion(
   clientAddress: string,
   filters?: RagFilters,
 ) {
+  // Settings are read after this check, not alongside it: with no published dataset there is
+  // nothing to answer from, and the empty-dataset path is required to touch no storage at all.
   const dataset = await repository.getCurrentDataset();
   if (dataset.recordCount === 0) {
     return {
@@ -205,14 +350,16 @@ export async function answerQuestion(
       meta: {
         datasetId: dataset.id,
         model: null,
-        remainingToday: DAILY_ASK_LIMIT,
+        remainingToday: null,
         retrievalMode: 'empty_dataset',
         vectorAvailable: false,
       },
     };
   }
 
-  const remaining = await consumeDailyAllowance(env.CONTENT_DB, clientAddress);
+  const settings = await loadAskSettings(env.CONTENT_DB);
+  const remaining = await consumeDailyAllowance(env.CONTENT_DB, clientAddress, settings.perIpDailyLimit);
+  const chosen = chooseAskModel(settings, await todayModelUsage(env.CONTENT_DB));
 
   // Some users already know exactly what they want ("Bukhari 52") rather than asking a natural
   // question -- for those, skip the multi-query embedding/lexical pipeline below and resolve the
@@ -223,7 +370,7 @@ export async function answerQuestion(
     const record = await repository.findHadithByReference(exactReference.collectionHint, exactReference.number);
     if (record && (!filters?.collection || record.collection.slug === filters.collection)) {
       const grounded: GroundedRecord[] = [{ record, contentType: 'hadith', score: 0.99, retrieval: 'lexical' }];
-      const { answer, sources, model, generated } = await generateGroundedAnswer(env, dataset, question, grounded);
+      const { answer, sources, model, generated } = await generateGroundedAnswer(env, dataset, question, grounded, chosen.model);
       return {
         answer,
         sources,
@@ -253,7 +400,9 @@ export async function answerQuestion(
   const vectorAvailable = retrievals.some(([vectorResult]) => vectorResult.available);
   const vectorRecords = retrievals.flatMap(([vectorResult]) => vectorResult.records);
   const lexicalRecords = retrievals.flatMap(([, lexical]) => lexical);
-  const grounded = mergeGrounded(vectorRecords, lexicalRecords);
+  const candidates = mergeCandidates(vectorRecords, lexicalRecords);
+  const { records: ranked, reranked } = await rankByRelevance(env, question, candidates);
+  const grounded = ranked;
 
   let includesUnverifiedSource = false;
   if (grounded.length < MIN_VERIFIED_SOURCES) {
@@ -278,7 +427,8 @@ export async function answerQuestion(
     };
   }
 
-  const { answer, sources, model, generated } = await generateGroundedAnswer(env, dataset, question, grounded);
+  const { answer, sources, model, generated } = await generateGroundedAnswer(env, dataset, question, grounded, chosen.model);
+  if (generated) await recordModelUse(env.CONTENT_DB, chosen.model);
 
   return {
     answer,
@@ -286,9 +436,11 @@ export async function answerQuestion(
     meta: {
       datasetId: dataset.id,
       model,
+      modelTier: chosen.tier,
       generated,
       remainingToday: remaining,
       retrievalMode: vectorAvailable && lexicalRecords.length > 0 ? 'hybrid' : vectorAvailable ? 'vector' : 'lexical',
+      reranked,
       vectorAvailable,
       includesUnverifiedSource,
     },
@@ -300,14 +452,17 @@ async function generateGroundedAnswer(
   dataset: { id: string },
   question: string,
   grounded: GroundedRecord[],
+  chosenModel: string,
 ) {
   const contexts = grounded.map((item, index) => contextBlock(item.record, item.contentType, index + 1)).join('\n\n');
   const sources = grounded.map((item, index) => sourceFrom(item.record, item.contentType, item.score, index + 1));
   let answer: string;
-  let model: string | null = GENERATION_MODEL;
+  let model: string | null = chosenModel;
   let generated = true;
   try {
-    const response = await env.AI.run(GENERATION_MODEL, {
+    // The model is chosen per request from admin-set daily allowances, so it cannot be a literal
+    // here the way a fixed model would be.
+    const response = await env.AI.run(chosenModel as Parameters<Ai['run']>[0], {
       messages: [
         { role: 'system', content: GENERATION_SYSTEM_PROMPT },
         { role: 'user', content: `Question: ${question}\n\nSource contexts:\n${contexts}` },
@@ -332,7 +487,7 @@ async function generateGroundedAnswer(
 
 async function expandQueryVariants(env: Bindings, question: string): Promise<string[]> {
   try {
-    const response = await env.AI.run(GENERATION_MODEL, {
+    const response = await env.AI.run(QUERY_EXPANSION_MODEL, {
       messages: [
         { role: 'system', content: QUERY_EXPANSION_SYSTEM_PROMPT },
         { role: 'user', content: question },
@@ -399,7 +554,7 @@ async function retrieveVectorRecords(
     if (filters?.collection) vectorFilter.collection = filters.collection;
     const matches = await env.VECTOR_INDEX.query(embedding.data[0], {
       namespace: datasetId,
-      topK: MAX_CONTEXTS,
+      topK: RERANK_CANDIDATES,
       returnMetadata: 'all',
       ...(Object.keys(vectorFilter).length > 0 ? { filter: vectorFilter } : {}),
     });
@@ -429,7 +584,7 @@ async function retrieveLexicalRecords(
 ): Promise<GroundedRecord[]> {
   let candidates: Awaited<ReturnType<ContentRepository['searchForRag']>>;
   try {
-    candidates = await repository.searchForRag(question, MAX_CONTEXTS, filters);
+    candidates = await repository.searchForRag(question, RERANK_CANDIDATES, filters);
   } catch (error) {
     console.error(JSON.stringify({ event: 'rag_lexical_retrieval_failed', message: errorMessage(error) }));
     return [];
@@ -448,20 +603,25 @@ async function retrieveLexicalRecords(
   return records.filter((item): item is NonNullable<typeof item> => Boolean(item));
 }
 
-function mergeGrounded(vector: GroundedRecord[], lexical: GroundedRecord[]) {
+// Candidates for the reranker to judge, deduplicated across both retrieval paths. There is
+// deliberately no score cut here any more: vector and lexical scores are not comparable to each
+// other, and the floor that used to live here is why an unfamiliar wording surfaced six loosely
+// related readings. The reranker decides what survives.
+export function mergeCandidates(vector: GroundedRecord[], lexical: GroundedRecord[]) {
   const merged = new Map<string, GroundedRecord>();
   for (const item of [...vector, ...lexical]) {
     const current = merged.get(item.record.id);
     if (!current || item.score > current.score) merged.set(item.record.id, item);
   }
-  const ranked = [...merged.values()].sort((left, right) => right.score - left.score);
-  const bestScore = ranked[0]?.score ?? 0;
-  const evidenceFloor = Math.max(0.58, bestScore - 0.18);
-  return ranked.filter((item) => item.score >= evidenceFloor).slice(0, MAX_CONTEXTS);
+  return [...merged.values()]
+    .sort((left, right) => right.score - left.score)
+    .slice(0, RERANK_CANDIDATES);
 }
 
-async function consumeDailyAllowance(database: D1Database, clientAddress: string) {
-  const date = new Date().toISOString().slice(0, 10);
+// The count is kept even when the limit is off, so turning the limit back on has real numbers
+// behind it and the Admin Console can show what a day actually looks like.
+async function consumeDailyAllowance(database: D1Database, clientAddress: string, limit: number) {
+  const date = utcDate();
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${date}:${clientAddress}`));
   const clientHash = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
   const row = await database.prepare(`
@@ -472,9 +632,10 @@ async function consumeDailyAllowance(database: D1Database, clientAddress: string
       updated_at = CURRENT_TIMESTAMP
     RETURNING request_count AS requestCount
   `).bind(date, clientHash).first<{ requestCount: number }>();
-  const used = row?.requestCount ?? DAILY_ASK_LIMIT + 1;
-  if (used > DAILY_ASK_LIMIT) throw new RagRateLimitError();
-  return DAILY_ASK_LIMIT - used;
+  if (limit === 0) return null;
+  const used = row?.requestCount ?? limit + 1;
+  if (used > limit) throw new RagRateLimitError();
+  return limit - used;
 }
 
 async function currentDatasetRow(database: D1Database) {
@@ -537,7 +698,9 @@ export function embeddingCalls(texts: string[]): string[][] {
 }
 
 function indexText(row: IndexRow) {
-  return [row.title, row.collectionSlug, row.narrator, row.translation, row.arabic]
+  // Aliases ride along in the embedded text for the same reason they are in the lexical index: the
+  // words a reader uses are often not the words the book uses.
+  return [row.title, row.collectionSlug, row.narrator, row.aliases, row.translation, row.arabic]
     .filter(Boolean)
     .join('\n')
     .slice(0, 4_000);

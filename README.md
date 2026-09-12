@@ -174,6 +174,36 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.26.0
+
+_2026-09-12_
+
+- **Ask judges its sources instead of trusting whatever came back.** Asking about a "toilet"
+  returned the bathroom reading first and then five more -- undressing, entering the mosque,
+  ablution, starting the prayer -- and the small model cited one of them. Retrieval was not blind
+  to the synonym; nothing downstream could tell which candidates actually answered the question.
+  Embeddings compare two texts encoded apart, so "near this question" is the best they can say. A
+  cross-encoder (`@cf/baai/bge-reranker-base`) reads the question and the passage together and
+  scores that pair. Retrieval now casts wider (16 candidates), the reranker decides which survive,
+  and anything below the relevance floor is dropped even when that leaves nothing -- six confident
+  wrong citations are worse than "not found". It costs about half a Neuron per question.
+- **Reasoning models answer, with the cost governed rather than hoped about.**
+  `@cf/openai/gpt-oss-120b` answers until a configured share of its daily allowance is spent, then
+  `@cf/openai/gpt-oss-20b` takes over for the rest of the day, so a busy day serves more questions
+  instead of turning people away. Both allowances, the switch point, the models and the per-visitor
+  daily limit are set in the Admin Console under the RAG monitor, with today's usage per model
+  shown beside them. 0 means unlimited, which is what makes the per-visitor cap switchable off for
+  testing without a deploy.
+- **Search aliases (`0020`).** The corpus says "bathroom" and never "toilet", so lexical search for
+  a toilet found nothing at all. 480 aliases across all 132 chapters record what people actually
+  type -- toilet, washroom, wudu, qurbani, nightmare, istikhara, insomnia -- and are appended to
+  the lexical index and to the text each record is embedded from. They are search terms only: never
+  displayed, never part of a revision, never religious text. Measured against the real corpus,
+  seven of nine sample searches went from no result at all to the correct chapter.
+- **`remainingToday` is now nullable** in the Ask response: with no per-visitor limit configured
+  there is no number to report. The OpenAPI schema says so, and the PWA no longer risks printing
+  "null questions remaining today".
+
 ### 0.25.0
 
 _2026-09-11_

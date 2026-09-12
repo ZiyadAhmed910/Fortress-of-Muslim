@@ -133,6 +133,11 @@ export async function handleAdminPlane(
     return createTaxonomyTerm(context, await readJson(request));
   }
   if (url.pathname === '/v1/admin/services' && request.method === 'GET') return listServices(context);
+  if (url.pathname === '/v1/admin/ask-controls' && request.method === 'GET') return askControls(context);
+  if (url.pathname === '/v1/admin/ask-controls' && request.method === 'PATCH') {
+    if (!canWrite(grant.role)) return forbidden();
+    return updateAskControls(context, await readJson(request));
+  }
   if (url.pathname === '/v1/admin/audit' && request.method === 'GET') return listAudit(context, url);
   if (url.pathname === '/v1/admin/alerts' && request.method === 'GET') return alerts(context);
   if (url.pathname === '/v1/admin/rate-limits' && request.method === 'GET') return listRateLimits(context);
@@ -823,6 +828,113 @@ async function createTaxonomyTerm(context: AdminContext, body: Record<string, un
   }
   await audit(context, 'taxonomy.created', 'taxonomy', id, { type, slug, label, languageCode });
   return json({ data: { id, type, slug, label, languageCode, description, recordCount: 0 } }, 201);
+}
+
+// Ask's answering policy: which model answers, how much of each model may be spent in a day, and
+// how many questions one client may ask. These live in the content database beside Ask's own usage
+// counters rather than in the identity database, because the API Worker reads them on every
+// question and both Workers already bind it.
+const ASK_MODELS = [
+  '@cf/openai/gpt-oss-120b',
+  '@cf/openai/gpt-oss-20b',
+  '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  '@cf/qwen/qwq-32b',
+  '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b',
+  '@cf/mistralai/mistral-small-3.1-24b-instruct',
+  '@cf/meta/llama-3.1-8b-instruct',
+  '@cf/meta/llama-3.2-3b-instruct',
+];
+
+async function askControls({ env }: AdminContext) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [settings, usage, clients] = await Promise.all([
+    env.CONTENT_DB.prepare(`
+      SELECT per_ip_daily_limit AS perIpDailyLimit, primary_model AS primaryModel,
+             primary_daily_limit AS primaryDailyLimit, primary_switch_percent AS primarySwitchPercent,
+             secondary_model AS secondaryModel, secondary_daily_limit AS secondaryDailyLimit,
+             updated_by_external_id AS updatedBy, updated_at AS updatedAt
+      FROM ask_settings WHERE id = 1
+    `).first<Record<string, unknown>>(),
+    env.CONTENT_DB.prepare(
+      'SELECT model, request_count AS requestCount FROM ask_model_usage WHERE usage_date = ? ORDER BY model',
+    ).bind(today).all<{ model: string; requestCount: number }>(),
+    env.CONTENT_DB.prepare(
+      'SELECT COUNT(*) AS clients, COALESCE(SUM(request_count), 0) AS questions FROM rag_daily_usage WHERE usage_date = ?',
+    ).bind(today).first<{ clients: number; questions: number }>(),
+  ]);
+  if (!settings) return json({ error: { code: 'not_found', message: 'Ask controls have not been provisioned in this environment.' } }, 404);
+  return json({
+    data: {
+      settings,
+      availableModels: ASK_MODELS,
+      today: {
+        date: today,
+        perModel: usage.results,
+        clients: Number(clients?.clients ?? 0),
+        questions: Number(clients?.questions ?? 0),
+      },
+    },
+  });
+}
+
+async function updateAskControls(context: AdminContext, body: Record<string, unknown>) {
+  const settings = await context.env.CONTENT_DB.prepare(`
+    SELECT per_ip_daily_limit AS perIpDailyLimit, primary_model AS primaryModel,
+           primary_daily_limit AS primaryDailyLimit, primary_switch_percent AS primarySwitchPercent,
+           secondary_model AS secondaryModel, secondary_daily_limit AS secondaryDailyLimit
+    FROM ask_settings WHERE id = 1
+  `).first<{
+    perIpDailyLimit: number; primaryModel: string; primaryDailyLimit: number;
+    primarySwitchPercent: number; secondaryModel: string; secondaryDailyLimit: number;
+  }>();
+  if (!settings) return json({ error: { code: 'not_found', message: 'Ask controls have not been provisioned in this environment.' } }, 404);
+
+  // 0 means unlimited for either limit, which is what makes the per-client cap switchable off for
+  // testing without a deploy. Anything else has to be a whole number a person could have meant.
+  const limit = (value: unknown, current: number, max: number) => {
+    if (value === undefined || value === null || value === '') return { value: current };
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > max) return { error: true as const, value: current };
+    return { value: parsed };
+  };
+  const perIp = limit(body.perIpDailyLimit, settings.perIpDailyLimit, 100_000);
+  const primaryLimit = limit(body.primaryDailyLimit, settings.primaryDailyLimit, 100_000);
+  const secondaryLimit = limit(body.secondaryDailyLimit, settings.secondaryDailyLimit, 100_000);
+  const switchPercent = limit(body.primarySwitchPercent, settings.primarySwitchPercent, 100);
+  if (perIp.error || primaryLimit.error || secondaryLimit.error || switchPercent.error) {
+    return invalid('Daily limits must be whole numbers (0 for unlimited), and the switch point a percentage.');
+  }
+  if (switchPercent.value < 1) return invalid('The switch point must be between 1 and 100 percent.');
+
+  const model = (value: unknown, current: string) => {
+    if (value === undefined || value === null || value === '') return { value: current };
+    const chosen = String(value);
+    if (!ASK_MODELS.includes(chosen)) return { error: true as const, value: current };
+    return { value: chosen };
+  };
+  const primaryModel = model(body.primaryModel, settings.primaryModel);
+  const secondaryModel = model(body.secondaryModel, settings.secondaryModel);
+  if (primaryModel.error || secondaryModel.error) return invalid('Choose a model Workers AI offers for this account.');
+
+  await context.env.CONTENT_DB.prepare(`
+    UPDATE ask_settings SET per_ip_daily_limit = ?, primary_model = ?, primary_daily_limit = ?,
+      primary_switch_percent = ?, secondary_model = ?, secondary_daily_limit = ?,
+      updated_by_external_id = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = 1
+  `).bind(
+    perIp.value, primaryModel.value, primaryLimit.value, switchPercent.value,
+    secondaryModel.value, secondaryLimit.value, context.user.id,
+  ).run();
+  const updated = {
+    perIpDailyLimit: perIp.value,
+    primaryModel: primaryModel.value,
+    primaryDailyLimit: primaryLimit.value,
+    primarySwitchPercent: switchPercent.value,
+    secondaryModel: secondaryModel.value,
+    secondaryDailyLimit: secondaryLimit.value,
+  };
+  await audit(context, 'ask.controls_changed', 'ask', 'settings', updated);
+  return json({ data: { settings: updated } });
 }
 
 async function listServices({ env }: AdminContext) {
