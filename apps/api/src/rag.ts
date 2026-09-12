@@ -89,6 +89,39 @@ export type RagSource = {
   score: number;
 };
 
+/**
+ * Workers AI does not answer in one shape. Llama models return { response }, while the gpt-oss
+ * models accept chat messages and reply in OpenAI's chat-completions shape -- choices[0].message
+ * .content -- and can also be driven through the Responses API, which returns an output[] array of
+ * reasoning and message items. Reading only { response } is why every gpt-oss answer came back
+ * empty and silently became the deterministic fallback: the call succeeded, so nothing logged.
+ */
+export function extractAnswerText(response: unknown): string {
+  if (!response || typeof response !== 'object') return '';
+  const payload = response as Record<string, unknown>;
+  if (typeof payload.response === 'string') return payload.response.trim();
+
+  const choice = Array.isArray(payload.choices) ? payload.choices[0] as Record<string, unknown> | undefined : undefined;
+  const message = choice?.message as Record<string, unknown> | undefined;
+  if (typeof message?.content === 'string') return message.content.trim();
+
+  // Responses API: take the message items, never the reasoning ones -- a private chain of thought
+  // is not an answer and must not be shown to anyone.
+  if (Array.isArray(payload.output)) {
+    const text = payload.output
+      .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+      .filter((item) => item.type === 'message')
+      .flatMap((item) => (Array.isArray(item.content) ? item.content : []))
+      .filter((part): part is Record<string, unknown> => Boolean(part) && typeof part === 'object')
+      .map((part) => (typeof part.text === 'string' ? part.text : ''))
+      .join('')
+      .trim();
+    if (text) return text;
+  }
+  if (typeof payload.output_text === 'string') return payload.output_text.trim();
+  return '';
+}
+
 export type AskSettings = typeof DEFAULT_ASK_SETTINGS;
 
 /** Admin-controlled Ask policy. Falls back to the defaults if the row is missing or unreadable. */
@@ -469,8 +502,15 @@ async function generateGroundedAnswer(
       ],
       max_tokens: 650,
       temperature: 0.1,
-    }) as GenerationResponse;
-    answer = response.response?.trim() ?? '';
+    });
+    answer = extractAnswerText(response);
+    if (!answer) {
+      console.error(JSON.stringify({
+        event: 'rag_generation_empty',
+        model: chosenModel,
+        shape: Object.keys((response ?? {}) as Record<string, unknown>).join(','),
+      }));
+    }
     if (!hasValidCitations(answer, sources.length)) {
       answer = groundedFallback(sources);
       generated = false;
@@ -494,8 +534,8 @@ async function expandQueryVariants(env: Bindings, question: string): Promise<str
       ],
       max_tokens: 80,
       temperature: 0.4,
-    }) as GenerationResponse;
-    return (response.response ?? '')
+    });
+    return extractAnswerText(response)
       .split('\n')
       .map((line) => line.replace(/^[-*\d.\s]+/, '').trim())
       .filter((line) => line.length >= 5 && line.length <= 200)

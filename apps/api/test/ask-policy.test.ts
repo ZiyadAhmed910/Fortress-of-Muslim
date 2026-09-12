@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { chooseAskModel, loadAskSettings, mergeCandidates, rankByRelevance } from '../src/rag';
+import { chooseAskModel, extractAnswerText, loadAskSettings, mergeCandidates, rankByRelevance } from '../src/rag';
 
 // Ask spends real money per answer, and the good model spends it about twice as fast as the cheap
 // one. The policy is: use the better model until a set share of its daily allowance is gone, then
@@ -159,5 +159,38 @@ describe('reranking what retrieval found', () => {
     const merged = mergeCandidates([candidates[0]!], [{ ...candidates[1]!, retrieval: 'lexical' as const, score: 0.41 }]);
     expect(merged).toHaveLength(2);
     expect(merged.map((item) => item.record.id)).toContain('dua.hisn.015');
+  });
+});
+
+describe('reading an answer out of whatever shape the model replied in', () => {
+  // This was a silent failure in production: gpt-oss replies in OpenAI's chat-completions shape,
+  // the code read { response }, and every answer quietly became the deterministic fallback. The
+  // call succeeded, so nothing logged and nothing looked broken from the outside.
+  it('reads the Llama shape', () => {
+    expect(extractAnswerText({ response: '  Say Bismillah [1].  ' })).toBe('Say Bismillah [1].');
+  });
+
+  it('reads the chat-completions shape the gpt-oss models reply in', () => {
+    expect(extractAnswerText({
+      id: 'x', object: 'chat.completion', created: 1, model: '@cf/openai/gpt-oss-120b',
+      choices: [{ index: 0, message: { role: 'assistant', content: 'Say Bismillah [1].' }, finish_reason: 'stop' }],
+    })).toBe('Say Bismillah [1].');
+  });
+
+  it('reads the Responses API shape, and never the reasoning', () => {
+    const text = extractAnswerText({
+      output: [
+        { type: 'reasoning', content: [{ type: 'reasoning_text', text: 'The user asks about the bathroom...' }] },
+        { type: 'message', content: [{ type: 'output_text', text: 'Say Bismillah [1].' }] },
+      ],
+    });
+    expect(text).toBe('Say Bismillah [1].');
+    expect(text).not.toContain('The user asks');
+  });
+
+  it('returns nothing it cannot read, rather than a guess', () => {
+    for (const shape of [null, undefined, {}, 'text', 42, { choices: [] }, { output: [] }]) {
+      expect(extractAnswerText(shape)).toBe('');
+    }
   });
 });
