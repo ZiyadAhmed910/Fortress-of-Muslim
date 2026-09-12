@@ -17,11 +17,13 @@ const COUNTDOWN_TICK_MS = 20_000;
 const COMPASS_TIMEOUT_MS = 2_500;
 // Fraction of the way to move toward each new reading: enough to feel immediate, enough to settle.
 const COMPASS_SMOOTHING = 0.25;
+const DEG = Math.PI / 180;
 let countdownTimer = null;
 let deviceOrientationHandler = null;
 let compassWatchdog = null;
 let smoothedHeading = null;
 let compassStatusNote = '';
+let compassSource = null;
 // Shared across both tabs -- resolving a location from either Prayer Times or Qibla immediately
 // benefits the other one too, since they're both just different views onto the same coordinates.
 let currentCoordinates = null;
@@ -420,6 +422,56 @@ function stopCountdown() {
   countdownTimer = null;
 }
 
+const COMPASS_ACTIVE_NOTE = 'Live compass active -- the needle points toward the Qibla as you turn. Works held flat like a compass, or stood up in front of you. It reads the magnetic compass, so nearby metal or magnets can pull it off; if it looks wrong, step away from metal and recalibrate the phone compass (usually a figure-8 motion) in its system settings.';
+const COMPASS_POINTING_NOTE = 'Live compass active -- you are holding the phone upright, so it now follows where the phone itself points. Turn until the needle points straight up the screen and you are facing the Qibla.';
+
+// A phone is a 3D object and people hold it two ways: flat in the palm like a real compass, or
+// stood up in front of them, pointing. Those are different questions -- "which way is the top edge
+// facing" versus "which way am I pointing the back of the phone" -- and each has a pose where it
+// cannot be answered at all.
+//
+// Both come out of one rotation matrix. Per the DeviceOrientation spec the angles are ZXY Euler
+// angles taking device coordinates into the Earth frame (x east, y north, z up), so the device's
+// own axes in Earth coordinates are just its columns:
+//
+//   top edge  (device +y) = (-sin a cos b,        cos a cos b,       sin b)
+//   back      (device -z) = (-(cos a sin g + sin a sin b cos g), -(sin a sin g - cos a sin b cos g), -cos b cos g)
+//
+// The back-axis form is the spec's own worked compass example, which is written for a device held
+// upright; the top-edge one reduces to 360 - alpha, which is why the flat case looks like it
+// ignores tilt and does not. Each vector's horizontal part gives a bearing, and how much of the
+// vector is left lying in that plane says how much the bearing can be trusted: a flat phone has
+// its back pointing at the ground (no bearing), an upright one has its top edge pointing at the
+// sky (no bearing). They are orthogonal, so one of them always keeps at least 76% of its length in
+// the horizontal plane -- there is no pose with nothing to read.
+export function compassAxes(alpha, beta, gamma) {
+  const sa = Math.sin(alpha * DEG), ca = Math.cos(alpha * DEG);
+  const sb = Math.sin(beta * DEG), cb = Math.cos(beta * DEG);
+  const sg = Math.sin(gamma * DEG), cg = Math.cos(gamma * DEG);
+  return {
+    top: [-sa * cb, ca * cb, sb],
+    back: [-(ca * sg + sa * sb * cg), -(sa * sg - ca * sb * cg), -(cb * cg)],
+  };
+}
+
+const bearingOf = (axis) => ((Math.atan2(axis[0], axis[1]) / DEG) % 360 + 360) % 360;
+const horizontalStrength = (axis) => Math.hypot(axis[0], axis[1]);
+
+// Which axis to believe. Whichever has more of itself in the horizontal plane, except that the one
+// already in use keeps it unless clearly beaten -- the two agree wherever both are readable (tilting
+// a phone forward does not change which way it points), so the handover is invisible, but without
+// the margin it would chatter back and forth at the crossover.
+const SOURCE_SWITCH_MARGIN = 0.15;
+
+export function headingFromAxes(axes, previousSource = null) {
+  const strength = { top: horizontalStrength(axes.top), back: horizontalStrength(axes.back) };
+  const better = strength.back > strength.top ? 'back' : 'top';
+  const source = previousSource && strength[previousSource] + SOURCE_SWITCH_MARGIN >= strength[better]
+    ? previousSource
+    : better;
+  return { heading: bearingOf(axes[source]), source, strength: strength[source] };
+}
+
 // `alpha` on the plain `deviceorientation` event is only guaranteed to be referenced to true/
 // magnetic north when `event.absolute` is true -- and on a lot of Android/Chrome devices, the
 // plain event fires with absolute:false (alpha measured from whatever direction the device
@@ -429,17 +481,20 @@ function stopCountdown() {
 // also protects against a non-absolute `deviceorientation` reading being used by mistake.
 // Exported for tests: the heading maths is the part that was quietly wrong on a real phone, and it
 // is worth pinning without a browser.
-export function headingFromOrientationEvent(event) {
-  if (typeof event.webkitCompassHeading === 'number' && !Number.isNaN(event.webkitCompassHeading)) {
-    return event.webkitCompassHeading; // iOS Safari: already north-referenced and screen-referenced
-  }
-  if (event.absolute && event.alpha !== null) {
-    // alpha is measured against the device's own top edge, so a phone held sideways reads 90 degrees
-    // off until the screen's own rotation is added back in. The installed app is locked to portrait,
-    // where this is a no-op; it matters in a browser tab that is free to rotate.
-    return (360 - event.alpha + screenAngle() + 360) % 360;
-  }
-  return null;
+export function headingFromOrientationEvent(event, previousSource = null) {
+  // Safari does not north-reference alpha at all -- that is what webkitCompassHeading is for -- but
+  // that heading is the bearing of the top edge, which is exactly what alpha encodes. Turning it
+  // back into an alpha lets iOS use the same 3D maths as everything else, upright pose included.
+  const alpha = typeof event.webkitCompassHeading === 'number' && !Number.isNaN(event.webkitCompassHeading)
+    ? (360 - event.webkitCompassHeading + 360) % 360
+    : (event.absolute && event.alpha !== null ? event.alpha : null);
+  if (alpha === null) return null;
+  const axes = compassAxes(alpha, typeof event.beta === 'number' ? event.beta : 0, typeof event.gamma === 'number' ? event.gamma : 0);
+  const reading = headingFromAxes(axes, previousSource);
+  // The top edge is read through the screen, so a browser tab rotated into landscape has to add its
+  // own rotation back in. The back of the phone points where it points however the screen is turned.
+  const heading = reading.source === 'top' ? (reading.heading + screenAngle() + 360) % 360 : reading.heading;
+  return { ...reading, heading };
 }
 
 function screenAngle() {
@@ -488,12 +543,17 @@ async function enableLiveCompass() {
   let sawEvent = false;
   smoothedHeading = null;
   compassStatusNote = '';
+  compassSource = null;
   deviceOrientationHandler = (event) => {
     sawEvent = true;
-    const heading = headingFromOrientationEvent(event);
-    if (heading === null) return;
+    const reading = headingFromOrientationEvent(event, compassSource);
+    if (reading === null) return;
     if (compassWatchdog) { clearTimeout(compassWatchdog); compassWatchdog = null; }
-    applyHeading(heading);
+    if (reading.source !== compassSource) {
+      compassSource = reading.source;
+      els.qiblaNote.textContent = compassSource === 'back' ? COMPASS_POINTING_NOTE : COMPASS_ACTIVE_NOTE;
+    }
+    applyHeading(reading.heading);
   };
   // Attaching the listeners is not the same as getting readings. A device with no magnetometer, or
   // a browser with motion sensors switched off, fires either nothing or orientation without a north
@@ -518,7 +578,7 @@ async function enableLiveCompass() {
   state.deviceOrientationActive = true;
   els.qiblaCompass.hidden = false;
   els.qiblaCompassButton.hidden = true;
-  els.qiblaNote.textContent = 'Live compass active -- the needle points toward the Qibla as you turn. Uses the device\'s magnetic compass, so accuracy depends on your device and nearby magnetic interference (metal, magnets, some phone cases) -- if it seems off, try moving away from metal objects or recalibrating your phone\'s compass (usually a figure-8 motion) in its system settings.';
+  els.qiblaNote.textContent = COMPASS_ACTIVE_NOTE;
 }
 
 function disableLiveCompass() {

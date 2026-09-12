@@ -757,6 +757,23 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### Unreleased — the compass works however you hold the phone
+
+- The qibla compass reads the phone as a 3D object instead of assuming it is lying flat. Hold it
+  flat and it follows the top edge, as a compass does; stand it up in front of you and it follows
+  where the phone itself points, and says so. Tilting between the two is seamless, because both
+  readings agree wherever both can be read.
+- Rolling an upright phone into landscape no longer changes where it thinks you are pointing.
+- Each pose has one axis that cannot answer at all -- a flat phone's back points at the ground, an
+  upright phone's top edge points at the sky -- so it reads whichever of the two is more
+  horizontal, keeping the current one until the other is clearly better so the handover cannot
+  chatter. The two axes are perpendicular, so one always keeps at least 76% of itself in the
+  horizontal plane: there is no way to hold a phone that leaves nothing to read.
+- The maths is the rotation matrix from the W3C DeviceOrientation spec; the upright case is that
+  spec's own worked compass example. iOS is folded into the same maths by turning its true-north
+  heading back into the angle the rest of the calculation expects, so the upright pose works there
+  too rather than only on Android.
+
 ### Unreleased — qibla compass, location recovery and a teal splash
 
 - The live compass works, and explains itself when it cannot. Three separate faults: readings with
