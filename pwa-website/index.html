@@ -278,6 +278,8 @@
             </div>
             <p class="prayer-timezone-note" id="prayerTimesTimezoneNote" hidden>Times are shown in this device's own timezone, not the entered location's -- if you entered coordinates for a different timezone than this device is set to, clock times above will be off by that difference. The prayer angles themselves are still computed for the entered location.</p>
 
+            <p class="prayer-location-hint" id="prayerTimesLocationHint" hidden></p>
+
             <form class="prayer-location-form" id="prayerTimesLocationForm" hidden>
               <label>Latitude<input name="latitude" type="number" step="0.0001" min="-90" max="90" placeholder="e.g. 21.4225" required></label>
               <label>Longitude<input name="longitude" type="number" step="0.0001" min="-180" max="180" placeholder="e.g. 39.8262" required></label>
@@ -297,6 +299,8 @@
               <span id="qiblaLocationLabel">Locating...</span>
               <button class="text-button" id="qiblaLocationButton" type="button">Set location</button>
             </div>
+
+            <p class="prayer-location-hint" id="qiblaLocationHint" hidden></p>
 
             <form class="prayer-location-form" id="qiblaLocationForm" hidden>
               <label>Latitude<input name="latitude" type="number" step="0.0001" min="-90" max="90" placeholder="e.g. 21.4225" required></label>

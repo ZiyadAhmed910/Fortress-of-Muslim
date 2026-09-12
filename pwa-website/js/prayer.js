@@ -13,25 +13,36 @@ import {
 } from './prayer-times.js';
 
 const COUNTDOWN_TICK_MS = 20_000;
+// How long to wait for a usable compass reading before admitting none is coming.
+const COMPASS_TIMEOUT_MS = 2_500;
+// Fraction of the way to move toward each new reading: enough to feel immediate, enough to settle.
+const COMPASS_SMOOTHING = 0.25;
 let countdownTimer = null;
 let deviceOrientationHandler = null;
+let compassWatchdog = null;
+let smoothedHeading = null;
+let compassStatusNote = '';
 // Shared across both tabs -- resolving a location from either Prayer Times or Qibla immediately
 // benefits the other one too, since they're both just different views onto the same coordinates.
 let currentCoordinates = null;
 
 export function initPrayer() {
   initLocationUi({
+    tab: 'prayerTimes',
     label: els.prayerTimesLocationLabel,
     button: els.prayerTimesLocationButton,
     form: els.prayerTimesLocationForm,
+    hint: els.prayerTimesLocationHint,
     cancel: els.prayerTimesLocationCancel,
     retry: els.prayerTimesLocationRetry,
     onResolved: () => { computeAndRenderPrayerTimes(); startCountdown(); },
   });
   initLocationUi({
+    tab: 'qibla',
     label: els.qiblaLocationLabel,
     button: els.qiblaLocationButton,
     form: els.qiblaLocationForm,
+    hint: els.qiblaLocationHint,
     cancel: els.qiblaLocationCancel,
     retry: els.qiblaLocationRetry,
     onResolved: () => computeAndRenderQibla(),
@@ -168,13 +179,18 @@ function rememberDeviceLocation(located) {
 // Prayer Times and Qibla tabs get their own independent copy of this UI (each tab is meant to be
 // self-contained if someone opens it without ever visiting the other), but they resolve to and
 // write back the same underlying coordinates, so setting a location from either one updates both.
-function initLocationUi({ label, button, form, cancel, retry, onResolved }) {
+// `showLocationKnown` (tab-level) rather than `showLocationKnownFor` (label and button only): the
+// card and the prayer list are hidden while a location is unknown, and only the tab-level call
+// reveals them. Resolving a location here used to update the label and quietly leave the content
+// hidden, so entering coordinates by hand appeared to do nothing at all.
+function initLocationUi({ tab, label, button, form, hint, cancel, retry, onResolved }) {
   const requestDeviceLocation = async () => {
     label.textContent = 'Locating...';
+    hint.hidden = true;
     const located = await getLocation({ enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 });
     if (!located) {
-      toast('Location permission was denied or is unavailable.');
       showLocationNeededFor({ label, button, form });
+      await explainLocationFailure(hint);
       return;
     }
     rememberDeviceLocation(located);
@@ -183,8 +199,9 @@ function initLocationUi({ label, button, form, cancel, retry, onResolved }) {
     localStorage.removeItem('manualLatitude');
     localStorage.removeItem('manualLongitude');
     form.hidden = true;
+    hint.hidden = true;
     currentCoordinates = { ...located, source: 'device' };
-    showLocationKnownFor({ label, button }, currentCoordinates);
+    showLocationKnown(tab, currentCoordinates);
     onResolved();
   };
 
@@ -205,11 +222,31 @@ function initLocationUi({ label, button, form, cancel, retry, onResolved }) {
     localStorage.setItem('manualLatitude', String(latitude));
     localStorage.setItem('manualLongitude', String(longitude));
     form.hidden = true;
+    hint.hidden = true;
     currentCoordinates = { latitude, longitude, source: 'manual' };
-    showLocationKnownFor({ label, button }, currentCoordinates);
+    showLocationKnown(tab, currentCoordinates);
     onResolved();
     toast('Location saved.');
   });
+}
+
+// Once a browser has been told no, the page cannot ask again -- getCurrentPosition simply fails,
+// which is how "Allow location" came to look like a dead button. The Permissions API can tell the
+// two cases apart, so the blocked one can say where the switch actually is.
+async function explainLocationFailure(hint) {
+  hint.hidden = false;
+  hint.textContent = await geolocationBlocked()
+    ? 'Location is blocked for this site, so the app cannot ask again. Allow it from the padlock (or site settings) beside the address bar -- in an installed app, from the app info screen -- then tap "Try device location again". Or enter coordinates below.'
+    : 'Could not get a location fix. Try again near a window or outdoors, or enter coordinates below -- they are saved on this device.';
+}
+
+async function geolocationBlocked() {
+  try {
+    const status = await navigator.permissions?.query({ name: 'geolocation' });
+    return status?.state === 'denied';
+  } catch {
+    return false; // Safari has no geolocation permission query; the generic message covers it.
+  }
 }
 
 function showLocationNeededFor({ label, button, form }) {
@@ -225,6 +262,11 @@ function showLocationKnownFor({ label, button }, coordinates) {
 }
 
 function showLocationNeeded(tab) {
+  // Opening the tab with the permission already blocked is the state that felt like a dead end:
+  // a "Set location" button that can never succeed, and nothing saying why.
+  const hint = tab === 'prayerTimes' ? els.prayerTimesLocationHint : els.qiblaLocationHint;
+  hint.hidden = true;
+  geolocationBlocked().then((blocked) => { if (blocked) explainLocationFailure(hint); }).catch(() => {});
   if (tab === 'prayerTimes') {
     showLocationNeededFor({ label: els.prayerTimesLocationLabel, button: els.prayerTimesLocationButton, form: els.prayerTimesLocationForm });
     els.prayerTimesTimezoneNote.hidden = true;
@@ -353,6 +395,10 @@ function renderQibla(latitude, longitude) {
   els.qiblaCompassButton.hidden = !hasOrientation || state.deviceOrientationActive;
   if (!hasOrientation) {
     els.qiblaNote.textContent = 'This device does not support a live compass -- the bearing above is measured clockwise from true north.';
+  } else if (compassStatusNote) {
+    // A failed compass attempt explains itself; a background location refresh re-renders this card
+    // and would otherwise wipe that explanation back to "tap to start", hiding what just happened.
+    els.qiblaNote.textContent = compassStatusNote;
   } else if (!state.deviceOrientationActive) {
     els.qiblaNote.textContent = 'Tap "Use live compass" to point the needle in real time as you turn.';
   }
@@ -381,33 +427,88 @@ function stopCountdown() {
 // needle inaccurate. `deviceorientationabsolute` exists specifically to guarantee a north-
 // referenced reading, so it's preferred whenever the browser fires it; the `absolute` check below
 // also protects against a non-absolute `deviceorientation` reading being used by mistake.
-function headingFromOrientationEvent(event) {
-  if (typeof event.webkitCompassHeading === 'number') return event.webkitCompassHeading; // iOS Safari: already north-referenced
-  if (event.absolute && event.alpha !== null) return 360 - event.alpha;
+// Exported for tests: the heading maths is the part that was quietly wrong on a real phone, and it
+// is worth pinning without a browser.
+export function headingFromOrientationEvent(event) {
+  if (typeof event.webkitCompassHeading === 'number' && !Number.isNaN(event.webkitCompassHeading)) {
+    return event.webkitCompassHeading; // iOS Safari: already north-referenced and screen-referenced
+  }
+  if (event.absolute && event.alpha !== null) {
+    // alpha is measured against the device's own top edge, so a phone held sideways reads 90 degrees
+    // off until the screen's own rotation is added back in. The installed app is locked to portrait,
+    // where this is a no-op; it matters in a browser tab that is free to rotate.
+    return (360 - event.alpha + screenAngle() + 360) % 360;
+  }
   return null;
+}
+
+function screenAngle() {
+  const angle = window.screen?.orientation?.angle;
+  return typeof angle === 'number' ? angle : 0;
+}
+
+// Two things the raw reading does badly on screen. A magnetometer at rest wanders by a few degrees,
+// which reads as a twitching needle; and rotating the dial from 359 to 1 degrees sends CSS the long
+// way round, a full spin backwards, every time the user faces north. Keeping a continuous angle --
+// one that is free to run past 360 or below 0 -- and easing toward each new reading fixes both.
+export function nextSmoothedHeading(current, reading, smoothing = COMPASS_SMOOTHING) {
+  if (current === null) return reading;
+  const delta = ((reading - current + 540) % 360) - 180;
+  return current + delta * smoothing;
+}
+
+function applyHeading(heading) {
+  smoothedHeading = nextSmoothedHeading(smoothedHeading, heading);
+  els.qiblaCompass.style.setProperty('--device-heading', `${smoothedHeading.toFixed(1)}deg`);
 }
 
 // iOS 13+ requires DeviceOrientationEvent.requestPermission() to be called from a direct user
 // gesture (a tap), never automatically on load -- calling it outside a click handler silently
 // fails on Safari. Android/other browsers don't have this method at all and fire the event freely.
 async function enableLiveCompass() {
-  try {
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      const permission = await DeviceOrientationEvent.requestPermission();
-      if (permission !== 'granted') {
-        toast('Compass access was not granted.');
-        return;
-      }
+  compassStatusNote = '';
+  let permission = 'unsupported';
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      permission = await DeviceOrientationEvent.requestPermission();
+    } catch {
+      // Chromium also exposes this method and can reject it; that is not the same as a refusal, so
+      // fall through and let the readings themselves decide whether the compass works.
+      permission = 'failed';
     }
-  } catch {
-    toast('Compass permission request failed.');
+  }
+  if (permission === 'denied') {
+    // This used to be a toast, which is gone in three seconds and says nothing about the fix. The
+    // page cannot re-ask once refused, so the way back has to stay on screen.
+    compassStatusNote = 'Your browser is not allowing compass access for this site. On iPhone, turn on Settings > Apps > Safari > Motion & Orientation Access; on Chrome or Brave, allow Motion sensors under Site settings. Then tap again. The bearing above is still correct, measured clockwise from true north.';
+    els.qiblaNote.textContent = compassStatusNote;
+    els.qiblaCompassButton.textContent = 'Try the live compass again';
     return;
   }
+  let sawEvent = false;
+  smoothedHeading = null;
+  compassStatusNote = '';
   deviceOrientationHandler = (event) => {
+    sawEvent = true;
     const heading = headingFromOrientationEvent(event);
     if (heading === null) return;
-    els.qiblaCompass.style.setProperty('--device-heading', `${heading}deg`);
+    if (compassWatchdog) { clearTimeout(compassWatchdog); compassWatchdog = null; }
+    applyHeading(heading);
   };
+  // Attaching the listeners is not the same as getting readings. A device with no magnetometer, or
+  // a browser with motion sensors switched off, fires either nothing or orientation without a north
+  // reference -- and the note used to claim "live compass active" over a needle that never moved.
+  compassWatchdog = setTimeout(() => {
+    compassWatchdog = null;
+    disableLiveCompass();
+    els.qiblaCompass.hidden = true;
+    els.qiblaCompassButton.hidden = false;
+    els.qiblaCompassButton.textContent = 'Try the live compass again';
+    compassStatusNote = sawEvent
+      ? 'This device reports how it is tilted but not which way is north, so the needle cannot follow you. Its compass sensor may be missing, or may need calibrating in the system settings (usually a figure-8 motion). The bearing above is still correct, measured clockwise from true north.'
+      : 'No compass readings arrived. If your browser blocks motion sensors for this site (Chrome: Site settings, Motion sensors; Brave: Shields), allow them and tap again. The bearing above is still correct, measured clockwise from true north.';
+    els.qiblaNote.textContent = compassStatusNote;
+  }, COMPASS_TIMEOUT_MS);
   // Both listeners are attached -- iOS Safari never fires deviceorientationabsolute but does put
   // webkitCompassHeading on the plain event; Chrome/Android fire deviceorientationabsolute
   // specifically for north-referenced readings. Whichever actually delivers usable data wins;
@@ -421,6 +522,8 @@ async function enableLiveCompass() {
 }
 
 function disableLiveCompass() {
+  if (compassWatchdog) { clearTimeout(compassWatchdog); compassWatchdog = null; }
+  smoothedHeading = null;
   if (deviceOrientationHandler) {
     window.removeEventListener('deviceorientationabsolute', deviceOrientationHandler);
     window.removeEventListener('deviceorientation', deviceOrientationHandler);

@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-12T08:54:01.526Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-12T09:14:58.408Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -120,7 +120,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 155 |  |  |
+| `pwa-website/js/dom.js` | js | 157 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
 | `pwa-website/js/home.js` | js | 219 |  |  |
@@ -130,7 +130,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/onboarding.js` | js | 182 |  |  |
 | `pwa-website/js/online.js` | js | 21 |  |  |
 | `pwa-website/js/prayer-times.js` | js | 274 |  |  |
-| `pwa-website/js/prayer.js` | js | 431 |  |  |
+| `pwa-website/js/prayer.js` | js | 534 |  |  |
 | `pwa-website/js/pwa.js` | js | 146 |  |  |
 | `pwa-website/js/quran-audio.js` | js | 556 |  |  |
 | `pwa-website/js/quran.js` | js | 778 |  |  |
@@ -149,6 +149,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/install-affordance.test.js` | js | 70 |  |  |
 | `pwa-website/test/layout.test.js` | js | 91 |  |  |
 | `pwa-website/test/prayer-times.test.js` | js | 167 |  |  |
+| `pwa-website/test/qibla-compass.test.js` | js | 114 |  |  |
 | `pwa-website/test/quran-words.test.js` | js | 129 |  |  |
 | `pwa-website/test/reading-roles.test.js` | js | 101 |  |  |
 | `pwa-website/test/reciters.test.js` | js | 39 |  |  |
@@ -409,7 +410,7 @@ Not all of these are bugs; verify before assuming.
 | sunset | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | taxonomy_terms | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
 | that | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/test/guide-and-tasbih.test.js` |
-| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/categories.js`, `pwa-website/js/layout-settings.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/guide-and-tasbih.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/quran-words.test.js`, `pwa-website/test/reading-roles.test.js` |
+| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/categories.js`, `pwa-website/js/layout-settings.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/guide-and-tasbih.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/qibla-compass.test.js`, `pwa-website/test/quran-words.test.js`, `pwa-website/test/reading-roles.test.js` |
 | there | unknown | `(not defined in scanned files)` | `pwa-website/js/modes.js` |
 | this | unknown | `(not defined in scanned files)` | `apps/auth/src/editorial-plane.ts`, `apps/status/public/app.js` |
 | travel | unknown | `(not defined in scanned files)` | `apps/api/test/fuzzy-title.test.ts` |
@@ -424,3 +425,4 @@ Not all of these are bugs; verify before assuming.
 | webhook_subscriptions | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/webhooks.test.ts`, `apps/auth/migrations/0011_webhooks.sql` | `apps/auth/src/index.ts`, `apps/auth/src/webhooks.ts` |
 | what | unknown | `(not defined in scanned files)` | `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | whatever | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
+| wherever | unknown | `(not defined in scanned files)` | `pwa-website/test/qibla-compass.test.js` |
