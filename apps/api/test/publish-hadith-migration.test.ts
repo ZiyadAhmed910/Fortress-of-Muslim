@@ -104,8 +104,15 @@ function databaseBefore0022() {
 
 beforeAll(() => {
   db = databaseBefore0022();
+  // 0022 and everything after it, in order. 0023 adds the view that makes these records reachable
+  // at all, so testing 0022 alone would assert a state no environment is ever in.
   // CR LF: what a Windows checkout hands to `wrangler d1 migrations apply`.
-  db.exec(readFileSync(resolve(MIGRATIONS, HADITH_MIGRATION), 'utf8').replace(/\r?\n/g, '\r\n'));
+  const rest = readdirSync(MIGRATIONS)
+    .filter((name) => name.endsWith('.sql') && name >= HADITH_MIGRATION)
+    .sort();
+  for (const file of rest) {
+    db.exec(readFileSync(resolve(MIGRATIONS, file), 'utf8').replace(/\r?\n/g, '\r\n'));
+  }
 });
 
 const one = <T>(sql: string, ...binds: unknown[]) => db.prepare(sql).get(...binds) as T;
@@ -160,6 +167,16 @@ describe('migration 0022: Sahih Muslim enters the Ask corpus', () => {
     expect(served.every((row) => row.workflow === 'pending_review')).toBe(true);
     // Published, and still unverified -- both facts travel together to the reader.
     expect(served.every((row) => row.publishedAt !== null)).toBe(true);
+    // 0023. Publishing put these records in the index and in lexical search, and Ask still cited
+    // none of them: every candidate is hydrated through api_published_content, which requires
+    // verification on top of publication, so all 14,357 were fetched, found missing, and dropped
+    // without a trace. "What are the pillars of Islam" answered from supplications about throwing
+    // pebbles at the Jamarat. api_ask_content is the view that fixed it.
+    const askable = db.prepare("SELECT canonical_id AS id FROM api_ask_content WHERE canonical_id LIKE 'hadith.%' ORDER BY canonical_id").all() as Array<{ id: string }>;
+    expect(askable.map((row) => row.id)).toEqual(['hadith.bukhari.1', 'hadith.muslim.1', 'hadith.muslim.2', 'hadith.tirmidhi.1']);
+    // And the public endpoints, which promise verified content, still return none of them.
+    const publicly = db.prepare("SELECT canonical_id AS id FROM api_published_content WHERE canonical_id LIKE 'hadith.%'").all();
+    expect(publicly).toEqual([]);
   });
 
   it('supersedes the previous dataset instead of destroying it, so a rollback is one action', () => {

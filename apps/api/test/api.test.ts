@@ -130,6 +130,10 @@ const repository: ContentRepository = {
     return records.find((record) =>
       (record.id === id || record.legacyId === id) && record.workflowState === 'verified' && record.publishedAt);
   },
+  // What Ask reads: published, verified or not. See migration 0023.
+  async getAskDua(id) {
+    return records.find((record) => (record.id === id || record.legacyId === id) && record.publishedAt);
+  },
   async getDuaEvidence(id) {
     const record = records.find((item) => item.id === id || item.legacyId === id);
     if (!record) return undefined;
@@ -167,6 +171,7 @@ const repository: ContentRepository = {
   },
   async getHadith(id) { return id === hadith.id || id === 'bukhari:1' ? hadith : undefined; },
   async getPublishedHadith(id) { return id === hadith.id || id === 'bukhari:1' ? hadith : undefined; },
+  async getAskHadith(id) { return id === hadith.id || id === 'bukhari:1' ? hadith : undefined; },
 };
 const app = createApp(() => repository);
 

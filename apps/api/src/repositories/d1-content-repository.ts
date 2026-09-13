@@ -267,7 +267,11 @@ export class D1ContentRepository implements ContentRepository {
     return this.getDuaFromSource(id, 'api_published_content');
   }
 
-  private async getDuaFromSource(id: string, source: 'api_current_content' | 'api_published_content'): Promise<Dua | undefined> {
+  async getAskDua(id: string): Promise<Dua | undefined> {
+    return this.getDuaFromSource(id, 'api_ask_content');
+  }
+
+  private async getDuaFromSource(id: string, source: ContentSource): Promise<Dua | undefined> {
     const record = await this.database.prepare(`${duaSummarySql(source)}
       WHERE canonical.content_type = 'dua'
         AND (publication.canonical_id = ? OR revision.legacy_id = ?)
@@ -443,7 +447,11 @@ export class D1ContentRepository implements ContentRepository {
     return this.getHadithFromSource(id, 'api_published_content');
   }
 
-  private async getHadithFromSource(id: string, source: 'api_current_content' | 'api_published_content'): Promise<Hadith | undefined> {
+  async getAskHadith(id: string): Promise<Hadith | undefined> {
+    return this.getHadithFromSource(id, 'api_ask_content');
+  }
+
+  private async getHadithFromSource(id: string, source: ContentSource): Promise<Hadith | undefined> {
     const row = await this.database.prepare(`${hadithSummarySql(source)}
       WHERE canonical.content_type = 'hadith'
         AND (publication.canonical_id = ? OR revision.legacy_id = ?)
@@ -565,6 +573,14 @@ function normalizeSearchText(value: string) {
 
 // A dua with no recorded role is a supplication: roles were assigned to every Hisn reading in
 // migration 0018, and a reading only needs one when it is something other than words to recite.
+/**
+ * The three views a record can be read through. api_current_content is everything not withdrawn;
+ * api_published_content adds "verified" and is what the public dua and hadith endpoints serve;
+ * api_ask_content sits between them -- published, whatever its verification status -- because Ask
+ * answers from what is published and reports each source's status rather than requiring it.
+ */
+type ContentSource = 'api_current_content' | 'api_published_content' | 'api_ask_content';
+
 function duaSummarySql(source = 'api_current_content') {
   return `
     SELECT publication.canonical_id AS id, revision.legacy_id, revision.sequence, revision.title,

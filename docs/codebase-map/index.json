@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-13T13:48:39.258Z",
+  "generatedAt": "2026-09-13T16:43:56.848Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -128,7 +128,7 @@
     },
     {
       "path": "apps/api/src/repositories/content-repository.ts",
-      "lines": 60,
+      "lines": 63,
       "language": "ts",
       "exports": [
         "type DatasetSummary",
@@ -145,7 +145,7 @@
     },
     {
       "path": "apps/api/src/repositories/d1-content-repository.ts",
-      "lines": 726,
+      "lines": 742,
       "language": "ts",
       "exports": [
         "class D1ContentRepository"
@@ -170,7 +170,7 @@
     },
     {
       "path": "apps/api/test/api.test.ts",
-      "lines": 726,
+      "lines": 731,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -261,7 +261,7 @@
     },
     {
       "path": "apps/api/test/publish-hadith-migration.test.ts",
-      "lines": 218,
+      "lines": 235,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -1192,6 +1192,14 @@
     {
       "path": "apps/api/migrations/0022_publish_hadith_corpus.sql",
       "lines": 141,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0023_ask_content_view.sql",
+      "lines": 23,
       "language": "sql",
       "exports": [],
       "imports": [],
@@ -2307,6 +2315,16 @@
       ]
     },
     {
+      "name": "api_ask_content",
+      "kind": "view",
+      "definedIn": [
+        "apps/api/migrations/0023_ask_content_view.sql"
+      ],
+      "referencedBy": [
+        "apps/api/test/publish-hadith-migration.test.ts"
+      ]
+    },
+    {
       "name": "api_current_content",
       "kind": "view",
       "definedIn": [
@@ -2330,7 +2348,8 @@
         "apps/api/migrations/0017_canonical_withdrawals.sql"
       ],
       "referencedBy": [
-        "apps/api/test/canonical-withdrawal.test.ts"
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts"
       ]
     },
     {
@@ -3663,6 +3682,14 @@
       ]
     },
     {
+      "name": "supplications",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/publish-hadith-migration.test.ts"
+      ]
+    },
+    {
       "name": "taxonomy_terms",
       "kind": "table",
       "definedIn": [
@@ -3854,6 +3881,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/test/editorial-pilot.test.ts"
       ]

@@ -48,6 +48,8 @@ export interface ContentRepository {
   getRandomDua(): Promise<Dua | undefined>;
   getDua(id: string): Promise<Dua | undefined>;
   getPublishedDua(id: string): Promise<Dua | undefined>;
+  /** Published, whatever its verification status: what Ask grounds on. See migration 0023. */
+  getAskDua(id: string): Promise<Dua | undefined>;
   getDuaEvidence(id: string): Promise<RecordEvidence | undefined>;
   countHadith(collection?: string): Promise<number>;
   listHadith(collection: string | undefined, offset: number, limit: number): Promise<HadithSummary[]>;
@@ -56,4 +58,5 @@ export interface ContentRepository {
   findHadithByReference(collectionHint: string, number: string): Promise<Hadith | undefined>;
   getHadith(id: string): Promise<Hadith | undefined>;
   getPublishedHadith(id: string): Promise<Hadith | undefined>;
+  getAskHadith(id: string): Promise<Hadith | undefined>;
 }

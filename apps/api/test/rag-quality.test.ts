@@ -28,8 +28,8 @@ describe('Ask evidence quality', () => {
         { id: weak.id, contentType: 'dua' as const, score: 0.7 },
       ],
       searchCurrentForRag: async () => [],
-      getPublishedDua: async (id: string) => id === exact.id ? exact : id === weak.id ? weak : undefined,
-      getPublishedHadith: async () => undefined,
+      getAskDua: async (id: string) => id === exact.id ? exact : id === weak.id ? weak : undefined,
+      getAskHadith: async () => undefined,
     } as unknown as ContentRepository;
     const env = {
       CONTENT_DB: {
@@ -91,8 +91,8 @@ describe('Ask evidence quality', () => {
         return [];
       },
       searchCurrentForRag: async () => [],
-      getPublishedDua: async (id: string) => [original, variantA, variantB].find((item) => item.id === id),
-      getPublishedHadith: async () => undefined,
+      getAskDua: async (id: string) => [original, variantA, variantB].find((item) => item.id === id),
+      getAskHadith: async () => undefined,
     } as unknown as ContentRepository;
     const env = {
       CONTENT_DB: { prepare: () => ({ bind: () => ({ first: async () => ({ requestCount: 1 }) }) }) },
@@ -134,8 +134,8 @@ describe('Ask evidence quality', () => {
       }),
       searchForRag: async () => [],
       searchCurrentForRag: async () => [{ id: pendingRecord.id, contentType: 'dua' as const, score: 0.6 }],
-      getPublishedDua: async () => undefined,
-      getPublishedHadith: async () => undefined,
+      getAskDua: async () => undefined,
+      getAskHadith: async () => undefined,
       getDua: async (id: string) => (id === pendingRecord.id ? pendingRecord : undefined),
       getHadith: async () => undefined,
     } as unknown as ContentRepository;

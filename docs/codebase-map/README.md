@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-13T13:48:39.258Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-13T16:43:56.848Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -17,7 +17,7 @@ orphaned code paths reading from the wrong schema (this is exactly how the
 `record-query.ts` bug looked before it was fixed -- see `docs/project-overview.md`).
 Not all of these are bugs; verify before assuming.
 
-- **api_published_content** (view) — defined in `apps/api/migrations/0010_api_content_visibility.sql`, `apps/api/migrations/0013_verify_and_publish_hisn.sql`, `apps/api/migrations/0017_canonical_withdrawals.sql`, only referenced by `apps/api/test/canonical-withdrawal.test.ts`
+- **api_ask_content** (view) — defined in `apps/api/migrations/0023_ask_content_view.sql`, only referenced by `apps/api/test/publish-hadith-migration.test.ts`
 - **apikey** (table) — defined in `apps/auth/migrations/0001_identity.sql`, only referenced by `apps/auth/src/admin-plane.ts`
 - **canonical_publication_history** (table) — defined in `apps/api/migrations/0006_canonical_editorial.sql`, only referenced by `apps/auth/src/editorial-plane.ts`
 - **canonical_reading_roles** (table) — defined in `apps/api/migrations/0018_hisn_reading_roles.sql`, only referenced by `apps/api/src/repositories/d1-content-repository.ts`
@@ -62,6 +62,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/migrations/0020_search_aliases.sql` | sql | 193 |  |  |
 | `apps/api/migrations/0021_ask_unverified_fallback.sql` | sql | 15 |  |  |
 | `apps/api/migrations/0022_publish_hadith_corpus.sql` | sql | 141 |  |  |
+| `apps/api/migrations/0023_ask_content_view.sql` | sql | 23 |  |  |
 | `apps/api/src/app.ts` | ts | 648 | 27 | function createApp, const app |
 | `apps/api/src/index.ts` | ts | 51 |  | class ApiWorker |
 | `apps/api/src/lib/fuzzy-title.ts` | ts | 75 |  | type TitleCandidate, type RankedTitle, function rankDuaTitles |
@@ -70,17 +71,17 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 41 |  | function expandRetrievalQuery |
 | `apps/api/src/rag.ts` | ts | 1123 |  | type RagSource, function extractAnswerText, type AskSettings, function loadAskSettings, function chooseAskModel, function rankByRelevance, +11 more |
-| `apps/api/src/repositories/content-repository.ts` | ts | 60 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
-| `apps/api/src/repositories/d1-content-repository.ts` | ts | 726 |  | class D1ContentRepository |
+| `apps/api/src/repositories/content-repository.ts` | ts | 63 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
+| `apps/api/src/repositories/d1-content-repository.ts` | ts | 742 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
-| `apps/api/test/api.test.ts` | ts | 726 |  |  |
+| `apps/api/test/api.test.ts` | ts | 731 |  |  |
 | `apps/api/test/arabic-search.test.ts` | ts | 133 |  |  |
 | `apps/api/test/ask-policy.test.ts` | ts | 241 |  |  |
 | `apps/api/test/ask-streaming.test.ts` | ts | 214 |  |  |
 | `apps/api/test/canonical-withdrawal.test.ts` | ts | 111 |  |  |
 | `apps/api/test/fuzzy-title.test.ts` | ts | 30 |  |  |
 | `apps/api/test/hadith-reference.test.ts` | ts | 127 |  |  |
-| `apps/api/test/publish-hadith-migration.test.ts` | ts | 218 |  |  |
+| `apps/api/test/publish-hadith-migration.test.ts` | ts | 235 |  |  |
 | `apps/api/test/rag-filters.test.ts` | ts | 208 |  |  |
 | `apps/api/test/rag-index.test.ts` | ts | 125 |  |  |
 | `apps/api/test/rag-quality.test.ts` | ts | 193 |  |  |
@@ -302,8 +303,9 @@ Not all of these are bugs; verify before assuming.
 | admin | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | an | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
 | any | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
+| api_ask_content | view | `apps/api/migrations/0023_ask_content_view.sql` | `apps/api/test/publish-hadith-migration.test.ts` |
 | api_current_content | view | `apps/api/migrations/0010_api_content_visibility.sql`, `apps/api/migrations/0013_verify_and_publish_hisn.sql`, `apps/api/migrations/0017_canonical_withdrawals.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts` |
-| api_published_content | view | `apps/api/migrations/0010_api_content_visibility.sql`, `apps/api/migrations/0013_verify_and_publish_hisn.sql`, `apps/api/migrations/0017_canonical_withdrawals.sql` | `apps/api/test/canonical-withdrawal.test.ts` |
+| api_published_content | view | `apps/api/migrations/0010_api_content_visibility.sql`, `apps/api/migrations/0013_verify_and_publish_hisn.sql`, `apps/api/migrations/0017_canonical_withdrawals.sql` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts` |
 | apikey | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts` |
 | Arabic | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
 | ask_model_usage | table | `apps/api/migrations/0019_ask_controls.sql` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts` |
@@ -432,6 +434,7 @@ Not all of these are bugs; verify before assuming.
 | splitting | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js` |
 | sqlite_master | unknown | `(not defined in scanned files)` | `apps/api/test/reading-roles-migration.test.ts` |
 | sunset | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
+| supplications | unknown | `(not defined in scanned files)` | `apps/api/test/publish-hadith-migration.test.ts` |
 | taxonomy_terms | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
 | text | unknown | `(not defined in scanned files)` | `apps/api/test/search-aliases.test.ts` |
 | that | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/test/guide-and-tasbih.test.js` |
@@ -449,6 +452,6 @@ Not all of these are bugs; verify before assuming.
 | verification_records | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | webhook_deliveries | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/webhooks.test.ts`, `apps/auth/migrations/0011_webhooks.sql` | `apps/auth/src/index.ts`, `apps/auth/src/webhooks.ts` |
 | webhook_subscriptions | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/test/webhooks.test.ts`, `apps/auth/migrations/0011_webhooks.sql` | `apps/auth/src/index.ts`, `apps/auth/src/webhooks.ts` |
-| what | unknown | `(not defined in scanned files)` | `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/test/editorial-pilot.test.ts` |
+| what | unknown | `(not defined in scanned files)` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | whatever | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
 | wherever | unknown | `(not defined in scanned files)` | `pwa-website/test/qibla-compass.test.js` |

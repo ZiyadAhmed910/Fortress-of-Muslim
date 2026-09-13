@@ -52,8 +52,8 @@ const repositoryWith = (recordCount: number) => ({
   }),
   searchForRag: async () => [{ id: source.id, contentType: 'dua' as const, score: 0.95 }],
   searchCurrentForRag: async () => [],
-  getPublishedDua: async (id: string) => (id === source.id ? source : undefined),
-  getPublishedHadith: async () => undefined,
+  getAskDua: async (id: string) => (id === source.id ? source : undefined),
+  getAskHadith: async () => undefined,
 } as unknown as ContentRepository);
 
 const envWith = (pieces: string[], seen?: { models: string[] }) => ({
