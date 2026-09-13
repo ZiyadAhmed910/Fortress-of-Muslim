@@ -44,7 +44,7 @@ The API Worker incrementally indexes the pending active dataset through a Cron T
 
 ## Unverified Content in Ask
 
-Ask originally answered only from verified, published records. Migration `0022` publishes Sahih Muslim's 3,098 hadith, none of which has been reviewed, because a labelled unverified source answers more questions than an empty result does. The rule it replaces is not relaxed silently — every layer states the record's real status:
+Ask originally answered only from verified, published records. Migration `0022` publishes the whole hadith corpus — 14,357 records across Sahih al-Bukhari, Sahih Muslim and Jami at-Tirmidhi, none of them reviewed — because a labelled unverified source answers more questions than an empty result does. The rule it replaces is not relaxed silently — every layer states the record's real status:
 
 - Retrieval hands the model `Verification: unverified` in each source block.
 - `/v1/ask` returns `verificationStatus` per source, and `includesUnverifiedSource` in its metadata.
@@ -53,7 +53,11 @@ Ask originally answered only from verified, published records. Migration `0022` 
 
 Publishing and verifying stay separate acts: `0022` writes `canonical_publications` rows and does not touch `editorial_record_state`, which is what `api_current_content` derives verification from. A record becomes verified only through review, exactly as before, and verifying these records later changes their label without republishing them.
 
-Only Sahih Muslim is published, not the full 14,357-hadith corpus, because Vectorize's free allowance is 5,000,000 stored dimensions and the embedding model (`@cf/baai/bge-m3`) uses 1,024 per record. Sahih Muslim plus the 268 duas is ~3.45M; the whole corpus would be ~15M, and a production index needs its own copy of whatever a test index holds. Rolling this back is one Admin Console action: the previous dataset version is superseded, not deleted, and keeps its complete `canonical_dataset_items` snapshot.
+All 14,625 published records come to ~14.98M stored Vectorize dimensions (`@cf/baai/bge-m3` uses 1,024 each) against the 10,000,000 a Workers Paid plan includes, so roughly 5M is billable at $0.05 per 100M — under a cent a month, and a production index needing its own copy only doubles that. An earlier draft published Sahih Muslim alone, because the free allowance is 5,000,000 dimensions and one collection fit where three did not.
+
+Rolling this back is one Admin Console action: the previous dataset version is superseded, not deleted, and keeps its complete `canonical_dataset_items` snapshot.
+
+The indexing cron embeds 200 records per minute (raised from 50, which was sized for a 268-record corpus), so a full backfill takes about 75 minutes. Ask keeps answering from the lexical half of retrieval throughout, and `/v1/ask/status` reports progress.
 
 ## Reading Roles
 

@@ -335,7 +335,14 @@ export async function indexRecordBatch(env: Bindings, cursor: number, limit: num
   };
 }
 
-export async function indexNextPendingBatch(env: Bindings, limit = 50) {
+/**
+ * One cron tick of indexing. The batch was 50 while the corpus was 268 duas, where it finished in
+ * six minutes; at 14,625 records that same batch is a five-hour backfill. The cost of a bigger
+ * batch is subrequests, not CPU -- embedding calls are already split to fit the model's context by
+ * embeddingCalls(), and awaiting them burns no CPU time -- and 200 records is a handful of AI calls
+ * and one vector upsert against a paid limit of 1,000 subrequests per invocation.
+ */
+export async function indexNextPendingBatch(env: Bindings, limit = 200) {
   const dataset = await currentDatasetRow(env.CONTENT_DB);
   const state = await env.CONTENT_DB.prepare(`
     SELECT indexed_count AS indexedCount, status

@@ -178,9 +178,10 @@ Every platform release must:
 
 _2026-09-13_
 
-- **Sahih Muslim enters the corpus Ask answers from (`0022`).** Ask had 268 duas to work with while
-  the platform held 14,357 hadith, none of them published, so questions it could have answered from
-  Sahih Muslim returned nothing. Its 3,098 records are now published and indexed.
+- **The whole hadith corpus enters the corpus Ask answers from (`0022`).** Ask had 268 duas to work
+  with while the platform held 14,357 hadith -- Sahih al-Bukhari 7,277, Jami at-Tirmidhi 3,982,
+  Sahih Muslim 3,098 -- none of them published, so a question it could have answered from any of
+  them returned nothing at all. All of them are now published and queued for embedding.
 - **These records are not verified, and every layer says so.** The retrieval context hands the model
   `Verification: unverified`, the API returns `verificationStatus` per source and
   `includesUnverifiedSource` in its metadata, the PWA styles those sources differently and marks
@@ -188,15 +189,21 @@ _2026-09-13_
   as `verification_status = 'pending'`. Publishing and verifying stay separate acts: the migration
   writes publication rows and never touches `editorial_record_state`, which is what verification is
   derived from, so reviewing these records later relabels them without republishing.
-- **One collection rather than all three, for a measured reason.** Vectorize's free allowance is
-  5,000,000 stored dimensions and `@cf/baai/bge-m3` uses 1,024 per record. Sahih Muslim with the
-  duas is 3,366 records (~3.45M dimensions) and fits; the whole hadith corpus is ~15M, three times
-  over, and a production index later needs its own copy of whatever the test index holds. Whether
-  that is worth a paid plan is exactly the question publishing one collection answers.
+- **Indexing 200 records a minute instead of 50.** The old batch was sized for 268 duas, where it
+  finished in six minutes; at 14,625 records it would have been a five-hour backfill. The cost of a
+  bigger batch is subrequests rather than CPU -- embedding calls are already split to fit the
+  model's context, and awaiting them burns no CPU -- so 200 is a handful of AI calls against a paid
+  limit of 1,000 subrequests per invocation. A full backfill now takes about 75 minutes, and Ask
+  keeps answering from lexical retrieval while it runs.
+- **What it costs.** 14,625 records at 1,024 dimensions is ~14.98M stored Vectorize dimensions
+  against the 10M a paid plan includes: about 5M billable at $0.05 per 100M, under a cent a month.
+  Embedding the corpus once is roughly $0.20. An earlier draft of this migration published Sahih
+  Muslim alone, because the free allowance is 5M dimensions and one collection fit where three did
+  not.
 - Reversible in one action: the previous dataset version is superseded rather than deleted and keeps
   its complete membership snapshot, so the Admin Console can roll back to duas alone.
-- Withdrawn records stay withdrawn. Publishing a collection wholesale does not quietly return a
-  record that was taken out of public service, and a test holds that in place.
+- Withdrawn records stay withdrawn. Publishing the corpus wholesale does not quietly return a record
+  that was taken out of public service, and a test holds that in place.
 
 ### 0.27.0
 
