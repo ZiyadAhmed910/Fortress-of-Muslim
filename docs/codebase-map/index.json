@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-13T12:48:05.052Z",
+  "generatedAt": "2026-09-13T13:41:12.450Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -256,6 +256,19 @@
         "node:path",
         "vitest",
         "../src/repositories/d1-content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/publish-muslim-migration.test.ts",
+      "lines": 199,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest"
       ],
       "routeCount": 0
     },
@@ -1171,6 +1184,14 @@
     {
       "path": "apps/api/migrations/0021_ask_unverified_fallback.sql",
       "lines": 15,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0022_publish_sahih_muslim.sql",
+      "lines": 144,
       "language": "sql",
       "exports": [],
       "imports": [],
@@ -2296,7 +2317,8 @@
       "referencedBy": [
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
-        "apps/api/test/canonical-withdrawal.test.ts"
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts"
       ]
     },
     {
@@ -2391,6 +2413,7 @@
       "referencedBy": [
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts",
@@ -2422,6 +2445,7 @@
       ],
       "referencedBy": [
         "apps/api/src/rag.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -2438,6 +2462,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/search-aliases.test.ts",
@@ -2465,6 +2490,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/rag-index.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
@@ -2496,6 +2522,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -2542,6 +2569,7 @@
       "referencedBy": [
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/editorial-plane.ts",
@@ -2559,6 +2587,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts"
       ]
     },
@@ -2588,6 +2617,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -2615,6 +2645,7 @@
       ],
       "referencedBy": [
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -2629,6 +2660,7 @@
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -2649,6 +2681,7 @@
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -2678,6 +2711,7 @@
       ],
       "referencedBy": [
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -2735,6 +2769,7 @@
       ],
       "referencedBy": [
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
@@ -2840,6 +2875,7 @@
       ],
       "referencedBy": [
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -2871,6 +2907,7 @@
       "definedIn": [],
       "referencedBy": [
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/test/admin-mfa-gate.test.ts",
         "pwa-website/js/onboarding.js"
@@ -3373,6 +3410,7 @@
       ],
       "referencedBy": [
         "apps/api/src/rag.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/admin-plane.ts",
@@ -3453,6 +3491,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -3472,6 +3511,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/search-aliases.test.ts",
@@ -3489,6 +3529,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/search-aliases.test.ts",
@@ -3518,6 +3559,14 @@
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "service",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/publish-muslim-migration.test.ts"
+      ]
     },
     {
       "name": "session",
@@ -3563,6 +3612,14 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/prayer-times.js"
+      ]
+    },
+    {
+      "name": "something",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/publish-muslim-migration.test.ts"
       ]
     },
     {
@@ -3643,6 +3700,7 @@
         "apps/api/src/rag.ts",
         "apps/api/test/ask-policy.test.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-muslim-migration.test.ts",
         "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",

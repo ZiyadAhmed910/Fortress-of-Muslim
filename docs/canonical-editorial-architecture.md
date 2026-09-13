@@ -4,7 +4,7 @@
 
 Fortress Platform exposes current editorial records through REST and API-backed MCP tools, including records that have not yet been verified. The public workflow has only `pending_review`, `verified`, and `changes_requested`. Every exposed record includes its verification status, current workflow status, verifier identity and timestamp when present, and nullable publication timestamp.
 
-Candidate preparation provenance remains outside the public repository and deployment artifacts. Candidates enter the platform in `pending_review`. Only verified, published revisions may enter PWA snapshots, RAG indexes, or grounded Ask responses.
+Candidate preparation provenance remains outside the public repository and deployment artifacts. Candidates enter the platform in `pending_review`. Only verified, published revisions may enter PWA snapshots. Ask is no longer restricted to verified content — see [Unverified content in Ask](#unverified-content-in-ask).
 
 ## Record Lifecycle
 
@@ -40,7 +40,20 @@ Individual records can be verified without immediately becoming an Ask source. F
 
 Every published dataset also receives a complete immutable `canonical_dataset_items` snapshot. A rollback never mutates or reactivates an old version. It creates a new audited dataset from a complete prior snapshot, rebuilds current publication pointers and canonical search rows atomically, and marks its vector index pending.
 
-The API Worker incrementally indexes the pending active dataset through a Cron Trigger. Vector metadata retains content type, collection, canonical record ID, and dataset namespace. Unverified records never enter this namespace and cannot ground Ask responses.
+The API Worker incrementally indexes the pending active dataset through a Cron Trigger. Vector metadata retains content type, collection, canonical record ID, and dataset namespace.
+
+## Unverified Content in Ask
+
+Ask originally answered only from verified, published records. Migration `0022` publishes Sahih Muslim's 3,098 hadith, none of which has been reviewed, because a labelled unverified source answers more questions than an empty result does. The rule it replaces is not relaxed silently — every layer states the record's real status:
+
+- Retrieval hands the model `Verification: unverified` in each source block.
+- `/v1/ask` returns `verificationStatus` per source, and `includesUnverifiedSource` in its metadata.
+- The PWA renders those sources with their own styling, marks them "Not yet verified", and shows a note above the answer.
+- The dataset version itself is recorded as `verification_status = 'pending'`, so nothing reads as reviewed that has not been.
+
+Publishing and verifying stay separate acts: `0022` writes `canonical_publications` rows and does not touch `editorial_record_state`, which is what `api_current_content` derives verification from. A record becomes verified only through review, exactly as before, and verifying these records later changes their label without republishing them.
+
+Only Sahih Muslim is published, not the full 14,357-hadith corpus, because Vectorize's free allowance is 5,000,000 stored dimensions and the embedding model (`@cf/baai/bge-m3`) uses 1,024 per record. Sahih Muslim plus the 268 duas is ~3.45M; the whole corpus would be ~15M, and a production index needs its own copy of whatever a test index holds. Rolling this back is one Admin Console action: the previous dataset version is superseded, not deleted, and keeps its complete `canonical_dataset_items` snapshot.
 
 ## Reading Roles
 
