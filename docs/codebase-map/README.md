@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-13T11:29:53.110Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-13T12:48:05.052Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -61,20 +61,21 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/migrations/0019_ask_controls.sql` | sql | 44 |  |  |
 | `apps/api/migrations/0020_search_aliases.sql` | sql | 193 |  |  |
 | `apps/api/migrations/0021_ask_unverified_fallback.sql` | sql | 15 |  |  |
-| `apps/api/src/app.ts` | ts | 623 | 26 | function createApp, const app |
+| `apps/api/src/app.ts` | ts | 648 | 27 | function createApp, const app |
 | `apps/api/src/index.ts` | ts | 51 |  | class ApiWorker |
 | `apps/api/src/lib/fuzzy-title.ts` | ts | 75 |  | type TitleCandidate, type RankedTitle, function rankDuaTitles |
 | `apps/api/src/lib/pagination.ts` | ts | 15 |  | function encodeCursor, function decodeCursor |
 | `apps/api/src/lib/record-query.ts` | ts | 88 |  | type RecordQueryDefinition, function executeRecordQuery |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 41 |  | function expandRetrievalQuery |
-| `apps/api/src/rag.ts` | ts | 889 |  | type RagSource, function extractAnswerText, type AskSettings, function loadAskSettings, function chooseAskModel, function rankByRelevance, +8 more |
+| `apps/api/src/rag.ts` | ts | 1116 |  | type RagSource, function extractAnswerText, type AskSettings, function loadAskSettings, function chooseAskModel, function rankByRelevance, +11 more |
 | `apps/api/src/repositories/content-repository.ts` | ts | 60 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 726 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
 | `apps/api/test/api.test.ts` | ts | 726 |  |  |
 | `apps/api/test/arabic-search.test.ts` | ts | 133 |  |  |
 | `apps/api/test/ask-policy.test.ts` | ts | 241 |  |  |
+| `apps/api/test/ask-streaming.test.ts` | ts | 214 |  |  |
 | `apps/api/test/canonical-withdrawal.test.ts` | ts | 111 |  |  |
 | `apps/api/test/fuzzy-title.test.ts` | ts | 30 |  |  |
 | `apps/api/test/hadith-reference.test.ts` | ts | 127 |  |  |
@@ -121,7 +122,7 @@ Not all of these are bugs; verify before assuming.
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
 | `pwa-website/js/app.js` | js | 210 |  |  |
 | `pwa-website/js/art-motion.js` | js | 89 |  |  |
-| `pwa-website/js/assistant.js` | js | 54 |  |  |
+| `pwa-website/js/assistant.js` | js | 158 |  |  |
 | `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
@@ -249,7 +250,8 @@ Not all of these are bugs; verify before assuming.
 | POST | `/v1/admin/taxonomy` | manual (exact) | `apps/auth/src/admin-plane.ts:131` |
 | GET | `/v1/admin/users` | manual (exact) | `apps/auth/src/admin-plane.ts:128` |
 | POST | `/v1/ask` | hono | `apps/api/src/app.ts:442` |
-| GET | `/v1/ask/status` | hono | `apps/api/src/app.ts:464` |
+| GET | `/v1/ask/status` | hono | `apps/api/src/app.ts:489` |
+| POST | `/v1/ask/stream` | hono | `apps/api/src/app.ts:468` |
 | GET | `/v1/collections` | hono | `apps/api/src/app.ts:229` |
 | GET | `/v1/control/access-requests` | manual (exact) | `apps/auth/src/index.ts:176` |
 | POST | `/v1/control/access-requests` | manual (exact) | `apps/auth/src/index.ts:185` |
@@ -279,9 +281,9 @@ Not all of these are bugs; verify before assuming.
 | GET | `/v1/hadith/:id` | hono | `apps/api/src/app.ts:436` |
 | GET | `/v1/hadith/resolve` | hono | `apps/api/src/app.ts:418` |
 | GET | `/v1/hadith/search` | hono | `apps/api/src/app.ts:400` |
-| POST | `/v1/internal/vector-index` | hono | `apps/api/src/app.ts:470` |
+| POST | `/v1/internal/vector-index` | hono | `apps/api/src/app.ts:495` |
 | GET | `/v1/oauth/client-name` | manual (exact) | `apps/auth/src/index.ts:71` |
-| GET | `/v1/queries/:id` | hono | `apps/api/src/app.ts:481` |
+| GET | `/v1/queries/:id` | hono | `apps/api/src/app.ts:506` |
 | USE | `/v1/queries/*` | hono | `apps/api/src/app.ts:107` |
 
 ## Schema (tables/views -> referencing files)
@@ -369,6 +371,7 @@ Not all of these are bugs; verify before assuming.
 | languages | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/auth/src/admin-plane.ts` |
 | localStorage | unknown | `(not defined in scanned files)` | `pwa-website/js/layout.js` |
 | Maghrib | unknown | `(not defined in scanned files)` | `pwa-website/test/prayer-times.test.js` |
+| making | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | mcp_server_registrations | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/index.ts` |
 | mcp_tool_definitions | table | `apps/auth/migrations/0002_control_plane.sql` | (none) |
 | mcp_toolset_tools | table | `apps/auth/migrations/0005_query_and_mcp_toolsets.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
@@ -418,6 +421,7 @@ Not all of these are bugs; verify before assuming.
 | session | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts` |
 | SET | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
 | Settings | unknown | `(not defined in scanned files)` | `pwa-website/js/onboarding.js`, `pwa-website/js/quran.js` |
+| several | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | solar | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | source_materials | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | source_references | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |

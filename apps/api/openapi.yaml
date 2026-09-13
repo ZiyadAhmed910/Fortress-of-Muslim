@@ -293,6 +293,35 @@ paths:
           description: Question is missing or invalid
         '429':
           description: Daily assistant allowance reached
+  /ask/stream:
+    post:
+      operationId: askFortressStreaming
+      tags: [AI]
+      summary: Ask a source-grounded question, streamed
+      description: >
+        The same answer as POST /ask, delivered as server-sent events while it is produced. Events
+        are `status` (`retrieving`, then `writing`), `sources` (the citations, sent as soon as
+        retrieval and reranking finish, before any answer text exists), `delta` (a fragment of the
+        answer), `replace` (discard the text shown so far and use this instead, sent when a
+        generated answer failed the citation rule), `done` (the complete answer and metadata) and
+        `error`. Because the response status is committed with the first byte, failures that POST
+        /ask reports as 429 or 500 arrive here as an `error` event carrying the same code.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AskRequest'
+      responses:
+        '200':
+          description: Server-sent event stream of the grounded answer
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: A sequence of `event:`/`data:` frames as described above.
+        '400':
+          description: Question is missing or invalid
   /ask/status:
     get:
       operationId: getAskStatus

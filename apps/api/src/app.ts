@@ -17,7 +17,7 @@ import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { decodeCursor, encodeCursor } from './lib/pagination';
 import { executeRecordQuery } from './lib/record-query';
-import { RagRateLimitError, answerQuestion, getRagStatus, indexRecordBatch } from './rag';
+import { RagRateLimitError, answerQuestion, streamAnswer, getRagStatus, indexRecordBatch } from './rag';
 import type { ContentRepository } from './repositories/content-repository';
 import { D1ContentRepository } from './repositories/d1-content-repository';
 import type { ApiVariables, Bindings } from './types';
@@ -461,6 +461,31 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     }
   });
 
+  // The same answer as /v1/ask, streamed. A question costs an embedding, a vector query, a lexical
+  // query, a reranker pass and a model writing prose -- seconds that are real work, not overhead.
+  // This endpoint spends them the same way but reports as it goes, so a reader sees the stage, then
+  // the sources, then the answer arriving, instead of a blank panel until all of it finishes.
+  app.post('/v1/ask/stream', async (context) => {
+    const parsed = askQuestionSchema.safeParse(await readJsonBody(context));
+    if (!parsed.success) return context.json({ error: { code: 'invalid_request', message: 'Question must contain between 5 and 500 characters.', requestId: context.get('requestId') } }, 400);
+    const stream = streamAnswer(
+      context.env,
+      repositoryFactory(context.env),
+      parsed.data.question,
+      context.req.header('CF-Connecting-IP') ?? 'unknown-client',
+      parsed.data.filters,
+    );
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-store',
+        Connection: 'keep-alive',
+        // Nothing between here and the reader may hold the response back waiting for more of it.
+        'X-Accel-Buffering': 'no',
+        'X-Fortress-Request-Id': context.get('requestId') ?? '',
+      },
+    });
+  });
   app.get('/v1/ask/status', async (context) => {
     const data = await getRagStatus(context.env, repositoryFactory(context.env));
     context.header('Cache-Control', 'no-store');

@@ -392,7 +392,33 @@ export async function getRagStatus(env: Bindings, repository: ContentRepository)
   };
 }
 
-export async function answerQuestion(
+/**
+ * What an Ask request answers with. Written out rather than inferred because the pipeline returns
+ * from several places -- no dataset, nothing grounded, or a real generated answer -- and the fields
+ * that only a generated answer carries have to be optional for all of them to be one type.
+ */
+export type AskAnswer = {
+  answer: string;
+  sources: RagSource[];
+  meta: {
+    datasetId: string;
+    model: string | null;
+    modelTier?: 'primary' | 'secondary' | 'fallback';
+    generated?: boolean;
+    remainingToday: number | null;
+    retrievalMode: string;
+    reranked?: boolean;
+    vectorAvailable: boolean;
+    includesUnverifiedSource?: boolean;
+  };
+};
+
+/**
+ * Everything up to generation: the policy reads, retrieval, reranking and the grounded records.
+ * The streaming and non-streaming endpoints share it so they cannot drift into making different
+ * decisions -- the only difference between them is how the finished answer is delivered.
+ */
+async function prepareGrounding(
   env: Bindings,
   repository: ContentRepository,
   question: string,
@@ -404,6 +430,7 @@ export async function answerQuestion(
   const dataset = await repository.getCurrentDataset();
   if (dataset.recordCount === 0) {
     return {
+      ready: false as const,
       answer: 'The current Fortress dataset has no published records yet. Ask will become available after an editorial batch is approved, published, and indexed.',
       sources: [],
       meta: {
@@ -416,9 +443,23 @@ export async function answerQuestion(
     };
   }
 
-  const settings = await loadAskSettings(env.CONTENT_DB);
+  // The query-expansion model is asked first and awaited last. It is a whole round trip to a
+  // language model that the base question's own retrieval does not depend on, so it now runs while
+  // the policy rows are read and while the question itself is already being retrieved. It used to
+  // sit in front of all of that, adding its latency to every question asked.
+  const expansion = expandQueryVariants(env, question);
+  const baseQuery = expandRetrievalQuery(question);
+  const baseRetrieval = Promise.all([
+    retrieveVectorRecords(env, repository, dataset.id, baseQuery, filters),
+    retrieveLexicalRecords(repository, baseQuery, filters),
+  ]);
+
+  const [settings, usage] = await Promise.all([
+    loadAskSettings(env.CONTENT_DB),
+    todayModelUsage(env.CONTENT_DB),
+  ]);
   const remaining = await consumeDailyAllowance(env.CONTENT_DB, clientAddress, settings.perIpDailyLimit);
-  const chosen = chooseAskModel(settings, await todayModelUsage(env.CONTENT_DB));
+  const chosen = chooseAskModel(settings, usage);
 
   // Some users already know exactly what they want ("Bukhari 52") rather than asking a natural
   // question -- for those, skip the multi-query embedding/lexical pipeline below and resolve the
@@ -428,44 +469,41 @@ export async function answerQuestion(
   if (exactReference) {
     const record = await repository.findHadithByReference(exactReference.collectionHint, exactReference.number);
     if (record && (!filters?.collection || record.collection.slug === filters.collection)) {
-      const grounded: GroundedRecord[] = [{ record, contentType: 'hadith', score: 0.99, retrieval: 'lexical' }];
-      const { answer, sources, model, generated } = await generateGroundedAnswer(env, dataset, question, grounded, chosen.model);
       return {
-        answer,
-        sources,
-        meta: {
-          datasetId: dataset.id,
-          model,
-          generated,
-          remainingToday: remaining,
-          retrievalMode: 'exact_reference' as const,
-          vectorAvailable: false,
-          includesUnverifiedSource: record.verificationStatus !== 'verified',
-        },
+        ready: true as const,
+        dataset,
+        chosen,
+        remaining,
+        grounded: [{ record, contentType: 'hadith' as const, score: 0.99, retrieval: 'lexical' as const }],
+        retrievalMode: 'exact_reference' as const,
+        reranked: false,
+        vectorAvailable: false,
+        includesUnverifiedSource: record.verificationStatus !== 'verified',
       };
     }
   }
 
   // Synonym expansion (deterministic, curated) always runs; LLM query expansion adds up to 2 more
-  // phrasings on top. Every variant is retrieved in parallel and merged -- this is deliberately the
-  // expensive option (extra Workers AI calls on every request) over a cheaper dictionary-only or
+  // phrasings on top. Every variant is retrieved and merged -- this is deliberately the expensive
+  // option (extra Workers AI calls on every request) over a cheaper dictionary-only or
   // embedding-only approach, so an unfamiliar transliteration or phrasing has more chances to match.
-  const expandedVariants = await expandQueryVariants(env, question);
-  const retrievalQueries = [question, ...expandedVariants].map(expandRetrievalQuery);
-  const retrievals = await Promise.all(retrievalQueries.map((retrievalQuery) => Promise.all([
-    retrieveVectorRecords(env, repository, dataset.id, retrievalQuery, filters),
-    retrieveLexicalRecords(repository, retrievalQuery, filters),
-  ])));
+  const variantRetrievals = await Promise.all((await expansion).map((variant) => {
+    const retrievalQuery = expandRetrievalQuery(variant);
+    return Promise.all([
+      retrieveVectorRecords(env, repository, dataset.id, retrievalQuery, filters),
+      retrieveLexicalRecords(repository, retrievalQuery, filters),
+    ]);
+  }));
+  const retrievals = [await baseRetrieval, ...variantRetrievals];
   const vectorAvailable = retrievals.some(([vectorResult]) => vectorResult.available);
   const vectorRecords = retrievals.flatMap(([vectorResult]) => vectorResult.records);
   const lexicalRecords = retrievals.flatMap(([, lexical]) => lexical);
   const candidates = mergeCandidates(vectorRecords, lexicalRecords);
-  const { records: ranked, reranked } = await rankByRelevance(env, question, candidates);
-  const grounded = ranked;
+  const { records: grounded, reranked } = await rankByRelevance(env, question, candidates);
 
   let includesUnverifiedSource = false;
   if (settings.unverifiedFallback === 1 && grounded.length < MIN_VERIFIED_SOURCES) {
-    const fallback = await retrieveUnverifiedFallback(repository, retrievalQueries[0]!, grounded, MAX_CONTEXTS - grounded.length, filters);
+    const fallback = await retrieveUnverifiedFallback(repository, baseQuery, grounded, MAX_CONTEXTS - grounded.length, filters);
     if (fallback.length) {
       includesUnverifiedSource = true;
       grounded.push(...fallback);
@@ -474,6 +512,7 @@ export async function answerQuestion(
 
   if (grounded.length === 0) {
     return {
+      ready: false as const,
       answer: 'I could not find a sufficiently grounded answer in the published Fortress sources.',
       sources: [],
       meta: {
@@ -486,24 +525,212 @@ export async function answerQuestion(
     };
   }
 
-  const { answer, sources, model, generated } = await generateGroundedAnswer(env, dataset, question, grounded, chosen.model);
-  if (generated) await recordModelUse(env.CONTENT_DB, chosen.model);
+  return {
+    ready: true as const,
+    dataset,
+    chosen,
+    remaining,
+    grounded,
+    retrievalMode: vectorAvailable && lexicalRecords.length > 0 ? 'hybrid' as const
+      : vectorAvailable ? 'vector' as const : 'lexical' as const,
+    reranked,
+    vectorAvailable,
+    includesUnverifiedSource,
+  };
+}
+
+export async function answerQuestion(
+  env: Bindings,
+  repository: ContentRepository,
+  question: string,
+  clientAddress: string,
+  filters?: RagFilters,
+): Promise<AskAnswer> {
+  const prepared = await prepareGrounding(env, repository, question, clientAddress, filters);
+  if (!prepared.ready) return { answer: prepared.answer, sources: prepared.sources, meta: prepared.meta };
+
+  const { answer, sources, model, generated } = await generateGroundedAnswer(
+    env, prepared.dataset, question, prepared.grounded, prepared.chosen.model,
+  );
+  if (generated) await recordModelUse(env.CONTENT_DB, prepared.chosen.model);
 
   return {
     answer,
     sources,
     meta: {
-      datasetId: dataset.id,
+      datasetId: prepared.dataset.id,
       model,
-      modelTier: chosen.tier,
+      modelTier: prepared.chosen.tier,
       generated,
-      remainingToday: remaining,
-      retrievalMode: vectorAvailable && lexicalRecords.length > 0 ? 'hybrid' : vectorAvailable ? 'vector' : 'lexical',
-      reranked,
-      vectorAvailable,
-      includesUnverifiedSource,
+      remainingToday: prepared.remaining,
+      retrievalMode: prepared.retrievalMode,
+      reranked: prepared.reranked,
+      vectorAvailable: prepared.vectorAvailable,
+      includesUnverifiedSource: prepared.includesUnverifiedSource,
     },
   };
+}
+
+const encoder = new TextEncoder();
+const sseEvent = (event: string, data: unknown) => encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+
+/**
+ * One chunk of a streamed reply, in whichever shape the model streams in -- the same problem
+ * extractAnswerText() solves for whole responses, and with the same rule: never return reasoning.
+ * A reasoning model streams its thinking too, and that must not reach a reader.
+ */
+export function extractDeltaText(chunk: unknown): string {
+  if (!chunk || typeof chunk !== 'object') return '';
+  const record = chunk as Record<string, unknown>;
+  if (typeof record.response === 'string') return record.response;
+  const choices = record.choices;
+  if (Array.isArray(choices) && choices.length > 0) {
+    const delta = (choices[0] as Record<string, unknown> | undefined)?.delta as Record<string, unknown> | undefined;
+    if (typeof delta?.content === 'string') return delta.content;
+  }
+  if (record.type === 'response.output_text.delta' && typeof record.delta === 'string') return record.delta;
+  return '';
+}
+
+/** Reads Workers AI's server-sent stream and yields each parsed data payload. */
+async function* readModelStream(stream: ReadableStream<Uint8Array>) {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let boundary = buffer.indexOf('\n\n');
+      while (boundary !== -1) {
+        const frame = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary + 2);
+        for (const line of frame.split('\n')) {
+          if (!line.startsWith('data:')) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === '[DONE]') continue;
+          try {
+            yield JSON.parse(payload) as unknown;
+          } catch {
+            // A frame split across reads is normal; a malformed one is not worth failing over.
+          }
+        }
+        boundary = buffer.indexOf('\n\n');
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+/**
+ * The same answer as answerQuestion, delivered as it is written instead of all at once.
+ *
+ * Retrieval, reranking and generation take seconds that no amount of tuning removes -- a question
+ * costs an embedding call, a vector query, a lexical query, a reranker call and then a language
+ * model writing an answer. What a reader actually experienced, though, was a blank panel for all
+ * of it. This opens the connection immediately, names the stage it is on, shows the sources as
+ * soon as retrieval has them, and then writes the answer word by word.
+ *
+ * The citation rule is unchanged and still absolute: every paragraph must cite a source. It can
+ * only be checked once the text is complete, so an answer that fails it is replaced -- the client
+ * is told to discard what it has shown and render the deterministic source list instead. That is
+ * rare enough to log and too important to relax.
+ */
+export function streamAnswer(
+  env: Bindings,
+  repository: ContentRepository,
+  question: string,
+  clientAddress: string,
+  filters?: RagFilters,
+): ReadableStream<Uint8Array> {
+  return new ReadableStream({
+    async start(controller) {
+      const send = (event: string, data: unknown) => controller.enqueue(sseEvent(event, data));
+      try {
+        send('status', { stage: 'retrieving' });
+        const prepared = await prepareGrounding(env, repository, question, clientAddress, filters);
+        if (!prepared.ready) {
+          send('sources', { sources: prepared.sources, meta: prepared.meta });
+          send('done', { answer: prepared.answer, meta: prepared.meta });
+          return;
+        }
+
+        const sources = prepared.grounded.map((item, index) => sourceFrom(item.record, item.contentType, item.score, index + 1));
+        const baseMeta = {
+          datasetId: prepared.dataset.id,
+          modelTier: prepared.chosen.tier,
+          remainingToday: prepared.remaining,
+          retrievalMode: prepared.retrievalMode,
+          reranked: prepared.reranked,
+          vectorAvailable: prepared.vectorAvailable,
+          includesUnverifiedSource: prepared.includesUnverifiedSource,
+        };
+        send('sources', { sources, meta: { ...baseMeta, model: prepared.chosen.model, generated: true } });
+        send('status', { stage: 'writing' });
+
+        const contexts = prepared.grounded
+          .map((item, index) => contextBlock(item.record, item.contentType, index + 1))
+          .join('\n\n');
+        let answer = '';
+        let generated = true;
+        try {
+          const stream = await env.AI.run(prepared.chosen.model as Parameters<Ai['run']>[0], {
+            messages: [
+              { role: 'system', content: GENERATION_SYSTEM_PROMPT },
+              { role: 'user', content: `Question: ${question}\n\nSource contexts:\n${contexts}` },
+            ],
+            max_tokens: 650,
+            temperature: 0.1,
+            stream: true,
+          }) as unknown as ReadableStream<Uint8Array>;
+          for await (const chunk of readModelStream(stream)) {
+            const text = extractDeltaText(chunk);
+            if (!text) continue;
+            answer += text;
+            send('delta', { text });
+          }
+        } catch (error) {
+          console.error(JSON.stringify({ event: 'rag_stream_failed', datasetId: prepared.dataset.id, message: errorMessage(error) }));
+          answer = '';
+        }
+
+        answer = answer.trim();
+        if (!answer || !hasValidCitations(answer, sources.length)) {
+          if (answer) {
+            console.error(JSON.stringify({
+              event: 'rag_generation_uncited',
+              model: prepared.chosen.model,
+              sourceCount: sources.length,
+              answer: answer.slice(0, 300),
+            }));
+          }
+          answer = groundedFallback(sources);
+          generated = false;
+          send('replace', { answer });
+        }
+        if (generated) await recordModelUse(env.CONTENT_DB, prepared.chosen.model);
+        send('done', {
+          answer,
+          meta: { ...baseMeta, model: generated ? prepared.chosen.model : null, generated },
+        });
+      } catch (error) {
+        const rateLimited = error instanceof RagRateLimitError;
+        if (!rateLimited) {
+          console.error(JSON.stringify({ event: 'rag_stream_aborted', message: errorMessage(error) }));
+        }
+        // Headers went out with the first byte, so a failure cannot become a status code any more.
+        // It is reported in the stream instead, with the code the non-streaming endpoint would use.
+        send('error', {
+          code: rateLimited ? 'rate_limited' : 'ask_failed',
+          message: rateLimited ? errorMessage(error) : 'Ask could not complete this answer. Please try again.',
+        });
+      } finally {
+        controller.close();
+      }
+    },
+  });
 }
 
 async function generateGroundedAnswer(

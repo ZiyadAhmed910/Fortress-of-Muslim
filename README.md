@@ -174,6 +174,34 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.27.0
+
+_2026-09-13_
+
+- **Ask answers as it writes, instead of after it finishes.** Measured against the test API, a
+  question took between 4.5 and 15.7 seconds, and a reader saw an empty panel for every one of
+  them. None of that time is waste -- a question costs an embedding call, a vector query, a lexical
+  query, a reranker pass and then a model writing prose -- but nothing said so. `POST /v1/ask/stream`
+  sends the stage it is on, then the citations as soon as retrieval and reranking have them
+  (seconds before any answer text exists), then the answer word by word. `POST /v1/ask` is
+  unchanged and still there; the PWA falls back to it if the stream cannot be opened.
+- **The citation rule survives streaming intact.** Every paragraph must still cite a source, and
+  that can only be checked once the text is complete. An answer that fails it is replaced: the
+  client is told to discard what it showed and render the deterministic source list instead. The
+  rejected text is logged the same way it always was. Relaxing the rule because the text now
+  arrives gradually was never an option -- it is the one commitment Ask makes about religious
+  content.
+- **A whole round trip removed from every question.** Query expansion is a call to a language model
+  that the base question's own retrieval does not depend on, and it used to sit in front of
+  everything. It now runs while the policy rows are read and while the question itself is already
+  being retrieved. The settings and per-model usage reads were two sequential D1 round trips and
+  are now one.
+- **An explicit `AskAnswer` type** replaces the shape TypeScript used to infer across the
+  pipeline's several exits, so the streaming and non-streaming endpoints cannot drift into
+  answering with different fields.
+- Failures in a stream arrive as an `error` event carrying the code the plain endpoint would have
+  used, because the status line is already committed by the time anything can go wrong.
+
 ### 0.26.1
 
 _2026-09-13_
