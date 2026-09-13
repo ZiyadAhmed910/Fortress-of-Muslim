@@ -7,8 +7,8 @@ import { chromium } from 'playwright-core';
 
 const output = new URL('../icons/', import.meta.url);
 await mkdir(output, { recursive: true });
-async function writeAsset(name, content) {
-  const path = new URL(name, output);
+async function writeAsset(name, content, directory = output) {
+  const path = new URL(name, directory);
   const bytes = Buffer.isBuffer(content) ? content : Buffer.from(content);
   const existing = await readFile(path).catch(error => {
     if (error.code !== 'ENOENT') throw error;
@@ -51,9 +51,9 @@ function compressPng(png) {
 // maskable lands at ~48% of the canvas, which is ~70% of the visible circle.
 const SYMBOL_SCALE = { maskable: 0.68, square: 0.84, rounded: 0.88 };
 
-function svg({ simple = false, square = false, maskable = false } = {}) {
+function svg({ simple = false, square = false, maskable = false, label = 'Fortress of Muslim' } = {}) {
   const scale = maskable ? SYMBOL_SCALE.maskable : square ? SYMBOL_SCALE.square : SYMBOL_SCALE.rounded;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Fortress of Muslim">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="${label}">
   <defs>
     <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#245d60"/><stop offset=".55" stop-color="#113f45"/><stop offset="1" stop-color="#092c35"/></linearGradient>
     <linearGradient id="gold" x1=".15" y1="0" x2=".75" y2="1"><stop stop-color="#fff0c5"/><stop offset=".45" stop-color="#e7c581"/><stop offset="1" stop-color="#bd8c4e"/></linearGradient>
@@ -71,6 +71,15 @@ function svg({ simple = false, square = false, maskable = false } = {}) {
 await writeAsset('logo.svg', svg());
 await writeAsset('favicon.svg', svg({ simple: true }));
 await writeAsset('icon-maskable.svg', svg({ square: true, maskable: true }));
+
+// The Admin, Developer and Status portals show the same mark, from assets their build copies out of
+// packages/portal-ui. That copy was drawn by hand, so it sat out the entire redraw above and kept
+// showing the 2024 tile long after the app had stopped using it. It is generated from this geometry
+// now, so a portal cannot hold on to an icon the app has replaced. The portals carry their own
+// product name, and their favicon drops the gateway for the same reason the app's does.
+const portalAssets = new URL('../../packages/portal-ui/assets/', import.meta.url);
+await writeAsset('fortress-mark.svg', svg({ label: 'Fortress Platform' }), portalAssets);
+await writeAsset('fortress-favicon.svg', svg({ simple: true, label: 'Fortress Platform' }), portalAssets);
 
 const browser = await chromium.launch({
   executablePath: process.env.EDGE_EXECUTABLE_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',

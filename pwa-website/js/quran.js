@@ -26,6 +26,9 @@ import {
 // build-independent cache, so a surah read once stays readable offline across deploys.
 const INDEX_URL = './data/quran/index.json';
 const surahUrl = (number) => `./data/quran/surah-${number}.json`;
+// How many surah files the offline download keeps in flight -- the same reasoning as the audio
+// download's window, over 114 static files instead of one surah's ayahs.
+const SURAH_CONCURRENCY = 5;
 const STORAGE_KEY = 'fortress_quran';
 const PAGE_SIZE = 20;
 
@@ -739,20 +742,26 @@ function renderPager(current, total) {
 /** Fetches every surah so the whole Quran is readable offline. Reports progress as it goes. */
 export async function downloadFullQuran(onProgress) {
   if (!index) index = await fetchJson(INDEX_URL);
-  const total = index.surahs.length;
+  const surahs = index.surahs;
+  const total = surahs.length;
   let done = 0;
   let failed = 0;
-  // Sequential on purpose: 114 parallel requests would stall a phone on a weak connection and make
-  // the progress readout meaningless.
-  for (const surah of index.surahs) {
-    try {
-      loaded.set(surah.number, await fetchJson(surahUrl(surah.number)));
-    } catch {
-      failed += 1;
+  let next = 0;
+  // A few at a time, rather than one at a time or all 114 at once. All 114 would stall a phone on a
+  // weak connection and make the progress readout meaningless, which is why this was sequential;
+  // sequential then spent 114 round trips of latency to move 8.8MB of JSON, most of it waiting.
+  await Promise.all(Array.from({ length: Math.min(SURAH_CONCURRENCY, total) }, async () => {
+    while (next < total) {
+      const surah = surahs[next++];
+      try {
+        loaded.set(surah.number, await fetchJson(surahUrl(surah.number)));
+      } catch {
+        failed += 1;
+      }
+      done += 1;
+      onProgress?.(done, total, failed);
     }
-    done += 1;
-    onProgress?.(done, total, failed);
-  }
+  }));
   return { total, failed };
 }
 

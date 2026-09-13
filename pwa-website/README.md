@@ -38,6 +38,13 @@ the 192/512px art used by notifications and the lock-screen player -- are in the
 The maskable and Apple touch icons are not: the OS reads them once, at install, which needs a
 connection anyway, and precaching them would add 58KB to every user's download on every deploy.
 
+The same generator writes the mark the Admin, Developer and Status portals use,
+`packages/portal-ui/assets/fortress-mark.svg`, and their favicon, `fortress-favicon.svg`, which
+drops the gateway like the app's does. Those files were drawn by hand once and stayed on the 2024
+mark through this whole redraw, so `packages/portal-ui/tools/verify-portals.mjs` now compares what
+each portal ships against `icons/logo.svg` and fails the portal build when they differ. Rerun the
+generator, then rebuild the portals with `npm run build --workspace @fortress/portal-ui`.
+
 ## Living card artwork
 
 Open `http://localhost:8080/art-preview.html` to review all nine animated, text-free banners.
