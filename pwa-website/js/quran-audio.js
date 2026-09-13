@@ -12,6 +12,12 @@ const WORD_AUDIO_BASE = 'https://audio.qurancdn.com/wbw';
 const wordsUrl = (number) => `./data/quran/words-${number}.json`;
 const STORAGE_KEY = 'fortress_quran_audio';
 const AUDIO_CACHE = 'fortress-quran-audio-v1';
+// How many ayah files a surah download keeps in flight. One at a time laid Al-Baqarah's 286 round
+// trips end to end before a byte of the next one was asked for. Measured against everyayah, twenty
+// ayahs took 5.0s one at a time and 1.8s five at a time -- most of the wait was latency, not
+// transfer. Five overlaps that without behaving like a download manager on someone's phone
+// connection or asking a free public CDN for everything at once.
+const DOWNLOAD_CONCURRENCY = 5;
 
 export const RECITERS = [
   { id: 'Alafasy_128kbps', name: 'Mishary Rashid Alafasy' },
@@ -515,30 +521,53 @@ export function cancelAudioDownload() {
  * a few hundred kilobytes -- and by reciter bitrate on top of that. Rather than quote an estimate
  * that would be wrong for every surah but the one it was measured on, this reports actual bytes as
  * they arrive and stays cancellable throughout.
+ *
+ * There is no bulk fetch to be had here. everyayah publishes a zip per surah, but those are served
+ * without an Access-Control-Allow-Origin header where the individual mp3s carry one, so a browser
+ * cannot read an archive at all; proxying a 116MB zip through our own Worker to add that header
+ * would move the whole cost of the download onto us. A surah is therefore always one request per
+ * ayah, and the only thing left to tune is how many of them are in flight.
  */
 export async function downloadSurahAudio(surahNumber, ayahCount, onProgress) {
   if (!('caches' in window)) throw new Error('This browser cannot store audio offline.');
   cancelAudioDownload();
-  downloadAbort = new AbortController();
-  const { signal } = downloadAbort;
+  const controller = new AbortController();
+  downloadAbort = controller;
+  const { signal } = controller;
   const cache = await caches.open(AUDIO_CACHE);
   let bytes = 0;
-  try {
-    for (let ayah = 1; ayah <= ayahCount; ayah += 1) {
-      if (signal.aborted) throw new DOMException('cancelled', 'AbortError');
-      const url = ayahAudioUrl(prefs.reciter, surahNumber, ayah);
-      const existing = await cache.match(url);
-      if (existing) {
-        bytes += Number(existing.headers.get('content-length') || 0);
-      } else {
-        const response = await fetch(url, { signal });
-        if (!response.ok) throw new Error(`ayah ${ayah}: HTTP ${response.status}`);
-        const body = await response.clone().arrayBuffer();
-        bytes += body.byteLength;
-        await cache.put(url, response);
-      }
-      onProgress?.({ done: ayah, total: ayahCount, bytes });
+  let done = 0;
+  const store = async (ayah) => {
+    if (signal.aborted) throw new DOMException('cancelled', 'AbortError');
+    const url = ayahAudioUrl(prefs.reciter, surahNumber, ayah);
+    const existing = await cache.match(url);
+    if (existing) {
+      bytes += Number(existing.headers.get('content-length') || 0);
+    } else {
+      const response = await fetch(url, { signal });
+      if (!response.ok) throw new Error(`ayah ${ayah}: HTTP ${response.status}`);
+      const body = await response.clone().arrayBuffer();
+      bytes += body.byteLength;
+      await cache.put(url, response);
     }
+    done += 1;
+    onProgress?.({ done, total: ayahCount, bytes });
+  };
+  try {
+    // The final ayah is held back and fetched on its own at the end. surahAudioDownloaded() reads
+    // its presence as proof that every earlier ayah is stored too, which was free when the loop ran
+    // in order; with several requests in flight it would otherwise be perfectly normal for the last
+    // file to land before the third, and a download cancelled in between would look complete for
+    // good.
+    let next = 1;
+    const workers = Math.min(DOWNLOAD_CONCURRENCY, Math.max(ayahCount - 1, 0));
+    await Promise.all(Array.from({ length: workers }, async () => {
+      while (next < ayahCount) await store(next++);
+    }));
+    await store(ayahCount);
+  } catch (error) {
+    controller.abort();   // stop whatever the other workers still have in flight
+    throw error;
   } finally {
     downloadAbort = null;
   }

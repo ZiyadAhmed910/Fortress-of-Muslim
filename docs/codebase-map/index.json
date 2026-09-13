@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T22:43:23.198Z",
+  "generatedAt": "2026-09-13T11:29:53.110Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -811,7 +811,7 @@
     },
     {
       "path": "pwa-website/js/quran-audio.js",
-      "lines": 556,
+      "lines": 585,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -819,7 +819,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 778,
+      "lines": 787,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -948,6 +948,14 @@
     {
       "path": "pwa-website/test/qibla-compass.test.js",
       "lines": 209,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/quran-download.test.js",
+      "lines": 119,
       "language": "js",
       "exports": [],
       "imports": [],

@@ -189,6 +189,19 @@ _2026-09-13_
   reader. A portal can no longer keep an icon the app has replaced.
 - Portal favicons point at a simplified mark (`fortress-favicon.svg`) that drops the gateway, for
   the same reason the app's favicon does: at 16 pixels the gateway is a smudge.
+- **Offline downloads stopped waiting in single file.** Downloading a surah's recitation fetched one
+  ayah, waited for it, then asked for the next -- 286 round trips laid end to end for Al-Baqarah,
+  and 6,236 for the whole Quran a surah at a time. Both that and the 114-file full-Quran text
+  download now keep five requests in flight. Measured against everyayah, twenty ayahs went from
+  5.0s to 1.8s: almost all of the wait was latency rather than transfer. There is no bulk fetch to
+  switch to -- everyayah publishes a zip per surah, but serves it without an
+  `Access-Control-Allow-Origin` header where its individual mp3s carry one, so no browser can read
+  the archive, and proxying a 116MB zip through our own Worker to add that header would move the
+  entire cost of the download onto us.
+- None of this touches D1, and no bulk API would help it. Recitation comes from everyayah.com,
+  word audio from audio.qurancdn.com, and the Quran text from 229 static JSON files served with the
+  app -- the API Worker has no Quran route at all. The row reads that exhausted D1's daily
+  allowance came from one source, Ask's unverified-content fallback, which `0021` turned off.
 
 ### 0.26.0
 

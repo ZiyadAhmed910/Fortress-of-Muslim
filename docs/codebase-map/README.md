@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-12T22:43:23.198Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-13T11:29:53.110Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -137,8 +137,8 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/prayer-times.js` | js | 274 |  |  |
 | `pwa-website/js/prayer.js` | js | 594 |  |  |
 | `pwa-website/js/pwa.js` | js | 146 |  |  |
-| `pwa-website/js/quran-audio.js` | js | 556 |  |  |
-| `pwa-website/js/quran.js` | js | 778 |  |  |
+| `pwa-website/js/quran-audio.js` | js | 585 |  |  |
+| `pwa-website/js/quran.js` | js | 787 |  |  |
 | `pwa-website/js/reader.js` | js | 147 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
 | `pwa-website/js/routes.js` | js | 29 |  |  |
@@ -155,6 +155,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/layout.test.js` | js | 91 |  |  |
 | `pwa-website/test/prayer-times.test.js` | js | 167 |  |  |
 | `pwa-website/test/qibla-compass.test.js` | js | 209 |  |  |
+| `pwa-website/test/quran-download.test.js` | js | 119 |  |  |
 | `pwa-website/test/quran-words.test.js` | js | 129 |  |  |
 | `pwa-website/test/reading-roles.test.js` | js | 101 |  |  |
 | `pwa-website/test/reciters.test.js` | js | 39 |  |  |
