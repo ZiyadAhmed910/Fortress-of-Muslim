@@ -16,6 +16,7 @@ const requiredPaths = [
   '/hadith/search',
   '/hadith/{id}',
   '/ask',
+  '/ask/stream',
   '/ask/status',
   '/queries/{id}',
 ];
@@ -32,7 +33,7 @@ for (const header of ['RequestId', 'PlatformVersion', 'ServerTiming', 'DatasetVe
 }
 
 for (const path of requiredPaths) {
-  const method = path === '/ask' ? 'post' : 'get';
+  const method = path.startsWith('/ask') && path !== '/ask/status' ? 'post' : 'get';
   if (!document.paths?.[path]?.[method]) throw new Error(`OpenAPI ${method.toUpperCase()} operation is missing: ${path}`);
 }
 if (document.security) throw new Error('Public read endpoints must not inherit global authentication.');
