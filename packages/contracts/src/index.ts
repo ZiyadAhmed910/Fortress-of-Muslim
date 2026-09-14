@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const API_VERSION = 'v1' as const;
 export const PLATFORM_NAME = 'Fortress Platform' as const;
-export const PLATFORM_VERSION = '0.28.0' as const;
+export const PLATFORM_VERSION = '0.28.1' as const;
 export const CURRENT_DATASET_ID = 'dataset.hisn.legacy.2026-07-11-v2' as const;
 
 export const contentSegmentSchema = z.object({
@@ -127,9 +127,20 @@ export const askFiltersSchema = z.object({
   collection: z.string().trim().min(1).max(80).optional(),
 });
 
+// Earlier turns of the same conversation, oldest first. They exist to make a follow-up
+// ("what about returning?") into something retrievable, and for nothing else: history is used to
+// rewrite the query and is never handed to the model as material it may quote or cite. Capped
+// because an unbounded history is an unbounded prompt, and because four turns back is already
+// further than a follow-up usually reaches.
+export const askTurnSchema = z.object({
+  question: z.string().trim().min(1).max(500),
+  answer: z.string().trim().max(2_000),
+});
+
 export const askQuestionSchema = z.object({
   question: z.string().trim().min(5).max(500),
   filters: askFiltersSchema.optional(),
+  history: z.array(askTurnSchema).max(4).optional(),
 });
 
 export const vectorIndexBatchSchema = z.object({

@@ -174,6 +174,25 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.28.1
+
+_2026-09-14_
+
+- **Ask is a conversation.** Research is: someone asks about travelling, reads the answer, and the
+  next thing they want is "what about returning?" -- which used to mean retyping the question,
+  because there is no record about "returning" in the abstract for retrieval to find. Follow-ups now
+  carry the earlier turns, and the server rewrites the short question into a standalone one before
+  retrieving anything. Each turn keeps its own question, answer and sources, so a citation stays
+  attached to the answer it belongs to.
+- **History rewrites the query and does nothing else.** It never reaches the model that writes the
+  answer, which still sees only retrieved records. An assistant allowed to quote its own earlier
+  answers can launder an ungrounded claim into a later turn as though it had a citation, and the
+  one thing Ask promises is that every claim traces to a source. A test holds that boundary in
+  place, and `meta.rewritten` reports when a question was rewritten.
+- An unusable rewrite -- empty, enormous, or a refusal -- falls back to joining the previous
+  question with the new one, which is worse than a real rewrite and much better than retrieving on
+  two dangling words.
+
 ### 0.28.0
 
 _2026-09-14_

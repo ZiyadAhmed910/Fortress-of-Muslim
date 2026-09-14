@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-09-14T15:35:36.833Z",
+  "generatedAt": "2026-09-14T15:45:06.994Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
-      "lines": 684,
+      "lines": 686,
       "language": "ts",
       "exports": [
         "function createApp",
@@ -115,7 +115,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 1147,
+      "lines": 1215,
       "language": "ts",
       "exports": [
         "const EMBEDDING_MODEL",
@@ -133,6 +133,8 @@
         "function answerQuestion",
         "function extractDeltaText",
         "function streamAnswer",
+        "type AskTurn",
+        "function contextualiseQuestion",
         "function mergeCandidates",
         "const EMBEDDING_CALL_TOKEN_BUDGET",
         "function embeddingCalls",
@@ -214,6 +216,18 @@
         "node:path",
         "vitest",
         "../src/repositories/d1-content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/ask-follow-up.test.ts",
+      "lines": 142,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/repositories/content-repository",
+        "../src/rag"
       ],
       "routeCount": 0
     },
@@ -629,7 +643,7 @@
     },
     {
       "path": "packages/contracts/src/index.ts",
-      "lines": 152,
+      "lines": 163,
       "language": "ts",
       "exports": [
         "const API_VERSION",
@@ -654,6 +668,7 @@
         "const hadithListSchema",
         "const hadithSearchSchema",
         "const askFiltersSchema",
+        "const askTurnSchema",
         "const askQuestionSchema",
         "const vectorIndexBatchSchema",
         "type ContentSegment",
@@ -748,7 +763,7 @@
     },
     {
       "path": "pwa-website/js/assistant.js",
-      "lines": 158,
+      "lines": 200,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1522,42 +1537,42 @@
       "method": "POST",
       "path": "/v1/ask/stream",
       "file": "apps/api/src/app.ts",
-      "line": 470
+      "line": 471
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/quran/search",
       "file": "apps/api/src/app.ts",
-      "line": 498
+      "line": 500
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/quran/status",
       "file": "apps/api/src/app.ts",
-      "line": 522
+      "line": 524
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/ask/status",
       "file": "apps/api/src/app.ts",
-      "line": 525
+      "line": 527
     },
     {
       "style": "hono",
       "method": "POST",
       "path": "/v1/internal/vector-index",
       "file": "apps/api/src/app.ts",
-      "line": 531
+      "line": 533
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/queries/:id",
       "file": "apps/api/src/app.ts",
-      "line": 542
+      "line": 544
     },
     {
       "style": "manual",
@@ -2335,6 +2350,8 @@
       "definedIn": [],
       "referencedBy": [
         "apps/admin/public/app.js",
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-follow-up.test.ts",
         "apps/api/test/ask-policy.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -3367,6 +3384,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "apps/api/src/rag.ts",
         "pwa-website/js/pwa.js"
       ]
     },
@@ -3610,6 +3628,14 @@
       ]
     },
     {
+      "name": "retrieved",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
       "name": "review_decisions",
       "kind": "table",
       "definedIn": [
@@ -3761,7 +3787,10 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "apps/api/test/publish-hadith-migration.test.ts"
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-follow-up.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "packages/contracts/src/index.ts"
       ]
     },
     {
@@ -3779,6 +3808,14 @@
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "sources",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/ask-follow-up.test.ts"
+      ]
     },
     {
       "name": "splitting",
@@ -3901,6 +3938,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "apps/api/test/ask-follow-up.test.ts",
         "apps/api/test/fuzzy-title.test.ts"
       ]
     },

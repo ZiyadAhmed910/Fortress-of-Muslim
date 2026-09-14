@@ -781,6 +781,22 @@ components:
           type: string
           minLength: 5
           maxLength: 500
+        history:
+          type: array
+          maxItems: 4
+          description: >
+            Earlier turns of the same conversation, oldest first. Sent so a follow-up ("what about
+            returning?") can be rewritten into a standalone question before retrieval -- there is no
+            record about "returning" in the abstract. This is the only thing history is used for: it
+            never reaches the model that writes the answer, so nothing said in an earlier turn can
+            be quoted back as though it were a cited source. `meta.rewritten` reports whether the
+            question was rewritten.
+          items:
+            type: object
+            required: [question, answer]
+            properties:
+              question: { type: string, maxLength: 500 }
+              answer: { type: string, maxLength: 2000 }
     RagSource:
       type: object
       required: [index, id, contentType, title, collection, reference, canonicalUrl, verificationStatus, score]

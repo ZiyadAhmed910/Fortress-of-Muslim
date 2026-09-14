@@ -437,6 +437,8 @@ export type AskAnswer = {
     reranked?: boolean;
     vectorAvailable: boolean;
     includesUnverifiedSource?: boolean;
+    /** The question was a follow-up and was rewritten to stand alone before retrieval. */
+    rewritten?: boolean;
   };
 };
 
@@ -451,6 +453,7 @@ async function prepareGrounding(
   question: string,
   clientAddress: string,
   filters?: RagFilters,
+  history?: AskTurn[],
 ) {
   // Settings are read after this check, not alongside it: with no published dataset there is
   // nothing to answer from, and the empty-dataset path is required to touch no storage at all.
@@ -474,8 +477,12 @@ async function prepareGrounding(
   // language model that the base question's own retrieval does not depend on, so it now runs while
   // the policy rows are read and while the question itself is already being retrieved. It used to
   // sit in front of all of that, adding its latency to every question asked.
-  const expansion = expandQueryVariants(env, question);
-  const baseQuery = expandRetrievalQuery(question);
+  // A follow-up has to be made standalone before anything can be retrieved on it, so unlike the
+  // expansion below this cannot be overlapped -- it decides what the query even is. It only runs
+  // when there is a conversation behind the question.
+  const { query: retrievalQuestion, rewritten } = await contextualiseQuestion(env, question, history);
+  const expansion = expandQueryVariants(env, retrievalQuestion);
+  const baseQuery = expandRetrievalQuery(retrievalQuestion);
   const baseRetrieval = Promise.all([
     retrieveVectorRecords(env, repository, dataset.id, baseQuery, filters),
     retrieveLexicalRecords(repository, baseQuery, filters),
@@ -526,7 +533,7 @@ async function prepareGrounding(
   const vectorRecords = retrievals.flatMap(([vectorResult]) => vectorResult.records);
   const lexicalRecords = retrievals.flatMap(([, lexical]) => lexical);
   const candidates = mergeCandidates(vectorRecords, lexicalRecords);
-  const { records: grounded, reranked } = await rankByRelevance(env, question, candidates);
+  const { records: grounded, reranked } = await rankByRelevance(env, retrievalQuestion, candidates);
 
   if (settings.unverifiedFallback === 1 && grounded.length < MIN_VERIFIED_SOURCES) {
     const fallback = await retrieveUnverifiedFallback(repository, baseQuery, grounded, MAX_CONTEXTS - grounded.length, filters);
@@ -567,6 +574,7 @@ async function prepareGrounding(
     reranked,
     vectorAvailable,
     includesUnverifiedSource,
+    rewritten,
   };
 }
 
@@ -576,8 +584,9 @@ export async function answerQuestion(
   question: string,
   clientAddress: string,
   filters?: RagFilters,
+  history?: AskTurn[],
 ): Promise<AskAnswer> {
-  const prepared = await prepareGrounding(env, repository, question, clientAddress, filters);
+  const prepared = await prepareGrounding(env, repository, question, clientAddress, filters, history);
   if (!prepared.ready) return { answer: prepared.answer, sources: prepared.sources, meta: prepared.meta };
 
   const { answer, sources, model, generated } = await generateGroundedAnswer(
@@ -598,6 +607,7 @@ export async function answerQuestion(
       reranked: prepared.reranked,
       vectorAvailable: prepared.vectorAvailable,
       includesUnverifiedSource: prepared.includesUnverifiedSource,
+      rewritten: prepared.rewritten,
     },
   };
 }
@@ -675,13 +685,14 @@ export function streamAnswer(
   question: string,
   clientAddress: string,
   filters?: RagFilters,
+  history?: AskTurn[],
 ): ReadableStream<Uint8Array> {
   return new ReadableStream({
     async start(controller) {
       const send = (event: string, data: unknown) => controller.enqueue(sseEvent(event, data));
       try {
         send('status', { stage: 'retrieving' });
-        const prepared = await prepareGrounding(env, repository, question, clientAddress, filters);
+        const prepared = await prepareGrounding(env, repository, question, clientAddress, filters, history);
         if (!prepared.ready) {
           send('sources', { sources: prepared.sources, meta: prepared.meta });
           send('done', { answer: prepared.answer, meta: prepared.meta });
@@ -697,6 +708,7 @@ export function streamAnswer(
           reranked: prepared.reranked,
           vectorAvailable: prepared.vectorAvailable,
           includesUnverifiedSource: prepared.includesUnverifiedSource,
+          rewritten: prepared.rewritten,
         };
         send('sources', { sources, meta: { ...baseMeta, model: prepared.chosen.model, generated: true } });
         send('status', { stage: 'writing' });
@@ -817,6 +829,62 @@ async function generateGroundedAnswer(
     model = null;
   }
   return { answer, sources, model, generated };
+}
+
+const FOLLOW_UP_SYSTEM_PROMPT = 'Rewrite the final user question into one standalone question that '
+  + 'can be understood without the conversation before it. Resolve pronouns and references ("it", '
+  + '"that one", "what about after?") using the earlier turns. Keep it short and keep the user\'s '
+  + 'own words wherever they already stand alone. Reply with the rewritten question only -- no '
+  + 'preamble, no answer, no explanation.';
+
+export type AskTurn = { question: string; answer: string };
+
+/**
+ * Turns a follow-up into something retrievable.
+ *
+ * "What about returning?" is a perfectly clear question to a person who just read an answer about
+ * travelling, and meaningless to a retrieval pipeline: there is no verse, reading or hadith about
+ * "returning" in the abstract. Rewriting it against the conversation is what makes a second turn
+ * work at all.
+ *
+ * The rewrite is the only thing history is used for. It never becomes a source, never reaches the
+ * generation prompt, and cannot be cited -- an answer still comes from retrieved records only. That
+ * boundary is the whole reason this is a query rewrite and not a chat transcript passed through to
+ * the model: an assistant that can quote its own previous answers can launder an ungrounded claim
+ * into a later turn as though it were sourced.
+ *
+ * Falls back to joining the previous question with this one, which is worse than a real rewrite and
+ * much better than retrieving on "what about returning?" alone.
+ */
+export async function contextualiseQuestion(
+  env: Bindings,
+  question: string,
+  history: AskTurn[] | undefined,
+): Promise<{ query: string; rewritten: boolean }> {
+  if (!history?.length) return { query: question, rewritten: false };
+  const recent = history.slice(-3);
+  try {
+    const transcript = recent
+      .map((turn) => `Q: ${turn.question}\nA: ${turn.answer.slice(0, 400)}`)
+      .join('\n\n');
+    const response = await env.AI.run(QUERY_EXPANSION_MODEL, {
+      messages: [
+        { role: 'system', content: FOLLOW_UP_SYSTEM_PROMPT },
+        { role: 'user', content: `${transcript}\n\nFinal question: ${question}` },
+      ],
+      max_tokens: 80,
+      temperature: 0.2,
+    });
+    const rewritten = extractAnswerText(response).split('\n')[0]?.trim() ?? '';
+    // A rewrite that came back empty, enormous, or shorter than the question it replaced is a
+    // failed rewrite, not a better question.
+    if (rewritten.length < 5 || rewritten.length > 300) throw new Error('Unusable rewrite.');
+    return { query: rewritten, rewritten: true };
+  } catch (error) {
+    console.error(JSON.stringify({ event: 'rag_follow_up_rewrite_failed', message: errorMessage(error) }));
+    const previous = recent.at(-1)?.question ?? '';
+    return { query: `${previous} ${question}`.trim().slice(0, 500), rewritten: false };
+  }
 }
 
 async function expandQueryVariants(env: Bindings, question: string): Promise<string[]> {

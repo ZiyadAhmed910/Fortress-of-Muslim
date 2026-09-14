@@ -2,15 +2,27 @@ import { els } from './dom.js';
 import { apiBaseUrl, apiRequest } from './online.js';
 import { escapeHtml } from './utils.js';
 
-// An answer takes seconds of real work -- retrieval, reranking, then a model writing prose -- and
-// none of that can be tuned to nothing. What made it feel broken was that the panel stayed empty
-// for all of it. The streaming endpoint reports its stage, hands over the sources as soon as
-// retrieval has them, and then writes the answer a word at a time. If anything about that fails,
-// the original single-response endpoint still answers.
+// Ask is a conversation now, because research is. Someone asks about travelling, reads the answer,
+// and the next thing they want is "what about returning?" -- which used to mean retyping the whole
+// question. Follow-ups carry the earlier turns so the server can rewrite the short one into
+// something retrievable.
+//
+// The history is used to rewrite the query and for nothing else: the model that writes an answer
+// still sees only retrieved sources, so nothing it said earlier can be quoted back as though it had
+// a citation. Every turn keeps its own sources, visible against that turn.
+//
+// An answer takes seconds of real work -- retrieval, reranking, then a model writing prose. The
+// streaming endpoint reports its stage, hands over the sources as soon as retrieval has them, and
+// writes the answer a word at a time. If any of that fails, the single-response endpoint answers.
 const STAGE_LABELS = {
   retrieving: 'Searching the published sources',
   writing: 'Writing the answer',
 };
+// What the server accepts, and about two turns further back than a follow-up usually reaches.
+const HISTORY_TURNS = 4;
+
+/** Every turn asked in this conversation. Cleared by "New conversation", never persisted. */
+let conversation = [];
 
 export function initAssistant() {
   // The question box is a <textarea> so a person can write a multi-part question -- plain Enter
@@ -23,49 +35,78 @@ export function initAssistant() {
       els.assistantForm.requestSubmit();
     }
   });
+  els.assistantResult.addEventListener('click', (event) => {
+    if (event.target.closest('[data-new-conversation]')) resetConversation();
+  });
   els.assistantForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const question = els.assistantQuestion.value.trim();
     if (question.length < 5) return;
     els.assistantSubmit.disabled = true;
-    renderStage('retrieving');
     const contentType = els.assistantContentType.value;
     const filters = contentType ? { contentType } : undefined;
+    const history = conversation.slice(-HISTORY_TURNS).map((turn) => ({
+      question: turn.question,
+      answer: turn.answer,
+    }));
+
+    const turn = { question, answer: '', sources: [], meta: {}, stage: 'retrieving' };
+    conversation.push(turn);
+    els.assistantQuestion.value = '';
+    render();
+
     try {
-      await streamAnswer(question, filters);
+      await streamAnswer(question, filters, history, turn);
     } catch (error) {
       try {
-        const body = await apiRequest('/v1/ask', { method: 'POST', body: JSON.stringify({ question, filters }) });
-        renderAnswer(body.data);
+        const body = await apiRequest('/v1/ask', {
+          method: 'POST',
+          body: JSON.stringify({ question, filters, history }),
+        });
+        Object.assign(turn, { answer: body.data.answer, sources: body.data.sources, meta: body.data.meta, stage: null });
       } catch (fallbackError) {
-        els.assistantResult.innerHTML = `<div class="empty-state">${escapeHtml(fallbackError.message)}</div>`;
+        Object.assign(turn, { stage: null, error: fallbackError.message });
       }
+      render();
     } finally {
       els.assistantSubmit.disabled = false;
+      updatePlaceholder();
+      els.assistantQuestion.focus();
     }
   });
+  updatePlaceholder();
+}
+
+function resetConversation() {
+  conversation = [];
+  els.assistantResult.innerHTML = '';
+  updatePlaceholder();
+  els.assistantQuestion.focus();
+}
+
+function updatePlaceholder() {
+  els.assistantQuestion.placeholder = conversation.length
+    ? 'Ask a follow-up, or start something new'
+    : 'What do the sources say about intentions?';
 }
 
 /**
- * Reads the server-sent answer. Throws if the stream cannot be used at all, so the caller can fall
- * back to the plain endpoint; an `error` event inside a stream that did start is shown as-is,
- * because by then the request really was made and its rate-limit counted.
+ * Reads the server-sent answer into `turn`, re-rendering as it arrives. Throws if the stream cannot
+ * be opened at all so the caller can fall back; an `error` event inside a stream that did start is
+ * shown as-is, because by then the request really was made and counted against the daily limit.
  */
-async function streamAnswer(question, filters) {
+async function streamAnswer(question, filters, history, turn) {
   if (!navigator.onLine) throw new Error('This section needs an internet connection.');
   const response = await fetch(`${apiBaseUrl()}/v1/ask/stream`, {
     method: 'POST',
     headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question, filters }),
-    // No AbortSignal.timeout here: the whole point is a response that arrives over time. The
-    // stream ends when the server closes it.
+    body: JSON.stringify({ question, filters, history }),
+    // No AbortSignal.timeout: the whole point is a response that arrives over time. The stream
+    // ends when the server closes it.
     cache: 'no-store',
   });
   if (!response.ok || !response.body) throw new Error(`Fortress API returned ${response.status}.`);
 
-  let answer = '';
-  let sources = [];
-  let meta = {};
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -83,57 +124,58 @@ async function streamAnswer(question, filters) {
       if (!name || !raw) continue;
       let data;
       try { data = JSON.parse(raw); } catch { continue; }
-      if (name === 'status') renderStage(data.stage);
+      if (name === 'status') turn.stage = data.stage;
       else if (name === 'sources') {
-        sources = data.sources || [];
-        meta = data.meta || {};
-        renderProgress(answer, sources, meta);
-      } else if (name === 'delta') {
-        answer += data.text || '';
-        renderProgress(answer, sources, meta);
-      } else if (name === 'replace') {
-        answer = data.answer || '';
-        renderProgress(answer, sources, meta);
-      } else if (name === 'done') {
-        renderAnswer({ answer: data.answer ?? answer, sources, meta: data.meta || meta });
+        turn.sources = data.sources || [];
+        turn.meta = data.meta || {};
+      } else if (name === 'delta') turn.answer += data.text || '';
+      else if (name === 'replace') turn.answer = data.answer || '';
+      else if (name === 'done') {
+        turn.answer = data.answer ?? turn.answer;
+        turn.meta = data.meta || turn.meta;
+        turn.stage = null;
+        render();
         return;
       } else if (name === 'error') {
-        els.assistantResult.innerHTML = `<div class="empty-state">${escapeHtml(data.message || 'Ask could not answer that.')}</div>`;
+        turn.stage = null;
+        turn.error = data.message || 'Ask could not answer that.';
+        render();
         return;
       }
+      render();
     }
   }
-  // The stream ended without a `done` event -- show whatever did arrive rather than nothing.
-  if (answer) renderAnswer({ answer, sources, meta });
-  else throw new Error('The answer was cut short.');
+  turn.stage = null;
+  if (!turn.answer) throw new Error('The answer was cut short.');
+  render();
 }
 
-function renderStage(stage) {
-  const label = STAGE_LABELS[stage] || 'Thinking';
+function render() {
   els.assistantResult.innerHTML = `
-    <div class="assistant-stage" role="status">
-      <div class="assistant-thinking"><span></span><span></span><span></span></div>
-      <span>${escapeHtml(label)}</span>
-    </div>
+    ${conversation.length > 1 ? '<button class="text-button assistant-reset" type="button" data-new-conversation>Start a new conversation</button>' : ''}
+    ${conversation.map(renderTurn).join('')}
   `;
+  const last = els.assistantResult.querySelector('.assistant-turn:last-child');
+  if (conversation.length > 1) last?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
-/** The answer as it stands so far, with a cursor while more of it is still arriving. */
-function renderProgress(answer, sources, meta) {
-  els.assistantResult.innerHTML = `
-    ${answer ? `<article class="assistant-answer"><p>${formatAnswer(answer)}<span class="assistant-cursor" aria-hidden="true"></span></p></article>`
-      : '<div class="assistant-stage" role="status"><div class="assistant-thinking"><span></span><span></span><span></span></div><span>Writing the answer</span></div>'}
-    <div class="assistant-sources">${renderSources(sources)}</div>
-    ${unverifiedNote(meta)}
-  `;
-}
-
-function renderAnswer(data) {
-  els.assistantResult.innerHTML = `
-    <article class="assistant-answer"><p>${formatAnswer(data.answer)}</p></article>
-    <div class="assistant-sources">${renderSources(data.sources)}</div>
-    ${unverifiedNote(data.meta)}
-    ${typeof data.meta.remainingToday === 'number' ? `<p class="assistant-remaining">${data.meta.remainingToday} questions remaining today on this connection.</p>` : ''}
+function renderTurn(turn, index) {
+  const streaming = turn.stage === 'writing' && turn.answer;
+  return `
+    <section class="assistant-turn" aria-label="Question ${index + 1}">
+      <p class="assistant-question">${escapeHtml(turn.question)}</p>
+      ${turn.error ? `<div class="empty-state">${escapeHtml(turn.error)}</div>` : ''}
+      ${turn.stage && !turn.answer ? `
+        <div class="assistant-stage" role="status">
+          <div class="assistant-thinking"><span></span><span></span><span></span></div>
+          <span>${escapeHtml(STAGE_LABELS[turn.stage] || 'Thinking')}</span>
+        </div>` : ''}
+      ${turn.answer ? `<article class="assistant-answer"><p>${formatAnswer(turn.answer)}${streaming ? '<span class="assistant-cursor" aria-hidden="true"></span>' : ''}</p></article>` : ''}
+      ${turn.sources.length ? `<div class="assistant-sources">${renderSources(turn.sources)}</div>` : ''}
+      ${unverifiedNote(turn.meta)}
+      ${!turn.stage && typeof turn.meta.remainingToday === 'number'
+        ? `<p class="assistant-remaining">${turn.meta.remainingToday} questions remaining today on this connection.</p>` : ''}
+    </section>
   `;
 }
 
@@ -144,7 +186,7 @@ const unverifiedNote = (meta) => (meta && meta.includesUnverifiedSource
   : '');
 
 function renderSources(sources) {
-  return (sources || []).map((source) => {
+  return sources.map((source) => {
     const isVerified = source.verificationStatus === 'verified';
     return `
     <a class="assistant-source${isVerified ? '' : ' assistant-source--unverified'}" href="${escapeHtml(source.canonicalUrl)}">

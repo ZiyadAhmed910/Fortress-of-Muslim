@@ -451,6 +451,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
         parsed.data.question,
         context.req.header('CF-Connecting-IP') ?? 'unknown-client',
         parsed.data.filters,
+        parsed.data.history,
       );
       context.header('Cache-Control', 'no-store');
       return context.json({ data, meta: responseMeta(context) });
@@ -476,6 +477,7 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
       parsed.data.question,
       context.req.header('CF-Connecting-IP') ?? 'unknown-client',
       parsed.data.filters,
+      parsed.data.history,
     );
     return new Response(stream, {
       headers: {

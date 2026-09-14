@@ -1023,3 +1023,14 @@ body.has-player .reader-controls {
 .verse-arabic { margin: 0; font-size: calc(1.25rem * var(--font-scale)); line-height: 2; text-align: right; }
 .verse-translation { margin: 0; color: var(--ink); font-size: calc(0.92rem * var(--font-scale)); line-height: 1.6; }
 .verse-search-note { margin: 0.3rem 0 0; color: var(--muted); font-size: calc(0.75rem * var(--font-scale)); line-height: 1.5; }
+
+/* Ask as a conversation: each turn keeps its own question, answer and sources, so a citation is
+   always attached to the answer it belongs to rather than to whatever was asked most recently. */
+.assistant-turn { display: grid; gap: 0.6rem; padding: 0.9rem 0; }
+.assistant-turn + .assistant-turn { border-top: 1px solid var(--line); }
+.assistant-question {
+  margin: 0; padding: 0.55rem 0.8rem; border-radius: 0.8rem 0.8rem 0.8rem 0.2rem;
+  background: var(--surface-subtle, var(--surface)); border: 1px solid var(--line);
+  color: var(--ink); font-weight: 600; font-size: calc(0.92rem * var(--font-scale));
+}
+.assistant-reset { display: block; margin: 0 0 0.2rem auto; }
