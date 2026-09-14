@@ -22,5 +22,13 @@ export function withNodeSqliteCompatibility(sql) {
       body TEXT,
       narrator TEXT
     );`,
+  ).replace(
+    /CREATE VIRTUAL TABLE quran_search_fts USING fts5\([\s\S]*?\n\);/,
+    `CREATE TABLE quran_search_fts (
+      surah INTEGER,
+      ayah INTEGER,
+      surah_name TEXT,
+      translation TEXT
+    );`,
   );
 }

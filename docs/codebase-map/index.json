@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-09-13T16:43:56.848Z",
+  "generatedAt": "2026-09-14T15:29:11.083Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
-      "lines": 648,
+      "lines": 684,
       "language": "ts",
       "exports": [
         "function createApp",
@@ -16,15 +16,16 @@
         "./lib/pagination",
         "./lib/record-query",
         "./rag",
+        "./quran-search",
         "./repositories/content-repository",
         "./repositories/d1-content-repository",
         "./types"
       ],
-      "routeCount": 27
+      "routeCount": 29
     },
     {
       "path": "apps/api/src/index.ts",
-      "lines": 51,
+      "lines": 58,
       "language": "ts",
       "exports": [
         "class ApiWorker"
@@ -34,6 +35,7 @@
         "./app",
         "./lib/record-query",
         "./rag",
+        "./quran-search",
         "./repositories/d1-content-repository",
         "./types"
       ],
@@ -74,6 +76,23 @@
       "routeCount": 0
     },
     {
+      "path": "apps/api/src/quran-search.ts",
+      "lines": 249,
+      "language": "ts",
+      "exports": [
+        "const QURAN_NAMESPACE",
+        "type QuranMatch",
+        "function searchQuran",
+        "function getQuranIndexStatus",
+        "function indexQuranBatch"
+      ],
+      "imports": [
+        "./rag",
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
       "path": "apps/api/src/rag-reference.ts",
       "lines": 19,
       "language": "ts",
@@ -96,14 +115,16 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 1123,
+      "lines": 1147,
       "language": "ts",
       "exports": [
+        "const EMBEDDING_MODEL",
         "type RagSource",
         "function extractAnswerText",
         "type AskSettings",
         "function loadAskSettings",
         "function chooseAskModel",
+        "function rerankByRelevance",
         "function rankByRelevance",
         "function indexRecordBatch",
         "function indexNextPendingBatch",
@@ -115,6 +136,7 @@
         "function mergeCandidates",
         "const EMBEDDING_CALL_TOKEN_BUDGET",
         "function embeddingCalls",
+        "function errorMessage",
         "class RagRateLimitError"
       ],
       "imports": [
@@ -211,7 +233,7 @@
     },
     {
       "path": "apps/api/test/ask-streaming.test.ts",
-      "lines": 214,
+      "lines": 235,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -269,6 +291,20 @@
         "node:fs",
         "node:path",
         "vitest"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/quran-search.test.ts",
+      "lines": 157,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/quran-search"
       ],
       "routeCount": 0
     },
@@ -593,7 +629,7 @@
     },
     {
       "path": "packages/contracts/src/index.ts",
-      "lines": 144,
+      "lines": 152,
       "language": "ts",
       "exports": [
         "const API_VERSION",
@@ -609,6 +645,7 @@
         "const duaPartSchema",
         "const paginationSchema",
         "const searchSchema",
+        "const quranSearchSchema",
         "const partPositionSchema",
         "const contentTypeSchema",
         "const collectionSummarySchema",
@@ -1206,6 +1243,22 @@
       "routeCount": 0
     },
     {
+      "path": "apps/api/migrations/0024_quran_search.sql",
+      "lines": 55,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0025_quran_ayahs.sql",
+      "lines": 6480,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "apps/auth/migrations/0001_identity.sql",
       "lines": 81,
       "language": "sql",
@@ -1300,189 +1353,203 @@
       "method": "USE",
       "path": "*",
       "file": "apps/api/src/app.ts",
-      "line": 33
+      "line": 35
     },
     {
       "style": "hono",
       "method": "USE",
       "path": "*",
       "file": "apps/api/src/app.ts",
-      "line": 39
+      "line": 41
     },
     {
       "style": "hono",
       "method": "USE",
       "path": "/v1/queries/*",
       "file": "apps/api/src/app.ts",
-      "line": 107
+      "line": 109
     },
     {
       "style": "hono",
       "method": "USE",
       "path": "/v1/*",
-      "file": "apps/api/src/app.ts",
-      "line": 138
-    },
-    {
-      "style": "hono",
-      "method": "GET",
-      "path": "/",
       "file": "apps/api/src/app.ts",
       "line": 140
     },
     {
       "style": "hono",
       "method": "GET",
+      "path": "/",
+      "file": "apps/api/src/app.ts",
+      "line": 142
+    },
+    {
+      "style": "hono",
+      "method": "GET",
       "path": "/health",
       "file": "apps/api/src/app.ts",
-      "line": 149
+      "line": 151
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/health/database",
       "file": "apps/api/src/app.ts",
-      "line": 157
+      "line": 159
     },
     {
       "style": "hono",
       "method": "USE",
       "path": "/v1/*",
       "file": "apps/api/src/app.ts",
-      "line": 170
+      "line": 172
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1",
       "file": "apps/api/src/app.ts",
-      "line": 195
+      "line": 197
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/datasets/current",
       "file": "apps/api/src/app.ts",
-      "line": 214
+      "line": 216
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/collections",
       "file": "apps/api/src/app.ts",
-      "line": 229
+      "line": 231
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas",
       "file": "apps/api/src/app.ts",
-      "line": 239
+      "line": 241
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/search",
       "file": "apps/api/src/app.ts",
-      "line": 272
+      "line": 274
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/random",
       "file": "apps/api/src/app.ts",
-      "line": 303
+      "line": 305
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/:id/evidence",
       "file": "apps/api/src/app.ts",
-      "line": 319
+      "line": 321
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/:id/parts",
       "file": "apps/api/src/app.ts",
-      "line": 325
+      "line": 327
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/:id/parts/:position",
       "file": "apps/api/src/app.ts",
-      "line": 339
+      "line": 341
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/duas/:id",
       "file": "apps/api/src/app.ts",
-      "line": 368
+      "line": 370
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/hadith",
       "file": "apps/api/src/app.ts",
-      "line": 383
+      "line": 385
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/hadith/search",
       "file": "apps/api/src/app.ts",
-      "line": 400
+      "line": 402
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/hadith/resolve",
       "file": "apps/api/src/app.ts",
-      "line": 418
+      "line": 420
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/hadith/:id",
       "file": "apps/api/src/app.ts",
-      "line": 436
+      "line": 438
     },
     {
       "style": "hono",
       "method": "POST",
       "path": "/v1/ask",
       "file": "apps/api/src/app.ts",
-      "line": 442
+      "line": 444
     },
     {
       "style": "hono",
       "method": "POST",
       "path": "/v1/ask/stream",
       "file": "apps/api/src/app.ts",
-      "line": 468
+      "line": 470
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/quran/search",
+      "file": "apps/api/src/app.ts",
+      "line": 498
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/quran/status",
+      "file": "apps/api/src/app.ts",
+      "line": 522
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/ask/status",
       "file": "apps/api/src/app.ts",
-      "line": 489
+      "line": 525
     },
     {
       "style": "hono",
       "method": "POST",
       "path": "/v1/internal/vector-index",
       "file": "apps/api/src/app.ts",
-      "line": 495
+      "line": 531
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/queries/:id",
       "file": "apps/api/src/app.ts",
-      "line": 506
+      "line": 542
     },
     {
       "style": "manual",
@@ -2625,6 +2692,14 @@
       ]
     },
     {
+      "name": "cited",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/quran-search.ts"
+      ]
+    },
+    {
       "name": "collections",
       "kind": "table",
       "definedIn": [
@@ -2918,6 +2993,14 @@
       "referencedBy": [
         "apps/api/test/rag-synonyms.test.ts",
         "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "ever",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/quran-search.test.ts"
       ]
     },
     {
@@ -3410,6 +3493,38 @@
       ]
     },
     {
+      "name": "quran_ayahs",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0024_quran_search.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/quran-search.ts",
+        "apps/api/test/quran-search.test.ts"
+      ]
+    },
+    {
+      "name": "quran_index_state",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0024_quran_search.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/quran-search.ts",
+        "apps/api/test/quran-search.test.ts"
+      ]
+    },
+    {
+      "name": "quran_search_fts",
+      "kind": "virtual_table",
+      "definedIn": [
+        "apps/api/migrations/0024_quran_search.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/quran-search.ts"
+      ]
+    },
+    {
       "name": "rag_daily_usage",
       "kind": "table",
       "definedIn": [
@@ -3724,10 +3839,13 @@
       "definedIn": [],
       "referencedBy": [
         "apps/admin/public/app.js",
+        "apps/api/src/app.ts",
+        "apps/api/src/quran-search.ts",
         "apps/api/src/rag.ts",
         "apps/api/test/ask-policy.test.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
         "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/quran-search.test.ts",
         "apps/api/test/search-aliases.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",

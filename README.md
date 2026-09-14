@@ -174,6 +174,39 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.28.0
+
+_2026-09-14_
+
+- **Thematic Quran search (`0024`, `0025`).** "An ayah about tawakkul" is the case it exists for:
+  the word appears in no English translation, "relies upon Allah" does, and only an embedding
+  bridges that. All 6,236 ayahs are searchable by theme or by a half-remembered phrase, through the
+  same hybrid retrieval and cross-encoder rerank Ask uses. `GET /v1/quran/search?q=` returns the
+  matching verses best-first; `GET /v1/quran/status` reports how much of the corpus is embedded.
+- **No generation step, deliberately.** Finding which verses relate to a theme is retrieval; saying
+  what a verse means is tafsir. Search returns references and lets the reader read them, which is
+  also what makes it several seconds faster than Ask -- no model writing prose.
+- **The response carries references, not verse text.** The Saheeh International translation is
+  searched server-side and served to nobody: it is not redistributable ("copyright retained by the
+  publisher; free non-commercial religious use with attribution"), and a public API handing it to
+  third-party developers would be redistribution where the PWA reading its own offline copy is not.
+  So the API answers with surah and ayah numbers plus surah names, and the client renders the words
+  it already has. The Arabic is Tanzil Project under CC BY 3.0.
+- **Its own Vectorize namespace** (`quran.saheeh.v1`) in the shared index, so Ask's retrieval can
+  never return an ayah and this can never return a dua. One cron tick now advances both indexes,
+  since they touch different namespaces and different tables.
+- **Not part of the canonical editorial corpus, on purpose.** Those tables model records that are
+  drafted, revised, reviewed and verified. The Quran has no revision history to keep, no reviewer to
+  stamp it and no verification status that would mean anything, so it gets a plain table rather than
+  a workflow forced onto text that does not have one.
+- **Ask flags unverified answers again.** `includesUnverifiedSource` was set by whichever code path
+  added a record, and only the unverified-content fallback ever did -- until `0022` published 14,357
+  unverified hadith through the ordinary path. Every source was then individually marked unverified
+  while the answer as a whole reported none, so the PWA's banner stayed hidden on exactly the
+  answers it exists for. It is read off the sources now.
+- The reranker is generic (`rerankByRelevance`), shared by Ask and Quran search, so the floor, the
+  relative cut and the reasoning behind both live in one place.
+
 ### 0.27.1
 
 _2026-09-13_

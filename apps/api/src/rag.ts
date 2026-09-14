@@ -9,7 +9,7 @@ import type { Bindings } from './types';
 // translation, and inconsistent transliteration (siwak/miswak, wudu/wudhu) in ways an English-only
 // embedding model can't represent well. Vectorize indexes are dimension-locked at creation, so this
 // requires a new index (fortress-rag-test-m3), not an in-place resize -- see wrangler.jsonc.
-const EMBEDDING_MODEL = '@cf/baai/bge-m3';
+export const EMBEDDING_MODEL = '@cf/baai/bge-m3';
 // Reads the question and each candidate together rather than comparing two embeddings made in
 // isolation, which is what a bi-encoder does. That difference is the whole point here: embeddings
 // happily place "before entering the toilet" near half a dozen bathroom-adjacent readings, and
@@ -213,28 +213,41 @@ const utcDate = () => new Date().toISOString().slice(0, 10);
  * someone asks about a toilet: both sit near the question in embedding space, only one answers it.
  * If the reranker is unavailable the retrieval order is kept, so Ask degrades rather than breaks.
  */
-export async function rankByRelevance(env: Bindings, question: string, candidates: GroundedRecord[]) {
-  if (candidates.length === 0) return { records: [] as GroundedRecord[], reranked: false };
+/**
+ * Orders anything by how well it answers a query, and cuts what is nowhere near the best match.
+ * Returns null when the reranker is unavailable, so the caller decides what to do without a
+ * ranking rather than being handed a silently unranked list.
+ *
+ * Generic because Quran search reranks ayahs with the same model, the same floor and the same
+ * relative cut, and duplicating that meant duplicating the cast below and the reasoning above the
+ * two constants.
+ */
+export async function rerankByRelevance<T>(
+  env: Bindings,
+  query: string,
+  items: T[],
+  toText: (item: T) => string,
+  keep: number,
+): Promise<Array<{ item: T; score: number }> | null> {
   try {
-    const contexts = candidates.map((candidate) => ({ text: rerankText(candidate) }));
     // @cloudflare/workers-types describes this model without its `query` field -- the doc comment
     // for it survives in the interface but the property does not -- so the input is cast. The field
     // is required by the model itself; without it the call returns nothing useful.
     const response = await env.AI.run(RERANK_MODEL, {
-      query: question,
-      contexts,
-      top_k: candidates.length,
+      query,
+      contexts: items.map((item) => ({ text: toText(item) })),
+      top_k: items.length,
     } as unknown as Ai_Cf_Baai_Bge_Reranker_Base_Input) as Ai_Cf_Baai_Bge_Reranker_Base_Output;
     const scored = response.response;
     if (!Array.isArray(scored) || scored.length === 0) throw new Error('Reranker returned no scores.');
     const ranked = scored
-      .filter((entry) => typeof entry.id === 'number' && typeof entry.score === 'number' && candidates[entry.id])
-      .map((entry) => ({ ...candidates[entry.id!]!, score: entry.score! }))
+      .filter((entry) => typeof entry.id === 'number' && typeof entry.score === 'number' && items[entry.id])
+      .map((entry) => ({ item: items[entry.id!]!, score: entry.score! }))
       .sort((left, right) => right.score - left.score);
     const best = ranked[0]?.score ?? 0;
     const kept = ranked
       .filter((entry) => entry.score >= RERANK_FLOOR && entry.score >= best * RERANK_RELATIVE_CUT)
-      .slice(0, MAX_CONTEXTS);
+      .slice(0, keep);
     if (kept.length === 0 && ranked.length > 0) {
       // Worth seeing: everything judged unrelated is either a question the corpus does not answer,
       // or a floor set too high for how this one is worded.
@@ -244,11 +257,18 @@ export async function rankByRelevance(env: Bindings, question: string, candidate
         bestScore: Number(best.toFixed(4)),
       }));
     }
-    return { records: kept, reranked: true };
+    return kept;
   } catch (error) {
     console.error(JSON.stringify({ event: 'rag_rerank_failed', message: errorMessage(error) }));
-    return { records: candidates.slice(0, MAX_CONTEXTS), reranked: false };
+    return null;
   }
+}
+
+export async function rankByRelevance(env: Bindings, question: string, candidates: GroundedRecord[]) {
+  if (candidates.length === 0) return { records: [] as GroundedRecord[], reranked: false };
+  const kept = await rerankByRelevance(env, question, candidates, rerankText, MAX_CONTEXTS);
+  if (!kept) return { records: candidates.slice(0, MAX_CONTEXTS), reranked: false };
+  return { records: kept.map((entry) => ({ ...entry.item, score: entry.score })), reranked: true };
 }
 
 // Title plus the reading's own words, which is what the question is really being matched against.
@@ -508,14 +528,18 @@ async function prepareGrounding(
   const candidates = mergeCandidates(vectorRecords, lexicalRecords);
   const { records: grounded, reranked } = await rankByRelevance(env, question, candidates);
 
-  let includesUnverifiedSource = false;
   if (settings.unverifiedFallback === 1 && grounded.length < MIN_VERIFIED_SOURCES) {
     const fallback = await retrieveUnverifiedFallback(repository, baseQuery, grounded, MAX_CONTEXTS - grounded.length, filters);
-    if (fallback.length) {
-      includesUnverifiedSource = true;
-      grounded.push(...fallback);
-    }
+    if (fallback.length) grounded.push(...fallback);
   }
+
+  // Read off the records themselves rather than set by whichever code path added them. This flag
+  // used to mean "the unverified-content fallback contributed something", which was the only way
+  // an unverified record could appear -- until 0022 published 14,357 unverified hadith through the
+  // ordinary path. Every source was then marked unverified individually while the answer as a whole
+  // reported none, so the PWA's banner above the answer stayed hidden on exactly the answers it
+  // exists for.
+  const includesUnverifiedSource = grounded.some((item) => item.record.verificationStatus !== 'verified');
 
   if (grounded.length === 0) {
     return {
@@ -1113,7 +1137,7 @@ function decodeLegacyUtf8(value: string) {
   }
 }
 
-function errorMessage(error: unknown) {
+export function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
 

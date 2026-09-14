@@ -2,6 +2,7 @@ import { WorkerEntrypoint } from 'cloudflare:workers';
 import { app } from './app';
 import { executeRecordQuery } from './lib/record-query';
 import { answerQuestion, indexNextPendingBatch } from './rag';
+import { indexQuranBatch } from './quran-search';
 import { D1ContentRepository } from './repositories/d1-content-repository';
 import type { Bindings } from './types';
 
@@ -9,7 +10,13 @@ export default class ApiWorker extends WorkerEntrypoint<Bindings> {
   fetch(request: Request) { return app.fetch(request, this.env, this.ctx); }
 
   scheduled() {
-    this.ctx.waitUntil(indexNextPendingBatch(this.env));
+    // Two indexes, one tick. They write to different Vectorize namespaces and different tables, so
+    // running them together costs one cron invocation instead of alternating and taking twice as
+    // long to finish a backfill. Each settles once its own corpus is embedded and then no-ops.
+    this.ctx.waitUntil(Promise.allSettled([
+      indexNextPendingBatch(this.env),
+      indexQuranBatch(this.env),
+    ]));
   }
 
   async executeMcpTool(tool: { toolType: string; standardToolName?: string; namedQueryId?: string }, args: Record<string, unknown>, ownerUserId: string) {

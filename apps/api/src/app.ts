@@ -8,6 +8,7 @@ import {
   hadithSearchSchema,
   paginationSchema,
   partPositionSchema,
+  quranSearchSchema,
   searchSchema,
   vectorIndexBatchSchema,
   type Dua,
@@ -18,6 +19,7 @@ import { cors } from 'hono/cors';
 import { decodeCursor, encodeCursor } from './lib/pagination';
 import { executeRecordQuery } from './lib/record-query';
 import { RagRateLimitError, answerQuestion, streamAnswer, getRagStatus, indexRecordBatch } from './rag';
+import { getQuranIndexStatus, searchQuran } from './quran-search';
 import type { ContentRepository } from './repositories/content-repository';
 import { D1ContentRepository } from './repositories/d1-content-repository';
 import type { ApiVariables, Bindings } from './types';
@@ -485,6 +487,40 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
         'X-Fortress-Request-Id': context.get('requestId') ?? '',
       },
     });
+  });
+  // Thematic Quran search. Deliberately not an Ask endpoint: it retrieves and ranks, and never
+  // generates a word, which is both faster (no model writing prose) and the honest boundary --
+  // finding which verses relate to a theme is retrieval; saying what a verse means is tafsir.
+  //
+  // The response carries references, not verse text. The Saheeh International translation is not
+  // redistributable, so it is searched here and rendered by the client from the copy it ships. See
+  // migration 0024.
+  app.get('/v1/quran/search', async (context) => {
+    const parsed = quranSearchSchema.safeParse(context.req.query());
+    if (!parsed.success) {
+      return context.json({
+        error: {
+          code: 'invalid_request',
+          message: 'Quran search requires a query between 2 and 200 characters and a limit between 1 and 20.',
+          requestId: context.get('requestId'),
+        },
+      }, 400);
+    }
+    const result = await searchQuran(context.env, parsed.data.q, parsed.data.limit);
+    return context.json({
+      data: result.matches,
+      meta: {
+        ...responseMeta(context),
+        query: parsed.data.q,
+        reranked: result.reranked,
+        vectorAvailable: result.vectorAvailable,
+        attribution: 'Quran text: Tanzil Project (CC BY 3.0). Translation: Saheeh International.',
+      },
+    });
+  });
+
+  app.get('/v1/quran/status', async (context) => {
+    return context.json({ data: await getQuranIndexStatus(context.env), meta: responseMeta(context) });
   });
   app.get('/v1/ask/status', async (context) => {
     const data = await getRagStatus(context.env, repositoryFactory(context.env));

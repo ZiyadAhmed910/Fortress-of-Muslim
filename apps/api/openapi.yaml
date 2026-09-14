@@ -335,6 +335,89 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RagStatusResponse'
+  /quran/search:
+    get:
+      operationId: searchQuran
+      tags: [Quran]
+      summary: Find ayahs by theme or phrase
+      description: >
+        Thematic search across all 6,236 ayahs. Hybrid retrieval (embeddings plus full-text) with a
+        cross-encoder rerank, which is what lets a search for a concept reach verses that never use
+        the word -- "tawakkul" appears in no English translation, while "relies upon Allah" does.
+        There is no generation step: this returns which verses relate to the query and never says
+        what a verse means.
+
+
+        The response carries references, not verse text. The Saheeh International translation used
+        for searching is not redistributable, so clients render the words from their own copy. The
+        Arabic is Tanzil Project under CC BY 3.0.
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+          description: A theme ("verses about patience") or a remembered phrase.
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+      responses:
+        '200':
+          description: Matching ayah references, best first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        surah: { type: integer, example: 65 }
+                        ayah: { type: integer, example: 3 }
+                        reference: { type: string, example: "65:3" }
+                        surahName: { type: string, example: "At-Talaq" }
+                        surahNameEnglish: { type: string, example: "The Divorce" }
+                        revelationPlace: { type: string, example: "madinah" }
+                        score: { type: number, example: 0.9412 }
+                        retrieval:
+                          type: string
+                          enum: [vector, lexical]
+        '400':
+          description: Query is missing or invalid
+  /quran/status:
+    get:
+      operationId: getQuranIndexStatus
+      tags: [Quran]
+      summary: Inspect Quran search readiness
+      description: >
+        Reports how much of the ayah corpus has been embedded. Lexical search answers throughout;
+        thematic matching improves as the embedding pass completes.
+      responses:
+        '200':
+          description: Embedding progress for the ayah corpus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      namespace: { type: string, example: "quran.saheeh.v1" }
+                      status:
+                        type: string
+                        enum: [pending, indexing, ready, failed]
+                      indexedCount: { type: integer, example: 6236 }
+                      expectedCount: { type: integer, example: 6236 }
   /queries/{id}:
     get:
       operationId: executeNamedQuery

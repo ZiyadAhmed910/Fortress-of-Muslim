@@ -165,6 +165,27 @@ describe('streaming an answer', () => {
     expect((done.data.meta as { model: string | null }).model).toBeNull();
   });
 
+  it('flags an answer built on unverified sources, whichever path found them', async () => {
+    // The flag used to mean "the unverified-content fallback contributed something", which stopped
+    // being the only way an unverified record could appear once 0022 published 14,357 hadith
+    // through the ordinary path. Every source then said unverified while the answer reported none,
+    // so the PWA's banner -- the entire mitigation for publishing unreviewed content -- stayed
+    // hidden on exactly the answers it exists for.
+    const unverified = { ...source, verificationStatus: 'unverified' as const, workflowState: 'pending_review' as const };
+    const repository = {
+      ...repositoryWith(1),
+      getAskDua: async (id: string) => (id === unverified.id ? unverified : undefined),
+    } as unknown as ContentRepository;
+    const events = await collect(streamAnswer(
+      envWith(['An answer [1].']),
+      repository,
+      'a question about something',
+      'stream-test',
+    ));
+    const sources = events.find((entry) => entry.event === 'sources')!;
+    expect((sources.data.meta as { includesUnverifiedSource: boolean }).includesUnverifiedSource).toBe(true);
+  });
+
   it('says so without calling a model when the dataset is empty', async () => {
     const seen = { models: [] as string[] };
     const events = await collect(streamAnswer(
