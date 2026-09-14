@@ -60,10 +60,10 @@ const GENERATION_SYSTEM_PROMPT = 'You are the Fortress of Muslim canonical sourc
   + 'verified") -- never present unverified material with the same confidence as verified material. '
   + 'If the contexts are insufficient, say so. Keep the answer concise and do not provide medical, '
   + 'legal, or religious verdicts. '
-  + 'Formatting, which is enforced: write ONE short paragraph, with no headings, no bullet points '
-  + 'and no blank lines. Every paragraph you write must contain a bracketed citation such as [1], '
-  + 'including any paragraph that only quotes the words of a supplication. An answer whose '
-  + 'paragraphs are not all cited is discarded and never reaches the reader.';
+  + 'Formatting, which is enforced: keep it short, with no headings and no bullet points. Every '
+  + 'sentence that states something must carry a bracketed citation such as [1]. Arabic you are '
+  + 'quoting from a source may stand on its own line without one -- it is that source speaking. An '
+  + 'answer that asserts anything uncited is discarded and never reaches the reader.';
 const QUERY_EXPANSION_SYSTEM_PROMPT = 'Rewrite the user question into exactly 2 short alternate '
   + 'search phrasings using different but related wording -- synonyms, alternate transliterations '
   + 'of Islamic terms, or closely related concepts. Reply with exactly 2 lines, one phrasing per '
@@ -1143,13 +1143,38 @@ function sourceFrom(record: Dua | Hadith, contentType: 'dua' | 'hadith', score: 
   };
 }
 
+/**
+ * A line that is mostly Arabic is the source's own words being quoted, not a claim being made about
+ * them, so it does not need a citation of its own.
+ *
+ * This distinction is why good answers were being thrown away. Asked for the travel supplication,
+ * the model would write a cited sentence and put the dua itself on the following line -- exactly the
+ * shape a person wants -- and the whole answer was replaced by "could not generate a fully cited
+ * answer" because that line had no [1] on it. The reader saw a non-answer listing source titles.
+ */
+function isQuotedText(paragraph: string) {
+  const letters = paragraph.replace(/[^\p{L}]/gu, '');
+  if (!letters) return true;                                    // digits or punctuation alone
+  const arabic = (letters.match(/\p{Script=Arabic}/gu) ?? []).length;
+  return arabic / letters.length >= 0.5;
+}
+
+/**
+ * The rule that protects the one thing Ask promises: nothing is asserted about religious content
+ * without a source. Every paragraph that makes a claim must cite one, and every citation must point
+ * at a source that exists. Quoted scripture is exempt -- it is the cited source speaking.
+ */
 function hasValidCitations(answer: string, sourceCount: number) {
   if (!answer) return false;
   const citations = [...answer.matchAll(/\[(\d+)\]/g)].map((match) => Number(match[1]));
-  const paragraphs = answer.split(/\n+/).map((paragraph) => paragraph.trim()).filter(Boolean);
+  const claims = answer
+    .split(/\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .filter((paragraph) => !isQuotedText(paragraph));
   return citations.length > 0
     && citations.every((citation) => citation >= 1 && citation <= sourceCount)
-    && paragraphs.every((paragraph) => /\[\d+\]/.test(paragraph));
+    && claims.every((paragraph) => /\[\d+\]/.test(paragraph));
 }
 
 function groundedFallback(sources: RagSource[]) {

@@ -244,25 +244,25 @@
           </section>
 
           <section class="online-home assistant-home" id="assistantHome" hidden>
-            <form class="assistant-form" id="assistantForm">
-              <label for="assistantQuestion">Ask the Fortress sources</label>
-              <textarea id="assistantQuestion" rows="4" minlength="5" maxlength="500" placeholder="What do the sources say about intentions?" required></textarea>
-              <small class="assistant-hint">Enter for a new line &middot; Ctrl+Enter or Alt+Enter to ask</small>
-              <div class="assistant-filters">
-                <label for="assistantContentType">Search</label>
-                <select id="assistantContentType">
-                  <option value="">All sources</option>
-                  <option value="dua">Duas only</option>
-                  <option value="hadith">Hadith only</option>
-                </select>
-              </div>
-              <button class="primary-action" id="assistantSubmit" type="submit">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-5 16-3-6-8-2Z"/><path d="m12 14 8-10"/></svg>
-                <span>Ask</span>
-              </button>
-            </form>
-            <p class="assistant-note">Answers use retrieved Fortress records and numbered citations. Imported records may still be pending scholarly verification.</p>
             <div class="assistant-result" id="assistantResult" aria-live="polite"></div>
+            <form class="assistant-bar" id="assistantForm">
+              <label class="visually-hidden" for="assistantQuestion">Ask the Fortress sources</label>
+              <textarea id="assistantQuestion" rows="1" minlength="5" maxlength="500" placeholder="Ask about a dua, a hadith, or a verse" required></textarea>
+              <div class="assistant-bar-controls">
+                <label class="visually-hidden" for="assistantContentType">Sources to search</label>
+                <select id="assistantContentType" aria-label="Sources to search">
+                  <option value="">All sources</option>
+                  <option value="dua">Duas</option>
+                  <option value="hadith">Hadith</option>
+                  <option value="quran">Quran verses</option>
+                </select>
+                <span class="assistant-hint" id="assistantHint">Enter to send &middot; Ctrl+Enter for a new line</span>
+                <button class="primary-action" id="assistantSubmit" type="submit" aria-label="Ask">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-5 16-3-6-8-2Z"/><path d="m12 14 8-10"/></svg>
+                  <span>Ask</span>
+                </button>
+              </div>
+            </form>
           </section>
 
           <section class="online-home prayer-home" id="prayerTimesHome" hidden>

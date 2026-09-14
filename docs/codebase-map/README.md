@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-14T15:45:06.994Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-14T16:07:14.503Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -74,12 +74,13 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/quran-search.ts` | ts | 249 |  | const QURAN_NAMESPACE, type QuranMatch, function searchQuran, function getQuranIndexStatus, function indexQuranBatch |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 41 |  | function expandRetrievalQuery |
-| `apps/api/src/rag.ts` | ts | 1215 |  | const EMBEDDING_MODEL, type RagSource, function extractAnswerText, type AskSettings, function loadAskSettings, function chooseAskModel, +16 more |
+| `apps/api/src/rag.ts` | ts | 1240 |  | const EMBEDDING_MODEL, type RagSource, function extractAnswerText, type AskSettings, function loadAskSettings, function chooseAskModel, +16 more |
 | `apps/api/src/repositories/content-repository.ts` | ts | 63 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 742 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
 | `apps/api/test/api.test.ts` | ts | 731 |  |  |
 | `apps/api/test/arabic-search.test.ts` | ts | 133 |  |  |
+| `apps/api/test/ask-citations.test.ts` | ts | 102 |  |  |
 | `apps/api/test/ask-follow-up.test.ts` | ts | 142 |  |  |
 | `apps/api/test/ask-policy.test.ts` | ts | 241 |  |  |
 | `apps/api/test/ask-streaming.test.ts` | ts | 235 |  |  |
@@ -131,7 +132,7 @@ Not all of these are bugs; verify before assuming.
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
 | `pwa-website/js/app.js` | js | 210 |  |  |
 | `pwa-website/js/art-motion.js` | js | 89 |  |  |
-| `pwa-website/js/assistant.js` | js | 200 |  |  |
+| `pwa-website/js/assistant.js` | js | 294 |  |  |
 | `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |

@@ -135,38 +135,53 @@
 .hadith-metadata dd { margin: 0.18rem 0 0; font-size: 0.85rem; }
 .hadith-text { padding: 0.45rem 0; }
 .source-link { display: inline-flex; margin-top: 0.5rem; color: var(--accent-strong); font-weight: 800; }
-.assistant-form { display: grid; gap: 0.65rem; }
-.assistant-form label { font-size: 1rem; font-weight: 850; }
-
-.assistant-form textarea {
-  width: 100%;
-  min-height: 7rem;
-  resize: vertical;
-  border: 1px solid var(--line);
-  border-radius: 0.7rem;
-  outline: 0;
-  padding: 0.85rem;
-  color: var(--ink);
+/* Ask reads bottom-up like every other chat: the conversation above, the composer pinned beneath
+   it. The old layout put a four-row textarea and its filters above the answer, which pushed the
+   answer 150px below the fold on a phone -- and with the keyboard open it was off-screen entirely.
+   People asked a question, saw nothing happen, and concluded it was broken. It was not; it was
+   just below where they could see. */
+.assistant-home { display: flex; flex-direction: column; min-height: 60svh; }
+.assistant-result { flex: 1; }
+.assistant-bar {
+  position: sticky; bottom: 0; z-index: 4;
+  display: grid; gap: 0.5rem; margin-top: 0.8rem;
+  padding: 0.6rem 0.65rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+  border: 1px solid var(--line); border-radius: 1rem;
   background: var(--paper-strong);
-  font: inherit;
-  line-height: 1.5;
+  box-shadow: 0 -10px 24px -18px rgb(0 0 0 / 45%);
 }
-
-.assistant-form textarea:focus { border-color: var(--accent-strong); }
-.primary-action { display: inline-flex; gap: 0.45rem; align-items: center; justify-content: center; justify-self: end; min-width: 7rem; min-height: 2.7rem; border: 0; border-radius: 0.55rem; color: white; background: var(--accent-strong); font-weight: 850; }
+.assistant-bar textarea {
+  width: 100%;
+  min-height: 2.6rem;
+  max-height: 9rem;
+  resize: none;                 /* grows to fit what is typed; see autoGrow() in assistant.js */
+  border: 0; outline: 0;
+  padding: 0.45rem 0.35rem;
+  color: var(--ink); background: transparent;
+  font: inherit; line-height: 1.5;
+}
+.assistant-bar-controls { display: flex; align-items: center; gap: 0.5rem; }
+.assistant-bar-controls .assistant-hint { flex: 1; margin: 0; text-align: right; }
+.primary-action { display: inline-flex; gap: 0.45rem; align-items: center; justify-content: center; min-width: 5.5rem; min-height: 2.5rem; padding: 0 0.9rem; border: 0; border-radius: 0.7rem; color: white; background: var(--accent-strong); font-weight: 850; }
+.primary-action:disabled { opacity: 0.55; }
 .assistant-note, .assistant-remaining, .assistant-hint { color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
-.assistant-hint { margin-top: -0.3rem; }
-.assistant-filters { display: flex; align-items: center; gap: 0.5rem; }
-.assistant-filters label { font-size: 0.78rem; font-weight: 700; color: var(--muted); }
-.assistant-filters select {
+.assistant-bar select {
   border: 1px solid var(--line);
-  border-radius: 0.5rem;
-  padding: 0.35rem 0.55rem;
+  border-radius: 0.6rem;
+  padding: 0.4rem 0.6rem;
   color: var(--ink);
-  background: var(--paper-strong);
+  background: var(--paper);
   font: inherit;
   font-size: 0.82rem;
+  font-weight: 700;
 }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+/* The hint is for people with a keyboard; on a touch screen Enter is the on-screen return key and
+   the advice would be wrong as well as useless. */
+@media (pointer: coarse) { .assistant-bar-controls .assistant-hint { display: none; } }
 .assistant-answer { margin-top: 1rem; border-block: 1px solid var(--line); padding: 0.85rem 0; line-height: 1.65; }
 .assistant-answer p { margin: 0; }
 .assistant-sources { display: grid; gap: 0.45rem; margin-top: 0.75rem; }

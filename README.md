@@ -174,6 +174,32 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.29.0
+
+_2026-09-14_
+
+- **Ask looks and behaves like a chat.** The conversation is above and the composer is pinned below
+  it, which is the fix for "I am not getting answers": the old layout put a four-row textarea and
+  its filters *above* the answer, so on a 375x812 phone the answer began 519px down and ran 151px
+  past the fold -- and with the keyboard open it was off-screen entirely. The API had been returning
+  correct answers the whole time; nobody could see them. Measured before and after: the answer now
+  renders at y=166, in view, with no scrolling.
+- **Enter sends, Ctrl/Alt/Cmd+Enter makes a new line** -- the reverse of what it was. A chat
+  composer is not a code editor: nearly every question here is one line, and making the common
+  action the modified one is what made the box feel unresponsive. Shift+Enter is a newline too.
+- **One bar, three scopes.** The composer carries a sources dropdown -- All, Duas, Hadith, or
+  **Quran verses** -- and the Ask button on the right. Picking Quran searches the verses and shows
+  them: the ayahs are not part of the corpus Ask answers from, and nothing should suggest a model is
+  interpreting a verse.
+- **The citation rule stopped discarding good answers.** Every claim still needs a citation and
+  every citation must point at a real source, but a line of quoted Arabic no longer needs one of its
+  own -- it is the cited source speaking, not a new assertion. Asked for the travel supplication the
+  model writes a cited sentence and puts the dua on the next line, which is exactly the right shape,
+  and the whole answer was being replaced by "could not generate a fully cited answer". A cited
+  claim followed by an uncited English claim is still rejected, as is a citation pointing at a
+  source that does not exist, and a transliteration still counts as the model writing rather than
+  the source speaking.
+
 ### 0.28.1
 
 _2026-09-14_
