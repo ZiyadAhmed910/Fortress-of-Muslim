@@ -70,6 +70,7 @@ export const els = {
   quranBrowse: document.getElementById('quranBrowse'),
   quranReader: document.getElementById('quranReader'),
   quranSearch: document.getElementById('quranSearch'),
+  quranVerseResults: document.getElementById('quranVerseResults'),
   quranFavFilter: document.getElementById('quranFavFilter'),
   quranClearSearch: document.getElementById('quranClearSearch'),
   quranResume: document.getElementById('quranResume'),

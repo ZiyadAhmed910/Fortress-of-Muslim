@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-14T15:29:11.083Z",
+  "generatedAt": "2026-09-14T15:35:36.833Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -780,7 +780,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 157,
+      "lines": 158,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -883,8 +883,16 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/js/quran-verse-search.js",
+      "lines": 91,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/js/quran.js",
-      "lines": 787,
+      "lines": 814,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -956,7 +964,7 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 199,
+      "lines": 200,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3859,6 +3867,7 @@
         "pwa-website/js/prayer-times.js",
         "pwa-website/js/prayer.js",
         "pwa-website/js/quran-audio.js",
+        "pwa-website/js/quran-verse-search.js",
         "pwa-website/js/quran.js",
         "pwa-website/test/categories.test.js",
         "pwa-website/test/guide-and-tasbih.test.js",
@@ -3882,7 +3891,9 @@
       "definedIn": [],
       "referencedBy": [
         "apps/auth/src/editorial-plane.ts",
-        "apps/status/public/app.js"
+        "apps/status/public/app.js",
+        "pwa-website/js/quran-verse-search.js",
+        "pwa-website/js/quran.js"
       ]
     },
     {

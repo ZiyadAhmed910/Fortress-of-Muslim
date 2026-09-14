@@ -41,6 +41,7 @@ const ASSETS = [
   `./js/prayer.js?v=${APP_VERSION}`,
   `./js/quran.js?v=${APP_VERSION}`,
   `./js/quran-audio.js?v=${APP_VERSION}`,
+  `./js/quran-verse-search.js?v=${APP_VERSION}`,
   `./js/onboarding.js?v=${APP_VERSION}`,
   `./js/prayer-times.js?v=${APP_VERSION}`,
   `./js/pwa.js?v=${APP_VERSION}`,

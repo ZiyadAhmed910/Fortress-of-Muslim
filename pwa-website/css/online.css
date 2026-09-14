@@ -998,3 +998,28 @@ body.has-player .reader-controls {
   line-height: 1.45;
   text-wrap: pretty;
 }
+
+/* Thematic verse search. Offered under the surah list rather than replacing it: searching the list
+   for a surah name and searching the whole mushaf for a theme are different questions, and the
+   second one costs a network request that typing a surah name should not trigger. */
+.quran-verse-results { display: grid; gap: 0.6rem; }
+.verse-search-prompt {
+  display: flex; align-items: center; gap: 0.55rem; width: 100%;
+  padding: 0.7rem 0.9rem; border: 1px dashed var(--line); border-radius: 0.8rem;
+  background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+}
+.verse-search-prompt:hover { border-color: var(--accent-strong); border-style: solid; }
+.verse-search-prompt strong { color: var(--accent-strong); }
+.verse-search-state { display: flex; align-items: center; justify-content: center; gap: 0.3rem; color: var(--muted); }
+.verse-search-state .assistant-thinking { padding: 1rem 0.4rem; }
+.verse-search-count { margin: 0.2rem 0; color: var(--muted); font-size: calc(0.82rem * var(--font-scale)); }
+.verse-result {
+  display: grid; gap: 0.45rem; padding: 0.85rem 0.95rem;
+  border: 1px solid var(--line); border-radius: 0.9rem; background: var(--surface); cursor: pointer;
+}
+.verse-result:hover { border-color: var(--accent-strong); }
+.verse-result header { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.verse-result header small { color: var(--muted); }
+.verse-arabic { margin: 0; font-size: calc(1.25rem * var(--font-scale)); line-height: 2; text-align: right; }
+.verse-translation { margin: 0; color: var(--ink); font-size: calc(0.92rem * var(--font-scale)); line-height: 1.6; }
+.verse-search-note { margin: 0.3rem 0 0; color: var(--muted); font-size: calc(0.75rem * var(--font-scale)); line-height: 1.5; }

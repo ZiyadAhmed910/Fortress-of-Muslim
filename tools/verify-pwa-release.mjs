@@ -49,7 +49,12 @@ if (!/<Files "sw\.js">[\s\S]*?no-store, no-cache, must-revalidate[\s\S]*?<\/File
 //   - It covers the shell only. data/duas.json is precached on install and costs about as much
 //     again (377KB raw, 77KB gzipped against the shell's 78KB), and nothing watches it.
 // Measuring gzipped bytes across everything precached would fix both.
-const SHELL_BUDGET_BYTES = 300_000;
+// Raised from 300,000 in 0.28.0, which is the escalation release-readiness.md agreed to the last
+// time this was reached. Thematic Quran search crossed it by 592 bytes. The same note is explicit
+// that the step after this one is a deploy-time minification pass rather than another raise: at
+// 500KB raw the shell is still around 100KB over the wire, and the number that actually matters to
+// someone installing the app on a phone connection is the compressed one this check does not read.
+const SHELL_BUDGET_BYTES = 500_000;
 const shellBytes = await directoryBytes(join(root, 'js')) + await directoryBytes(join(root, 'css'))
   + (await stat(join(root, 'styles.css'))).size;
 if (shellBytes > SHELL_BUDGET_BYTES) {

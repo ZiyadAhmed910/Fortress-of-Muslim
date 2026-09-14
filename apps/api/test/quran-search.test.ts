@@ -58,7 +58,7 @@ const envWith = ({ vectorHits = [] as string[], rerankOn = '' } = {}) => ({
     query: async () => ({ matches: vectorHits.map((id) => ({ id, score: 0.8 })) }),
     upsert: async () => ({}),
   },
-} as never);
+});
 
 describe('the ayah corpus the search runs over', () => {
   it('holds the whole Quran, and agrees with the app about its size', () => {
@@ -84,7 +84,7 @@ describe('the ayah corpus the search runs over', () => {
 describe('searching for verses', () => {
   it('finds a half-remembered phrase exactly, without any vectors at all', async () => {
     // The lexical half, and the case embeddings are worst at.
-    const { matches, vectorAvailable } = await searchQuran(envWith({ rerankOn: 'burden' }), 'burdened beyond capacity', 5);
+    const { matches, vectorAvailable } = await searchQuran(envWith({ rerankOn: 'burden' }) as never, 'burdened beyond capacity', 5);
     expect(vectorAvailable).toBe(false);
     expect(matches.length).toBeGreaterThan(0);
     expect(matches.some((match) => match.reference === '2:286')).toBe(true);
@@ -93,7 +93,7 @@ describe('searching for verses', () => {
   it('puts the verse the reranker judged best at the top', async () => {
     // "burden" is the distinctive word in 2:286 ("lay not upon us a burden like that which You laid
     // upon those before us"), which is what makes it a usable marker here.
-    const { matches, reranked } = await searchQuran(envWith({ rerankOn: 'lay not upon us a burden' }), 'burdened beyond capacity', 5);
+    const { matches, reranked } = await searchQuran(envWith({ rerankOn: 'lay not upon us a burden' }) as never, 'burdened beyond capacity', 5);
     expect(reranked).toBe(true);
     expect(matches[0]!.reference).toBe('2:286');
   });
@@ -101,7 +101,7 @@ describe('searching for verses', () => {
   it('returns references and never the translation, which is not ours to redistribute', async () => {
     // The whole reason the endpoint answers with numbers: the Saheeh International text is stored
     // to search over and served by nobody. The client renders it from the copy it already ships.
-    const { matches } = await searchQuran(envWith({ rerankOn: 'mercy' }), 'verses about mercy', 3);
+    const { matches } = await searchQuran(envWith({ rerankOn: 'mercy' }) as never, 'verses about mercy', 3);
     expect(matches.length).toBeGreaterThan(0);
     for (const match of matches) {
       expect(Object.keys(match).sort()).toEqual([
@@ -112,7 +112,7 @@ describe('searching for verses', () => {
   });
 
   it('names the surah, so a result can be read without looking it up', async () => {
-    const { matches } = await searchQuran(envWith({ rerankOn: 'lay not upon us a burden' }), 'burdened beyond capacity', 3);
+    const { matches } = await searchQuran(envWith({ rerankOn: 'lay not upon us a burden' }) as never, 'burdened beyond capacity', 3);
     const verse = matches.find((match) => match.reference === '2:286')!;
     expect(verse.surahName).toBe('Al-Baqarah');
     expect(verse.surahNameEnglish).toBe('The Cow');
@@ -125,7 +125,7 @@ describe('searching for verses', () => {
     // 65:3 is the tawakkul verse and says "relies", never "tawakkul" -- the exact vocabulary gap
     // that makes the vector half necessary, since no lexical query for the concept reaches it.
     const { matches } = await searchQuran(
-      envWith({ vectorHits: ['65:3', '3:159'], rerankOn: 'relies upon Allah' }),
+      envWith({ vectorHits: ['65:3', '3:159'], rerankOn: 'relies upon Allah' }) as never,
       'reliance upon Allah',
       10,
     );
@@ -138,19 +138,19 @@ describe('searching for verses', () => {
     const broken = {
       ...envWith({ rerankOn: 'patience' }),
       VECTOR_INDEX: { query: async () => { throw new Error('vectorize unavailable'); } },
-    } as never;
-    const { matches, vectorAvailable } = await searchQuran(broken, 'patience and prayer', 5);
+    };
+    const { matches, vectorAvailable } = await searchQuran(broken as never, 'patience and prayer', 5);
     expect(vectorAvailable).toBe(false);
     expect(matches.length).toBeGreaterThan(0);
   });
 
   it('returns nothing rather than noise for a query the Quran does not speak to', async () => {
-    const { matches } = await searchQuran(envWith({ rerankOn: 'zzzznotaword' }), 'qwertyuiop asdfghjkl', 5);
+    const { matches } = await searchQuran(envWith({ rerankOn: 'zzzznotaword' }) as never, 'qwertyuiop asdfghjkl', 5);
     expect(matches).toEqual([]);
   });
 
   it('respects the limit it was given', async () => {
-    const { matches } = await searchQuran(envWith({ rerankOn: 'the' }), 'guidance for the believers', 3);
+    const { matches } = await searchQuran(envWith({ rerankOn: 'the' }) as never, 'guidance for the believers', 3);
     expect(matches.length).toBeLessThanOrEqual(3);
   });
 });

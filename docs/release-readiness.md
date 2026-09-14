@@ -39,10 +39,12 @@ The browser check covers:
 - horizontal overflow
 - Dua, Hadith, and Ask mode isolation
 - service-worker readiness and offline Dua reading
-- a 300 KB decoded JavaScript/CSS shell budget (raised from 250 KB in 0.24.0; the agreed
-  escalation is 500 KB next time it is reached, and a deploy-time minification step rather than a
-  further raise after that). The budget covers `js/`, `css/` and `styles.css` only -- it does not
-  see `data/duas.json`, which is precached on install and costs about as much again
+- a 500 KB decoded JavaScript/CSS shell budget, raised from 300 KB in 0.28.0 when thematic Quran
+  search crossed it by 592 bytes -- which was the escalation agreed the last time it was reached
+  (250 KB to 300 KB in 0.24.0). The step after this one is a deploy-time minification pass, not a
+  further raise. The budget counts raw bytes of `js/`, `css/` and `styles.css` only: it does not
+  see `data/duas.json`, precached on install and costing about as much again, and it taxes the
+  explanatory comments this repo deliberately writes, which compress harder than code does
 
 ## Soak
 

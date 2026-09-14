@@ -1,4 +1,5 @@
 import { els } from './dom.js';
+import { searchVerses, versePrompt } from './quran-verse-search.js';
 import { state } from './state.js';
 import { escapeHtml, toast } from './utils.js';
 import { setFontScale } from './settings.js';
@@ -135,6 +136,18 @@ export function initQuran() {
       const [surahNumber, ayahNumber] = savedAyah.dataset.openAyah.split(':').map(Number);
       openSurah(surahNumber, ayahNumber);
     }
+    // Searching the surah list by name is one question ("where is Al-Kahf?"); searching the verses
+    // by theme is a different one ("what does the Quran say about patience?"). The same box serves
+    // both rather than a mode switch nobody would find: the surah matches stay where they are, and
+    // this offers the second search under them.
+    const promptButton = event.target.closest('[data-verse-search]');
+    if (promptButton) {
+      els.quranList.innerHTML = '';
+      els.quranCount.textContent = '';
+      searchVerses(promptButton.dataset.verseSearch, els.quranVerseResults, loadSurahData);
+    }
+    const verse = event.target.closest('.verse-result[data-surah]');
+    if (verse) openSurah(Number(verse.dataset.surah), Number(verse.dataset.ayah));
   });
   els.quranReader.addEventListener('click', onReaderClick);
   bindSurahSwipe();
@@ -387,6 +400,9 @@ function renderSurahList() {
   els.quranResume.innerHTML = favouritesOnly ? renderSavedAyahs() : renderResumeCard();
   els.quranCount.textContent = `${matches.length} surah${matches.length === 1 ? '' : 's'}`;
   els.quranClearSearch.hidden = !query;
+  // Offered, never automatic: a verse search is a network request, and typing a surah name should
+  // not fire one off. Typing something that is not a surah name is exactly when it becomes useful.
+  els.quranVerseResults.innerHTML = versePrompt(els.quranSearch.value);
   els.quranList.innerHTML = matches.length
     ? matches.map((surah) => {
       const faved = prefs.favouriteSurahs.includes(surah.number);
@@ -435,6 +451,17 @@ function renderResumeCard() {
   `;
 }
 
+/** The local copy of a surah, fetched once and kept. Verse search renders its words from this. */
+async function loadSurahData(number) {
+  if (loaded.has(number)) return loaded.get(number);
+  try {
+    const surah = await fetchJson(surahUrl(number));
+    loaded.set(number, surah);
+    return surah;
+  } catch {
+    return null;
+  }
+}
 export async function openSurah(number, scrollToAyah = null) {
   const meta = index?.surahs.find((surah) => surah.number === number);
   if (!meta) return;
