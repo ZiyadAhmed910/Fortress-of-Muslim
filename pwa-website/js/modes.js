@@ -1,4 +1,5 @@
 import { els } from './dom.js';
+import { fitAssistantHeight } from './assistant.js';
 import { state } from './state.js';
 import { activateHadith } from './hadith.js';
 import { activateQuran } from './quran.js';
@@ -36,6 +37,9 @@ export function setContentMode(requestedMode) {
   els.quranHome.hidden = mode !== 'quran';
   els.hadithHome.hidden = mode !== 'hadith';
   els.assistantHome.hidden = mode !== 'ask';
+  // Measured once it is on screen: the chat column sizes itself to what is left below the header,
+  // and a hidden element has no measurable top.
+  if (mode === 'ask') fitAssistantHeight();
   els.prayerTimesHome.hidden = mode !== 'prayerTimes';
   els.qiblaHome.hidden = mode !== 'qibla';
   els.tasbihHome.hidden = mode !== 'tasbih';

@@ -174,6 +174,31 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.30.0
+
+_2026-09-15_
+
+- **The Quran is a source Ask answers from.** "What is tawakkul" used to be answered out of whatever
+  dua sat nearest it in embedding space, because the concept lives in the Quran and Ask could not
+  see the Quran. Verses are retrieved and reranked alongside duas and hadith now, and cited the same
+  way -- `[1] The Quran, At-Talaq 65:3` -- under the rule that already governs every answer: answer
+  only from the sources, cite every claim, no rulings. **"All sources" now genuinely means all of
+  them**, rather than "duas and hadith" behind a label that said otherwise.
+- **Quran is a scope, not a record filter.** The ayahs live outside the editorial corpus, so asking
+  for them means asking for no records at all; it is resolved before any repository call rather than
+  passed down into one. Scoping to Duas or Hadith excludes verses entirely.
+- **Ask reads like a chat.** The thread scrolls on its own and the composer never leaves the screen,
+  instead of the page scrolling and the answer landing below the fold. Measured on a 375x812 phone:
+  the composer went from roughly 30% of the screen to **13%**, the thread gets 461px of it, and the
+  page itself no longer scrolls at all. The column measures the space actually left below the header
+  rather than assuming a constant, because a guess that is 57px out puts the whole page back on a
+  scrollbar.
+- **It follows the newest answer, unless you have scrolled up.** Yanking the view back while someone
+  is reading an earlier answer is worse than not following at all.
+- The licensing footer under verse results is gone: permission for the translation was obtained
+  directly. The API still answers with references and lets the client render the words it already
+  ships, which is what makes a result appear instantly and work offline.
+
 ### 0.29.0
 
 _2026-09-14_

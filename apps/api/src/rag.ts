@@ -2,6 +2,7 @@ import type { Dua, Hadith } from '@fortress/contracts';
 import type { ContentRepository, RagFilters } from './repositories/content-repository';
 import { parseExactHadithReference } from './rag-reference';
 import { expandRetrievalQuery } from './rag-synonyms';
+import { ayahRerankText, quranCandidates } from './quran-search';
 import type { Bindings } from './types';
 
 // bge-m3 (1024-dim, multilingual, 8192-token context) replaces bge-base-en-v1.5 (768-dim,
@@ -36,6 +37,9 @@ const MAX_CONTEXTS = 6;
 // Retrieve wide, then let the reranker decide. Recall is cheap (a vector query and an FTS query);
 // being wrong about which six to show is not.
 const RERANK_CANDIDATES = 16;
+// How many verses join the pool Ask reranks. Smaller than the record side because the Quran is one
+// book against 14,625 records, and a question about a dua should not drown in ayahs.
+const QURAN_ASK_CANDIDATES = 8;
 // The reranker is used to order candidates, not to judge whether an answer exists. bge-reranker-base
 // is the only reranker Workers AI offers, and its absolute scores are not comparable across
 // questions: the same reading scores 0.81 for "When angry" and under 0.05 for "what should I recite
@@ -83,9 +87,39 @@ type IndexRow = {
   arabic: string | null;
   datasetId: string;
 };
+/**
+ * A Quran verse, shaped to travel through the same pipeline as a dua or a hadith. It is not an
+ * editorial record -- no revision, no reviewer, no workflow -- so it carries only what retrieval,
+ * ranking and citation need, and reports itself as verified because the mushaf is not something a
+ * reviewer stamps.
+ */
+export type AyahRecord = {
+  id: string;
+  title: string;
+  canonicalUrl: string;
+  verificationStatus: 'verified';
+  surah: number;
+  ayah: number;
+  surahName: string;
+  translation: string;
+};
+
+export type AskRecord = Dua | Hadith | AyahRecord;
+
+/**
+ * What Ask can be scoped to. Wider than the repository's RagFilters because "quran" is not a kind
+ * of record it stores -- it means "answer from verses instead", so it is resolved before any
+ * repository call rather than passed down into one.
+ */
+/** Narrows an Ask scope to what the repository understands; a Quran scope means no records. */
+const recordScope = (scope?: AskScope): RagFilters | undefined =>
+  (!scope || scope.contentType === 'quran' ? undefined : scope as RagFilters);
+
+export type AskScope = { contentType?: 'dua' | 'hadith' | 'quran'; collection?: string };
+
 type GroundedRecord = {
-  record: Dua | Hadith;
-  contentType: 'dua' | 'hadith';
+  record: AskRecord;
+  contentType: 'dua' | 'hadith' | 'quran';
   score: number;
   metadata?: Record<string, string>;
   retrieval: 'vector' | 'lexical';
@@ -94,7 +128,7 @@ type GroundedRecord = {
 export type RagSource = {
   index: number;
   id: string;
-  contentType: 'dua' | 'hadith';
+  contentType: 'dua' | 'hadith' | 'quran';
   title: string;
   collection: string;
   reference: string;
@@ -273,6 +307,10 @@ export async function rankByRelevance(env: Bindings, question: string, candidate
 
 // Title plus the reading's own words, which is what the question is really being matched against.
 function rerankText(candidate: GroundedRecord) {
+  if (candidate.contentType === 'quran') {
+    const verse = asAyah(candidate.record);
+    return ayahRerankText(verse.surahName, verse.surah, verse.ayah, verse.translation).slice(0, 1_200);
+  }
   const segments = candidate.contentType === 'dua'
     ? (candidate.record as Dua).parts.flat()
     : (candidate.record as Hadith).segments;
@@ -452,7 +490,7 @@ async function prepareGrounding(
   repository: ContentRepository,
   question: string,
   clientAddress: string,
-  filters?: RagFilters,
+  filters?: AskScope,
   history?: AskTurn[],
 ) {
   // Settings are read after this check, not alongside it: with no published dataset there is
@@ -483,10 +521,27 @@ async function prepareGrounding(
   const { query: retrievalQuestion, rewritten } = await contextualiseQuestion(env, question, history);
   const expansion = expandQueryVariants(env, retrievalQuestion);
   const baseQuery = expandRetrievalQuery(retrievalQuestion);
-  const baseRetrieval = Promise.all([
-    retrieveVectorRecords(env, repository, dataset.id, baseQuery, filters),
-    retrieveLexicalRecords(repository, baseQuery, filters),
-  ]);
+  // "Quran" is a scope rather than a record filter: the ayahs live outside the editorial corpus, so
+  // asking for them means asking for no records at all, and the repository only understands duas
+  // and hadith.
+  const wantsRecords = filters?.contentType !== 'quran';
+  const wantsVerses = !filters?.contentType || filters.contentType === 'quran';
+  const recordFilters: RagFilters | undefined = wantsRecords
+    ? (filters as RagFilters | undefined)
+    : undefined;
+  const baseRetrieval = wantsRecords
+    ? Promise.all([
+      retrieveVectorRecords(env, repository, dataset.id, baseQuery, recordFilters),
+      retrieveLexicalRecords(repository, baseQuery, recordFilters),
+    ])
+    : Promise.resolve([{ available: false, records: [] }, []] as const);
+  // Verses are retrieved alongside the records and reranked with them, so "what is tawakkul" is
+  // answered from the Quran -- which is where that concept mostly lives -- rather than from whatever
+  // dua happened to sit nearest it in embedding space. They are sources like any other: cited,
+  // never interpreted, and held to the same rule that every claim names where it came from.
+  const verses = wantsVerses
+    ? quranCandidates(env, baseQuery, QURAN_ASK_CANDIDATES).catch(() => ({ rows: [], vectorAvailable: false }))
+    : Promise.resolve({ rows: [], vectorAvailable: false });
 
   const [settings, usage] = await Promise.all([
     loadAskSettings(env.CONTENT_DB),
@@ -532,7 +587,25 @@ async function prepareGrounding(
   const vectorAvailable = retrievals.some(([vectorResult]) => vectorResult.available);
   const vectorRecords = retrievals.flatMap(([vectorResult]) => vectorResult.records);
   const lexicalRecords = retrievals.flatMap(([, lexical]) => lexical);
-  const candidates = mergeCandidates(vectorRecords, lexicalRecords);
+  const { rows: ayahs } = await verses;
+  const candidates = [
+    ...mergeCandidates(vectorRecords, lexicalRecords),
+    ...ayahs.map((row): GroundedRecord => ({
+      record: {
+        id: `quran.${row.surah}.${row.ayah}`,
+        title: `Quran ${row.surah}:${row.ayah}`,
+        canonicalUrl: `https://fortressofmuslim.org/quran/${row.surah}/${row.ayah}`,
+        verificationStatus: 'verified',
+        surah: row.surah,
+        ayah: row.ayah,
+        surahName: row.surahNameSimple,
+        translation: row.translation,
+      },
+      contentType: 'quran',
+      score: 0,
+      retrieval: 'vector',
+    })),
+  ];
   const { records: grounded, reranked } = await rankByRelevance(env, retrievalQuestion, candidates);
 
   if (settings.unverifiedFallback === 1 && grounded.length < MIN_VERIFIED_SOURCES) {
@@ -583,7 +656,7 @@ export async function answerQuestion(
   repository: ContentRepository,
   question: string,
   clientAddress: string,
-  filters?: RagFilters,
+  filters?: AskScope,
   history?: AskTurn[],
 ): Promise<AskAnswer> {
   const prepared = await prepareGrounding(env, repository, question, clientAddress, filters, history);
@@ -684,7 +757,7 @@ export function streamAnswer(
   repository: ContentRepository,
   question: string,
   clientAddress: string,
-  filters?: RagFilters,
+  filters?: AskScope,
   history?: AskTurn[],
 ): ReadableStream<Uint8Array> {
   return new ReadableStream({
@@ -920,12 +993,12 @@ async function retrieveUnverifiedFallback(
   question: string,
   existing: GroundedRecord[],
   limit: number,
-  filters?: RagFilters,
+  filters?: AskScope,
 ): Promise<GroundedRecord[]> {
   if (limit <= 0) return [];
   try {
     const existingIds = new Set(existing.map((item) => item.record.id));
-    const candidates = await repository.searchCurrentForRag(question, limit + existingIds.size, filters);
+    const candidates = await repository.searchCurrentForRag(question, limit + existingIds.size, recordScope(filters));
     const records = await Promise.all(candidates.map(async (candidate) => {
       if (existingIds.has(candidate.id)) return null;
       const record = candidate.contentType === 'dua'
@@ -946,7 +1019,7 @@ async function retrieveVectorRecords(
   repository: ContentRepository,
   datasetId: string,
   question: string,
-  filters?: RagFilters,
+  filters?: AskScope,
 ) {
   try {
     const embedding = await env.AI.run(EMBEDDING_MODEL, { text: [question] }) as EmbeddingResponse;
@@ -982,11 +1055,11 @@ async function retrieveVectorRecords(
 async function retrieveLexicalRecords(
   repository: ContentRepository,
   question: string,
-  filters?: RagFilters,
+  filters?: AskScope,
 ): Promise<GroundedRecord[]> {
   let candidates: Awaited<ReturnType<ContentRepository['searchForRag']>>;
   try {
-    candidates = await repository.searchForRag(question, RERANK_CANDIDATES, filters);
+    candidates = await repository.searchForRag(question, RERANK_CANDIDATES, recordScope(filters));
   } catch (error) {
     console.error(JSON.stringify({ event: 'rag_lexical_retrieval_failed', message: errorMessage(error) }));
     return [];
@@ -1119,7 +1192,21 @@ function indexText(row: IndexRow) {
     .slice(0, 4_000);
 }
 
-function contextBlock(record: Dua | Hadith, contentType: 'dua' | 'hadith', index: number) {
+/** Narrows a record the pipeline has already tagged as a verse. */
+const asAyah = (record: AskRecord) => record as AyahRecord;
+
+function contextBlock(record: AskRecord, contentType: 'dua' | 'hadith' | 'quran', index: number) {
+  if (contentType === 'quran') {
+    const verse = asAyah(record);
+    // Labelled as Quran explicitly: the prompt forbids the model calling anything Quran unless its
+    // context says so, and here the context truthfully does.
+    return [
+      `[${index}] ${verse.title}`,
+      `Reference: Quran ${verse.surah}:${verse.ayah} (Surah ${verse.surahName})`,
+      'Verification: verified',
+      `translation: ${normalizeLegacyTypography(verse.translation)}`,
+    ].join('\n');
+  }
   const segments = contentType === 'dua'
     ? (record as Dua).parts.flat()
     : (record as Hadith).segments;
@@ -1128,7 +1215,21 @@ function contextBlock(record: Dua | Hadith, contentType: 'dua' | 'hadith', index
   return `[${index}] ${record.title}\nReference: ${summary}\nVerification: ${record.verificationStatus}\n${text}`;
 }
 
-function sourceFrom(record: Dua | Hadith, contentType: 'dua' | 'hadith', score: number, index: number): RagSource {
+function sourceFrom(record: AskRecord, contentType: 'dua' | 'hadith' | 'quran', score: number, index: number): RagSource {
+  if (contentType === 'quran') {
+    const verse = asAyah(record);
+    return {
+      index,
+      id: verse.id,
+      contentType,
+      title: verse.title,
+      collection: 'The Quran',
+      reference: `${verse.surahName} ${verse.surah}:${verse.ayah}`,
+      canonicalUrl: verse.canonicalUrl,
+      verificationStatus: verse.verificationStatus,
+      score: Number(score.toFixed(4)),
+    };
+  }
   const collection = contentType === 'hadith' ? (record as Hadith).collection.title : 'Hisn al-Muslim';
   return {
     index,

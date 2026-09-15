@@ -23,6 +23,8 @@ const HISTORY_TURNS = 4;
 
 /** Every turn asked in this conversation. Cleared by "New conversation", never persisted. */
 let conversation = [];
+/** Whether the thread should keep scrolling to the newest turn -- false once the reader scrolls up. */
+let followingLatest = true;
 
 export function initAssistant() {
   // Enter sends; Ctrl/Alt/Cmd+Enter inserts a newline. This is the reverse of what it was, and the
@@ -44,16 +46,20 @@ export function initAssistant() {
   els.assistantResult.addEventListener('click', (event) => {
     if (event.target.closest('[data-new-conversation]')) resetConversation();
   });
+  els.assistantResult.addEventListener('scroll', () => {
+    const thread = els.assistantResult;
+    // A small tolerance: "at the bottom" has to survive sub-pixel heights and a growing answer.
+    followingLatest = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 48;
+  }, { passive: true });
   els.assistantForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const question = els.assistantQuestion.value.trim();
     if (question.length < 5) return;
     els.assistantSubmit.disabled = true;
     const scope = els.assistantContentType.value;
-    // Quran is a different question, not a filter on this one: the ayahs are not part of the corpus
-    // Ask answers from, and nothing here should imply an AI is interpreting a verse. Picking it
-    // searches the verses and shows them, with no answer written over the top.
-    const filters = scope && scope !== 'quran' ? { contentType: scope } : undefined;
+    // Quran is a scope the server understands now: verses are retrieved and reranked alongside duas
+    // and hadith, and cited the same way. "All sources" genuinely means all of them.
+    const filters = scope ? { contentType: scope } : undefined;
     const history = conversation.slice(-HISTORY_TURNS).map((turn) => ({
       question: turn.question,
       answer: turn.answer,
@@ -61,22 +67,10 @@ export function initAssistant() {
 
     const turn = { question, answer: '', sources: [], meta: {}, stage: 'retrieving', scope };
     conversation.push(turn);
+    followingLatest = true;
     els.assistantQuestion.value = '';
     autoGrow();
     render();
-
-    if (scope === 'quran') {
-      try {
-        await findVerses(question, turn);
-      } catch (error) {
-        Object.assign(turn, { stage: null, error: error.message });
-      } finally {
-        els.assistantSubmit.disabled = false;
-        updatePlaceholder();
-        render();
-      }
-      return;
-    }
 
     try {
       await streamAnswer(question, filters, history, turn);
@@ -98,6 +92,8 @@ export function initAssistant() {
     }
   });
   updatePlaceholder();
+  fitAssistantHeight();
+  window.addEventListener('resize', fitAssistantHeight);
 }
 
 function insertNewline() {
@@ -106,6 +102,26 @@ function insertNewline() {
   box.value = `${value.slice(0, start)}\n${value.slice(end)}`;
   box.selectionStart = box.selectionEnd = start + 1;
   autoGrow();
+}
+
+/**
+ * Sizes the chat column to whatever is actually left below the header and tabs, rather than a
+ * guessed constant. Measured because the chrome above it is not a fixed height -- it differs
+ * between phone and desktop, and between this app's header states -- and a guess that is 57px out
+ * leaves the whole page scrolling, which is the thing the layout exists to stop.
+ */
+export function fitAssistantHeight() {
+  const home = els.assistantHome;
+  if (!home || home.hidden || !home.getClientRects().length) return;
+  const root = document.documentElement;
+  const top = home.getBoundingClientRect().top;
+  const reserve = Math.round(top + 16);
+  root.style.setProperty('--chrome-height', `${reserve}px`);
+  // One correction pass. Padding below the column -- the app shell's, the view's -- is far easier to
+  // measure than to enumerate, and the thread has its own scroll area, so a long conversation never
+  // contributes to page height and cannot feed back into this.
+  const overflow = root.scrollHeight - window.innerHeight;
+  if (overflow > 0) root.style.setProperty('--chrome-height', `${reserve + Math.round(overflow)}px`);
 }
 
 /** Grows the composer to fit what is typed, up to the max-height the stylesheet sets. */
@@ -117,6 +133,7 @@ function autoGrow() {
 
 function resetConversation() {
   conversation = [];
+  followingLatest = true;
   els.assistantResult.innerHTML = '';
   updatePlaceholder();
   autoGrow();
@@ -194,62 +211,11 @@ function render() {
     ${conversation.length > 1 ? '<button class="text-button assistant-reset" type="button" data-new-conversation>Start a new conversation</button>' : ''}
     ${conversation.map(renderTurn).join('')}
   `;
-  const last = els.assistantResult.querySelector('.assistant-turn:last-child');
-  if (conversation.length > 1) last?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-}
-
-/**
- * Quran scope: find the verses and show them. No answer is generated over the top, because finding
- * which verses relate to a theme is retrieval and saying what one means is tafsir. The API returns
- * references only -- the translation it searches is not redistributable -- so the words come from
- * the copy this app already ships.
- */
-async function findVerses(query, turn) {
-  if (!navigator.onLine) throw new Error('Verse search needs an internet connection.');
-  const url = `${apiBaseUrl()}/v1/quran/search?q=${encodeURIComponent(query)}&limit=8`;
-  const response = await fetch(url, { cache: 'no-store', headers: { Accept: 'application/json' } });
-  if (!response.ok) throw new Error(`Verse search returned ${response.status}.`);
-  const body = await response.json();
-  const matches = body.data || [];
-  turn.stage = null;
-  turn.verses = await Promise.all(matches.map(async (match) => {
-    const surah = await loadSurahText(match.surah);
-    const ayah = surah?.ayahs?.find((item) => item.n === match.ayah);
-    return { ...match, arabic: ayah?.ar || '', translation: ayah?.en || '' };
-  }));
-  if (turn.verses.length === 0) turn.answer = 'No verses matched that.';
-}
-
-const surahCache = new Map();
-async function loadSurahText(number) {
-  if (surahCache.has(number)) return surahCache.get(number);
-  try {
-    const response = await fetch(`./data/quran/surah-${number}.json`);
-    const surah = await response.json();
-    surahCache.set(number, surah);
-    return surah;
-  } catch {
-    return null;
-  }
-}
-
-function renderVerses(verses) {
-  return `
-    <div class="assistant-verses">
-      ${verses.map((verse) => `
-        <article class="verse-result">
-          <header>
-            <strong>${escapeHtml(verse.surahName)} ${verse.surah}:${verse.ayah}</strong>
-            <small>${escapeHtml(verse.surahNameEnglish)}</small>
-          </header>
-          ${verse.arabic ? `<p class="verse-arabic" dir="rtl" lang="ar">${escapeHtml(verse.arabic)}</p>` : ''}
-          ${verse.translation ? `<p class="verse-translation">${escapeHtml(verse.translation)}</p>` : ''}
-        </article>
-      `).join('')}
-      <p class="verse-search-note">Translation: Saheeh International. Arabic: Tanzil Project (CC BY 3.0).
-      These are the verses the search matched, not an interpretation of them.</p>
-    </div>
-  `;
+  // Keep the newest turn in view as it streams, the way a chat does -- but only while the reader is
+  // already at the bottom. Yanking the view back while someone is scrolled up reading an earlier
+  // answer is worse than not following at all.
+  const thread = els.assistantResult;
+  if (followingLatest) thread.scrollTop = thread.scrollHeight;
 }
 
 function renderTurn(turn, index) {
@@ -258,7 +224,6 @@ function renderTurn(turn, index) {
     <section class="assistant-turn" aria-label="Question ${index + 1}">
       <p class="assistant-question">${escapeHtml(turn.question)}${turn.scope === 'quran' ? ' <span class="assistant-scope">Quran</span>' : ''}</p>
       ${turn.error ? `<div class="empty-state">${escapeHtml(turn.error)}</div>` : ''}
-      ${turn.verses?.length ? renderVerses(turn.verses) : ''}
       ${turn.stage && !turn.answer ? `
         <div class="assistant-stage" role="status">
           <div class="assistant-thinking"><span></span><span></span><span></span></div>

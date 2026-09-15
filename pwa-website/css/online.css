@@ -140,12 +140,15 @@
    answer 150px below the fold on a phone -- and with the keyboard open it was off-screen entirely.
    People asked a question, saw nothing happen, and concluded it was broken. It was not; it was
    just below where they could see. */
-.assistant-home { display: flex; flex-direction: column; min-height: 60svh; }
-.assistant-result { flex: 1; }
+/* The thread scrolls, not the page, and the composer never leaves the screen. Anchoring the whole
+   column to the viewport is what stops the answer being pushed below the fold: on a phone the old
+   layout put the answer 519px down and 151px past the bottom, which read as "nothing happened". */
+.assistant-home { display: flex; flex-direction: column; height: calc(100svh - var(--chrome-height, 13rem)); min-height: 24rem; }
+.assistant-result { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; overscroll-behavior: contain; padding-right: 0.15rem; }
 .assistant-bar {
-  position: sticky; bottom: 0; z-index: 4;
-  display: grid; gap: 0.5rem; margin-top: 0.8rem;
-  padding: 0.6rem 0.65rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+  flex: none;
+  display: grid; gap: 0.35rem; margin-top: 0.7rem;
+  padding: 0.5rem 0.6rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
   border: 1px solid var(--line); border-radius: 1rem;
   background: var(--paper-strong);
   box-shadow: 0 -10px 24px -18px rgb(0 0 0 / 45%);

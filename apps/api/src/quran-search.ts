@@ -1,4 +1,5 @@
 import { EMBEDDING_MODEL, embeddingCalls, errorMessage, rerankByRelevance } from './rag';
+import { expandRetrievalQuery } from './rag-synonyms';
 import type { Bindings } from './types';
 
 // Its own namespace in the shared Vectorize index. Ask queries a dataset namespace and so can never
@@ -97,50 +98,59 @@ async function vectorAyahs(env: Bindings, query: string, limit: number): Promise
 }
 
 /**
- * Finds the verses a theme asks for. "An ayah about tawakkul" is the case this exists for: the word
- * appears nowhere in an English translation, "reliance upon Allah" does, and only an embedding
- * bridges that. Lexical search runs alongside it for the opposite case -- someone half-remembering
- * a phrase and wanting the exact verse.
- *
- * There is no generation step. Nothing here explains what a verse means: it returns which verses
- * relate to the theme and lets the reader read them. That keeps it honest about interpretation and
- * makes it several seconds faster than Ask, which is what a person quoting a verse actually wants.
+ * The ayahs both halves of retrieval turned up for a query, interleaved and de-duplicated but not
+ * yet ranked. Ask consumes this so verses compete with duas and hadith in one reranking pass rather
+ * than being ranked separately and stapled on.
  */
-export async function searchQuran(env: Bindings, query: string, limit = QURAN_RESULTS) {
+export async function quranCandidates(env: Bindings, retrievalQuery: string, limit = QURAN_CANDIDATES) {
   const [vector, lexical] = await Promise.all([
-    vectorAyahs(env, query, QURAN_CANDIDATES).catch((error) => {
+    vectorAyahs(env, retrievalQuery, limit).catch((error) => {
       console.error(JSON.stringify({ event: 'quran_vector_search_failed', message: errorMessage(error) }));
       return [] as AyahRow[];
     }),
-    lexicalAyahs(env.CONTENT_DB, query, QURAN_CANDIDATES).catch((error) => {
+    lexicalAyahs(env.CONTENT_DB, retrievalQuery, limit).catch((error) => {
       console.error(JSON.stringify({ event: 'quran_lexical_search_failed', message: errorMessage(error) }));
       return [] as AyahRow[];
     }),
   ]);
-
   // Interleave rather than pool: a cosine distance and a bm25 rank are not comparable numbers, and
-  // sorting them against each other is what used to drop the obviously-right lexical hit.
+  // sorting them against each other is what drops the obviously-right lexical hit.
   const seen = new Set<string>();
   const source = new Map<string, 'vector' | 'lexical'>();
-  const candidates: AyahRow[] = [];
+  const rows: AyahRow[] = [];
   for (let index = 0; index < Math.max(vector.length, lexical.length); index += 1) {
     for (const [row, path] of [[vector[index], 'vector'], [lexical[index], 'lexical']] as const) {
       if (!row || seen.has(keyOf(row))) continue;
       seen.add(keyOf(row));
       source.set(keyOf(row), path);
-      candidates.push(row);
+      rows.push(row);
     }
   }
-  if (candidates.length === 0) return { matches: [] as QuranMatch[], reranked: false, vectorAvailable: vector.length > 0 };
+  return { rows: rows.slice(0, limit), source, vectorAvailable: vector.length > 0 };
+}
+
+/**
+ * Finds the verses a theme asks for, ranked, with no answer written over the top. The Quran tab
+ * uses this; Ask reaches for quranCandidates() instead, so that verses are reranked against duas
+ * and hadith together and can be cited alongside them.
+ */
+export async function searchQuran(env: Bindings, query: string, limit = QURAN_RESULTS) {
+  // The same curated expansion Ask uses. Without it "tawakkul" found nothing while "reliance upon
+  // Allah" found the right verses at 0.99 -- the transliteration appears in no English translation
+  // and sits nowhere near the English phrase in embedding space. Expansion applies to retrieval
+  // only; the query shown back to the reader is the one they typed.
+  const retrievalQuery = expandRetrievalQuery(query);
+  const { rows, source, vectorAvailable } = await quranCandidates(env, retrievalQuery);
+  if (rows.length === 0) return { matches: [] as QuranMatch[], reranked: false, vectorAvailable };
 
   const ranked = await rerankByRelevance(
     env,
-    query,
-    candidates.slice(0, QURAN_CANDIDATES),
-    (row) => `${row.surahNameSimple} ${row.surah}:${row.ayah} -- ${row.translation}`,
+    retrievalQuery,
+    rows,
+    (row) => ayahRerankText(row.surahNameSimple, row.surah, row.ayah, row.translation),
     limit,
   );
-  const ordered = ranked ?? candidates.slice(0, limit).map((row) => ({ item: row, score: 0 }));
+  const ordered = ranked ?? rows.slice(0, limit).map((row) => ({ item: row, score: 0 }));
   return {
     matches: ordered.map(({ item, score }) => ({
       surah: item.surah,
@@ -153,9 +163,18 @@ export async function searchQuran(env: Bindings, query: string, limit = QURAN_RE
       retrieval: source.get(keyOf(item)) ?? 'lexical',
     })),
     reranked: ranked !== null,
-    vectorAvailable: vector.length > 0,
+    vectorAvailable,
   };
 }
+
+/**
+ * What the reranker reads for an ayah: where it is, and what it says. Takes the fields rather than
+ * a row, because Ask carries a verse in a different shape and both must be ranked identically --
+ * the same verse scoring differently in the two places would be a bug nobody would think to look
+ * for.
+ */
+export const ayahRerankText = (surahName: string, surah: number, ayah: number, translation: string) =>
+  `${surahName} ${surah}:${ayah} -- ${translation}`;
 
 /** Progress of the embedding pass, so a half-built index is visible rather than silently thin. */
 export async function getQuranIndexStatus(env: Bindings) {

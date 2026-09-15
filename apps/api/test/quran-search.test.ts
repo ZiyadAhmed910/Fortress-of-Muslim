@@ -149,6 +149,26 @@ describe('searching for verses', () => {
     expect(matches).toEqual([]);
   });
 
+  it('finds anything at all for the word people actually type', async () => {
+    // Measured live before this was fixed: "reliance upon Allah" returned 8:49, 27:79 and 33:3 at
+    // 0.99, while "tawakkul" -- the same question, and the word far likelier to be typed --
+    // returned nothing whatsoever. The transliteration appears in no English translation, so the
+    // lexical half had no term to match, and it sits nowhere near the English phrase for the
+    // embedding half. Curated expansion is what bridges both.
+    //
+    // Asserted as "not empty, and about trust": which verse ranks first is the reranker's call on
+    // the live index, and pinning one here would test the mock rather than the gap that was closed.
+    const { matches } = await searchQuran(envWith({ rerankOn: 'trust' }) as never, 'ayah about tawakkul', 5);
+    expect(matches.length).toBeGreaterThan(0);
+    const bare = await searchQuran(envWith({ rerankOn: 'zzzznotaword' }) as never, 'tawakkul', 5);
+    expect(bare.matches.length).toBeGreaterThan(0);
+  });
+
+  it('expands the retrieval query without changing what the reader asked', async () => {
+    const { matches } = await searchQuran(envWith({ rerankOn: 'patience' }) as never, 'verses on sabr', 5);
+    expect(matches.length).toBeGreaterThan(0);
+  });
+
   it('respects the limit it was given', async () => {
     const { matches } = await searchQuran(envWith({ rerankOn: 'the' }) as never, 'guidance for the believers', 3);
     expect(matches.length).toBeLessThanOrEqual(3);

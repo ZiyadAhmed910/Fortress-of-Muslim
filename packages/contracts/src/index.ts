@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const API_VERSION = 'v1' as const;
 export const PLATFORM_NAME = 'Fortress Platform' as const;
-export const PLATFORM_VERSION = '0.29.0' as const;
+export const PLATFORM_VERSION = '0.30.0' as const;
 export const CURRENT_DATASET_ID = 'dataset.hisn.legacy.2026-07-11-v2' as const;
 
 export const contentSegmentSchema = z.object({
@@ -122,8 +122,10 @@ export const hadithSearchSchema = hadithListSchema.extend({
   q: z.string().trim().min(2).max(200),
 });
 
+// Wider than contentTypeSchema: "quran" is not a kind of stored record, it means answer from
+// verses instead. Ask resolves it before any repository call.
 export const askFiltersSchema = z.object({
-  contentType: contentTypeSchema.optional(),
+  contentType: z.enum(['dua', 'hadith', 'quran']).optional(),
   collection: z.string().trim().min(1).max(80).optional(),
 });
 

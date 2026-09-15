@@ -24,6 +24,25 @@ const SYNONYM_GROUPS: string[][] = [
   ['taraweeh', 'tarawih', 'taraweh'],
   ['iftar', 'iftaar', 'breaking the fast'],
   ['suhoor', 'suhur', 'sahur', 'sahoor', 'pre-dawn meal'],
+  // Thematic Quran search brought a second kind of gap. The first groups above are spelling
+  // variants of a practice; these are concepts people name in Arabic and that scripture renders
+  // only in English. Measured against the live corpus: "reliance upon Allah" returns 8:49, 27:79
+  // and 33:3 at 0.99, and "tawakkul" -- the same question, the word a person is far more likely to
+  // type -- returned nothing at all, because the transliteration sits nowhere near the English in
+  // embedding space and appears in no translation for the lexical half to find.
+  ['tawakkul', 'reliance upon Allah', 'trust in Allah', 'put their trust'],
+  ['sabr', 'patience', 'perseverance', 'steadfastness'],
+  ['taqwa', 'god-consciousness', 'piety', 'fear of Allah'],
+  ['shukr', 'gratitude', 'thankfulness', 'giving thanks'],
+  ['rizq', 'provision', 'sustenance', 'livelihood'],
+  ['tawbah', 'tawba', 'repentance', 'turning in repentance'],
+  ['dhikr', 'zikr', 'remembrance of Allah'],
+  ['sadaqah', 'sadaqa', 'charity'],
+  ['jannah', 'paradise', 'the gardens'],
+  ['jahannam', 'hellfire', 'the fire of hell'],
+  ['qadar', 'divine decree', 'predestination'],
+  ['ilm', 'knowledge', 'seeking knowledge'],
+  ['rahmah', 'mercy', 'compassion'],
 ];
 
 export function expandRetrievalQuery(question: string): string {
