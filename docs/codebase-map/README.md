@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-15T04:59:16.646Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-15T05:05:18.238Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -79,7 +79,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/rag-intent.ts` | ts | 36 |  | type AskIntent, function detectAskIntent |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 60 |  | function expandRetrievalQuery |
-| `apps/api/src/rag.ts` | ts | 1519 |  | const EMBEDDING_MODEL, type AyahRecord, type AskRecord, type AskScope, type RagSource, function extractAnswerText, +20 more |
+| `apps/api/src/rag.ts` | ts | 1533 |  | const EMBEDDING_MODEL, type AyahRecord, type AskRecord, type AskScope, type RagSource, function extractAnswerText, +20 more |
 | `apps/api/src/repositories/content-repository.ts` | ts | 63 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 742 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
@@ -318,7 +318,7 @@ Not all of these are bugs; verify before assuming.
 | access_requests | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | account | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | admin | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
-| an | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
+| an | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `pwa-website/js/prayer.js` |
 | any | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
 | api_ask_content | view | `apps/api/migrations/0023_ask_content_view.sql` | `apps/api/test/publish-hadith-migration.test.ts` |
 | api_current_content | view | `apps/api/migrations/0010_api_content_visibility.sql`, `apps/api/migrations/0013_verify_and_publish_hisn.sql`, `apps/api/migrations/0017_canonical_withdrawals.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts` |

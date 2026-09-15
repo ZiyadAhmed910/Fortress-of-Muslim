@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T04:59:16.646Z",
+  "generatedAt": "2026-09-15T05:05:18.238Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -129,7 +129,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 1519,
+      "lines": 1533,
       "language": "ts",
       "exports": [
         "const EMBEDDING_MODEL",
@@ -2478,6 +2478,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "apps/api/src/rag.ts",
         "pwa-website/js/prayer.js"
       ]
     },

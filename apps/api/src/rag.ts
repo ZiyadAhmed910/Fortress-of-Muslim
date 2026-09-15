@@ -35,6 +35,17 @@ const DEFAULT_ASK_SETTINGS = {
   unverifiedFallback: 0,
 };
 const MAX_CONTEXTS = 6;
+// gpt-oss is a reasoning model: it writes a private chain of thought before the answer, and those
+// tokens come out of the same budget. At 650 the reasoning could consume all of it and the model
+// returned an empty string -- which became the deterministic fallback, so most questions showed
+// "could not generate a fully cited answer" while displaying the right sources. It got worse the
+// moment verse contexts gained their Arabic, because a longer context means longer reasoning.
+// The answer itself is a short paragraph; nearly all of this is headroom for thinking.
+const GENERATION_MAX_TOKENS = 2_000;
+// How much of one record reaches the prompt. 8,000 characters each, six at a time, was ~16,000
+// tokens of input per question -- paid for on every question, and more to reason through. A
+// reading or a hadith says what it says well inside this.
+const CONTEXT_TEXT_LIMIT = 1_500;
 // Retrieve wide, then let the reranker decide. Recall is cheap (a vector query and an FTS query);
 // being wrong about which six to show is not.
 const RERANK_CANDIDATES = 16;
@@ -895,7 +906,7 @@ export function streamAnswer(
               { role: 'system', content: GENERATION_SYSTEM_PROMPT },
               { role: 'user', content: `Question: ${question}\n\nSource contexts:\n${contexts}` },
             ],
-            max_tokens: 650,
+            max_tokens: GENERATION_MAX_TOKENS,
             temperature: 0.1,
             stream: true,
           }) as unknown as ReadableStream<Uint8Array>;
@@ -979,11 +990,14 @@ async function generateGroundedAnswer(
         { role: 'system', content: GENERATION_SYSTEM_PROMPT },
         { role: 'user', content: `Question: ${question}\n\nSource contexts:\n${contexts}` },
       ],
-      max_tokens: 650,
+      max_tokens: GENERATION_MAX_TOKENS,
       temperature: 0.1,
     });
     answer = extractAnswerText(response);
     if (!answer) {
+      // Distinguished in the log from an answer rejected for citations: the causes and the fixes are
+      // nothing alike, and both previously arrived as the same fallback text.
+      rejected = '(model returned no text)';
       console.error(JSON.stringify({
         event: 'rag_generation_empty',
         model: chosenModel,

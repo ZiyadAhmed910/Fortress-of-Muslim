@@ -174,6 +174,25 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.31.2
+
+_2026-09-15_
+
+- **The model was returning nothing at all.** Most questions showed "could not generate a fully
+  cited answer" beside the right sources, and two rounds of loosening the citation rule did not fix
+  it -- because the citation rule was never involved. Reading the raw stream showed the model
+  producing zero tokens. gpt-oss writes a private chain of thought before its answer and those
+  tokens come out of `max_tokens`; at 650 the reasoning could consume the entire budget and leave an
+  empty string, which became the fallback. It got worse the moment verse contexts gained their
+  Arabic, because a longer context means longer reasoning. The budget is 2,000 now, nearly all of it
+  headroom for thinking.
+- **Contexts are trimmed to 1,500 characters each.** Eight thousand characters times six sources was
+  around 16,000 tokens of input on every question -- paid for every time, and more to reason
+  through. A reading or a hadith says what it says well inside that.
+- **An empty generation is recorded as itself.** It and a rejected-for-citations answer arrived as
+  the same fallback text and are nothing alike in cause or fix, which is exactly why the first two
+  attempts at this chased the wrong one.
+
 ### 0.31.1
 
 _2026-09-15_
