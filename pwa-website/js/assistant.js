@@ -113,15 +113,16 @@ function insertNewline() {
 export function fitAssistantHeight() {
   const home = els.assistantHome;
   if (!home || home.hidden || !home.getClientRects().length) return;
-  const root = document.documentElement;
-  const top = home.getBoundingClientRect().top;
-  const reserve = Math.round(top + 16);
-  root.style.setProperty('--chrome-height', `${reserve}px`);
-  // One correction pass. Padding below the column -- the app shell's, the view's -- is far easier to
-  // measure than to enumerate, and the thread has its own scroll area, so a long conversation never
-  // contributes to page height and cannot feed back into this.
-  const overflow = root.scrollHeight - window.innerHeight;
-  if (overflow > 0) root.style.setProperty('--chrome-height', `${reserve + Math.round(overflow)}px`);
+  // Where the column starts. The stylesheet pins it from there to the bottom of the viewport, so
+  // this is the only number it needs -- and it has to be measured, because the header and tabs
+  // above are not the same height on a phone as on a desktop.
+  //
+  // Read with the pin temporarily released: once the element is fixed, its own top is whatever was
+  // last set here, and measuring that would just echo the previous value back.
+  home.style.position = 'static';
+  const top = Math.round(home.getBoundingClientRect().top);
+  home.style.position = '';
+  document.documentElement.style.setProperty('--ask-top', `${top}px`);
 }
 
 /** Grows the composer to fit what is typed, up to the max-height the stylesheet sets. */

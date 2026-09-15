@@ -16,6 +16,7 @@ type AyahRow = {
   surahNameSimple: string;
   surahNameEnglish: string;
   revelationPlace: string;
+  arabic: string;
   translation: string;
 };
 
@@ -57,7 +58,7 @@ async function lexicalAyahs(database: D1Database, query: string, limit: number):
     SELECT ayahs.surah, ayahs.ayah,
            ayahs.surah_name_simple AS surahNameSimple,
            ayahs.surah_name_english AS surahNameEnglish,
-           ayahs.revelation_place AS revelationPlace,
+           ayahs.revelation_place AS revelationPlace, ayahs.arabic,
            ayahs.translation
     FROM quran_search_fts search
     JOIN quran_ayahs ayahs ON ayahs.surah = search.surah AND ayahs.ayah = search.ayah
@@ -88,7 +89,7 @@ async function vectorAyahs(env: Bindings, query: string, limit: number): Promise
   });
   const result = await env.CONTENT_DB.prepare(`
     SELECT surah, ayah, surah_name_simple AS surahNameSimple, surah_name_english AS surahNameEnglish,
-           revelation_place AS revelationPlace, translation
+           revelation_place AS revelationPlace, arabic, translation
     FROM quran_ayahs
     WHERE surah * 1000 + ayah IN (${numericKeys.map(() => '?').join(', ')})
   `).bind(...numericKeys).all<AyahRow>();

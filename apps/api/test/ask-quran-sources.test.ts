@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { ContentRepository } from '../src/repositories/content-repository';
@@ -16,8 +16,11 @@ let db: Database.Database;
 
 beforeAll(() => {
   db = new Database(':memory:');
-  db.exec(readFileSync(resolve(MIGRATIONS, '0024_quran_search.sql'), 'utf8'));
-  db.exec(readFileSync(resolve(MIGRATIONS, '0025_quran_ayahs.sql'), 'utf8'));
+  // Every quran migration in order: 0026 adds the Arabic, and a fixture missing it tests a
+  // schema no environment has.
+  for (const file of readdirSync(MIGRATIONS).filter((name) => /^002[456]_/.test(name)).sort()) {
+    db.exec(readFileSync(resolve(MIGRATIONS, file), 'utf8'));
+  }
 });
 
 const emptyRepository = {
@@ -39,10 +42,11 @@ const emptyRepository = {
 } as unknown as ContentRepository;
 
 /** D1 over better-sqlite3, plus a Vectorize stub that returns the verses it is told to. */
-const envWith = ({ vectorHits = [] as string[], rerankOn = '', capture }: {
+const envWith = ({ vectorHits = [] as string[], rerankOn = '', capture, scoreBy }: {
   vectorHits?: string[];
   rerankOn?: string;
   capture?: { generationPrompt?: string; rerankQuery?: string };
+  scoreBy?: (text: string) => number;
 } = {}) => ({
   CONTENT_DB: {
     prepare: (sql: string) => {
@@ -72,7 +76,8 @@ const envWith = ({ vectorHits = [] as string[], rerankOn = '', capture }: {
         return {
           response: (input.contexts ?? []).map((context, id) => ({
             id,
-            score: rerankOn && context.text.toLowerCase().includes(rerankOn.toLowerCase()) ? 0.95 : 0.02,
+            score: scoreBy ? scoreBy(context.text)
+              : rerankOn && context.text.toLowerCase().includes(rerankOn.toLowerCase()) ? 0.95 : 0.02,
           })),
         };
       }
@@ -143,6 +148,52 @@ describe('answering from the Quran', () => {
     );
     expect(capture.rerankQuery).toContain('tawakkul');
     expect(capture.rerankQuery).toContain('reliance upon Allah');
+  });
+
+  it('shows verses even when hadith outrank them', async () => {
+    // Live failure: "what does the Quran say about patience?" came back citing four hadith and not
+    // one verse. The Quran is one book against 14,625 records, so on a common theme the hadith
+    // simply outnumber the verses through the cut. Reranking still orders them; a floor of two slots
+    // means the Quran is represented when it was found and judged relevant.
+    const withHadith = {
+      ...emptyRepository,
+      searchForRag: async () => Array.from({ length: 10 }, (_unused, index) => ({
+        id: `hadith.bukhari.${index + 1}`,
+        contentType: 'hadith' as const,
+        score: 0.9,
+      })),
+      getAskHadith: async (id: string) => ({
+        id,
+        sequence: 1,
+        displayNumber: id.split('.').pop(),
+        title: `Sahih al-Bukhari ${id.split('.').pop()}`,
+        collection: { slug: 'bukhari', title: 'Sahih al-Bukhari' },
+        book: null,
+        chapter: null,
+        narrator: 'Narrated someone:',
+        grade: null,
+        verificationStatus: 'unverified',
+        workflowState: 'pending_review',
+        verifiedBy: null,
+        verifiedAt: null,
+        revisionNumber: 1,
+        publishedAt: '2026-09-13T00:00:00.000Z',
+        canonicalUrl: `https://fortressofmuslim.org/bukhari/${id}`,
+        segments: [{ kind: 'translation', text: 'A hadith about patience and steadfastness.' }],
+        references: [],
+      }),
+    } as unknown as ContentRepository;
+    // Hadith score 0.9 and the verse 0.2, so a cut taken across both kinds (0.9 x 0.35 = 0.315)
+    // removes every verse before anything can reserve a slot for one. That is the live failure.
+    const result = await answerQuestion(
+      envWith({ vectorHits: ['2:153'], scoreBy: (text) => (/Bukhari/.test(text) ? 0.9 : 0.2) }),
+      withHadith,
+      'what does the quran say about patience?',
+      'quran-ask-test',
+    );
+    expect(result.sources.some((source) => source.contentType === 'quran')).toBe(true);
+    // And the hadith are still there: the quota is a floor, not a takeover.
+    expect(result.sources.some((source) => source.contentType === 'hadith')).toBe(true);
   });
 
   it('leaves verses out when the question is scoped to duas', async () => {

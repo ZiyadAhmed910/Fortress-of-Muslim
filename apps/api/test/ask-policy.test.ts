@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { chooseAskModel, extractAnswerText, loadAskSettings, mergeCandidates, rankByRelevance } from '../src/rag';
+import { chooseAskModel, composeContexts, extractAnswerText, loadAskSettings, mergeCandidates, rankByRelevance } from '../src/rag';
 
 // Ask spends real money per answer, and the good model spends it about twice as fast as the cheap
 // one. The policy is: use the better model until a set share of its daily allowance is gone, then
@@ -135,8 +135,11 @@ describe('reranking what retrieval found', () => {
     const env = rerankerScoring((text) => (/bathroom/i.test(text) ? 0.92 : 0.04));
     const { records, reranked } = await rankByRelevance(env, 'what do I say before entering the toilet', candidates);
     expect(reranked).toBe(true);
-    expect(records.map((record) => record.record.id)).toEqual(['dua.hisn.015']);
-    expect(records[0]!.score).toBeCloseTo(0.92);
+    // rankByRelevance orders and drops nonsense; composeContexts applies the relevance cut, within
+    // each kind, because a cut taken across kinds removed every verse once the Quran joined.
+    const kept = composeContexts(records);
+    expect(kept.map((record) => record.record.id)).toEqual(['dua.hisn.015']);
+    expect(kept[0]!.score).toBeCloseTo(0.92);
   });
 
   it('orders by how well each source answers, not by how it was found', async () => {
@@ -154,7 +157,7 @@ describe('reranking what retrieval found', () => {
     // retrieved and nowhere near close enough to cite.
     const env = rerankerScoring((text) => (/mosque/i.test(text) ? 0.9 : 0.2));
     const { records } = await rankByRelevance(env, 'entering the mosque', candidates);
-    expect(records.map((record) => record.record.title)).toEqual(['Upon entering the mosque']);
+    expect(composeContexts(records).map((record) => record.record.title)).toEqual(['Upon entering the mosque']);
   });
 
   it('keeps a weak best match rather than answering nothing at all', async () => {

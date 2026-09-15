@@ -143,15 +143,39 @@
 /* The thread scrolls, not the page, and the composer never leaves the screen. Anchoring the whole
    column to the viewport is what stops the answer being pushed below the fold: on a phone the old
    layout put the answer 519px down and 151px past the bottom, which read as "nothing happened". */
-.assistant-home { display: flex; flex-direction: column; height: calc(100svh - var(--chrome-height, 13rem)); min-height: 24rem; }
+/* Pinned to the viewport rather than sized inside the page. Sizing it in flow meant competing with
+   the shell's 100vh floor, its padding and the view's own height, and every correction left either
+   a strip of dead space under the composer or a page that could still scroll it out of reach.
+   Fixed, the composer is on the bottom edge by construction and the thread takes what is left.
+   --ask-top is measured (see fitAssistantHeight) because the header and tabs above are not a
+   constant between phone and desktop. */
+.mode-ask .assistant-home {
+  position: fixed;
+  left: 0; right: 0;
+  top: var(--ask-top, 10rem);
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.75rem env(safe-area-inset-bottom);
+}
 .assistant-result { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; overscroll-behavior: contain; padding-right: 0.15rem; }
+/* No gap under the composer: it sits on the bottom edge of the column, which is the bottom of the
+   screen. A margin there reads as the bar floating above a strip of nothing. */
 .assistant-bar {
   flex: none;
   display: grid; gap: 0.35rem; margin-top: 0.7rem;
-  padding: 0.5rem 0.6rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.55rem 0.6rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
   border: 1px solid var(--line); border-radius: 1rem;
   background: var(--paper-strong);
   box-shadow: 0 -10px 24px -18px rgb(0 0 0 / 45%);
+}
+/* "Start a new conversation" belongs where it can always be reached, not at the top of a thread
+   that scrolls away the moment there is anything to read. */
+.assistant-reset {
+  position: sticky; top: 0; z-index: 3;
+  display: block; width: 100%; margin: 0 0 0.4rem;
+  padding: 0.3rem 0; text-align: right;
+  background: linear-gradient(var(--paper) 65%, transparent);
 }
 .assistant-bar textarea {
   width: 100%;
@@ -1051,4 +1075,8 @@ body.has-player .reader-controls {
   background: var(--surface-subtle, var(--surface)); border: 1px solid var(--line);
   color: var(--ink); font-weight: 600; font-size: calc(0.92rem * var(--font-scale));
 }
-.assistant-reset { display: block; margin: 0 0 0.2rem auto; }
+
+/* In Ask the chat column already sizes itself to the screen, so the shell's 100vh floor -- on top
+   of its own padding -- is pure overflow: it is what leaves the page scrollable and lets the
+   composer scroll out of reach. Only this mode opts out; every other view still wants it. */
+.app-shell.mode-ask { min-height: 0; }

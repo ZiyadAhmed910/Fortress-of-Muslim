@@ -1,6 +1,7 @@
 import type { Dua, Hadith } from '@fortress/contracts';
 import type { ContentRepository, RagFilters } from './repositories/content-repository';
 import { parseExactHadithReference } from './rag-reference';
+import { detectAskIntent, type AskIntent } from './rag-intent';
 import { expandRetrievalQuery } from './rag-synonyms';
 import { ayahRerankText, quranCandidates } from './quran-search';
 import type { Bindings } from './types';
@@ -40,6 +41,9 @@ const RERANK_CANDIDATES = 16;
 // How many verses join the pool Ask reranks. Smaller than the record side because the Quran is one
 // book against 14,625 records, and a question about a dua should not drown in ayahs.
 const QURAN_ASK_CANDIDATES = 8;
+// Context slots held for the Quran when verses were retrieved and cleared the relevance floor. A
+// floor rather than a cap -- see composeContexts().
+const VERSE_SLOTS = 2;
 // The reranker is used to order candidates, not to judge whether an answer exists. bge-reranker-base
 // is the only reranker Workers AI offers, and its absolute scores are not comparable across
 // questions: the same reading scores 0.81 for "When angry" and under 0.05 for "what should I recite
@@ -101,6 +105,7 @@ export type AyahRecord = {
   surah: number;
   ayah: number;
   surahName: string;
+  arabic: string;
   translation: string;
 };
 
@@ -111,11 +116,11 @@ export type AskRecord = Dua | Hadith | AyahRecord;
  * of record it stores -- it means "answer from verses instead", so it is resolved before any
  * repository call rather than passed down into one.
  */
+export type AskScope = { contentType?: 'dua' | 'hadith' | 'quran'; collection?: string };
+
 /** Narrows an Ask scope to what the repository understands; a Quran scope means no records. */
 const recordScope = (scope?: AskScope): RagFilters | undefined =>
   (!scope || scope.contentType === 'quran' ? undefined : scope as RagFilters);
-
-export type AskScope = { contentType?: 'dua' | 'hadith' | 'quran'; collection?: string };
 
 type GroundedRecord = {
   record: AskRecord;
@@ -262,6 +267,7 @@ export async function rerankByRelevance<T>(
   items: T[],
   toText: (item: T) => string,
   keep: number,
+  { relativeCut = true } = {},
 ): Promise<Array<{ item: T; score: number }> | null> {
   try {
     // @cloudflare/workers-types describes this model without its `query` field -- the doc comment
@@ -280,7 +286,7 @@ export async function rerankByRelevance<T>(
       .sort((left, right) => right.score - left.score);
     const best = ranked[0]?.score ?? 0;
     const kept = ranked
-      .filter((entry) => entry.score >= RERANK_FLOOR && entry.score >= best * RERANK_RELATIVE_CUT)
+      .filter((entry) => entry.score >= RERANK_FLOOR && (!relativeCut || entry.score >= best * RERANK_RELATIVE_CUT))
       .slice(0, keep);
     if (kept.length === 0 && ranked.length > 0) {
       // Worth seeing: everything judged unrelated is either a question the corpus does not answer,
@@ -298,11 +304,64 @@ export async function rerankByRelevance<T>(
   }
 }
 
-export async function rankByRelevance(env: Bindings, question: string, candidates: GroundedRecord[]) {
+export async function rankByRelevance(env: Bindings, question: string, candidates: GroundedRecord[], keep = MAX_CONTEXTS) {
   if (candidates.length === 0) return { records: [] as GroundedRecord[], reranked: false };
-  const kept = await rerankByRelevance(env, question, candidates, rerankText, MAX_CONTEXTS);
-  if (!kept) return { records: candidates.slice(0, MAX_CONTEXTS), reranked: false };
+  // The relative cut is left to composeContexts(), which applies it within each kind.
+  const kept = await rerankByRelevance(env, question, candidates, rerankText, keep, { relativeCut: false });
+  if (!kept) return { records: candidates.slice(0, keep), reranked: false };
   return { records: kept.map((entry) => ({ ...entry.item, score: entry.score })), reranked: true };
+}
+
+const isVerse = (item: GroundedRecord) => item.contentType === 'quran';
+
+/**
+ * Chooses the six contexts an answer is written from.
+ *
+ * Two things happen here that reranking alone got wrong once the Quran joined the corpus.
+ *
+ * The relevance cut is applied within each kind rather than across both. It exists to drop a tail of
+ * near-misses, and it does that by comparing against the best candidate -- which is sound among
+ * things of one kind and wrong across two. The Quran is one book against 14,625 records, so on a
+ * common theme the best hadith scores far above the best verse, and every verse fell under a cut
+ * calculated from a hadith: "what does the Quran say about patience?" came back citing four hadith
+ * and not one verse. Whether a verse answers the question is judged against the other verses.
+ *
+ * Then the Quran is guaranteed a couple of slots when verses survived that cut. It is a floor, never
+ * a cap -- when verses rank highly they take as many slots as they earn.
+ */
+export function composeContexts(ranked: GroundedRecord[], intent: AskIntent = null) {
+  const withinKind = (items: GroundedRecord[]) => {
+    const best = items[0]?.score ?? 0;
+    return items.filter((item) => item.score >= best * RERANK_RELATIVE_CUT);
+  };
+  const verses = withinKind(ranked.filter(isVerse));
+  const records = withinKind(ranked.filter((item) => !isVerse(item)));
+
+  // A question that names a kind of source gets more of it. "Find tawakkul in the Quran" and "what
+  // did the Prophet say about intentions" are asking for different things, and retrieval scores
+  // cannot tell -- they see topical similarity, on which the 14,357 hadith outnumber everything.
+  // A preference, not a filter: the wanted kind leads, the others still appear, because the wording
+  // is a hint and a wrong guess must not be able to hide the answer.
+  const wantsVerses = intent === 'quran';
+  const preferred = intent && intent !== 'quran'
+    ? records.filter((item) => item.contentType === intent)
+    : [];
+  const quota = wantsVerses
+    ? Math.min(verses.length, MAX_CONTEXTS - 1)
+    : Math.min(VERSE_SLOTS, verses.length);
+  const chosen = [
+    ...verses.slice(0, quota),
+    ...preferred.slice(0, Math.max(MAX_CONTEXTS - quota - 1, 0)),
+    ...records.filter((item) => !preferred.includes(item)).slice(0, MAX_CONTEXTS - quota - preferred.length),
+  ].filter((item, index, all) => all.indexOf(item) === index).slice(0, MAX_CONTEXTS);
+  // Anything still unfilled goes to whichever kind has more left, so a Quran-only or record-only
+  // question still gets six contexts rather than two.
+  if (chosen.length < MAX_CONTEXTS) {
+    const rest = [...verses.slice(quota), ...records.slice(MAX_CONTEXTS - quota)]
+      .sort((left, right) => right.score - left.score);
+    chosen.push(...rest.slice(0, MAX_CONTEXTS - chosen.length));
+  }
+  return chosen.sort((left, right) => right.score - left.score);
 }
 
 // Title plus the reading's own words, which is what the question is really being matched against.
@@ -564,6 +623,17 @@ async function prepareGrounding(
         chosen,
         remaining,
         grounded: [{ record, contentType: 'hadith' as const, score: 0.99, retrieval: 'lexical' as const }],
+        // Logged like any other question. Nothing was ranked -- a reference was resolved directly --
+        // and the counts say so rather than being left out.
+        telemetry: {
+          retrievalQuery: baseQuery,
+          scope: filters?.contentType,
+          rewritten,
+          vectorCandidates: 0,
+          lexicalCandidates: 1,
+          verseCandidates: 0,
+          reranked: false,
+        },
         retrievalMode: 'exact_reference' as const,
         reranked: false,
         vectorAvailable: false,
@@ -599,6 +669,7 @@ async function prepareGrounding(
         surah: row.surah,
         ayah: row.ayah,
         surahName: row.surahNameSimple,
+        arabic: row.arabic,
         translation: row.translation,
       },
       contentType: 'quran',
@@ -611,7 +682,20 @@ async function prepareGrounding(
   // vocabulary problem retrieval does: asked to score verses against "what is tawakkul?" -- a term
   // in no English translation -- it put everything under the floor and Ask answered "nothing found"
   // while plain verse search, which reranks on the expanded text, returned the right verses.
-  const { records: grounded, reranked } = await rankByRelevance(env, baseQuery, candidates);
+  const { records: ranked, reranked } = await rankByRelevance(env, baseQuery, candidates, RERANK_CANDIDATES);
+  // Read from the question as typed -- the rewritten follow-up is for retrieval, and the words a
+  // person chose are what say which kind of source they want.
+  const intent = filters?.contentType ? null : detectAskIntent(question);
+  const grounded = composeContexts(ranked, intent);
+  const telemetry = {
+    retrievalQuery: baseQuery,
+    scope: filters?.contentType,
+    rewritten,
+    vectorCandidates: vectorRecords.length,
+    lexicalCandidates: lexicalRecords.length,
+    verseCandidates: ayahs.length,
+    reranked,
+  };
 
   if (settings.unverifiedFallback === 1 && grounded.length < MIN_VERIFIED_SOURCES) {
     const fallback = await retrieveUnverifiedFallback(repository, baseQuery, grounded, MAX_CONTEXTS - grounded.length, filters);
@@ -629,6 +713,7 @@ async function prepareGrounding(
   if (grounded.length === 0) {
     return {
       ready: false as const,
+      telemetry,
       answer: 'I could not find a sufficiently grounded answer in the published Fortress sources.',
       sources: [],
       meta: {
@@ -653,6 +738,7 @@ async function prepareGrounding(
     vectorAvailable,
     includesUnverifiedSource,
     rewritten,
+    telemetry,
   };
 }
 
@@ -665,12 +751,18 @@ export async function answerQuestion(
   history?: AskTurn[],
 ): Promise<AskAnswer> {
   const prepared = await prepareGrounding(env, repository, question, clientAddress, filters, history);
-  if (!prepared.ready) return { answer: prepared.answer, sources: prepared.sources, meta: prepared.meta };
+  if (!prepared.ready) {
+    if (prepared.telemetry) {
+      await logAskQuery(env, { question, ...prepared.telemetry, sources: [], model: null, generated: false });
+    }
+    return { answer: prepared.answer, sources: prepared.sources, meta: prepared.meta };
+  }
 
   const { answer, sources, model, generated } = await generateGroundedAnswer(
     env, prepared.dataset, question, prepared.grounded, prepared.chosen.model,
   );
   if (generated) await recordModelUse(env.CONTENT_DB, prepared.chosen.model);
+  await logAskQuery(env, { question, ...prepared.telemetry, sources, model, generated });
 
   return {
     answer,
@@ -832,6 +924,13 @@ export function streamAnswer(
           send('replace', { answer });
         }
         if (generated) await recordModelUse(env.CONTENT_DB, prepared.chosen.model);
+        await logAskQuery(env, {
+          question,
+          ...prepared.telemetry,
+          sources,
+          model: generated ? prepared.chosen.model : null,
+          generated,
+        });
         send('done', {
           answer,
           meta: { ...baseMeta, model: generated ? prepared.chosen.model : null, generated },
@@ -1200,15 +1299,74 @@ function indexText(row: IndexRow) {
 /** Narrows a record the pipeline has already tagged as a verse. */
 const asAyah = (record: AskRecord) => record as AyahRecord;
 
+/**
+ * Records what a question retrieved, so retrieval can be improved from evidence.
+ *
+ * Every gap found so far was found by hand -- "toilet" citing bathroom-adjacent readings, "when
+ * angry" returning nothing, "tawakkul" returning nothing, a Quran question citing only hadith. Each
+ * cost a person noticing and a session of digging. This writes the same information down as it
+ * happens.
+ *
+ * Never allowed to affect the answer: a logging failure is swallowed, because a question that was
+ * answered correctly must not fail on the way out because a write did. Carries no IP and no
+ * identifier -- see migration 0027.
+ */
+async function logAskQuery(env: Bindings, entry: {
+  question: string;
+  retrievalQuery: string;
+  scope?: string;
+  rewritten: boolean;
+  vectorCandidates: number;
+  lexicalCandidates: number;
+  verseCandidates: number;
+  reranked: boolean;
+  sources: RagSource[];
+  model: string | null;
+  generated: boolean;
+}) {
+  try {
+    await env.CONTENT_DB.prepare(`
+      INSERT INTO ask_query_log (
+        question, retrieval_query, scope, rewritten,
+        vector_candidates, lexical_candidates, verse_candidates,
+        reranked, sources, model, generated
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      entry.question.slice(0, 500),
+      entry.retrievalQuery.slice(0, 1_000),
+      entry.scope ?? null,
+      entry.rewritten ? 1 : 0,
+      entry.vectorCandidates,
+      entry.lexicalCandidates,
+      entry.verseCandidates,
+      entry.reranked ? 1 : 0,
+      JSON.stringify(entry.sources.map((source) => ({
+        id: source.id,
+        contentType: source.contentType,
+        score: source.score,
+      }))),
+      entry.model,
+      entry.generated ? 1 : 0,
+    ).run();
+  } catch (error) {
+    console.error(JSON.stringify({ event: 'ask_query_log_failed', message: errorMessage(error) }));
+  }
+}
+
 function contextBlock(record: AskRecord, contentType: 'dua' | 'hadith' | 'quran', index: number) {
   if (contentType === 'quran') {
     const verse = asAyah(record);
     // Labelled as Quran explicitly: the prompt forbids the model calling anything Quran unless its
     // context says so, and here the context truthfully does.
+    // The Arabic is given, in full, because otherwise the model writes it from memory. It did
+    // exactly that when the context carried the translation alone -- producing Quranic text that
+    // trailed off in an ellipsis, recalled rather than quoted. There is nothing this platform should
+    // be more careful about, so the words come from the source or they do not appear.
     return [
       `[${index}] ${verse.title}`,
       `Reference: Quran ${verse.surah}:${verse.ayah} (Surah ${verse.surahName})`,
       'Verification: verified',
+      `arabic: ${verse.arabic}`,
       `translation: ${normalizeLegacyTypography(verse.translation)}`,
     ].join('\n');
   }

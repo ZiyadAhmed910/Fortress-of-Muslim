@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T00:24:48.060Z",
+  "generatedAt": "2026-09-15T04:53:06.384Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -77,7 +77,7 @@
     },
     {
       "path": "apps/api/src/quran-search.ts",
-      "lines": 268,
+      "lines": 269,
       "language": "ts",
       "exports": [
         "const QURAN_NAMESPACE",
@@ -93,6 +93,17 @@
         "./rag-synonyms",
         "./types"
       ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/rag-intent.ts",
+      "lines": 36,
+      "language": "ts",
+      "exports": [
+        "type AskIntent",
+        "function detectAskIntent"
+      ],
+      "imports": [],
       "routeCount": 0
     },
     {
@@ -118,7 +129,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 1346,
+      "lines": 1504,
       "language": "ts",
       "exports": [
         "const EMBEDDING_MODEL",
@@ -132,6 +143,7 @@
         "function chooseAskModel",
         "function rerankByRelevance",
         "function rankByRelevance",
+        "function composeContexts",
         "function indexRecordBatch",
         "function indexNextPendingBatch",
         "function getRagStatus",
@@ -151,6 +163,7 @@
         "@fortress/contracts",
         "./repositories/content-repository",
         "./rag-reference",
+        "./rag-intent",
         "./rag-synonyms",
         "./quran-search",
         "./types"
@@ -251,8 +264,20 @@
       "routeCount": 0
     },
     {
+      "path": "apps/api/test/ask-intent.test.ts",
+      "lines": 121,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/rag-intent",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
       "path": "apps/api/test/ask-policy.test.ts",
-      "lines": 241,
+      "lines": 244,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -266,7 +291,7 @@
     },
     {
       "path": "apps/api/test/ask-quran-sources.test.ts",
-      "lines": 171,
+      "lines": 222,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -344,7 +369,7 @@
     },
     {
       "path": "apps/api/test/quran-search.test.ts",
-      "lines": 177,
+      "lines": 180,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -797,7 +822,7 @@
     },
     {
       "path": "pwa-website/js/assistant.js",
-      "lines": 259,
+      "lines": 260,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1310,6 +1335,22 @@
     {
       "path": "apps/api/migrations/0025_quran_ayahs.sql",
       "lines": 6480,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0026_quran_arabic.sql",
+      "lines": 6590,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0027_ask_query_log.sql",
+      "lines": 42,
       "language": "sql",
       "exports": [],
       "imports": [],
@@ -2508,6 +2549,16 @@
       ]
     },
     {
+      "name": "ask_query_log",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0027_ask_query_log.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
       "name": "ask_settings",
       "kind": "table",
       "definedIn": [
@@ -3083,6 +3134,14 @@
       ]
     },
     {
+      "name": "evidence",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
       "name": "evil",
       "kind": "unknown",
       "definedIn": [],
@@ -3305,6 +3364,14 @@
         "apps/auth/migrations/0001_identity.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "memory",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
     },
     {
       "name": "metal",
@@ -3921,6 +3988,7 @@
         "apps/admin/public/app.js",
         "apps/api/src/app.ts",
         "apps/api/src/quran-search.ts",
+        "apps/api/src/rag-intent.ts",
         "apps/api/src/rag.ts",
         "apps/api/test/ask-policy.test.ts",
         "apps/api/test/ask-quran-sources.test.ts",
@@ -3955,6 +4023,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "pwa-website/js/assistant.js",
         "pwa-website/js/modes.js"
       ]
     },
@@ -3965,7 +4034,6 @@
       "referencedBy": [
         "apps/auth/src/editorial-plane.ts",
         "apps/status/public/app.js",
-        "pwa-website/js/assistant.js",
         "pwa-website/js/quran-verse-search.js",
         "pwa-website/js/quran.js"
       ]

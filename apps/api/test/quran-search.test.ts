@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { QURAN_NAMESPACE, searchQuran } from '../src/quran-search';
@@ -14,8 +14,11 @@ let db: Database.Database;
 
 beforeAll(() => {
   db = new Database(':memory:');
-  db.exec(readFileSync(resolve(MIGRATIONS, '0024_quran_search.sql'), 'utf8'));
-  db.exec(readFileSync(resolve(MIGRATIONS, '0025_quran_ayahs.sql'), 'utf8'));
+  // Every quran migration in order: 0026 adds the Arabic, and a fixture missing it tests a
+  // schema no environment has.
+  for (const file of readdirSync(MIGRATIONS).filter((name) => /^002[456]_/.test(name)).sort()) {
+    db.exec(readFileSync(resolve(MIGRATIONS, file), 'utf8'));
+  }
 });
 
 /** D1's shape over better-sqlite3, enough for the queries this module makes. */

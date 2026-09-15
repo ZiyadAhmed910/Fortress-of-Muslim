@@ -174,6 +174,40 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.31.0
+
+_2026-09-15_
+
+- **A cited verse is quoted, not recalled (`0026`).** Ask's context for an ayah carried the English
+  translation alone, so when an answer quoted the Arabic, the model was writing it from memory --
+  producing Quranic text that trailed off in an ellipsis. Quranic text recalled by a language model
+  is the one thing this platform must never put in front of a reader. All 6,236 verses now store
+  their Arabic, and the context carries it in full, so the words come from the source or they do not
+  appear.
+- **The question decides which source leads.** "Find tawakkul in the Quran" wants verses, "what did
+  the Prophet say about intentions" wants hadith, "dua for entering the toilet" wants a
+  supplication. Retrieval scores cannot see any of that -- they see topical similarity, and on a
+  common theme the 14,357 hadith outnumber everything regardless of what was asked. Wording is read
+  as a preference, never a filter: the named kind leads and the others still appear, because a wrong
+  guess must not be able to hide the answer. A question naming two kinds ("the Quran and the
+  Sunnah") states no preference at all.
+- **The relevance cut is applied within each kind.** It exists to drop a tail of near-misses by
+  comparing against the best candidate -- sound among things of one kind, wrong across two. The best
+  hadith scores far above the best verse on a common theme, so every verse fell under a cut computed
+  from a hadith: "what does the Quran say about patience?" cited four hadith and not one verse. The
+  Quran also holds a floor of two context slots when verses survive that cut.
+- **Retrieval is logged for analysis (`0027`).** Every gap so far was found by hand, one session at
+  a time. `ask_query_log` records the question, the query retrieval actually ran, how many candidates
+  each half produced, what was cited and with what score -- enough to see which terms keep missing
+  and whether the cut is set right. No IP, no identifier, nothing joining two questions to one
+  person; a logging failure can never fail an answer.
+- **The composer is pinned to the bottom of the screen.** Sizing the chat column inside the page
+  meant competing with the shell's 100vh floor, its padding and the view's own height, and every
+  correction left either dead space under the composer or a page that could scroll it out of reach.
+  It is fixed to the viewport now: measured gap below the bar is 0, and the thread grew from 461 to
+  531px on a 375x812 phone. "Start a new conversation" sticks to the top of the thread instead of
+  scrolling away.
+
 ### 0.30.1
 
 _2026-09-15_
