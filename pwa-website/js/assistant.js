@@ -1,6 +1,7 @@
 import { els } from './dom.js';
 import { apiBaseUrl, apiRequest } from './online.js';
-import { escapeHtml } from './utils.js';
+import { escapeHtml, toast } from './utils.js';
+import { openCanonicalRoute } from './routes.js';
 
 // Ask is a conversation now, because research is. Someone asks about travelling, reads the answer,
 // and the next thing they want is "what about returning?" -- which used to mean retyping the whole
@@ -43,9 +44,19 @@ export function initAssistant() {
     els.assistantForm.requestSubmit();
   });
   els.assistantQuestion.addEventListener('input', autoGrow);
-  els.assistantResult.addEventListener('click', (event) => {
-    if (event.target.closest('[data-new-conversation]')) resetConversation();
+  els.assistantResult.addEventListener('click', async (event) => {
+    if (event.target.closest('[data-new-conversation]')) return resetConversation();
+    // A citation opens the record it points at, through the same router that resolves these paths
+    // on load -- so "open the hadith" means exactly what /bukhari/book1/1 has always meant.
+    const open = event.target.closest('[data-open-source]');
+    if (!open) return;
+    const source = currentSources().find((item) => item.id === open.dataset.openSource);
+    if (!source) return;
+    const path = new URL(source.canonicalUrl, location.origin).pathname;
+    const opened = await openCanonicalRoute(path);
+    if (!opened) toast('That source could not be opened in the app.');
   });
+  els.assistantReset.addEventListener('click', resetConversation);
   els.assistantResult.addEventListener('scroll', () => {
     const thread = els.assistantResult;
     // A small tolerance: "at the bottom" has to survive sub-pixel heights and a growing answer.
@@ -132,6 +143,8 @@ function autoGrow() {
   box.style.height = `${box.scrollHeight}px`;
 }
 
+const currentSources = () => conversation.flatMap((turn) => turn.sources || []);
+
 function resetConversation() {
   conversation = [];
   followingLatest = true;
@@ -208,10 +221,10 @@ async function streamAnswer(question, filters, history, turn) {
 }
 
 function render() {
-  els.assistantResult.innerHTML = `
-    ${conversation.length > 1 ? '<button class="text-button assistant-reset" type="button" data-new-conversation>Start a new conversation</button>' : ''}
-    ${conversation.map(renderTurn).join('')}
-  `;
+  els.assistantResult.innerHTML = conversation.map(renderTurn).join('');
+  // Offered as soon as one question has been answered -- it used to wait for a second, by which
+  // point a reader wanting to start over had already scrolled looking for it.
+  els.assistantReset.hidden = !conversation.some((turn) => !turn.stage);
   // Keep the newest turn in view as it streams, the way a chat does -- but only while the reader is
   // already at the bottom. Yanking the view back while someone is scrolled up reading an earlier
   // answer is worse than not following at all.
@@ -245,15 +258,53 @@ const unverifiedNote = (meta) => (meta && meta.includesUnverifiedSource
   ? '<p class="assistant-note">This answer draws on at least one source that is not yet independently verified -- clearly marked above.</p>'
   : '');
 
+/**
+ * A citation opens. Seeing "[1] Sahih al-Bukhari 6499" and having to go and find it is the point at
+ * which a grounded answer stops being checkable, so the words travel with the citation and the
+ * source expands in place. "Open" then goes to the record itself -- the verse in the reader, the
+ * dua, the hadith -- rather than leaving the reader to search for it.
+ */
 function renderSources(sources) {
   return sources.map((source) => {
     const isVerified = source.verificationStatus === 'verified';
+    const hasText = Boolean(source.arabic || source.translation);
     return `
-    <a class="assistant-source${isVerified ? '' : ' assistant-source--unverified'}" href="${escapeHtml(source.canonicalUrl)}">
-      <span>[${source.index}] ${escapeHtml(source.collection)}</span>
-      <strong>${escapeHtml(source.reference)}</strong>
-      <small>${isVerified ? 'Verified' : 'Not yet verified'}</small>
-    </a>
+    <details class="assistant-source${isVerified ? '' : ' assistant-source--unverified'}">
+      <summary>
+        <span class="assistant-source-ref">
+          <span>[${source.index}] ${escapeHtml(source.collection)}</span>
+          <strong>${escapeHtml(withoutCollection(source))}</strong>
+        </span>
+        <small>${isVerified ? 'Verified' : 'Not yet verified'}</small>
+      </summary>
+      <div class="assistant-source-body">
+        ${source.arabic ? `<p class="verse-arabic" dir="rtl" lang="ar">${escapeHtml(source.arabic)}</p>` : ''}
+        ${source.translation ? `<p class="verse-translation">${escapeHtml(source.translation)}</p>` : ''}
+        ${hasText ? '' : '<p class="verse-translation">Open the source to read it.</p>'}
+        <button class="text-button" type="button" data-open-source="${escapeHtml(source.id)}"
+          data-content-type="${escapeHtml(source.contentType)}"
+          ${source.surah ? `data-surah="${source.surah}" data-ayah="${source.ayah}"` : ''}>
+          Open ${escapeHtml(sourceKindLabel(source.contentType))}
+        </button>
+      </div>
+    </details>
   `;
   }).join('');
+}
+
+const sourceKindLabel = (contentType) => (
+  contentType === 'quran' ? 'in the Quran' : contentType === 'hadith' ? 'the hadith' : 'the dua'
+);
+
+/**
+ * A hadith's reference already names its collection ("Sahih al-Bukhari 6472"), which the line above
+ * it also names -- so the citation read "Sahih al-Bukhari Sahih al-Bukhari 6472". The collection
+ * stays on the muted line; the strong line is what distinguishes this source from its neighbours.
+ */
+function withoutCollection(source) {
+  const reference = source.reference || '';
+  const collection = source.collection || '';
+  return collection && reference.startsWith(collection)
+    ? reference.slice(collection.length).trim() || reference
+    : reference;
 }

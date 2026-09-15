@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T05:09:44.957Z",
+  "generatedAt": "2026-09-15T06:55:49.875Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -129,7 +129,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 1540,
+      "lines": 1582,
       "language": "ts",
       "exports": [
         "const EMBEDDING_MODEL",
@@ -822,7 +822,7 @@
     },
     {
       "path": "pwa-website/js/assistant.js",
-      "lines": 260,
+      "lines": 311,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -854,7 +854,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 158,
+      "lines": 159,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -990,7 +990,7 @@
     },
     {
       "path": "pwa-website/js/routes.js",
-      "lines": 29,
+      "lines": 36,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3256,6 +3256,7 @@
       "definedIn": [],
       "referencedBy": [
         "apps/auth/src/admin-plane.ts",
+        "pwa-website/js/assistant.js",
         "pwa-website/test/categories.test.js"
       ]
     },

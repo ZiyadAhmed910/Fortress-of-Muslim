@@ -46,6 +46,10 @@ const GENERATION_MAX_TOKENS = 2_000;
 // tokens of input per question -- paid for on every question, and more to reason through. A
 // reading or a hadith says what it says well inside this.
 const CONTEXT_TEXT_LIMIT = 1_500;
+// How much of a source travels back with a citation, so a reader can check it where they are
+// standing instead of leaving to search for it. Shorter than the model's context: this is a
+// preview that expands under the answer, and the link on it leads to the whole record.
+const SOURCE_TEXT_LIMIT = 900;
 // Retrieve wide, then let the reranker decide. Recall is cheap (a vector query and an FTS query);
 // being wrong about which six to show is not.
 const RERANK_CANDIDATES = 16;
@@ -151,6 +155,12 @@ export type RagSource = {
   canonicalUrl: string;
   verificationStatus: string;
   score: number;
+  // The words behind the citation, so it can be opened and read without leaving the answer.
+  arabic?: string;
+  translation?: string;
+  // Where a verse lives, so the app can open the reader at it rather than only linking out.
+  surah?: number;
+  ayah?: number;
 };
 
 /**
@@ -1408,7 +1418,33 @@ function contextBlock(record: AskRecord, contentType: 'dua' | 'hadith' | 'quran'
   return `[${index}] ${record.title}\nReference: ${summary}\nVerification: ${record.verificationStatus}\n${text}`;
 }
 
+/**
+ * The words behind a citation. A reader who sees "[1] Sahih al-Bukhari 6499" and wants to check it
+ * should not have to leave and search for it, so every source carries its own text.
+ *
+ * Capped: this is what a citation expands to show, not the record itself. The link on the source
+ * leads to the whole thing.
+ */
+function sourceText(record: AskRecord, contentType: 'dua' | 'hadith' | 'quran') {
+  if (contentType === 'quran') {
+    const verse = asAyah(record);
+    return { arabic: verse.arabic, translation: verse.translation };
+  }
+  const segments = contentType === 'dua' ? (record as Dua).parts.flat() : (record as Hadith).segments;
+  const join = (kind: string) => segments
+    .filter((segment) => segment.kind === kind)
+    .map((segment) => normalizeLegacyTypography(segment.text))
+    .join(' ')
+    .slice(0, SOURCE_TEXT_LIMIT);
+  return {
+    arabic: join('arabic'),
+    // A framed reading carries its narration as a comment, and that is the part worth reading.
+    translation: [join('translation'), join('comment')].filter(Boolean).join(' ').slice(0, SOURCE_TEXT_LIMIT),
+  };
+}
+
 function sourceFrom(record: AskRecord, contentType: 'dua' | 'hadith' | 'quran', score: number, index: number): RagSource {
+  const { arabic, translation } = sourceText(record, contentType);
   if (contentType === 'quran') {
     const verse = asAyah(record);
     return {
@@ -1421,6 +1457,10 @@ function sourceFrom(record: AskRecord, contentType: 'dua' | 'hadith' | 'quran', 
       canonicalUrl: verse.canonicalUrl,
       verificationStatus: verse.verificationStatus,
       score: Number(score.toFixed(4)),
+      arabic,
+      translation,
+      surah: verse.surah,
+      ayah: verse.ayah,
     };
   }
   const collection = contentType === 'hadith' ? (record as Hadith).collection.title : 'Hisn al-Muslim';
@@ -1434,6 +1474,8 @@ function sourceFrom(record: AskRecord, contentType: 'dua' | 'hadith' | 'quran', 
     canonicalUrl: record.canonicalUrl,
     verificationStatus: record.verificationStatus,
     score: Number(score.toFixed(4)),
+    arabic,
+    translation,
   };
 }
 

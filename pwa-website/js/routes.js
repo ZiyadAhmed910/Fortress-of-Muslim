@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { openEntry } from './reader.js';
 import { activateHadith, openCanonicalHadith } from './hadith.js';
 import { setContentMode } from './modes.js';
+import { openSurah } from './quran.js';
 
 export async function openCanonicalRoute() {
   const path = decodeURI(location.pathname).replace(/\/+$/, '') || '/';
@@ -23,6 +24,12 @@ export async function openCanonicalRoute() {
       openEntry(index);
       return true;
     }
+  }
+  const verse = path.match(/^\/quran\/(\d+)\/(\d+)$/i);
+  if (verse) {
+    setContentMode('quran');
+    await openSurah(Number(verse[1]), Number(verse[2]));
+    return true;
   }
   return false;
 }

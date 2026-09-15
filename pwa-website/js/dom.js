@@ -101,6 +101,7 @@ export const els = {
   assistantQuestion: document.getElementById('assistantQuestion'),
   assistantContentType: document.getElementById('assistantContentType'),
   assistantSubmit: document.getElementById('assistantSubmit'),
+  assistantReset: document.getElementById('assistantReset'),
   assistantResult: document.getElementById('assistantResult'),
   prayerTimesHome: document.getElementById('prayerTimesHome'),
   prayerNextCard: document.getElementById('prayerNextCard'),

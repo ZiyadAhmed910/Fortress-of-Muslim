@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-15T05:09:44.957Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-15T06:55:49.875Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -79,7 +79,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/rag-intent.ts` | ts | 36 |  | type AskIntent, function detectAskIntent |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 60 |  | function expandRetrievalQuery |
-| `apps/api/src/rag.ts` | ts | 1540 |  | const EMBEDDING_MODEL, type AyahRecord, type AskRecord, type AskScope, type RagSource, function extractAnswerText, +20 more |
+| `apps/api/src/rag.ts` | ts | 1582 |  | const EMBEDDING_MODEL, type AyahRecord, type AskRecord, type AskScope, type RagSource, function extractAnswerText, +20 more |
 | `apps/api/src/repositories/content-repository.ts` | ts | 63 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 742 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
@@ -139,11 +139,11 @@ Not all of these are bugs; verify before assuming.
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
 | `pwa-website/js/app.js` | js | 210 |  |  |
 | `pwa-website/js/art-motion.js` | js | 89 |  |  |
-| `pwa-website/js/assistant.js` | js | 260 |  |  |
+| `pwa-website/js/assistant.js` | js | 311 |  |  |
 | `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 158 |  |  |
+| `pwa-website/js/dom.js` | js | 159 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
 | `pwa-website/js/home.js` | js | 219 |  |  |
@@ -160,7 +160,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/quran.js` | js | 814 |  |  |
 | `pwa-website/js/reader.js` | js | 147 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
-| `pwa-website/js/routes.js` | js | 29 |  |  |
+| `pwa-website/js/routes.js` | js | 36 |  |  |
 | `pwa-website/js/settings.js` | js | 100 |  |  |
 | `pwa-website/js/state.js` | js | 38 |  |  |
 | `pwa-website/js/tasbih.js` | js | 205 |  |  |
@@ -388,7 +388,7 @@ Not all of these are bugs; verify before assuming.
 | invitation | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | is | unknown | `(not defined in scanned files)` | `apps/api/test/ask-policy.test.ts` |
 | it | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js` |
-| its | unknown | `(not defined in scanned files)` | `apps/auth/src/admin-plane.ts`, `pwa-website/test/categories.test.js` |
+| its | unknown | `(not defined in scanned files)` | `apps/auth/src/admin-plane.ts`, `pwa-website/js/assistant.js`, `pwa-website/test/categories.test.js` |
 | json_each | unknown | `(not defined in scanned files)` | `apps/auth/src/webhooks.ts` |
 | jwks | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | keyword | unknown | `(not defined in scanned files)` | `apps/auth/src/taxonomy.ts` |

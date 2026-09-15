@@ -174,6 +174,26 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.32.0
+
+_2026-09-15_
+
+- **A citation opens.** Seeing "[1] Sahih al-Bukhari 6499" and having to leave and go find it is the
+  point at which a grounded answer stops being checkable. Every source now travels with its own
+  words -- Arabic and translation, for verses, hadith and duas alike -- and expands in place under
+  the answer.
+- **And it goes somewhere.** "Open" takes the reader to the record itself: the verse in the Quran
+  reader at that ayah, the hadith, the dua. It reuses the router that already resolves canonical
+  Fortress paths on load, so `/bukhari/book1/1` means one thing in one place; verse paths
+  (`/quran/2/255`) join it.
+- **"New" moved out of the thread** and into the composer bar, where a control that resets the
+  conversation is not living inside the thing it resets. It appears as soon as one question has been
+  answered, rather than waiting for a second -- by which point a reader wanting to start over had
+  already gone looking for it.
+- A hadith's reference already names its collection, so the citation used to read "Sahih al-Bukhari
+  Sahih al-Bukhari 6472". The collection stays on the muted line; the strong line is what tells one
+  source from the next.
+
 ### 0.31.3
 
 _2026-09-15_

@@ -169,14 +169,28 @@
   background: var(--paper-strong);
   box-shadow: 0 -10px 24px -18px rgb(0 0 0 / 45%);
 }
-/* "Start a new conversation" belongs where it can always be reached, not at the top of a thread
-   that scrolls away the moment there is anything to read. */
-.assistant-reset {
-  position: sticky; top: 0; z-index: 3;
-  display: block; width: 100%; margin: 0 0 0.4rem;
-  padding: 0.3rem 0; text-align: right;
-  background: linear-gradient(var(--paper) 65%, transparent);
+/* "New" sits in the composer bar, outside the thread entirely: a control that resets the
+   conversation should not live inside the thing it resets, where it scrolls away the moment there
+   is anything to read. */
+.assistant-reset { flex: none; padding: 0.3rem 0.5rem; font-weight: 700; }
+
+/* A citation opens. Seeing "[1] Sahih al-Bukhari 6499" and having to leave to find it is the point
+   at which a grounded answer stops being checkable, so the words come with it. */
+.assistant-source { display: block; border: 1px solid var(--line); border-left-width: 3px; border-radius: 0.6rem; background: var(--surface); }
+.assistant-source summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.5rem 0.65rem; cursor: pointer; list-style: none;
 }
+.assistant-source summary::-webkit-details-marker { display: none; }
+.assistant-source summary::after { content: '⌄'; color: var(--muted); font-size: 1rem; line-height: 1; }
+.assistant-source[open] summary::after { content: '⌃'; }
+.assistant-source-ref { display: grid; gap: 0.1rem; min-width: 0; }
+.assistant-source-ref span { color: var(--muted); font-size: calc(0.72rem * var(--font-scale)); }
+.assistant-source-ref strong { font-size: calc(0.85rem * var(--font-scale)); }
+.assistant-source-body { display: grid; gap: 0.5rem; padding: 0 0.65rem 0.6rem; border-top: 1px solid var(--line); padding-top: 0.55rem; }
+.assistant-source-body .verse-arabic { font-size: calc(1.1rem * var(--font-scale)); line-height: 1.95; }
+.assistant-source-body .verse-translation { font-size: calc(0.85rem * var(--font-scale)); }
+.assistant-source-body .text-button { justify-self: start; font-weight: 800; }
 .assistant-bar textarea {
   width: 100%;
   min-height: 2.6rem;
@@ -212,8 +226,10 @@
 .assistant-answer { margin-top: 1rem; border-block: 1px solid var(--line); padding: 0.85rem 0; line-height: 1.65; }
 .assistant-answer p { margin: 0; }
 .assistant-sources { display: grid; gap: 0.45rem; margin-top: 0.75rem; }
-.assistant-source { display: grid; gap: 0.1rem; border-left: 3px solid var(--accent-strong); padding: 0.5rem 0.7rem; color: var(--ink); background: color-mix(in srgb, var(--paper-strong) 88%, transparent); text-decoration: none; }
-.assistant-source span, .assistant-source small { color: var(--muted); font-size: 0.75rem; }
+/* Sources were anchors; they are <details> now so a citation can be opened and read in place. The
+   accent edge stays -- it is how an unverified source is marked. */
+.assistant-source { border-left-color: var(--accent-strong); color: var(--ink); }
+.assistant-source summary small { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
 .assistant-source--unverified { border-left-color: #b7791f; }
 .assistant-source--unverified small { color: #b7791f; font-weight: 700; }
 .assistant-thinking { display: flex; gap: 0.32rem; justify-content: center; padding: 2rem; }
