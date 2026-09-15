@@ -606,7 +606,12 @@ async function prepareGrounding(
       retrieval: 'vector',
     })),
   ];
-  const { records: grounded, reranked } = await rankByRelevance(env, retrievalQuestion, candidates);
+  // Reranked on the expanded query, not the raw question. The expansion exists because a word can
+  // name a concept that the sources only ever render in other words, and the reranker has the same
+  // vocabulary problem retrieval does: asked to score verses against "what is tawakkul?" -- a term
+  // in no English translation -- it put everything under the floor and Ask answered "nothing found"
+  // while plain verse search, which reranks on the expanded text, returned the right verses.
+  const { records: grounded, reranked } = await rankByRelevance(env, baseQuery, candidates);
 
   if (settings.unverifiedFallback === 1 && grounded.length < MIN_VERIFIED_SOURCES) {
     const fallback = await retrieveUnverifiedFallback(repository, baseQuery, grounded, MAX_CONTEXTS - grounded.length, filters);

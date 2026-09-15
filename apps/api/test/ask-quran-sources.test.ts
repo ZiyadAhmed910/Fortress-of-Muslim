@@ -42,7 +42,7 @@ const emptyRepository = {
 const envWith = ({ vectorHits = [] as string[], rerankOn = '', capture }: {
   vectorHits?: string[];
   rerankOn?: string;
-  capture?: { generationPrompt: string };
+  capture?: { generationPrompt?: string; rerankQuery?: string };
 } = {}) => ({
   CONTENT_DB: {
     prepare: (sql: string) => {
@@ -62,11 +62,13 @@ const envWith = ({ vectorHits = [] as string[], rerankOn = '', capture }: {
   AI: {
     run: async (model: string, input: {
       text?: string[];
+      query?: string;
       contexts?: Array<{ text: string }>;
       messages?: Array<{ content: string }>;
     }) => {
       if (model.includes('bge-m3')) return { data: (input.text ?? []).map(() => Array.from({ length: 1024 }, () => 0.01)) };
       if (model.includes('reranker')) {
+        if (capture) capture.rerankQuery = input.query ?? '';
         return {
           response: (input.contexts ?? []).map((context, id) => ({
             id,
@@ -121,6 +123,26 @@ describe('answering from the Quran', () => {
     );
     const verse = result.sources.find((source) => source.contentType === 'quran');
     expect(verse?.canonicalUrl).toMatch(/\/quran\/\d+\/\d+$/);
+  });
+
+  it('reranks on the expanded query, so a term the sources never use still scores', async () => {
+    // Live failure: retrieval ran on the expanded query and found the tawakkul verses, then the
+    // reranker was handed the raw "what is tawakkul?" -- a word in no English translation -- scored
+    // everything under the floor, and Ask answered "nothing found" while plain verse search, which
+    // reranks on the expanded text, returned the right verses. The reranker has the same vocabulary
+    // problem retrieval does, so it gets the same help.
+    //
+    // Asserted on the query the reranker was handed, because that is the change. Scoring the
+    // candidates instead proves nothing: with a uniform score they all clear the floor either way.
+    const capture = { rerankQuery: '' };
+    await answerQuestion(
+      envWith({ vectorHits: ['65:3'], rerankOn: 'relies upon Allah', capture }),
+      emptyRepository,
+      'what is tawakkul?',
+      'quran-ask-test',
+    );
+    expect(capture.rerankQuery).toContain('tawakkul');
+    expect(capture.rerankQuery).toContain('reliance upon Allah');
   });
 
   it('leaves verses out when the question is scoped to duas', async () => {

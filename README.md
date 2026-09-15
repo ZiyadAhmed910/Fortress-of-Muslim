@@ -174,6 +174,17 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.30.1
+
+_2026-09-15_
+
+- **"What is tawakkul" answers.** 0.30.0 put the Quran into Ask and the question still returned
+  nothing, while plain verse search returned the right verses -- because Ask retrieved on the
+  expanded query and then reranked on the raw one. The reranker has the same vocabulary problem
+  retrieval does: handed "what is tawakkul?", a term in no English translation, it scored every
+  candidate under the floor and the answer became "nothing found". It reranks on the expanded query
+  now, which is what verse search always did.
+
 ### 0.30.0
 
 _2026-09-15_

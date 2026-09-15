@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T00:18:57.970Z",
+  "generatedAt": "2026-09-15T00:24:48.060Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -118,7 +118,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 1341,
+      "lines": 1346,
       "language": "ts",
       "exports": [
         "const EMBEDDING_MODEL",
@@ -266,7 +266,7 @@
     },
     {
       "path": "apps/api/test/ask-quran-sources.test.ts",
-      "lines": 149,
+      "lines": 171,
       "language": "ts",
       "exports": [],
       "imports": [

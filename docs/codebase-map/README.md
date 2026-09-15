@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-15T00:18:57.970Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-15T00:24:48.060Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -74,7 +74,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/quran-search.ts` | ts | 268 |  | const QURAN_NAMESPACE, type QuranMatch, function quranCandidates, function searchQuran, const ayahRerankText, function getQuranIndexStatus, +1 more |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 60 |  | function expandRetrievalQuery |
-| `apps/api/src/rag.ts` | ts | 1341 |  | const EMBEDDING_MODEL, type AyahRecord, type AskRecord, type AskScope, type RagSource, function extractAnswerText, +19 more |
+| `apps/api/src/rag.ts` | ts | 1346 |  | const EMBEDDING_MODEL, type AyahRecord, type AskRecord, type AskScope, type RagSource, function extractAnswerText, +19 more |
 | `apps/api/src/repositories/content-repository.ts` | ts | 63 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 742 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
@@ -83,7 +83,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/test/ask-citations.test.ts` | ts | 102 |  |  |
 | `apps/api/test/ask-follow-up.test.ts` | ts | 142 |  |  |
 | `apps/api/test/ask-policy.test.ts` | ts | 241 |  |  |
-| `apps/api/test/ask-quran-sources.test.ts` | ts | 149 |  |  |
+| `apps/api/test/ask-quran-sources.test.ts` | ts | 171 |  |  |
 | `apps/api/test/ask-streaming.test.ts` | ts | 235 |  |  |
 | `apps/api/test/canonical-withdrawal.test.ts` | ts | 111 |  |  |
 | `apps/api/test/fuzzy-title.test.ts` | ts | 30 |  |  |
