@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-15T05:05:18.238Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-15T05:09:44.957Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -79,7 +79,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/rag-intent.ts` | ts | 36 |  | type AskIntent, function detectAskIntent |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
 | `apps/api/src/rag-synonyms.ts` | ts | 60 |  | function expandRetrievalQuery |
-| `apps/api/src/rag.ts` | ts | 1533 |  | const EMBEDDING_MODEL, type AyahRecord, type AskRecord, type AskScope, type RagSource, function extractAnswerText, +20 more |
+| `apps/api/src/rag.ts` | ts | 1540 |  | const EMBEDDING_MODEL, type AyahRecord, type AskRecord, type AskScope, type RagSource, function extractAnswerText, +20 more |
 | `apps/api/src/repositories/content-repository.ts` | ts | 63 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 742 |  | class D1ContentRepository |
 | `apps/api/src/types.ts` | ts | 70 |  | type Bindings, type ApiVariables |
@@ -87,7 +87,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/test/arabic-search.test.ts` | ts | 133 |  |  |
 | `apps/api/test/ask-citations.test.ts` | ts | 123 |  |  |
 | `apps/api/test/ask-follow-up.test.ts` | ts | 142 |  |  |
-| `apps/api/test/ask-intent.test.ts` | ts | 121 |  |  |
+| `apps/api/test/ask-intent.test.ts` | ts | 125 |  |  |
 | `apps/api/test/ask-policy.test.ts` | ts | 244 |  |  |
 | `apps/api/test/ask-quran-sources.test.ts` | ts | 222 |  |  |
 | `apps/api/test/ask-streaming.test.ts` | ts | 235 |  |  |
@@ -453,6 +453,7 @@ Not all of these are bugs; verify before assuming.
 | SET | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
 | Settings | unknown | `(not defined in scanned files)` | `pwa-website/js/onboarding.js`, `pwa-website/js/quran.js` |
 | several | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
+| six | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | solar | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | something | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/api/test/ask-follow-up.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `packages/contracts/src/index.ts` |
 | source_materials | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |

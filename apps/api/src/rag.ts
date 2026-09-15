@@ -372,7 +372,14 @@ export function composeContexts(ranked: GroundedRecord[], intent: AskIntent = nu
       .sort((left, right) => right.score - left.score);
     chosen.push(...rest.slice(0, MAX_CONTEXTS - chosen.length));
   }
-  return chosen.sort((left, right) => right.score - left.score);
+  const byScore = (left: GroundedRecord, right: GroundedRecord) => right.score - left.score;
+  if (!intent) return chosen.sort(byScore);
+  // Order matters as much as inclusion. The citation numbers follow this order and a model writing
+  // from six contexts leads with [1], so sorting the whole set by score at the end silently undid
+  // the preference: "find tawakkul in the quran" selected the verse and then ranked it fourth,
+  // behind the very hadith scores that made the preference necessary.
+  const wanted = (item: GroundedRecord) => (intent === 'quran' ? isVerse(item) : item.contentType === intent);
+  return [...chosen.filter(wanted).sort(byScore), ...chosen.filter((item) => !wanted(item)).sort(byScore)];
 }
 
 // Title plus the reading's own words, which is what the question is really being matched against.

@@ -91,6 +91,9 @@ describe('what the preference does to the chosen contexts', () => {
 
   it('leads with verses when the question asked about the Quran', () => {
     const chosen = composeContexts(ranked, 'quran');
+    // First, not merely present. The citation numbers follow this order and the model leads with [1];
+    // sorting the finished set by score put the verse fourth behind the hadith it was preferred over.
+    expect(chosen[0]!.contentType).toBe('quran');
     expect(chosen.filter((entry) => entry.contentType === 'quran').length).toBeGreaterThanOrEqual(2);
     // And the hadith are still there: a preference, not a takeover.
     expect(chosen.some((entry) => entry.contentType === 'hadith')).toBe(true);
@@ -98,6 +101,7 @@ describe('what the preference does to the chosen contexts', () => {
 
   it('leads with duas when the question asked for a supplication', () => {
     const chosen = composeContexts(ranked, 'dua');
+    expect(chosen[0]!.contentType).toBe('dua');
     expect(chosen.filter((entry) => entry.contentType === 'dua').length).toBeGreaterThanOrEqual(2);
     expect(chosen.some((entry) => entry.contentType !== 'dua')).toBe(true);
   });

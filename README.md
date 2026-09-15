@@ -174,6 +174,17 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.31.3
+
+_2026-09-15_
+
+- **The preferred source now leads, not merely appears.** "Dua for entering the toilet" returned two
+  hadith before the duas, and "find tawakkul in the Quran" put the verse fourth. Selection had been
+  right all along; the finished set was then sorted by score, which silently undid the preference --
+  demoting each chosen source behind exactly the scores that made the preference necessary. Order
+  matters as much as inclusion here: the citation numbers follow it, and a model writing from six
+  contexts leads with [1].
+
 ### 0.31.2
 
 _2026-09-15_
