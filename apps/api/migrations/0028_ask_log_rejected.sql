@@ -1,0 +1,14 @@
+-- 0028: keep the answer that was thrown away, so the citation rule can be judged on evidence.
+--
+-- Ask discards any answer that asserts something without a citation and shows a list of source
+-- titles instead. That rule is right, and it has repeatedly been too strict in ways nobody could
+-- see from outside: first it rejected answers whose quoted Arabic sat on its own line, then ones
+-- that opened with a lead-in ending in a colon. Each was found by guessing at what the model had
+-- probably written, because the rejected text only ever reached a Worker log.
+--
+-- It is written down now. This is model-generated prose about published records -- not user text,
+-- not anyone's data -- and it is the only way to answer "which correct answers are we throwing
+-- away, and why" with something better than a hypothesis.
+--
+-- NULL whenever an answer was accepted, which is almost always.
+ALTER TABLE ask_query_log ADD COLUMN rejected_answer TEXT;

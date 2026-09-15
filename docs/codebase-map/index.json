@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T04:53:06.384Z",
+  "generatedAt": "2026-09-15T04:59:16.646Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -129,7 +129,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 1504,
+      "lines": 1519,
       "language": "ts",
       "exports": [
         "const EMBEDDING_MODEL",
@@ -241,7 +241,7 @@
     },
     {
       "path": "apps/api/test/ask-citations.test.ts",
-      "lines": 102,
+      "lines": 123,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -1351,6 +1351,14 @@
     {
       "path": "apps/api/migrations/0027_ask_query_log.sql",
       "lines": 42,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0028_ask_log_rejected.sql",
+      "lines": 15,
       "language": "sql",
       "exports": [],
       "imports": [],

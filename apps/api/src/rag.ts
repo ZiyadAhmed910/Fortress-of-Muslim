@@ -758,11 +758,11 @@ export async function answerQuestion(
     return { answer: prepared.answer, sources: prepared.sources, meta: prepared.meta };
   }
 
-  const { answer, sources, model, generated } = await generateGroundedAnswer(
+  const { answer, sources, model, generated, rejected } = await generateGroundedAnswer(
     env, prepared.dataset, question, prepared.grounded, prepared.chosen.model,
   );
   if (generated) await recordModelUse(env.CONTENT_DB, prepared.chosen.model);
-  await logAskQuery(env, { question, ...prepared.telemetry, sources, model, generated });
+  await logAskQuery(env, { question, ...prepared.telemetry, sources, model, generated, rejected });
 
   return {
     answer,
@@ -888,6 +888,7 @@ export function streamAnswer(
           .join('\n\n');
         let answer = '';
         let generated = true;
+        let rejectedText: string | null = null;
         try {
           const stream = await env.AI.run(prepared.chosen.model as Parameters<Ai['run']>[0], {
             messages: [
@@ -919,6 +920,7 @@ export function streamAnswer(
               answer: answer.slice(0, 300),
             }));
           }
+          rejectedText = answer;
           answer = groundedFallback(sources);
           generated = false;
           send('replace', { answer });
@@ -930,6 +932,7 @@ export function streamAnswer(
           sources,
           model: generated ? prepared.chosen.model : null,
           generated,
+          rejected: rejectedText,
         });
         send('done', {
           answer,
@@ -965,6 +968,9 @@ async function generateGroundedAnswer(
   let answer: string;
   let model: string | null = chosenModel;
   let generated = true;
+  // Kept for the log: what the citation rule threw away is the only evidence for whether it is set
+  // right, and it used to exist nowhere but a Worker log.
+  let rejected: string | null = null;
   try {
     // The model is chosen per request from admin-set daily allowances, so it cannot be a literal
     // here the way a fixed model would be.
@@ -995,6 +1001,7 @@ async function generateGroundedAnswer(
         sourceCount: sources.length,
         answer: answer.slice(0, 300),
       }));
+      rejected = answer;
       answer = groundedFallback(sources);
       generated = false;
       model = null;
@@ -1005,7 +1012,7 @@ async function generateGroundedAnswer(
     generated = false;
     model = null;
   }
-  return { answer, sources, model, generated };
+  return { answer, sources, model, generated, rejected };
 }
 
 const FOLLOW_UP_SYSTEM_PROMPT = 'Rewrite the final user question into one standalone question that '
@@ -1323,14 +1330,15 @@ async function logAskQuery(env: Bindings, entry: {
   sources: RagSource[];
   model: string | null;
   generated: boolean;
+  rejected?: string | null;
 }) {
   try {
     await env.CONTENT_DB.prepare(`
       INSERT INTO ask_query_log (
         question, retrieval_query, scope, rewritten,
         vector_candidates, lexical_candidates, verse_candidates,
-        reranked, sources, model, generated
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        reranked, sources, model, generated, rejected_answer
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       entry.question.slice(0, 500),
       entry.retrievalQuery.slice(0, 1_000),
@@ -1347,6 +1355,7 @@ async function logAskQuery(env: Bindings, entry: {
       }))),
       entry.model,
       entry.generated ? 1 : 0,
+      entry.rejected ? entry.rejected.slice(0, 2_000) : null,
     ).run();
   } catch (error) {
     console.error(JSON.stringify({ event: 'ask_query_log_failed', message: errorMessage(error) }));
@@ -1431,14 +1440,20 @@ function isQuotedText(paragraph: string) {
 function hasValidCitations(answer: string, sourceCount: number) {
   if (!answer) return false;
   const citations = [...answer.matchAll(/\[(\d+)\]/g)].map((match) => Number(match[1]));
-  const claims = answer
-    .split(/\n+/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean)
-    .filter((paragraph) => !isQuotedText(paragraph));
-  return citations.length > 0
-    && citations.every((citation) => citation >= 1 && citation <= sourceCount)
-    && claims.every((paragraph) => /\[\d+\]/.test(paragraph));
+  if (citations.length === 0) return false;
+  if (!citations.every((citation) => citation >= 1 && citation <= sourceCount)) return false;
+
+  const paragraphs = answer.split(/\n+/).map((paragraph) => paragraph.trim()).filter(Boolean);
+  const cited = (paragraph?: string) => Boolean(paragraph && /\[\d+\]/.test(paragraph));
+  return paragraphs.every((paragraph, index) => {
+    if (isQuotedText(paragraph) || cited(paragraph)) return true;
+    // A line that introduces the quotation beneath it ("Before entering the toilet one says:")
+    // asserts nothing the citation below does not already carry. Requiring its own [1] rejected
+    // whole correct answers for punctuation, which is how the most natural shape for a supplication
+    // -- a lead-in, the Arabic, then the cited translation -- kept being thrown away.
+    const leadIn = paragraph.endsWith(':') && paragraph.length <= 160;
+    return leadIn && paragraphs.slice(index + 1).some(cited);
+  });
 }
 
 function groundedFallback(sources: RagSource[]) {

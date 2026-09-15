@@ -174,6 +174,23 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.31.1
+
+_2026-09-15_
+
+- **Correct answers stopped being thrown away for punctuation.** Testing 0.31.0 live, most questions
+  came back as "could not generate a fully cited answer" while showing the right sources. The
+  citation rule required every line to carry a `[1]`, and the most natural shape for a supplication
+  -- a lead-in, the Arabic, then the cited translation -- opens with a line ending in a colon. That
+  line asserts nothing the citation beneath it does not already carry, so it no longer needs its
+  own. A colon is not a licence: if nothing below it is cited the answer is still discarded, and a
+  long paragraph is not a lead-in merely because it ends in one.
+- **Rejected answers are recorded (`0028`).** This is the second time the citation rule turned out
+  to be too strict, and both times the rejected text existed only in a Worker log, so the cause had
+  to be guessed at. `ask_query_log.rejected_answer` keeps it -- model-generated prose about
+  published records, not user text -- so "which correct answers are we discarding, and why" has an
+  answer better than a hypothesis.
+
 ### 0.31.0
 
 _2026-09-15_

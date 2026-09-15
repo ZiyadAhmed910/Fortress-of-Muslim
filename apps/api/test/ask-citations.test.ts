@@ -73,6 +73,27 @@ describe('which answers survive the citation rule', () => {
     expect(result.meta.generated).toBe(true);
   });
 
+  it('keeps an answer that opens with a lead-in to the quotation below it', async () => {
+    // The most natural shape for a supplication -- a lead-in, the Arabic, then the cited
+    // translation -- was being thrown away because the first line ended in a colon instead of a
+    // citation. It asserts nothing the citation beneath it does not already carry.
+    const result = await ask('Before entering the toilet one says:\n\nبِسْمِ اللَّهِ\n\n"In the Name of Allah" [1].');
+    expect(result.answer).not.toContain(FALLBACK);
+    expect(result.meta.generated).toBe(true);
+  });
+
+  it('does not let a lead-in launder a claim that never gets cited', async () => {
+    // A colon is not a licence: if nothing below it carries a citation, the answer still goes.
+    const result = await ask('The ruling on this is as follows:\n\nIt must be recited seven times.');
+    expect(result.answer).toContain(FALLBACK);
+  });
+
+  it('does not treat a long paragraph as a lead-in because it ends in a colon', async () => {
+    const essay = `${'This is a long assertion about what should be done and why it matters. '.repeat(3)}:`;
+    const result = await ask(`${essay}\n\nSomething cited [1].`);
+    expect(result.answer).toContain(FALLBACK);
+  });
+
   it('still discards an answer that asserts something with no citation at all', async () => {
     const result = await ask('You should recite this three times before leaving home.');
     expect(result.answer).toContain(FALLBACK);
