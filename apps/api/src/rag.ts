@@ -681,13 +681,19 @@ async function prepareGrounding(
   // phrasings on top. Every variant is retrieved and merged -- this is deliberately the expensive
   // option (extra Workers AI calls on every request) over a cheaper dictionary-only or
   // embedding-only approach, so an unfamiliar transliteration or phrasing has more chances to match.
-  const variantRetrievals = await Promise.all((await expansion).map((variant) => {
-    const retrievalQuery = expandRetrievalQuery(variant);
-    return Promise.all([
-      retrieveVectorRecords(env, repository, dataset.id, retrievalQuery, filters),
-      retrieveLexicalRecords(repository, retrievalQuery, filters),
-    ]);
-  }));
+  // Gated on wantsRecords like the base retrieval is. Missing that here is how a hadith reached an
+  // answer scoped to the Quran: recordScope() resolves a Quran scope to "no record filter", which
+  // the repository reads as "every record", so each expansion variant quietly retrieved the whole
+  // corpus the scope existed to exclude.
+  const variantRetrievals = wantsRecords
+    ? await Promise.all((await expansion).map((variant) => {
+      const retrievalQuery = expandRetrievalQuery(variant);
+      return Promise.all([
+        retrieveVectorRecords(env, repository, dataset.id, retrievalQuery, recordFilters),
+        retrieveLexicalRecords(repository, retrievalQuery, recordFilters),
+      ]);
+    }))
+    : [];
   const retrievals = [await baseRetrieval, ...variantRetrievals];
   const vectorAvailable = retrievals.some(([vectorResult]) => vectorResult.available);
   const vectorRecords = retrievals.flatMap(([vectorResult]) => vectorResult.records);

@@ -174,6 +174,27 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.34.0
+
+_2026-09-19_
+
+- **Recitation carries into the next surah.** Reading does not stop at the end of a surah and
+  listening should not either. Reaching the last ayah opened the surah again from the top, which
+  made the ordinary case behave like the deliberate one -- repeat-surah is the mode for staying put.
+  The reader follows the recitation across, and it stops at the end of An-Nas.
+- **Every surah is recited from its Bismillah**, except At-Tawbah, which has none, and Al-Fatihah,
+  where it is the first ayah rather than an opening to it. The rule is not written into the player:
+  the surah data already records it per surah as `bismillahPre`, which is what the reader displays
+  from, so the recitation and the page cannot disagree. A test holds it across the whole mushaf --
+  112 of 114.
+- **The Ask scope filter no longer leaks.** Asking with the Quran scope returned three verses and a
+  hadith: the base retrieval was gated on the scope and the expansion variants were not, and a Quran
+  scope resolves to "no record filter", which the repository reads as every record. Duas-only and
+  hadith-only were unaffected.
+- **Advanced is the default interface.** Simple is now the opt-out rather than the starting point.
+  Anyone who already chose Simple keeps it: the preference is read as "not explicitly off", because
+  a stored setting is an answer someone gave and a changed default must not overwrite it.
+
 ### 0.33.1
 
 _2026-09-19_

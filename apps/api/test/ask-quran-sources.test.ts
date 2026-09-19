@@ -196,6 +196,33 @@ describe('answering from the Quran', () => {
     expect(result.sources.some((source) => source.contentType === 'hadith')).toBe(true);
   });
 
+
+  it('lets no record reach an answer scoped to the Quran', async () => {
+    // Live: scope=quran returned quran,quran,quran,hadith. The base retrieval was gated on the
+    // scope and the expansion variants were not, and a Quran scope resolves to "no record filter"
+    // -- which the repository reads as every record.
+    const withHadith = {
+      ...emptyRepository,
+      searchForRag: async () => [{ id: 'hadith.bukhari.1', contentType: 'hadith' as const, score: 0.95 }],
+      getAskHadith: async (id: string) => ({
+        id, sequence: 1, displayNumber: '1', title: 'Sahih al-Bukhari 1',
+        collection: { slug: 'bukhari', title: 'Sahih al-Bukhari' }, book: null, chapter: null,
+        narrator: 'Narrated someone:', grade: null, verificationStatus: 'unverified',
+        workflowState: 'pending_review', verifiedBy: null, verifiedAt: null, revisionNumber: 1,
+        publishedAt: '2026-09-13T00:00:00.000Z',
+        canonicalUrl: 'https://fortressofmuslim.org/bukhari/book1/1',
+        segments: [{ kind: 'translation', text: 'A hadith about reliance upon Allah.' }], references: [],
+      }),
+    } as unknown as ContentRepository;
+    const result = await answerQuestion(
+      envWith({ vectorHits: ['65:3'], rerankOn: 'relies upon Allah' }),
+      withHadith,
+      'what is tawakkul?',
+      'quran-ask-test',
+      { contentType: 'quran' },
+    );
+    expect(result.sources.every((source) => source.contentType === 'quran')).toBe(true);
+  });
   it('leaves verses out when the question is scoped to duas', async () => {
     const result = await answerQuestion(
       envWith({ vectorHits: ['65:3'], rerankOn: 'relies upon Allah' }),

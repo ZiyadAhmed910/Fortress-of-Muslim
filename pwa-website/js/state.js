@@ -11,7 +11,10 @@ export const state = {
   fontScale: Number(localStorage.getItem('fontScale') || '1'),
   darkMode: localStorage.getItem('darkMode') === 'true',
   largeArabic: localStorage.getItem('largeArabic') === 'true',
-  advancedUi: localStorage.getItem('advancedUi') === 'true',
+  // Advanced is the app now, and Simple is the opt-out. Read as "not explicitly off" rather than
+  // "explicitly on", so anyone who already chose Simple keeps it -- a stored preference is an answer
+  // someone gave, and changing the default must not overwrite it.
+  advancedUi: localStorage.getItem('advancedUi') !== 'false',
   advancedListMode: false,
   advancedFilter: 'all',
   deferredInstallPrompt: null,

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T16:53:33.414Z",
+  "generatedAt": "2026-09-19T17:20:43.774Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -129,7 +129,7 @@
     },
     {
       "path": "apps/api/src/rag.ts",
-      "lines": 1628,
+      "lines": 1634,
       "language": "ts",
       "exports": [
         "const EMBEDDING_MODEL",
@@ -291,7 +291,7 @@
     },
     {
       "path": "apps/api/test/ask-quran-sources.test.ts",
-      "lines": 222,
+      "lines": 249,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -950,7 +950,7 @@
     },
     {
       "path": "pwa-website/js/quran-audio.js",
-      "lines": 585,
+      "lines": 623,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -966,7 +966,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 824,
+      "lines": 833,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1006,7 +1006,7 @@
     },
     {
       "path": "pwa-website/js/state.js",
-      "lines": 38,
+      "lines": 41,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1095,6 +1095,14 @@
     {
       "path": "pwa-website/test/qibla-compass.test.js",
       "lines": 209,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/quran-bismillah.test.js",
+      "lines": 41,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3256,7 +3264,8 @@
       "referencedBy": [
         "apps/auth/src/admin-plane.ts",
         "pwa-website/js/assistant.js",
-        "pwa-website/test/categories.test.js"
+        "pwa-website/test/categories.test.js",
+        "pwa-website/test/quran-bismillah.test.js"
       ]
     },
     {
@@ -4050,7 +4059,8 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/assistant.js",
-        "pwa-website/js/modes.js"
+        "pwa-website/js/modes.js",
+        "pwa-website/test/quran-bismillah.test.js"
       ]
     },
     {

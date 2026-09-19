@@ -107,8 +107,8 @@ export function currentReciter() {
  * (which would be circular), the reader registers what the player needs from it: a way to make an
  * ayah visible, which in paginated mode means turning the page first.
  */
-export function initQuranAudio({ ensureAyahVisible, onAyahChange }) {
-  context = { ensureAyahVisible, onAyahChange };
+export function initQuranAudio({ ensureAyahVisible, onAyahChange, onSurahEnd }) {
+  context = { ensureAyahVisible, onAyahChange, onSurahEnd };
 
   audio = new Audio();
   audio.preload = 'auto';
@@ -212,13 +212,37 @@ export function setPlaybackSurah(surah) {
   if (playing) playing.total = surah.ayahCount;
 }
 
+/**
+ * Whether the Bismillah is recited before this surah's first ayah.
+ *
+ * Every surah opens with it except At-Tawbah, and in Al-Fatihah it is the first ayah rather than an
+ * opening to it -- so in neither case is there a separate line to play. The surah data already
+ * records exactly this as `bismillahPre`, which is where the reader gets it from, so the recitation
+ * and the page agree by construction instead of by a rule written twice.
+ */
+export const opensWithBismillah = (surah) => Boolean(surah?.bismillahPre);
+
+// The Bismillah as this reciter recited it at the head of Al-Fatihah. Every reciter on everyayah
+// has that file, and it is the same words.
+const bismillahUrl = (reciter) => ayahAudioUrl(reciter, 1, 1);
+
 export async function playAyah(surahNumber, ayahNumber, { autoplay = true, total } = {}) {
   if (!audio) return;
-  playing = { surah: surahNumber, ayah: ayahNumber, total: total ?? playing?.total ?? null };
+  // Starting a surah plays its Bismillah first. Tracked on `playing` rather than by juggling a
+  // queue: when it ends, onAyahEnded sees the flag and moves on to the ayah itself.
+  const openingBismillah = ayahNumber === 1
+    && surahNumber === surahMeta?.number
+    && opensWithBismillah(surahMeta);
+  playing = {
+    surah: surahNumber,
+    ayah: ayahNumber,
+    total: total ?? playing?.total ?? null,
+    bismillah: openingBismillah,
+  };
   // Listening is reading. Someone who plays a surah and comes back tomorrow should resume where the
   // recitation reached, not where they last happened to scroll.
   context?.onAyahChange?.(surahNumber, ayahNumber);
-  audio.src = ayahAudioUrl(prefs.reciter, surahNumber, ayahNumber);
+  audio.src = openingBismillah ? bismillahUrl(prefs.reciter) : ayahAudioUrl(prefs.reciter, surahNumber, ayahNumber);
   if (!document.hidden) highlightPlaying();
   renderPlayerBar();
   if (!autoplay) return;
@@ -258,6 +282,13 @@ export function isPlaying() {
 
 function onAyahEnded() {
   if (!playing) return;
+  // The Bismillah just played; the ayah it opens comes next, not the one after it.
+  if (playing.bismillah) {
+    playing.bismillah = false;
+    audio.src = ayahAudioUrl(prefs.reciter, playing.surah, playing.ayah);
+    audio.play().catch(() => {});
+    return;
+  }
   if (prefs.repeat === 'ayah') {
     playAyah(playing.surah, playing.ayah);
     return;
@@ -266,6 +297,13 @@ function onAyahEnded() {
   if (playing.total && next > playing.total) {
     if (prefs.repeat === 'surah') {
       step(1 - playing.ayah);
+      return;
+    }
+    // Reading does not stop at the end of a surah, and neither should listening: the recitation
+    // carries into the next one. Repeat-surah is the mode for staying put, which is why looping was
+    // wrong here -- it made the ordinary case behave like the deliberate one.
+    if (playing.surah < 114) {
+      context?.onSurahEnd?.(playing.surah + 1);
       return;
     }
     stopPlayback();

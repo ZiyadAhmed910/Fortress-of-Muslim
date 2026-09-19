@@ -153,7 +153,16 @@ export function initQuran() {
   bindSurahSwipe();
   // The player advances ayah by ayah; in paginated mode the next ayah may be on a page that is not
   // rendered, and only the reader knows how to turn one.
-  initQuranAudio({ ensureAyahVisible, onAyahChange: markRead });
+  initQuranAudio({
+    ensureAyahVisible,
+    onAyahChange: markRead,
+    // Listening continues past the end of a surah the way reading does. The reader has to follow
+    // the recitation there, so the continuation lives here rather than in the player.
+    onSurahEnd: async (next) => {
+      await openSurah(next);
+      playAyah(next, 1, { total: index?.surahs.find((s) => s.number === next)?.ayahCount ?? null });
+    },
+  });
 }
 
 // Matches the dua reader's swipe. Horizontal-only and threshold-gated so it cannot fire while
