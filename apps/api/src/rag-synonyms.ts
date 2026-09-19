@@ -18,7 +18,9 @@ const SYNONYM_GROUPS: string[][] = [
   ['zakat', 'zakah', 'zakaat', 'almsgiving'],
   ['sunnah', 'sunna', 'sunnat'],
   ['istighfar', 'astaghfirullah', 'seeking forgiveness'],
-  ['talbiyah', 'talbiya'],
+  // The words themselves, because the group is otherwise unreachable: "talbiya" is a substring of
+  // "talbiyah", so expansion excluded it as already present and the group added nothing at all.
+  ['talbiyah', 'talbiya', 'labbayk', 'here I am'],
   ['tashahhud', 'tashahud', 'attahiyat'],
   ['istikharah', 'istikhara', 'guidance prayer'],
   ['taraweeh', 'tarawih', 'taraweh'],
@@ -30,7 +32,11 @@ const SYNONYM_GROUPS: string[][] = [
   // and 33:3 at 0.99, and "tawakkul" -- the same question, the word a person is far more likely to
   // type -- returned nothing at all, because the transliteration sits nowhere near the English in
   // embedding space and appears in no translation for the lexical half to find.
-  ['tawakkul', 'reliance upon Allah', 'trust in Allah', 'put their trust'],
+  // Matched on the bare concept words as well as the full phrases. "Reliance upon Allah" is how the
+  // translation renders it, "reliance on Allah" is how a person types it, and matching only the
+  // former meant the question that motivated this whole group expanded to nothing -- and returned
+  // five verses of Surah Ash-Shu'ara at 0.02 instead of 64:13 and 9:51.
+  ['tawakkul', 'reliance', 'rely', 'reliance upon Allah', 'trust in Allah', 'put their trust'],
   ['sabr', 'patience', 'perseverance', 'steadfastness'],
   ['taqwa', 'god-consciousness', 'piety', 'fear of Allah'],
   ['shukr', 'gratitude', 'thankfulness', 'giving thanks'],

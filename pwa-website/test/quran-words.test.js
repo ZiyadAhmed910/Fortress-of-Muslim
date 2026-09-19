@@ -52,7 +52,11 @@ describe('word-by-word data', () => {
     expect(total).toBe(77429);
   });
 
-  it('never has an empty ayah, and every word carries Arabic', () => {
+  // 77,429 words across 114 files, each one asserted on. That is genuinely several seconds of work
+  // and it exceeded vitest's 5s default only when the rest of the suite was competing for the disk
+  // -- so it failed intermittently, looked flaky, and was neither. The data is worth checking in
+  // full; it just needs to be allowed to take as long as it takes.
+  it('never has an empty ayah, and every word carries Arabic', { timeout: 30_000 }, () => {
     for (const [number, payload] of words) {
       payload.ayahs.forEach((ayah, i) => {
         expect(ayah.length, `${number}:${i + 1} has no words`).toBeGreaterThan(0);

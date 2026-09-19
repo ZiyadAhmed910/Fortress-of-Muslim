@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T16:42:26.882Z",
+  "generatedAt": "2026-09-19T16:53:33.414Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -119,7 +119,7 @@
     },
     {
       "path": "apps/api/src/rag-synonyms.ts",
-      "lines": 60,
+      "lines": 66,
       "language": "ts",
       "exports": [
         "function expandRetrievalQuery"
@@ -431,7 +431,7 @@
     },
     {
       "path": "apps/api/test/rag-synonyms.test.ts",
-      "lines": 27,
+      "lines": 53,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -1110,7 +1110,7 @@
     },
     {
       "path": "pwa-website/test/quran-words.test.js",
-      "lines": 129,
+      "lines": 133,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3110,7 +3110,6 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "apps/api/test/rag-synonyms.test.ts",
         "pwa-website/js/prayer.js"
       ]
     },

@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-19T16:42:26.882Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-19T16:53:33.414Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -78,7 +78,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/src/quran-search.ts` | ts | 269 |  | const QURAN_NAMESPACE, type QuranMatch, function quranCandidates, function searchQuran, const ayahRerankText, function getQuranIndexStatus, +1 more |
 | `apps/api/src/rag-intent.ts` | ts | 36 |  | type AskIntent, function detectAskIntent |
 | `apps/api/src/rag-reference.ts` | ts | 19 |  | type ExactHadithReference, function parseExactHadithReference |
-| `apps/api/src/rag-synonyms.ts` | ts | 60 |  | function expandRetrievalQuery |
+| `apps/api/src/rag-synonyms.ts` | ts | 66 |  | function expandRetrievalQuery |
 | `apps/api/src/rag.ts` | ts | 1628 |  | const EMBEDDING_MODEL, type AyahRecord, type AskRecord, type AskScope, type RagSource, function extractAnswerText, +20 more |
 | `apps/api/src/repositories/content-repository.ts` | ts | 63 |  | type DatasetSummary, type DuaTitleMatch, type RagRecordMatch, type RagFilters, type RecordEvidence, interface ContentRepository |
 | `apps/api/src/repositories/d1-content-repository.ts` | ts | 742 |  | class D1ContentRepository |
@@ -100,7 +100,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/test/rag-index.test.ts` | ts | 125 |  |  |
 | `apps/api/test/rag-quality.test.ts` | ts | 193 |  |  |
 | `apps/api/test/rag-reference.test.ts` | ts | 28 |  |  |
-| `apps/api/test/rag-synonyms.test.ts` | ts | 27 |  |  |
+| `apps/api/test/rag-synonyms.test.ts` | ts | 53 |  |  |
 | `apps/api/test/reading-roles-migration.test.ts` | ts | 264 |  |  |
 | `apps/api/test/record-query.test.ts` | ts | 182 |  |  |
 | `apps/api/test/search-aliases.test.ts` | ts | 123 |  |  |
@@ -175,7 +175,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/prayer-times.test.js` | js | 167 |  |  |
 | `pwa-website/test/qibla-compass.test.js` | js | 209 |  |  |
 | `pwa-website/test/quran-download.test.js` | js | 119 |  |  |
-| `pwa-website/test/quran-words.test.js` | js | 129 |  |  |
+| `pwa-website/test/quran-words.test.js` | js | 133 |  |  |
 | `pwa-website/test/reading-roles.test.js` | js | 101 |  |  |
 | `pwa-website/test/reciters.test.js` | js | 39 |  |  |
 | `pwa-website/vitest.config.js` | js | 12 |  |  |
@@ -371,7 +371,7 @@ Not all of these are bugs; verify before assuming.
 | editorial_notifications | table | `apps/api/migrations/0016_editorial_notifications.sql` | `apps/auth/src/notifications.ts` |
 | editorial_record_state | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/api/test/hadith-reference.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/rag-filters.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | editorial_role_grants | table | `apps/auth/migrations/0006_editorial_roles.sql` | (none) |
-| either | unknown | `(not defined in scanned files)` | `apps/api/test/rag-synonyms.test.ts`, `pwa-website/js/prayer.js` |
+| either | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
 | ever | unknown | `(not defined in scanned files)` | `apps/api/test/quran-search.test.ts` |
 | every | unknown | `(not defined in scanned files)` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/test/admin-mfa-gate.test.ts`, `pwa-website/js/onboarding.js` |
 | everyayah | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js` |

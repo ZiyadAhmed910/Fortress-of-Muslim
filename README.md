@@ -174,6 +174,23 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.33.1
+
+_2026-09-19_
+
+- **"Reliance on Allah" reaches the verses about it.** Making retrieval deterministic in 0.33.0 made
+  this question consistently wrong rather than sometimes right: it returned five verses of Surah
+  Ash-Shu'ara at 0.02 on every run. The synonym group matched "reliance upon Allah" -- how the
+  translation renders it -- and never "reliance on Allah", which is how a person types it, so the
+  question that motivated the group expanded to nothing at all. It matches the bare words now.
+- **A guard so that gap cannot recur.** Every concept group is asserted reachable by a single word.
+  It immediately found a second one: `talbiya` is a substring of `talbiyah`, so expansion treated it
+  as already present and that group added nothing whatever it was asked. It carries `labbayk` now.
+- **The flaky Quran-words test was never flaky.** 77,429 words across 114 files, each asserted on,
+  is several seconds of real work, and it exceeded vitest's 5s default only when the rest of the
+  suite was competing for the disk. The data is worth checking in full; the test is now allowed the
+  time it takes.
+
 ### 0.33.0
 
 _2026-09-19_
