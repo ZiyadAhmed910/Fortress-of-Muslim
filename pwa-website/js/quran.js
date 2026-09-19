@@ -45,8 +45,16 @@ const loaded = new Map();
 let prefs = loadPrefs();
 let page = 0;
 
-function loadPrefs() {
-  const fallback = { favouriteSurahs: [], favouriteAyahs: [], lastRead: null, tajweed: true, paginated: true, browseMode: 'surah' };
+// Continuous scroll is how the reader opens now: a surah reads as one text rather than as twenty-ayah
+// slices, and the recitation player no longer has to turn a page to keep going. Pages are the opt-out.
+// Unlike tajweed below, this one is read as "explicitly on" rather than "not explicitly off", because
+// markRead() has been writing the whole prefs object -- normalised paginated included -- on every
+// surah anyone has ever opened. Testing for "not explicitly off" would therefore have flipped nobody;
+// testing for "explicitly on" keeps every existing reader exactly where they were and gives the new
+// default to new installs. Either way a stored preference is an answer someone gave, and changing the
+// default must not overwrite it.
+export function loadPrefs() {
+  const fallback = { favouriteSurahs: [], favouriteAyahs: [], lastRead: null, tajweed: true, paginated: false, browseMode: 'surah' };
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!parsed || typeof parsed !== 'object') return fallback;
@@ -55,7 +63,7 @@ function loadPrefs() {
       favouriteAyahs: normaliseFavouriteAyahs(parsed.favouriteAyahs),
       lastRead: parsed.lastRead && Number.isInteger(parsed.lastRead.surah) ? parsed.lastRead : null,
       tajweed: parsed.tajweed !== false,
-      paginated: parsed.paginated !== false,
+      paginated: parsed.paginated === true,
       browseMode: parsed.browseMode === 'juz' ? 'juz' : 'surah',
     };
   } catch {
