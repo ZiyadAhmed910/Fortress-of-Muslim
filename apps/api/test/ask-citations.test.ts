@@ -94,6 +94,35 @@ describe('which answers survive the citation rule', () => {
     expect(result.answer).toContain(FALLBACK);
   });
 
+
+  it('accepts the qualifier the prompt itself asks the model to add', async () => {
+    // Logged from the live corpus: the model wrote "[1 — unverified]", which the prompt asks for
+    // when a source is unverified, and the strict bracket pattern discarded the whole answer.
+    const result = await ask('The Prophet said cleanliness is half of faith [1 — unverified].');
+    expect(result.answer).not.toContain(FALLBACK);
+    expect(result.meta.generated).toBe(true);
+  });
+
+  it('reads every number in a bracket, not just the first', async () => {
+    // One source exists, so "[1, 2]" names one that does not. Rejecting it is the rule working --
+    // and it only can if both numbers are read, which a pattern matching the first would not do.
+    const result = await ask('Both sources describe the same supplication [1, 2].');
+    expect(result.answer).toContain(FALLBACK);
+  });
+
+  it('still rejects a bracket carrying no source number', async () => {
+    const result = await ask('This is recommended [see above].');
+    expect(result.answer).toContain(FALLBACK);
+  });
+
+  it('passes the refusal through instead of listing sources it just called irrelevant', async () => {
+    // Logged live: asked for a Quran verse on reliance, the model said the sources contained none --
+    // and was answered with "could not generate a fully cited answer. Review: ..." listing them.
+    const result = await ask('NO_ANSWER');
+    expect(result.answer).toContain('do not answer it');
+    expect(result.answer).not.toContain(FALLBACK);
+    expect(result.meta.generated).toBe(false);
+  });
   it('still discards an answer that asserts something with no citation at all', async () => {
     const result = await ask('You should recite this three times before leaving home.');
     expect(result.answer).toContain(FALLBACK);

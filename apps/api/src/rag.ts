@@ -35,6 +35,11 @@ const DEFAULT_ASK_SETTINGS = {
   unverifiedFallback: 0,
 };
 const MAX_CONTEXTS = 6;
+// What the model says when the sources do not answer the question. It has nothing to cite at that
+// point, so without an agreed way to say it the citation rule discarded the refusal and replaced it
+// with a list of the very sources it had just called irrelevant.
+const NO_ANSWER = 'NO_ANSWER';
+const NOTHING_FOUND = 'The published Fortress sources found for this question do not answer it.';
 // gpt-oss is a reasoning model: it writes a private chain of thought before the answer, and those
 // tokens come out of the same budget. At 650 the reasoning could consume all of it and the model
 // returned an empty string -- which became the deterministic fallback, so most questions showed
@@ -81,7 +86,9 @@ const GENERATION_SYSTEM_PROMPT = 'You are the Fortress of Muslim canonical sourc
   + 'states its own Verification status; if a context you cite is not "verified", you must say so '
   + 'explicitly in the sentence that cites it (for example, "this is not yet independently '
   + 'verified") -- never present unverified material with the same confidence as verified material. '
-  + 'If the contexts are insufficient, say so. Keep the answer concise and do not provide medical, '
+  + 'If the sources do not answer the question, reply with exactly NO_ANSWER and nothing else -- '
+  + 'do not explain, apologise or summarise what they do contain. Keep the answer concise and do '
+  + 'not provide medical, '
   + 'legal, or religious verdicts. '
   + 'Formatting, which is enforced: keep it short, with no headings and no bullet points. Every '
   + 'sentence that states something must carry a bracketed citation such as [1]. Arabic you are '
@@ -927,19 +934,39 @@ export function streamAnswer(
             temperature: 0.1,
             stream: true,
           }) as unknown as ReadableStream<Uint8Array>;
+          // The first few characters are held back. A refusal arrives as the bare sentinel, and
+          // streaming it would flash "NO_ANSWER" at the reader before the replacement landed.
+          let held = '';
+          let streaming = false;
           for await (const chunk of readModelStream(stream)) {
             const text = extractDeltaText(chunk);
             if (!text) continue;
             answer += text;
-            send('delta', { text });
+            if (streaming) {
+              send('delta', { text });
+              continue;
+            }
+            held += text;
+            if (NO_ANSWER.startsWith(held.trim().slice(0, NO_ANSWER.length)) && held.trim().length < NO_ANSWER.length) continue;
+            if (held.trim().startsWith(NO_ANSWER)) continue;
+            streaming = true;
+            send('delta', { text: held });
+            held = '';
           }
+          if (!streaming && held && !held.trim().startsWith(NO_ANSWER)) send('delta', { text: held });
         } catch (error) {
           console.error(JSON.stringify({ event: 'rag_stream_failed', datasetId: prepared.dataset.id, message: errorMessage(error) }));
           answer = '';
         }
 
         answer = answer.trim();
-        if (!answer || !hasValidCitations(answer, sources.length)) {
+        if (answer.startsWith(NO_ANSWER)) {
+          // Asked for and given. Saying so is more useful than the deterministic list of sources
+          // the model has just judged irrelevant.
+          answer = NOTHING_FOUND;
+          generated = false;
+          send('replace', { answer });
+        } else if (!answer || !hasValidCitations(answer, sources.length)) {
           if (answer) {
             console.error(JSON.stringify({
               event: 'rag_generation_uncited',
@@ -1021,7 +1048,13 @@ async function generateGroundedAnswer(
         shape: Object.keys((response ?? {}) as Record<string, unknown>).join(','),
       }));
     }
-    if (!hasValidCitations(answer, sources.length)) {
+    if (answer.replace(/[^A-Z_]/g, '').startsWith(NO_ANSWER)) {
+      // The model was asked to say this and did. Reporting it as "could not generate a fully cited
+      // answer" alongside the sources it just judged irrelevant was the least useful thing Ask said.
+      answer = NOTHING_FOUND;
+      generated = false;
+      model = null;
+    } else if (!hasValidCitations(answer, sources.length)) {
       // Answers are discarded unless every paragraph carries a citation. That rule protects the
       // one commitment that matters most here -- nothing is asserted about religious content
       // without a source -- but discarding silently made a well-behaved model look broken, so the
@@ -1110,7 +1143,11 @@ async function expandQueryVariants(env: Bindings, question: string): Promise<str
         { role: 'user', content: question },
       ],
       max_tokens: 80,
-      temperature: 0.4,
+      // Deterministic. At 0.4 the same question produced different search phrasings on every ask,
+      // and those variants drive retrieval -- so "give me a Quran verse for reliance on Allah" returned
+      // 64:13 and 9:51 at 0.99 on one run and three verses from Surah Ash-Shu'ara at 0.02 on the next.
+      // A reader asking the same thing twice should not get a different corpus.
+      temperature: 0,
     });
     return extractAnswerText(response)
       .split('\n')
@@ -1500,14 +1537,23 @@ function isQuotedText(paragraph: string) {
  * without a source. Every paragraph that makes a claim must cite one, and every citation must point
  * at a source that exists. Quoted scripture is exempt -- it is the cited source speaking.
  */
+/**
+ * A bracket carrying at least one source number. Deliberately tolerant of what else is inside it:
+ * the model writes "[1]", but also "[1, 2]" and "[1 — unverified]", and the strict `\[\d+\]` threw
+ * away whole correct answers over the qualifier the prompt itself asks for. The numbers are what
+ * matter, and they are still checked against the sources that exist.
+ */
+const CITATION_BRACKET = /\[[^\]]*\d[^\]]*\]/;
+
 function hasValidCitations(answer: string, sourceCount: number) {
   if (!answer) return false;
-  const citations = [...answer.matchAll(/\[(\d+)\]/g)].map((match) => Number(match[1]));
+  const citations = (answer.match(/\[[^\]]*\]/g) ?? [])
+    .flatMap((bracket) => [...bracket.matchAll(/\d+/g)].map((match) => Number(match[0])));
   if (citations.length === 0) return false;
   if (!citations.every((citation) => citation >= 1 && citation <= sourceCount)) return false;
 
   const paragraphs = answer.split(/\n+/).map((paragraph) => paragraph.trim()).filter(Boolean);
-  const cited = (paragraph?: string) => Boolean(paragraph && /\[\d+\]/.test(paragraph));
+  const cited = (paragraph?: string) => Boolean(paragraph && CITATION_BRACKET.test(paragraph));
   return paragraphs.every((paragraph, index) => {
     if (isQuotedText(paragraph) || cited(paragraph)) return true;
     // A line that introduces the quotation beneath it ("Before entering the toilet one says:")

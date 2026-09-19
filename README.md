@@ -174,6 +174,29 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.33.0
+
+_2026-09-19_
+
+Read out of `ask_query_log` rather than guessed at. Forty questions, 26 answered, nine discarded --
+and the log said why for each.
+
+- **The same question stopped giving different answers.** "Give me a Quran verse for reliance on
+  Allah" returned 64:13, 9:51 and 27:26 at 0.99 on one run and three verses of Surah Ash-Shu'ara at
+  0.02 on the next. The query-expansion model ran at `temperature: 0.4`, inventing different search
+  phrasings each time, and those phrasings drive retrieval. It is deterministic now. This was the
+  single largest source of answers that felt wrong.
+- **`[1 — unverified]` no longer throws the answer away.** The prompt asks the model to flag an
+  unverified source in the sentence citing it, and the model obliged by putting the flag inside the
+  bracket -- which the strict `[1]` pattern did not recognise, so a correct, properly attributed
+  answer about cleanliness was discarded whole. Brackets are read for the numbers they carry, and
+  every number is still checked against the sources that exist.
+- **A refusal is passed through instead of buried.** Asked for a verse the retrieved sources did not
+  contain, the model said so -- and having no citation, its honest answer was replaced by "could not
+  generate a fully cited answer", listing the sources it had just called irrelevant. It now replies
+  with an agreed sentinel and the reader is told plainly that the sources found do not answer the
+  question. The sentinel is held back from the stream so it never flashes on screen.
+
 ### 0.32.1
 
 _2026-09-19_
