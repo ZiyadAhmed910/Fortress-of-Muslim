@@ -837,6 +837,35 @@
   vertical-align: middle;
 }
 
+/* Surahs / Juz -- the two ways through the mushaf, sitting above the list they both fill. */
+.quran-browse-modes {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+}
+
+.quran-browse-modes .chip-toggle { flex: 1; }
+
+/* A juz row has no Arabic name and no star, so its grid is the surah row's without those columns. */
+.juz-row { grid-template-columns: 2.2rem 1fr auto; }
+.juz-play { color: var(--accent-strong); font-size: 0.95rem; }
+
+/* Which juz is open, above the surah it starts in, with a step either side. */
+.juz-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.8rem;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.juz-strip-label { text-align: center; }
+.juz-strip-label strong { display: block; color: var(--accent-strong); font-size: 0.92rem; }
+.juz-strip-label small { display: block; margin-top: 0.05rem; color: var(--muted); font-size: 0.74rem; }
+
 /* Quran list filter row, matching the dua list's count + Clear arrangement. */
 .quran-filter-row {
   display: flex;

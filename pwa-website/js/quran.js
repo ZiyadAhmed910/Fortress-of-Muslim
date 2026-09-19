@@ -20,6 +20,13 @@ import {
   surahAudioDownloaded,
   currentReciter,
 } from './quran-audio.js';
+import {
+  juzContaining,
+  juzIndex,
+  juzMatches,
+  juzRangeLabel,
+  loadJuzIndex,
+} from './quran-juz.js';
 
 // Surah bodies live in their own files and are fetched the first time one is opened, rather than
 // bundled into the install. With tajweed markup the full text is ~6MB, which would dominate a first
@@ -39,7 +46,7 @@ let prefs = loadPrefs();
 let page = 0;
 
 function loadPrefs() {
-  const fallback = { favouriteSurahs: [], favouriteAyahs: [], lastRead: null, tajweed: true, paginated: true };
+  const fallback = { favouriteSurahs: [], favouriteAyahs: [], lastRead: null, tajweed: true, paginated: true, browseMode: 'surah' };
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!parsed || typeof parsed !== 'object') return fallback;
@@ -49,6 +56,7 @@ function loadPrefs() {
       lastRead: parsed.lastRead && Number.isInteger(parsed.lastRead.surah) ? parsed.lastRead : null,
       tajweed: parsed.tajweed !== false,
       paginated: parsed.paginated !== false,
+      browseMode: parsed.browseMode === 'juz' ? 'juz' : 'surah',
     };
   } catch {
     return fallback;
@@ -107,24 +115,34 @@ function tajweedHtml(markup) {
 }
 
 export function initQuran() {
-  els.quranSearch.addEventListener('input', renderSurahList);
+  els.quranSearch.addEventListener('input', renderQuranList);
   els.quranClearSearch.addEventListener('click', () => {
     els.quranSearch.value = '';
-    renderSurahList();
+    renderQuranList();
     els.quranSearch.focus();
   });
   els.quranFavFilter.addEventListener('click', () => {
     els.quranFavFilter.classList.toggle('active');
-    renderSurahList();
+    renderQuranList();
   });
+  syncBrowseModeControls();
+  els.quranBySurah.addEventListener('click', () => setBrowseMode('surah'));
+  els.quranByJuz.addEventListener('click', () => setBrowseMode('juz'));
   els.quranList.addEventListener('click', (event) => {
     const star = event.target.closest('[data-fav-surah]');
     if (star) {
       event.stopPropagation();
       toggleSurahFavourite(Number(star.dataset.favSurah));
-      renderSurahList();
+      renderQuranList();
       return;
     }
+    const playJuz = event.target.closest('[data-play-juz]');
+    if (playJuz) {
+      event.stopPropagation();
+      return openJuz(Number(playJuz.dataset.playJuz), { play: true });
+    }
+    const juzRow = event.target.closest('[data-juz]');
+    if (juzRow) return openJuz(Number(juzRow.dataset.juz));
     const row = event.target.closest('[data-surah]');
     if (row) openSurah(Number(row.dataset.surah));
   });
@@ -155,7 +173,10 @@ export function initQuran() {
   // rendered, and only the reader knows how to turn one.
   initQuranAudio({
     ensureAyahVisible,
-    onAyahChange: markRead,
+    onAyahChange: (surahNumber, ayahNumber) => {
+      markRead(surahNumber, ayahNumber);
+      trackJuz(surahNumber, ayahNumber);
+    },
     // Listening continues past the end of a surah the way reading does. The reader has to follow
     // the recitation there, so the continuation lives here rather than in the player.
     onSurahEnd: async (next) => {
@@ -215,6 +236,8 @@ function onReaderClick(event) {
   }
   const goto = event.target.closest('[data-goto-surah]');
   if (goto) return openSurah(Number(goto.dataset.gotoSurah));
+  const gotoJuz = event.target.closest('[data-goto-juz]');
+  if (gotoJuz) return openJuz(Number(gotoJuz.dataset.gotoJuz));
   const zoom = event.target.closest('[data-zoom]');
   if (zoom) {
     setFontScale(state.fontScale + Number(zoom.dataset.zoom));
@@ -367,12 +390,13 @@ export function showSurahList() {
   stopObservingReadingPosition();
   if (isPlaying()) stopPlayback();
   state.quranSurah = null;
+  state.quranJuz = null;
   els.app.classList.remove('is-surah');
   els.quranReader.hidden = true;
   els.quranBrowse.hidden = false;
   els.screenTitle.textContent = 'Quran';
   els.screenSubtitle.textContent = 'Arabic with English translation - works offline';
-  renderSurahList();
+  renderQuranList();
 }
 
 /** True when a surah is open, so the shared topbar back button knows what to close. */
@@ -391,6 +415,72 @@ function highlightMatch(value, query) {
     `<mark>${escapeHtml(raw.slice(index, index + query.length))}</mark>`,
     escapeHtml(raw.slice(index + query.length)),
   ].join('');
+}
+
+
+// The mushaf can be walked two ways: by its 114 surahs, or by the thirty ajza it is divided into for
+// reading it through. Both list into the same place, so only the rows differ -- and which one you
+// last used is remembered, because people who read by juz read by juz every day.
+function setBrowseMode(mode) {
+  if (prefs.browseMode === mode) return;
+  prefs.browseMode = mode;
+  savePrefs();
+  syncBrowseModeControls();
+  renderQuranList();
+}
+
+function syncBrowseModeControls() {
+  const byJuz = prefs.browseMode === 'juz';
+  els.quranBySurah.classList.toggle('active', !byJuz);
+  els.quranByJuz.classList.toggle('active', byJuz);
+  els.quranBySurah.setAttribute('aria-selected', String(!byJuz));
+  els.quranByJuz.setAttribute('aria-selected', String(byJuz));
+  // Saving is per surah and per ayah; there is nothing to filter in the juz list, so the chip goes
+  // rather than sitting there doing nothing.
+  els.quranFavFilter.hidden = byJuz;
+  els.quranSearch.placeholder = byJuz
+    ? 'Search juz by number or surah'
+    : 'Search surah by name or number';
+}
+
+function renderQuranList() {
+  if (prefs.browseMode === 'juz') return renderJuzList();
+  return renderSurahList();
+}
+
+const surahNameOf = (number) => index?.surahs.find((surah) => surah.number === number)?.nameSimple ?? `Surah ${number}`;
+
+async function renderJuzList() {
+  let data = juzIndex();
+  if (!data) {
+    els.quranList.innerHTML = '<div class="empty-state">Loading juz...</div>';
+    try {
+      data = await loadJuzIndex();
+    } catch {
+      els.quranList.innerHTML = '<div class="empty-state">The juz list could not be loaded. Check your connection and try again.</div>';
+      return;
+    }
+    if (prefs.browseMode !== 'juz') return; // switched back while it loaded
+  }
+
+  const query = els.quranSearch.value.trim().toLocaleLowerCase();
+  const matches = data.juz.filter((juz) => juzMatches(juz, query, surahNameOf));
+  els.quranResume.innerHTML = renderResumeCard();
+  els.quranVerseResults.innerHTML = '';
+  els.quranCount.textContent = `${matches.length} juz`;
+  els.quranClearSearch.hidden = !query;
+  els.quranList.innerHTML = matches.length
+    ? matches.map((juz) => `
+        <div class="surah-row juz-row" data-juz="${juz.number}" role="button" tabindex="0">
+          <span class="surah-number">${juz.number}</span>
+          <span class="surah-names">
+            <strong>Juz ${juz.number}</strong>
+            <small>${escapeHtml(juzRangeLabel(juz, surahNameOf))} &middot; ${juz.ayahCount} ayahs</small>
+          </span>
+          <button class="star-toggle juz-play" type="button" data-play-juz="${juz.number}" aria-label="Play juz ${juz.number}">&#9654;</button>
+        </div>
+      `).join('')
+    : '<div class="empty-state">No juz matched that search.</div>';
 }
 
 function renderSurahList() {
@@ -524,6 +614,7 @@ export async function openSurah(number, scrollToAyah = null) {
   // why "Continue reading" was stuck at ayah 1 no matter how far anyone actually read -- reading is
   // scrolling, and nothing was watching that. markRead below now keeps it honest.
   markRead(number, scrollToAyah || 1, { immediate: true });
+  trackJuz(number, scrollToAyah || 1, { render: false });
   renderSurah(surah);
   if (scrollToAyah) {
     // Instant, not smooth: resuming at ayah 200 should put you there, not animate the whole way down
@@ -531,6 +622,71 @@ export async function openSurah(number, scrollToAyah = null) {
     // and that one still is.
     document.getElementById(`ayah-${number}-${scrollToAyah}`)?.scrollIntoView({ block: 'center', behavior: 'instant' });
   }
+}
+
+/**
+ * Opens a juz at its first ayah, and optionally starts reciting from there.
+ *
+ * Nothing here has to stitch the recitation together across the surahs a juz spans: playback already
+ * continues into the next surah on its own, so starting at 2:142 for juz 2 and starting at 67:1 for
+ * juz 29 behave the same way -- it keeps going. What this does add is where you are: the reader
+ * carries a juz strip while one is open, and trackJuz below moves it along as the recitation crosses
+ * a boundary, so listening straight through does not silently leave the juz you chose.
+ */
+export async function openJuz(number, { play = false } = {}) {
+  let data = juzIndex();
+  if (!data) {
+    try {
+      data = await loadJuzIndex();
+    } catch {
+      toast('The juz list could not be loaded. Check your connection and try again.');
+      return;
+    }
+  }
+  const juz = data.juz.find((entry) => entry.number === number);
+  if (!juz) return;
+  state.quranJuz = number;
+  await openSurah(juz.start.surah, juz.start.ayah);
+  if (state.quranSurah !== juz.start.surah) return; // the surah failed to load
+  if (!play) return;
+  const meta = index?.surahs.find((surah) => surah.number === juz.start.surah);
+  playAyah(juz.start.surah, juz.start.ayah, { total: meta?.ayahCount ?? null });
+}
+
+/**
+ * Keeps state.quranJuz pointing at the juz actually being read, once one has been opened. Only ever
+ * corrects a juz that is already set: someone browsing by surah has not asked to see juz at all.
+ */
+function trackJuz(surahNumber, ayahNumber, { render = true } = {}) {
+  if (!state.quranJuz) return;
+  const current = juzContaining(juzIndex()?.juz, surahNumber, ayahNumber);
+  if (!current || current === state.quranJuz) return;
+  state.quranJuz = current;
+  if (!render) return;
+  const surah = loaded.get(state.quranSurah);
+  if (surah) renderSurah(surah);
+}
+
+/** The strip above the text naming the open juz, with a step either side. Absent in surah mode. */
+function renderJuzStrip() {
+  if (!state.quranJuz) return '';
+  const data = juzIndex();
+  const juz = data?.juz.find((entry) => entry.number === state.quranJuz);
+  if (!juz) return '';
+  return `
+    <nav class="juz-strip" aria-label="Juz navigation">
+      <button class="tool-button" type="button" data-goto-juz="${juz.number - 1}" ${juz.number > 1 ? '' : 'disabled'} aria-label="Previous juz">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <span class="juz-strip-label">
+        <strong>Juz ${juz.number}</strong>
+        <small>${escapeHtml(juzRangeLabel(juz, surahNameOf))}</small>
+      </span>
+      <button class="tool-button" type="button" data-goto-juz="${juz.number + 1}" ${juz.number < 30 ? '' : 'disabled'} aria-label="Next juz">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </nav>
+  `;
 }
 
 let readMarkTimer = null;
@@ -579,7 +735,9 @@ function observeReadingPosition(surahNumber) {
     clearTimeout(idle);
     idle = setTimeout(() => {
       const ayah = nearestAyahToCentre();
-      if (ayah) markRead(surahNumber, ayah);
+      if (!ayah) return;
+      markRead(surahNumber, ayah);
+      trackJuz(surahNumber, ayah);
     }, 150);
   };
   scrollTracker = () => {
@@ -628,6 +786,7 @@ function renderSurah(surah) {
     : surah.ayahs;
 
   els.quranReader.innerHTML = `
+    ${renderJuzStrip()}
     <header class="surah-header">
       <h2>${escapeHtml(surah.nameSimple)} <span dir="rtl" lang="ar">${escapeHtml(surah.nameArabic)}</span></h2>
       <p>${escapeHtml(surah.nameEnglish)} &middot; ${surah.ayahCount} ayahs &middot; ${surah.revelationPlace === 'makkah' ? 'Meccan' : 'Medinan'}</p>

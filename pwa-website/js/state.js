@@ -22,6 +22,9 @@ export const state = {
   refreshing: false,
   contentMode: 'duas',
   quranSurah: null,
+  // The juz being read, once one has been opened from the Juz list. Null while browsing by surah,
+  // which is what keeps the reader's juz strip out of the way of anyone who never asked for it.
+  quranJuz: null,
   lastWorshipMode: 'prayerTimes',
   calculationMethod: localStorage.getItem('calculationMethod') || 'mwl',
   asrMethod: localStorage.getItem('asrMethod') || 'standard',

@@ -174,6 +174,26 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.35.0
+
+_2026-09-19_
+
+- **The Quran browses by juz (parah) as well as by surah.** A toggle above the list switches between
+  the 114 surahs and the thirty ajza. A juz row names where it runs -- "Juz 2 - Al-Baqarah 142 - 252
+  - 111 ayahs" -- and opening one goes straight to its first ayah, which for most ajza is in the
+  middle of a surah rather than at the top of one. While a juz is open the reader carries a strip
+  naming it, with a step to the juz either side, and the strip follows you: reading or listening
+  across a boundary moves it along rather than leaving it stale. Playing a juz needs nothing new to
+  carry it across the surahs it spans -- recitation already continues into the next surah, so juz 30
+  runs from An-Naba to the end of the mushaf on its own.
+- **The juz boundaries are built, not typed in.** `pwa-website/tools/build-quran-juz.mjs` fetches
+  them from quran.com, reconciles all thirty ayah-for-ayah against alquran.cloud, and refuses to
+  write anything if the two disagree anywhere. It then checks the result against the mushaf this app
+  ships: the thirty ajza must tile all 6,236 ayahs in order, with no gap and no overlap. That last
+  property is asserted again in `pwa-website/test/quran-juz.test.js`, because it is the one a single
+  source cannot establish on its own, and a boundary that is quietly wrong sends someone to the
+  wrong place to start reading.
+
 ### 0.34.0
 
 _2026-09-19_
@@ -1171,6 +1191,24 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — read the Quran by parah
+
+- The Quran list has two modes: **Surahs** and **Juz (Parah)**. The juz list gives each one its
+  range and length -- "Juz 2 - Al-Baqarah 142 - 252 - 111 ayahs" -- and searching it accepts a
+  number or the name of any surah inside it. Whichever mode you last used is the one you come back
+  to, because people who read by parah read by parah every day.
+- Opening a juz lands on its first ayah, not on the first ayah of the surah that contains it. Most
+  ajza begin mid-surah, so this is the difference between starting your parah and starting the
+  surah it happens to fall in.
+- While a juz is open the reader shows which one, with a step to the previous and next juz. The
+  strip follows the reading: scrolling or listening past a boundary moves it on, so straight-through
+  reading never leaves it pointing at the parah you finished.
+- The play button on a juz row recites from its first ayah and keeps going across every surah the
+  juz spans -- and past it, the way reading does -- until the end of An-Nas.
+- The boundaries are generated and cross-checked against two independent sources, then verified to
+  tile all 6,236 ayahs with no gap or overlap. `juz.json` is precached, so browsing by parah works
+  offline like the rest of the Quran.
 
 ### Unreleased — the compass works however you hold the phone
 

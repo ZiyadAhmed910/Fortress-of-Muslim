@@ -71,6 +71,8 @@ export const els = {
   quranReader: document.getElementById('quranReader'),
   quranSearch: document.getElementById('quranSearch'),
   quranVerseResults: document.getElementById('quranVerseResults'),
+  quranBySurah: document.getElementById('quranBySurah'),
+  quranByJuz: document.getElementById('quranByJuz'),
   quranFavFilter: document.getElementById('quranFavFilter'),
   quranClearSearch: document.getElementById('quranClearSearch'),
   quranResume: document.getElementById('quranResume'),
