@@ -1,9 +1,11 @@
 // The thirty ajza (parahs): where each one begins and ends, and how to say so in a list.
 //
-// The boundaries themselves are not written here. They live in data/quran/juz.json, built and
-// verified by tools/build-quran-juz.mjs -- fetched from quran.com, reconciled ayah-for-ayah against
-// alquran.cloud, and checked to tile all 6,236 ayahs with no gap and no overlap. Nothing in this
-// file second-guesses them; it only reads them.
+// The boundaries themselves are not written here. They live in data/quran/juz.json, which is our own
+// canonical data, served from our own origin and precached like the rest of the Quran -- no request
+// leaves the app to find out where a juz begins. tools/verify-quran-juz.mjs checks that file against
+// the mushaf we ship (the thirty ajza must tile all 6,236 ayahs with no gap and no overlap) and, on
+// request, against two outside projects that can only corroborate it. Nothing here second-guesses
+// them; it only reads them.
 const JUZ_URL = './data/quran/juz.json';
 
 let index = null;

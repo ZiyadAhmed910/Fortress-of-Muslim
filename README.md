@@ -186,13 +186,17 @@ _2026-09-19_
   across a boundary moves it along rather than leaving it stale. Playing a juz needs nothing new to
   carry it across the surahs it spans -- recitation already continues into the next surah, so juz 30
   runs from An-Naba to the end of the mushaf on its own.
-- **The juz boundaries are built, not typed in.** `pwa-website/tools/build-quran-juz.mjs` fetches
-  them from quran.com, reconciles all thirty ayah-for-ayah against alquran.cloud, and refuses to
-  write anything if the two disagree anywhere. It then checks the result against the mushaf this app
-  ships: the thirty ajza must tile all 6,236 ayahs in order, with no gap and no overlap. That last
-  property is asserted again in `pwa-website/test/quran-juz.test.js`, because it is the one a single
-  source cannot establish on its own, and a boundary that is quietly wrong sends someone to the
-  wrong place to start reading.
+- **The juz boundaries are ours, and outside sources only ever check them.**
+  `pwa-website/data/quran/juz.json` is canonical data in this repository, served from our own origin
+  and precached with the rest of the Quran -- nothing in the app asks a third party where a juz
+  begins. `pwa-website/tools/verify-quran-juz.mjs` verifies that file and never writes it: offline,
+  it proves the thirty ajza tile all 6,236 ayahs of the mushaf this app ships, in order, with no gap
+  and no overlap, which is the strongest check available and the one no single outside source can
+  establish on its own. Run with `--online` (`npm run pwa:quran:juz-check`) it also corroborates them
+  against quran.com and alquran.cloud, and a disagreement is reported for a person to investigate
+  rather than silently applied. The offline check runs in `npm run data:safety` and the same
+  invariant is asserted in `pwa-website/test/quran-juz.test.js`, because a boundary that is quietly
+  wrong sends someone to the wrong place to start reading.
 
 ### 0.34.0
 

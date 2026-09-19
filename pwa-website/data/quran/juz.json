@@ -2,8 +2,8 @@
  "totalJuz": 30,
  "totalAyahs": 6236,
  "attribution": {
-  "source": "quran.com API, cross-checked against alquran.cloud",
-  "text": "Juz boundaries fetched from api.quran.com and verified ayah-for-ayah against api.alquran.cloud."
+  "source": "Fortress of Muslim canonical data",
+  "text": "The thirty juz boundaries of the standard Hafs mushaf, held as canonical data in this repository. Verified by tools/verify-quran-juz.mjs to tile all 6,236 ayahs of the accompanying text exactly, and independently corroborated against the quran.com and alquran.cloud APIs, which are used to check these boundaries and never to supply them. The app reads this file from its own origin; it makes no request to either project at runtime."
  },
  "juz": [
   {
