@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T17:20:43.774Z",
+  "generatedAt": "2026-09-19T17:47:19.646Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -854,7 +854,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 159,
+      "lines": 161,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -957,6 +957,14 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/js/quran-juz.js",
+      "lines": 70,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/js/quran-verse-search.js",
       "lines": 91,
       "language": "js",
@@ -966,7 +974,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 833,
+      "lines": 992,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1006,7 +1014,7 @@
     },
     {
       "path": "pwa-website/js/state.js",
-      "lines": 41,
+      "lines": 44,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1038,7 +1046,7 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 200,
+      "lines": 201,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1111,6 +1119,14 @@
     {
       "path": "pwa-website/test/quran-download.test.js",
       "lines": 119,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/quran-juz.test.js",
+      "lines": 111,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3206,6 +3222,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "pwa-website/js/quran.js",
         "pwa-website/sw.js"
       ]
     },
@@ -3635,6 +3652,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "pwa-website/js/quran-juz.js",
         "pwa-website/test/quran-words.test.js"
       ]
     },
@@ -4045,10 +4063,12 @@
         "pwa-website/js/quran-audio.js",
         "pwa-website/js/quran-verse-search.js",
         "pwa-website/js/quran.js",
+        "pwa-website/js/state.js",
         "pwa-website/test/categories.test.js",
         "pwa-website/test/guide-and-tasbih.test.js",
         "pwa-website/test/prayer-times.test.js",
         "pwa-website/test/qibla-compass.test.js",
+        "pwa-website/test/quran-juz.test.js",
         "pwa-website/test/quran-words.test.js",
         "pwa-website/test/reading-roles.test.js"
       ]
@@ -4060,6 +4080,7 @@
       "referencedBy": [
         "pwa-website/js/assistant.js",
         "pwa-website/js/modes.js",
+        "pwa-website/js/quran.js",
         "pwa-website/test/quran-bismillah.test.js"
       ]
     },

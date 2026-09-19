@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-19T17:20:43.774Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-19T17:47:19.646Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -143,7 +143,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 159 |  |  |
+| `pwa-website/js/dom.js` | js | 161 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
 | `pwa-website/js/home.js` | js | 219 |  |  |
@@ -156,17 +156,18 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/prayer.js` | js | 594 |  |  |
 | `pwa-website/js/pwa.js` | js | 146 |  |  |
 | `pwa-website/js/quran-audio.js` | js | 623 |  |  |
+| `pwa-website/js/quran-juz.js` | js | 70 |  |  |
 | `pwa-website/js/quran-verse-search.js` | js | 91 |  |  |
-| `pwa-website/js/quran.js` | js | 833 |  |  |
+| `pwa-website/js/quran.js` | js | 992 |  |  |
 | `pwa-website/js/reader.js` | js | 147 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
 | `pwa-website/js/routes.js` | js | 41 |  |  |
 | `pwa-website/js/settings.js` | js | 100 |  |  |
-| `pwa-website/js/state.js` | js | 41 |  |  |
+| `pwa-website/js/state.js` | js | 44 |  |  |
 | `pwa-website/js/tasbih.js` | js | 205 |  |  |
 | `pwa-website/js/userData.js` | js | 175 |  |  |
 | `pwa-website/js/utils.js` | js | 23 |  |  |
-| `pwa-website/sw.js` | js | 200 |  |  |
+| `pwa-website/sw.js` | js | 201 |  |  |
 | `pwa-website/test/card-labels.test.js` | js | 47 |  |  |
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
 | `pwa-website/test/guide-and-tasbih.test.js` | js | 61 |  |  |
@@ -176,6 +177,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/qibla-compass.test.js` | js | 209 |  |  |
 | `pwa-website/test/quran-bismillah.test.js` | js | 41 |  |  |
 | `pwa-website/test/quran-download.test.js` | js | 119 |  |  |
+| `pwa-website/test/quran-juz.test.js` | js | 111 |  |  |
 | `pwa-website/test/quran-words.test.js` | js | 133 |  |  |
 | `pwa-website/test/reading-roles.test.js` | js | 101 |  |  |
 | `pwa-website/test/reciters.test.js` | js | 39 |  |  |
@@ -382,7 +384,7 @@ Not all of these are bugs; verify before assuming.
 | favourites | unknown | `(not defined in scanned files)` | `pwa-website/js/quran.js` |
 | field_reviews | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | filterList | unknown | `(not defined in scanned files)` | `pwa-website/js/home.js` |
-| for | unknown | `(not defined in scanned files)` | `pwa-website/sw.js` |
+| for | unknown | `(not defined in scanned files)` | `pwa-website/js/quran.js`, `pwa-website/sw.js` |
 | hadith_grades | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | hadith_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | harm | unknown | `(not defined in scanned files)` | `pwa-website/js/categories.js` |
@@ -430,7 +432,7 @@ Not all of these are bugs; verify before assuming.
 | publication_batch_items | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts` |
 | publication_batches | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts` |
 | publication_history | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
-| quran | unknown | `(not defined in scanned files)` | `pwa-website/test/quran-words.test.js` |
+| quran | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-juz.js`, `pwa-website/test/quran-words.test.js` |
 | quran_ayahs | table | `apps/api/migrations/0024_quran_search.sql` | `apps/api/src/quran-search.ts`, `apps/api/test/quran-search.test.ts` |
 | quran_index_state | table | `apps/api/migrations/0024_quran_search.sql` | `apps/api/src/quran-search.ts`, `apps/api/test/quran-search.test.ts` |
 | quran_search_fts | virtual_table | `apps/api/migrations/0024_quran_search.sql` | `apps/api/src/quran-search.ts` |
@@ -468,8 +470,8 @@ Not all of these are bugs; verify before assuming.
 | taxonomy_terms | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
 | text | unknown | `(not defined in scanned files)` | `apps/api/test/search-aliases.test.ts` |
 | that | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/test/guide-and-tasbih.test.js` |
-| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/app.ts`, `apps/api/src/quran-search.ts`, `apps/api/src/rag-intent.ts`, `apps/api/src/rag.ts`, `apps/api/test/ask-citations.test.ts`, `apps/api/test/ask-policy.test.ts`, `apps/api/test/ask-quran-sources.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/quran-search.test.ts`, `apps/api/test/search-aliases.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/categories.js`, `pwa-website/js/layout-settings.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran-verse-search.js`, `pwa-website/js/quran.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/guide-and-tasbih.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/qibla-compass.test.js`, `pwa-website/test/quran-words.test.js`, `pwa-website/test/reading-roles.test.js` |
-| there | unknown | `(not defined in scanned files)` | `pwa-website/js/assistant.js`, `pwa-website/js/modes.js`, `pwa-website/test/quran-bismillah.test.js` |
+| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/app.ts`, `apps/api/src/quran-search.ts`, `apps/api/src/rag-intent.ts`, `apps/api/src/rag.ts`, `apps/api/test/ask-citations.test.ts`, `apps/api/test/ask-policy.test.ts`, `apps/api/test/ask-quran-sources.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/quran-search.test.ts`, `apps/api/test/search-aliases.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/categories.js`, `pwa-website/js/layout-settings.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran-verse-search.js`, `pwa-website/js/quran.js`, `pwa-website/js/state.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/guide-and-tasbih.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/qibla-compass.test.js`, `pwa-website/test/quran-juz.test.js`, `pwa-website/test/quran-words.test.js`, `pwa-website/test/reading-roles.test.js` |
+| there | unknown | `(not defined in scanned files)` | `pwa-website/js/assistant.js`, `pwa-website/js/modes.js`, `pwa-website/js/quran.js`, `pwa-website/test/quran-bismillah.test.js` |
 | this | unknown | `(not defined in scanned files)` | `apps/auth/src/editorial-plane.ts`, `apps/status/public/app.js`, `pwa-website/js/quran-verse-search.js`, `pwa-website/js/quran.js` |
 | travel | unknown | `(not defined in scanned files)` | `apps/api/test/ask-follow-up.test.ts`, `apps/api/test/fuzzy-title.test.ts` |
 | true | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js` |

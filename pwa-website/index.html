@@ -209,6 +209,10 @@
             <span aria-hidden="true">&#8981;</span>
             <input id="quranSearch" type="search" placeholder="Search surah by name or number" autocomplete="off" aria-label="Search surahs">
           </div>
+          <div class="quran-browse-modes" role="tablist" aria-label="Browse the Quran by">
+            <button class="chip-toggle active" id="quranBySurah" type="button" role="tab" aria-selected="true" aria-controls="quranList">Surahs</button>
+            <button class="chip-toggle" id="quranByJuz" type="button" role="tab" aria-selected="false" aria-controls="quranList">Juz (Parah)</button>
+          </div>
           <div class="quran-filter-row">
             <p class="result-count" id="quranCount"></p>
             <span class="quran-filter-actions">
