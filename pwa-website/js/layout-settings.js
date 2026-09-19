@@ -10,9 +10,9 @@ export function renderLayoutConfigList() {
         <strong>${label}</strong>
       </label>
       <select data-layout-visibility="${id}" aria-label="${label} visibility">
-        <option value="both">Simple &amp; Advanced UI</option>
-        <option value="simple">Simple UI only</option>
-        <option value="advanced">Advanced UI only</option>
+        <option value="both">Both home screens</option>
+        <option value="simple">Plain home screen only</option>
+        <option value="advanced">Picture home screen only</option>
       </select>
     </div>
   `).join('');
