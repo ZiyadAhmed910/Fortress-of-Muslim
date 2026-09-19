@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T17:47:19.646Z",
+  "generatedAt": "2026-09-19T22:37:24.706Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -958,7 +958,7 @@
     },
     {
       "path": "pwa-website/js/quran-juz.js",
-      "lines": 70,
+      "lines": 72,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -974,7 +974,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 992,
+      "lines": 1000,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1014,7 +1014,7 @@
     },
     {
       "path": "pwa-website/js/state.js",
-      "lines": 44,
+      "lines": 48,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1047,6 +1047,14 @@
     {
       "path": "pwa-website/sw.js",
       "lines": 201,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/boot-theme.test.js",
+      "lines": 103,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1095,6 +1103,14 @@
     {
       "path": "pwa-website/test/prayer-times.test.js",
       "lines": 167,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/preference-defaults.test.js",
+      "lines": 82,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3251,6 +3267,14 @@
       ]
     },
     {
+      "name": "index",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/boot-theme.test.js"
+      ]
+    },
+    {
       "name": "invitation",
       "kind": "table",
       "definedIn": [
@@ -3560,6 +3584,14 @@
       "referencedBy": []
     },
     {
+      "name": "our",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran-juz.js"
+      ]
+    },
+    {
       "name": "passkey",
       "kind": "table",
       "definedIn": [
@@ -3652,7 +3684,6 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "pwa-website/js/quran-juz.js",
         "pwa-website/test/quran-words.test.js"
       ]
     },
@@ -4064,6 +4095,7 @@
         "pwa-website/js/quran-verse-search.js",
         "pwa-website/js/quran.js",
         "pwa-website/js/state.js",
+        "pwa-website/test/boot-theme.test.js",
         "pwa-website/test/categories.test.js",
         "pwa-website/test/guide-and-tasbih.test.js",
         "pwa-website/test/prayer-times.test.js",

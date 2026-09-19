@@ -174,6 +174,25 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.36.0
+
+_2026-09-20_
+
+- **The juz boundaries are ours; outside sources only ever check them.** The generator added in
+  0.35.0 had the direction backwards: it fetched the thirty boundaries from quran.com on every run
+  and used alquran.cloud to validate the result, which made a third party the authority over what
+  this app says the Quran is divided into -- the file would change underneath us whenever theirs
+  did, and a review would show a diff nobody chose. `pwa-website/data/quran/juz.json` is now simply
+  canonical data in this repository, and `tools/verify-quran-juz.mjs` replaces the generator and
+  never writes it. Offline it proves the thirty ajza tile all 6,236 ayahs of the mushaf we ship, in
+  order, with no gap or overlap -- the strongest check available and the one no single outside
+  source can make -- and that check now runs in `npm run data:safety`. `--online`
+  (`npm run pwa:quran:juz-check`) corroborates against quran.com and alquran.cloud, which can only
+  disagree, never supply; a disagreement is reported for a person to investigate rather than
+  silently applied. The boundaries themselves are unchanged and still agree with both projects on
+  all thirty. Nothing about this was ever a runtime dependency: the app reads `juz.json` from its
+  own origin and always did.
+
 ### 0.35.0
 
 _2026-09-19_
@@ -1195,6 +1214,24 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — dark, continuous, and no flash on the way in
+
+- **Dark mode is the default.** Adhkar are read at dawn and after dark, so the low-light theme is
+  the app now and light is the opt-out. Anyone who had already chosen light keeps light.
+- **Continuous scroll is the default reading mode**, so a surah reads as one text rather than as
+  twenty-ayah slices and the recitation player never has to turn a page to keep going. Every
+  existing reader stays on pages: the reading-position tracker has been writing that preference out
+  for everyone since long before it was a choice, so the stored value cannot tell a deliberate
+  answer from a default and is left alone either way.
+- **Tajweed colouring was already on by default** and is unchanged.
+- **No white flash on launch.** The theme is settled inline, before the first paint, instead of by
+  a deferred module -- which used to paint a light page and snap dark a moment later. That was only
+  ever seen by people who had chosen dark; with dark as the default it would have been everyone, on
+  every launch. The markup carries the defaults and the inline script only ever takes them away, so
+  a device with storage blocked lands on the default for free. `test/boot-theme.test.js` runs that
+  script against `state.js` for every stored combination, so the second copy of a default cannot
+  drift from the first.
 
 ### Unreleased — read the Quran by parah
 
