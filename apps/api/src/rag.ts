@@ -140,9 +140,41 @@ export type AskRecord = Dua | Hadith | AyahRecord;
  */
 export type AskScope = { contentType?: 'dua' | 'hadith' | 'quran'; collection?: string };
 
-/** Narrows an Ask scope to what the repository understands; a Quran scope means no records. */
+/**
+ * Narrows an Ask scope to what the repository understands; a Quran scope means no records.
+ *
+ * Note what `undefined` means on the way out: "no record filter", which every repository call reads
+ * as "every record". That is the correct translation only for a caller that has already decided not
+ * to search records at all. A caller that passes this straight through under a Quran scope gets the
+ * whole editorial corpus -- the exact opposite of what the user asked for. Three separate retrieval
+ * paths have made that mistake, which is why enforceScope() below exists as well.
+ */
 const recordScope = (scope?: AskScope): RagFilters | undefined =>
   (!scope || scope.contentType === 'quran' ? undefined : scope as RagFilters);
+
+/**
+ * The last word on what the user asked for. If they chose a kind of source, only that kind reaches
+ * the model -- whatever any retrieval path above may have decided to contribute.
+ *
+ * This is a backstop, not the mechanism: retrieval should not fetch what the scope excludes in the
+ * first place, and it is cheaper and better not to. But "every path remembers" has been the design
+ * for three fixes now and has failed each time, so the guarantee is made once, here, where it can be
+ * stated as a property of the answer rather than a property of six call sites.
+ */
+function enforceScope(grounded: GroundedRecord[], scope?: AskScope['contentType']): GroundedRecord[] {
+  if (!scope) return grounded;
+  const kept = grounded.filter((item) => item.contentType === scope);
+  if (kept.length !== grounded.length) {
+    // Loud on purpose. Reaching this means a retrieval path leaked and wants fixing at its source;
+    // filtering quietly would hide the very bug this was added to catch.
+    console.error(JSON.stringify({
+      event: 'ask_scope_leak',
+      scope,
+      dropped: grounded.filter((item) => item.contentType !== scope).map((item) => item.record.id),
+    }));
+  }
+  return kept;
+}
 
 type GroundedRecord = {
   record: AskRecord;
@@ -648,7 +680,11 @@ async function prepareGrounding(
   // question -- for those, skip the multi-query embedding/lexical pipeline below and resolve the
   // reference directly. Falls through to normal retrieval if the hint doesn't match a real record
   // (it may just be an ordinary question that happens to end in a number).
-  const exactReference = filters?.contentType !== 'dua' ? parseExactHadithReference(question) : null;
+  // Only where a hadith is allowed. This used to read "not scoped to duas", which let a question
+  // ending in a number resolve a hadith while the user had asked for the Quran.
+  const exactReference = (!filters?.contentType || filters.contentType === 'hadith')
+    ? parseExactHadithReference(question)
+    : null;
   if (exactReference) {
     const record = await repository.findHadithByReference(exactReference.collectionHint, exactReference.number);
     if (record && (!filters?.collection || record.collection.slug === filters.collection)) {
@@ -727,7 +763,7 @@ async function prepareGrounding(
   // Read from the question as typed -- the rewritten follow-up is for retrieval, and the words a
   // person chose are what say which kind of source they want.
   const intent = filters?.contentType ? null : detectAskIntent(question);
-  const grounded = composeContexts(ranked, intent);
+  const scoped = composeContexts(ranked, intent);
   const telemetry = {
     retrievalQuery: baseQuery,
     scope: filters?.contentType,
@@ -738,10 +774,23 @@ async function prepareGrounding(
     reranked,
   };
 
-  if (settings.unverifiedFallback === 1 && grounded.length < MIN_VERIFIED_SOURCES) {
-    const fallback = await retrieveUnverifiedFallback(repository, baseQuery, grounded, MAX_CONTEXTS - grounded.length, filters);
-    if (fallback.length) grounded.push(...fallback);
+  // wantsRecords, for the third time and for the same reason: this searches the editorial corpus,
+  // recordScope() resolves a Quran scope to "no record filter", and the repository reads that as
+  // "every record". Under a Quran scope it can only ever return the corpus the scope excludes.
+  if (wantsRecords && settings.unverifiedFallback === 1 && scoped.length < MIN_VERIFIED_SOURCES) {
+    const fallback = await retrieveUnverifiedFallback(repository, baseQuery, scoped, MAX_CONTEXTS - scoped.length, recordScope(filters));
+    if (fallback.length) scoped.push(...fallback);
   }
+
+  // The backstop. Everything above is a retrieval path that has to remember to respect the scope,
+  // and three of them have now forgotten -- each time because recordScope() turns a Quran scope into
+  // `undefined`, and `undefined` means "no filter" to every repository call it reaches. Rather than
+  // fix a fourth one later, the finished set is checked once here, where the answer is actually
+  // assembled: if the user chose a kind of source, nothing of another kind reaches the model.
+  //
+  // It is deliberately loud. Dropping something here means a path above leaked and should be fixed
+  // at its source; silently filtering would hide exactly the bug this exists to catch.
+  const grounded = enforceScope(scoped, filters?.contentType);
 
   // Read off the records themselves rather than set by whichever code path added them. This flag
   // used to mean "the unverified-content fallback contributed something", which was the only way
@@ -1178,12 +1227,15 @@ async function retrieveUnverifiedFallback(
   question: string,
   existing: GroundedRecord[],
   limit: number,
-  filters?: AskScope,
+  // A record filter, already narrowed by the caller -- not an AskScope. Taking the scope here meant
+  // this had to remember to translate it, and translating a Quran scope yields "no filter", which
+  // is how unscoped records reached an answer that had asked for verses.
+  filters?: RagFilters,
 ): Promise<GroundedRecord[]> {
   if (limit <= 0) return [];
   try {
     const existingIds = new Set(existing.map((item) => item.record.id));
-    const candidates = await repository.searchCurrentForRag(question, limit + existingIds.size, recordScope(filters));
+    const candidates = await repository.searchCurrentForRag(question, limit + existingIds.size, filters);
     const records = await Promise.all(candidates.map(async (candidate) => {
       if (existingIds.has(candidate.id)) return null;
       const record = candidate.contentType === 'dua'
