@@ -35,7 +35,6 @@ const ASSETS = [
   `./js/home.js?v=${APP_VERSION}`,
   `./js/hadith.js?v=${APP_VERSION}`,
   `./js/layout.js?v=${APP_VERSION}`,
-  `./js/layout-settings.js?v=${APP_VERSION}`,
   `./js/modes.js?v=${APP_VERSION}`,
   `./js/online.js?v=${APP_VERSION}`,
   `./js/prayer.js?v=${APP_VERSION}`,

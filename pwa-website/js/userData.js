@@ -6,11 +6,8 @@ import { filterList } from './home.js';
 import { ASR_METHODS, CALCULATION_METHODS, DEFAULT_ASR_METHOD, DEFAULT_CALCULATION_METHOD, DEFAULT_HIGH_LATITUDE_RULE, HIGH_LATITUDE_RULES } from './prayer-times.js';
 import { scheduleToday as scheduleRemindersToday } from './reminders.js';
 import { activateTasbih, TASBIH_STORAGE_KEY } from './tasbih.js';
-import { readLayoutStorage, writeLayoutStorage } from './layout.js';
 import { readQuranStorage, writeQuranStorage } from './quran.js';
 import { readQuranAudioStorage, writeQuranAudioStorage } from './quran-audio.js';
-import { refreshLayoutVisibility } from './modes.js';
-import { syncLayoutConfigControls } from './layout-settings.js';
 import { getArtMotionPreference, setArtMotionPreference } from './art-motion.js';
 
 const BACKUP_KIND = 'fortress-of-muslim-user-data';
@@ -41,9 +38,6 @@ export function exportUserData() {
     // totalLifetimeCount} object, not a handful of independent primitives like the settings
     // above) -- read/written directly here rather than duplicating its shape into `settings`.
     tasbih: readTasbihStorage(),
-    // Per-tab enable/Simple-Advanced-visibility config -- its own localStorage key/shape too,
-    // same reasoning as tasbih above.
-    layout: readLayoutStorage(),
     // Favourite surahs and ayahs, reading position and reader preferences -- its own key/shape too.
     quran: readQuranStorage(),
     // Reciter, repeat mode, word mode and follow-along -- again its own key and shape.
@@ -116,7 +110,8 @@ function importUserData(payload) {
   localStorage.setItem('morningAdhkarEnabled', String(state.morningAdhkarEnabled));
   localStorage.setItem('eveningAdhkarEnabled', String(state.eveningAdhkarEnabled));
   writeTasbihStorage(payload.tasbih);
-  writeLayoutStorageIfPresent(payload.layout);
+  // payload.layout, from a backup made while Customize Layout existed, is deliberately ignored:
+  // there is nothing left for it to configure, and every tab is present for everyone.
   if (payload.quran && typeof payload.quran === 'object') writeQuranStorage(payload.quran);
   if (payload.quranAudio && typeof payload.quranAudio === 'object') writeQuranAudioStorage(payload.quranAudio);
 
@@ -124,8 +119,6 @@ function importUserData(payload) {
   filterList();
   scheduleRemindersToday();
   activateTasbih();
-  syncLayoutConfigControls();
-  refreshLayoutVisibility();
   toast('Backup imported.');
 }
 
@@ -157,14 +150,6 @@ function writeTasbihStorage(value) {
     activePresetId: presets.some((preset) => preset.id === value.activePresetId) ? value.activePresetId : presets[0].id,
     totalLifetimeCount: Number.isFinite(value.totalLifetimeCount) && value.totalLifetimeCount >= 0 ? Math.floor(value.totalLifetimeCount) : 0,
   }));
-}
-
-// Only overwrites the stored layout config when the backup actually has one -- a backup from
-// before this feature existed simply won't have a `layout` field, and the current device's tab
-// choices should stick rather than being reset to defaults by an old backup.
-function writeLayoutStorageIfPresent(value) {
-  if (!value || typeof value !== 'object') return;
-  writeLayoutStorage(value);
 }
 
 function clampNumber(value, min, max, fallback) {

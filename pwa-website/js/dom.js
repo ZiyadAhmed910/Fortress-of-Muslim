@@ -26,7 +26,6 @@ export const els = {
   artMotionSelect: document.getElementById('artMotion'),
   artMotionDescription: document.getElementById('artMotionDescription'),
   artMotionSystemNote: document.getElementById('artMotionSystemNote'),
-  layoutConfigList: document.getElementById('layoutConfigList'),
   advancedHome: document.getElementById('advancedHome'),
   simpleHome: document.getElementById('simpleHome'),
   searchInput: document.getElementById('searchInput'),
