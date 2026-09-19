@@ -174,6 +174,30 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.37.0
+
+_2026-09-20_
+
+- **The Ask source filter is now actually a filter.** Choosing "Quran verses" returned hadith and
+  duas alongside the verses. The live log made the shape of it plain: every leaking row was a Quran
+  scope, and none was a dua or hadith scope. `recordScope()` translates a Quran scope to `undefined`,
+  and `undefined` means "no filter" to every repository call it reaches -- so any retrieval path that
+  did not check the scope *before* calling searched the whole editorial corpus the scope existed to
+  exclude. Two paths were still doing that (the unverified-content top-up, and exact hadith
+  reference resolution, which fired for anything not scoped to duas and could return a hadith as the
+  entire answer). Both are fixed, `retrieveUnverifiedFallback` now takes a filter the repository
+  understands rather than a scope it has to translate, and the answer is checked once against the
+  chosen scope where it is assembled -- loudly, because reaching that check means a path upstream
+  leaked and wants fixing at its source. `test/ask-scope.test.ts` pins all four scopes against a
+  repository that deliberately ignores the filter it is given, so a scope holds only because the
+  caller respected it. Scoped to the Quran, Ask will now return nothing rather than answer from the
+  wrong kind of source.
+- **Plainer words in the app.** The line under the title at launch said "Verified canonical chapters
+  available offline", which describes the editorial pipeline rather than the app; it now says what
+  the other two code paths for that same screen already said. Ask's "Source-grounded answers"
+  described how retrieval works rather than what the reader gets. The Quran browse toggle reads
+  "Juz" without glossing it.
+
 ### 0.36.0
 
 _2026-09-20_

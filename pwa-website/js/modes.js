@@ -49,7 +49,7 @@ export function setContentMode(requestedMode) {
   if (previousMode === 'qibla' && mode !== 'qibla') deactivateQibla();
   if (mode === 'duas') {
     els.screenTitle.textContent = 'Fortress of Muslim';
-    els.screenSubtitle.textContent = 'Verified canonical chapters available offline';
+    els.screenSubtitle.textContent = 'Supplications and remembrances - works offline';
   } else if (mode === 'quran') {
     els.screenTitle.textContent = 'Quran';
     els.screenSubtitle.textContent = 'Arabic with English translation - works offline';
@@ -72,7 +72,7 @@ export function setContentMode(requestedMode) {
     activateTasbih();
   } else {
     els.screenTitle.textContent = 'Ask Fortress';
-    els.screenSubtitle.textContent = 'Source-grounded answers - online';
+    els.screenSubtitle.textContent = 'Answers with the sources to check them - online';
   }
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
