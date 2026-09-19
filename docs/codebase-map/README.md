@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-15T06:55:49.875Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-19T16:34:01.987Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -157,10 +157,10 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/pwa.js` | js | 146 |  |  |
 | `pwa-website/js/quran-audio.js` | js | 585 |  |  |
 | `pwa-website/js/quran-verse-search.js` | js | 91 |  |  |
-| `pwa-website/js/quran.js` | js | 814 |  |  |
+| `pwa-website/js/quran.js` | js | 824 |  |  |
 | `pwa-website/js/reader.js` | js | 147 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
-| `pwa-website/js/routes.js` | js | 36 |  |  |
+| `pwa-website/js/routes.js` | js | 41 |  |  |
 | `pwa-website/js/settings.js` | js | 100 |  |  |
 | `pwa-website/js/state.js` | js | 38 |  |  |
 | `pwa-website/js/tasbih.js` | js | 205 |  |  |

@@ -463,6 +463,16 @@ async function loadSurahData(number) {
   }
 }
 export async function openSurah(number, scrollToAyah = null) {
+  // The index is normally loaded by opening the Quran tab, but a citation can arrive here without
+  // that having happened -- and returning silently made "Open in the Quran" do nothing at all.
+  if (!index) {
+    try {
+      index = await fetchJson(INDEX_URL);
+    } catch {
+      toast('The Quran index could not be loaded. Check your connection and try again.');
+      return;
+    }
+  }
   const meta = index?.surahs.find((surah) => surah.number === number);
   if (!meta) return;
   state.quranSurah = number;

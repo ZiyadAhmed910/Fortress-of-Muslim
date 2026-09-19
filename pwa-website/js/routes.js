@@ -4,8 +4,13 @@ import { activateHadith, openCanonicalHadith } from './hadith.js';
 import { setContentMode } from './modes.js';
 import { openSurah } from './quran.js';
 
-export async function openCanonicalRoute() {
-  const path = decodeURI(location.pathname).replace(/\/+$/, '') || '/';
+/**
+ * Opens a canonical Fortress path in the app. Called on load for the current URL, and by a citation
+ * that wants to open the record it points at -- the paths are identical, so a source is navigable
+ * without a second implementation of what /bukhari/book1/1 means.
+ */
+export async function openCanonicalRoute(pathname = location.pathname) {
+  const path = decodeURI(pathname).replace(/\/+$/, '') || '/';
   const hadith = path.match(/^\/([a-z0-9-]+)\/book([^/]+)\/([^/]+)$/i);
   if (hadith) {
     setContentMode('hadith');

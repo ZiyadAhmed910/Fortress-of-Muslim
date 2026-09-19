@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T06:55:49.875Z",
+  "generatedAt": "2026-09-19T16:34:01.987Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -966,7 +966,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 814,
+      "lines": 824,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -990,7 +990,7 @@
     },
     {
       "path": "pwa-website/js/routes.js",
-      "lines": 36,
+      "lines": 41,
       "language": "js",
       "exports": [],
       "imports": [],

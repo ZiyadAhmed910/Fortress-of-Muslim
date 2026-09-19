@@ -174,6 +174,19 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.32.1
+
+_2026-09-19_
+
+- **"Open" on a citation actually opens it.** It shipped in 0.32.0 doing nothing: the router was
+  meant to take the path a citation names, an edit to its signature silently failed to apply, and it
+  went on reading the browser's own address -- which on an installed PWA is always `/index.html`, so
+  nothing ever matched. Verified end to end this time rather than assumed: opening the Quran
+  citation from an answer lands in the reader on Al-Anfal at the page holding 8:49.
+- **A verse opens even if the Quran tab was never visited.** `openSurah` needed the surah index and
+  returned silently without it, which is the state a reader is in when their first visit to the
+  Quran is a citation in an answer. It loads the index itself now, and says so if that fails.
+
 ### 0.32.0
 
 _2026-09-15_
