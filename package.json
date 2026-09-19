@@ -20,7 +20,7 @@
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "security:check": "npm audit --omit=dev --audit-level=high",
-    "data:safety": "node tools/verify-local-data-boundary.mjs && node tools/verify-public-canonical-boundary.mjs",
+    "data:safety": "node tools/verify-local-data-boundary.mjs && node tools/verify-public-canonical-boundary.mjs && node pwa-website/tools/verify-quran-juz.mjs",
     "pwa:data:build": "node pwa-website/tools/build-canonical-snapshot.mjs",
     "pwa:visual-check": "node tools/check-pwa.mjs",
     "pwa:release-check": "node tools/verify-pwa-release.mjs",
@@ -32,7 +32,8 @@
     "smoke:production:portals": "node tools/deployment-smoke.mjs production portals",
     "map:build": "node tools/generate-codebase-map.mjs",
     "check": "npm run data:safety && npm run pwa:release-check && npm run typecheck && npm run test && npm run security:check",
-    "pwa:quran:build": "node pwa-website/tools/build-quran-data.mjs"
+    "pwa:quran:build": "node pwa-website/tools/build-quran-data.mjs",
+    "pwa:quran:juz-check": "node pwa-website/tools/verify-quran-juz.mjs --online"
   },
   "engines": {
     "node": ">=22"
