@@ -21,9 +21,7 @@ import { initHadith } from './hadith.js';
 import { initQuran, initQuranDownload, initQuranSettings, isSurahOpen, showSurahList, rerenderOpenSurah } from './quran.js';
 import { initQuranAudioSettings } from './quran-audio.js';
 import { initOnboarding, maybeShowOnboarding, replayOnboarding } from './onboarding.js';
-import { initContentModes, refreshLayoutVisibility, setContentMode } from './modes.js';
-import { isTabVisible } from './layout.js';
-import { renderLayoutConfigList } from './layout-settings.js';
+import { initContentModes, setContentMode } from './modes.js';
 import { initPrayer } from './prayer.js';
 import { initReminders, openAdhkarFromNotification } from './reminders.js';
 import { initTasbih } from './tasbih.js';
@@ -46,10 +44,8 @@ async function init() {
   initReminders();
   initTasbih();
   initContentModes();
-  renderLayoutConfigList();
   initOnboarding({
     goTo: setContentMode,
-    canGoTo: isTabVisible,
     openSettings: () => {
       showSettingsCategoryList();
       els.settingsDialog.showModal();
@@ -177,7 +173,6 @@ function bindEvents() {
     localStorage.setItem('advancedUi', String(state.advancedUi));
     applySettings();
     filterList();
-    refreshLayoutVisibility();
   });
 
   els.homeView.querySelectorAll('[data-advanced-filter]').forEach((button) => {

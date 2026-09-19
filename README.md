@@ -174,6 +174,29 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.39.0
+
+_2026-09-20_
+
+- **Customize Layout is gone.** Every tab could be switched off, and each could be restricted to the
+  picture home screen, the plain one, or both. It earned none of what it cost: every tab had to be
+  written twice, once for existing and once for being reachable; every new feature had to be placed
+  into a three-way visibility matrix before it could ship; and what it bought was a settings panel
+  for hiding parts of a small app that is already one tap deep. Removed: `layout-settings.js`
+  entirely, most of `layout.js`, the settings category and panel, its CSS, and the `layout` field in
+  backups. Roughly 300 lines of code and markup, and one whole axis every future tab would have had
+  to reason about.
+- **What was never configuration stays.** Prayer Times, Qibla and Tasbih are three screens behind one
+  Prayer button with a sub-bar, which is the shape of the nav rather than anything a reader chose.
+  That is now all `layout.js` holds. `test/worship-nav.test.js` replaces `test/layout.test.js` and
+  checks the three lists that have to agree -- the tabs, the nav buttons, and the screens -- because
+  the way a removal like this goes wrong is a leftover: markup for a tab nothing renders, or a screen
+  the nav can no longer reach.
+- **Existing installs and old backups.** Every tab is simply present for everyone now. A stored
+  `fortress_layout_config` is left where it is rather than spending code to delete something inert,
+  and a `layout` field in a backup taken before this release is read and ignored, so importing one
+  cannot switch tabs off that nothing can switch back on.
+
 ### 0.38.0
 
 _2026-09-20_

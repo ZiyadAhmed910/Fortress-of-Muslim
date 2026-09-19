@@ -244,8 +244,7 @@
 
 /* One rounded surface per group; children are separated by inset hairlines that stop short of the
    rounded corners instead of running edge to edge. */
-.settings-category-list,
-.layout-config-list {
+.settings-category-list {
   display: grid;
   overflow: hidden;
   border-radius: 0.85rem;
@@ -268,8 +267,7 @@
   transition: background 0.15s ease;
 }
 
-.settings-category-row + .settings-category-row,
-.layout-config-row + .layout-config-row {
+.settings-category-row + .settings-category-row {
   box-shadow: inset 0 1px 0 var(--line);
 }
 
@@ -406,38 +404,7 @@
   color: var(--muted);
   font-size: 0.86rem;
   text-align: center;
-}
-
-.layout-config-row {
-  display: grid;
-  gap: 0.6rem;
-  padding: 0.85rem 1rem;
-  border-top: 0;
-}
-
-.layout-config-enable {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.layout-config-row select {
-  border: 1px solid var(--line);
-  border-radius: 0.55rem;
-  padding: 0.55rem 0.7rem;
-  background: var(--paper-strong);
-  color: var(--ink);
-}
-
-.layout-config-row:has([data-layout-enable]:not(:checked)) {
-  opacity: 0.5;
-}
-
-.layout-config-row:has([data-layout-enable]:not(:checked)) select {
-  pointer-events: none;
-}
-
-/* Accordion groups: the row and the panel it opens are one unit, separated from the next group by an
+}/* Accordion groups: the row and the panel it opens are one unit, separated from the next group by an
    inset hairline. The panel sits on a slightly recessed surface so it reads as belonging to the row
    above rather than as a separate card. */
 .settings-group + .settings-group {
@@ -481,7 +448,6 @@
 }
 
 .settings-panel > .setting-row + .setting-row,
-.settings-panel > .setting-row + .layout-config-list,
 .settings-panel > .reminder-note + .setting-row {
   box-shadow: inset 0 1px 0 var(--line);
 }
@@ -489,15 +455,7 @@
 .settings-panel > .settings-section-note {
   margin: 0;
   padding: 0.8rem 1rem 0.2rem;
-}
-
-.settings-panel > .layout-config-list {
-  border-radius: 0;
-  background: transparent;
-  box-shadow: inset 0 1px 0 var(--line);
-}
-
-.settings-panel > .settings-version {
+}.settings-panel > .settings-version {
   padding: 1rem;
 }
 
@@ -538,21 +496,4 @@
 
 .quran-controls .tool-button:disabled {
   opacity: 0.35;
-}
-
-/* Customize Layout: Prayer owns three screens, so its rows are indented under it and greyed while
-   it is switched off. Greyed rather than hidden -- the child keeps its own setting, and hiding it
-   would make that setting look lost rather than temporarily unreachable. */
-.layout-config-row.is-child {
-  margin-inline-start: 1.15rem;
-  border-inline-start: 2px solid var(--line);
-  padding-inline-start: 0.7rem;
-}
-
-.layout-config-row.is-blocked {
-  opacity: 0.45;
-}
-
-.layout-config-row.is-blocked .layout-config-enable {
-  cursor: not-allowed;
 }

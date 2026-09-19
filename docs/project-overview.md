@@ -184,8 +184,10 @@ What it actually contains today:
   how to fix it instead of claiming to be live.
 - **Tasbih** — presets, custom phrases, lifetime totals.
 - **Reminders** — opt-in local notifications for the five prayers and morning/evening adhkar.
-- **Shell** — simple and advanced layouts, per-feature show/hide, dark mode, first-run walkthrough,
-  and backup export/import covering favourites, settings, tasbih, layout and Quran preferences.
+- **Shell** — two home screens (cards with artwork, or a plain list), dark mode, first-run
+  walkthrough, and backup export/import covering favourites, settings, tasbih and Quran preferences.
+  Per-tab show/hide was removed in 0.39.0: every tab is present for everyone, and the only grouping
+  left is structural -- Prayer Times, Qibla and Tasbih behind one Prayer button.
   Installing is always offered in Settings: an Install button where the browser supports prompting,
   and otherwise the platform's own route (iOS has no prompt event at all), plus a dismissible
   banner when the browser reports the app installable.

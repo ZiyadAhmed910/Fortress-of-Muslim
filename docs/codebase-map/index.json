@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T22:55:40.207Z",
+  "generatedAt": "2026-09-19T23:53:12.783Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -821,7 +821,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 210,
+      "lines": 205,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -869,7 +869,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 161,
+      "lines": 160,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -900,16 +900,8 @@
       "routeCount": 0
     },
     {
-      "path": "pwa-website/js/layout-settings.js",
-      "lines": 88,
-      "language": "js",
-      "exports": [],
-      "imports": [],
-      "routeCount": 0
-    },
-    {
       "path": "pwa-website/js/layout.js",
-      "lines": 139,
+      "lines": 13,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -917,7 +909,7 @@
     },
     {
       "path": "pwa-website/js/modes.js",
-      "lines": 111,
+      "lines": 87,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1045,7 +1037,7 @@
     },
     {
       "path": "pwa-website/js/userData.js",
-      "lines": 175,
+      "lines": 160,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1061,7 +1053,7 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 201,
+      "lines": 200,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1102,14 +1094,6 @@
     {
       "path": "pwa-website/test/install-affordance.test.js",
       "lines": 70,
-      "language": "js",
-      "exports": [],
-      "imports": [],
-      "routeCount": 0
-    },
-    {
-      "path": "pwa-website/test/layout.test.js",
-      "lines": 91,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1182,6 +1166,14 @@
     {
       "path": "pwa-website/test/reciters.test.js",
       "lines": 39,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/worship-nav.test.js",
+      "lines": 62,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2495,9 +2487,11 @@
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/src/index.ts",
+        "pwa-website/js/layout.js",
         "pwa-website/js/prayer.js",
         "pwa-website/js/quran-audio.js",
         "pwa-website/js/reminders.js",
+        "pwa-website/js/userData.js",
         "pwa-website/sw.js"
       ]
     },
@@ -3376,14 +3370,6 @@
       ]
     },
     {
-      "name": "localStorage",
-      "kind": "unknown",
-      "definedIn": [],
-      "referencedBy": [
-        "pwa-website/js/layout.js"
-      ]
-    },
-    {
       "name": "Maghrib",
       "kind": "unknown",
       "definedIn": [],
@@ -4119,7 +4105,6 @@
         "apps/status/public/app.js",
         "pwa-website/js/app.js",
         "pwa-website/js/categories.js",
-        "pwa-website/js/layout-settings.js",
         "pwa-website/js/onboarding.js",
         "pwa-website/js/prayer-times.js",
         "pwa-website/js/prayer.js",
@@ -4134,7 +4119,8 @@
         "pwa-website/test/qibla-compass.test.js",
         "pwa-website/test/quran-juz.test.js",
         "pwa-website/test/quran-words.test.js",
-        "pwa-website/test/reading-roles.test.js"
+        "pwa-website/test/reading-roles.test.js",
+        "pwa-website/test/worship-nav.test.js"
       ]
     },
     {
@@ -4143,7 +4129,6 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/assistant.js",
-        "pwa-website/js/modes.js",
         "pwa-website/js/quran.js",
         "pwa-website/test/quran-bismillah.test.js"
       ]
@@ -4297,6 +4282,14 @@
         "apps/api/src/rag.ts",
         "apps/api/test/ask-quran-sources.test.ts",
         "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "where",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/modes.js"
       ]
     },
     {
