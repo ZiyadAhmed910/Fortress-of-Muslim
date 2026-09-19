@@ -255,7 +255,7 @@ function renderTurn(turn, index) {
 const formatAnswer = (answer) => escapeHtml(answer || '').replace(/\n/g, '<br>');
 
 const unverifiedNote = (meta) => (meta && meta.includesUnverifiedSource
-  ? '<p class="assistant-note">This answer draws on at least one source that is not yet independently verified -- clearly marked above.</p>'
+  ? '<p class="assistant-note">At least one source below has not been checked against its original text yet -- each is marked.</p>'
   : '');
 
 /**
@@ -275,7 +275,7 @@ function renderSources(sources) {
           <span>[${source.index}] ${escapeHtml(source.collection)}</span>
           <strong>${escapeHtml(withoutCollection(source))}</strong>
         </span>
-        <small>${isVerified ? 'Verified' : 'Not yet verified'}</small>
+        <small>${isVerified ? 'Checked against source' : 'Source not checked yet'}</small>
       </summary>
       <div class="assistant-source-body">
         ${source.arabic ? `<p class="verse-arabic" dir="rtl" lang="ar">${escapeHtml(source.arabic)}</p>` : ''}

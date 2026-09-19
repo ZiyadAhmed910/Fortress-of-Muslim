@@ -174,6 +174,27 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.38.0
+
+_2026-09-20_
+
+- **Words the reader actually uses.** A sweep of the app's own vocabulary, which had been describing
+  the editorial pipeline rather than the thing in front of someone:
+  - A cited source now says **"Checked against source"** / **"Source not checked yet"** rather than
+    "Verified" / "Not yet verified". This is the more useful claim and the more honest one: what the
+    workflow establishes is that a revision was checked against its original text with canonical
+    references -- not that a hadith is authentic, which is a scholarly grading this platform does not
+    make and must not appear to. Naming the check rather than an authority also says something
+    specific, which reads as more confident, not less. The note above an answer follows the same
+    words.
+  - Prayer Times and Qibla shared one subtitle describing the implementation ("Computed on this
+    device"). They do different things, so they now each say what they give you.
+  - The Appearance toggle is **"Pictures on the home screen"** -- a state rather than the name of a
+    mode -- and says plainly that turning it off is lighter on older phones. The per-tab layout
+    control drops "Simple UI / Advanced UI" for the picture and plain home screens it means.
+  - The reminders note drops "no push server", which is true and tells a reader nothing, for what
+    they want to know: it is worked out on the phone, with no account, and nothing sent anywhere.
+
 ### 0.37.0
 
 _2026-09-20_

@@ -60,11 +60,11 @@ export function setContentMode(requestedMode) {
     activateHadith();
   } else if (mode === 'prayerTimes') {
     els.screenTitle.textContent = 'Prayer Times';
-    els.screenSubtitle.textContent = 'Computed on this device - works offline';
+    els.screenSubtitle.textContent = 'Prayer times for where you are - works offline';
     activatePrayerTimes();
   } else if (mode === 'qibla') {
     els.screenTitle.textContent = 'Qibla Direction';
-    els.screenSubtitle.textContent = 'Computed on this device - works offline';
+    els.screenSubtitle.textContent = 'The way to the Kaaba from where you are - works offline';
     activateQibla();
   } else if (mode === 'tasbih') {
     els.screenTitle.textContent = 'Tasbih Counter';
