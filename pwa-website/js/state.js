@@ -9,7 +9,11 @@ export const state = {
   visibleCount: 36,
   favourites: new Set(JSON.parse(localStorage.getItem('favourites') || '[]')),
   fontScale: Number(localStorage.getItem('fontScale') || '1'),
-  darkMode: localStorage.getItem('darkMode') === 'true',
+  // Adhkar are read at dawn and after dark, so the low-light theme is the app now and light is the
+  // opt-out. Read as "not explicitly off" rather than "explicitly on", so anyone who already chose
+  // light keeps it -- a stored preference is an answer someone gave, and changing the default must
+  // not overwrite it.
+  darkMode: localStorage.getItem('darkMode') !== 'false',
   largeArabic: localStorage.getItem('largeArabic') === 'true',
   // Advanced is the app now, and Simple is the opt-out. Read as "not explicitly off" rather than
   // "explicitly on", so anyone who already chose Simple keeps it -- a stored preference is an answer
