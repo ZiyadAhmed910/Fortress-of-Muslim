@@ -174,6 +174,27 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.41.0
+
+_2026-09-20_
+
+- **Every deep link was broken, and had been all along.** Opening
+  `fortressofmuslim.org/tirmidhi/book1/1` directly gave an unstyled skeleton with no JavaScript.
+  The rewrite correctly hands those URLs the same `index.html` the root gets, but every asset in
+  that file is referenced relatively -- so a browser at `/tirmidhi/book1/1` asked for
+  `/tirmidhi/book1/styles.css` and `/tirmidhi/book1/js/app.js`, got 404s, and rendered what was
+  left. This affected every deep link on the site, including all 247 the sitemap had just started
+  advertising to Google. One `<base href="/">` fixes it: the HTML references, the `fetch()` calls
+  inside the modules (which resolve against the document base, not the module that made them), and
+  the service worker registration. ES module imports were never affected, resolving against the
+  importing module's own URL.
+- **A hadith now names itself.** The detail view left the title as "Hadith Library", so all 14,357
+  hadith URLs were identical to anything reading titles. Each now reads "Jami at-Tirmidhi 1" with
+  its chapter as the description.
+- `test/deep-links.test.js` pins the base tag, that it precedes the first relative reference, the
+  three rewrite shapes, and that the server's routes and the app's parser stay in step -- because
+  nothing about the homepage changes when `<base>` is deleted, which makes it very easy to lose.
+
 ### 0.40.0
 
 _2026-09-20_
