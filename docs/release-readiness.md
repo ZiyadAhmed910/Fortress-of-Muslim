@@ -29,15 +29,55 @@ below assumes an environment that already exists. What is actually true of produ
 
 ## Content provisioning
 
-The hadith corpus is deliberately not in the repository. `.gitignore` keeps the source corpus and
-generated import bundles local-only, `docs/canonical-editorial-architecture.md` says preparation
+The hadith corpus is deliberately not in this repository. `.gitignore` keeps the source corpus and
+any generated import bundle local-only, `docs/canonical-editorial-architecture.md` says preparation
 provenance stays "outside the public repository and deployment artifacts", and
 `tools/verify-public-canonical-boundary.mjs` fails the build if an external record URL reaches a
-tracked public file. This repository is public, so that boundary is doing real work.
+tracked public file. This repository is public, so that boundary is doing real work and the corpus
+cannot simply become migration 0029.
 
-That means production content cannot simply be added as another migration without reversing a
-standing decision. Whatever mechanism is chosen has to keep the corpus out of the public repository
-while still being reproducible by something other than one laptop.
+What is committed instead is the recipe:
+
+```powershell
+node apps/api/tools/build-content-bundle.mjs
+node apps/api/tools/verify-content-bundle.mjs .fortress-import/content-bundle-<digest>.sql
+npx wrangler d1 execute fortress-platform-production --remote --file=.fortress-import/content-bundle-<digest>.sql
+```
+
+The bundle lands in `.fortress-import/`, which is gitignored. **Never commit it.** It is about
+140 MB and 325,000 statements, and it carries the approved source corpus.
+
+Applying it is only safe because of three things that are not obvious, each of which broke a
+draft of this before being understood:
+
+1. **`INSERT OR IGNORE`, never `OR REPLACE`.** REPLACE deletes the conflicting row first, and rows
+   the migrations created are already referenced by other rows the migrations created -- deleting a
+   `dataset_versions` row that `content_records` point at fails the foreign key. Rows a migration
+   established keep the migration's version; the bundle supplies only what migrations do not carry.
+2. **The active-dataset slot is reconciled explicitly.** `idx_dataset_active` is a partial unique
+   index permitting exactly one active dataset. The migrations make the legacy Hisn dataset active,
+   while a populated environment has it deprecated and the approved dataset active instead. Under
+   `OR IGNORE` the bundle's active row was silently dropped, and every hadith then failed its
+   foreign key to a dataset that never landed. The bundle now frees the slot first and sets the real
+   statuses at the end.
+3. **No enclosing transaction is relied on.** `wrangler d1 execute --file` applies a file this size
+   in chunks, so a `BEGIN` in the first chunk does not hold over the rest, and `PRAGMA
+   defer_foreign_keys` -- which only lasts to the end of a transaction -- would buy nothing exactly
+   when the file is large enough to need it. The statements satisfy their constraints as they go.
+
+`verify-content-bundle.mjs` is what establishes that a given bundle is sound: it applies every
+migration to an empty database, applies the bundle on top with foreign keys **on** and no
+transaction, and compares every table against the source environment. A bundle that passes has been
+applied in full under the conditions production will apply it in. Run it before every provisioning.
+
+### Automating it
+
+Applying the bundle is currently a manual step run from a machine that has the corpus, which means
+production content provisioning does not survive that machine. The intended end state is the bundle
+in private object storage that the production workflow fetches with the credentials it already has,
+keeping the corpus out of the public repository while making the deploy reproducible. **R2 is not
+enabled on the account** -- `wrangler r2 bucket list` returns "Please enable R2 through the
+Cloudflare Dashboard" -- so that is a one-time dashboard step before this can be wired up.
 
 ## Required Checks
 
