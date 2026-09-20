@@ -174,6 +174,32 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.43.0
+
+_2026-09-20_
+
+- **The admin console has a dark theme again, and a switch to reach it.** It had neither. Every
+  portal loads `portal.css` and then its own stylesheet, and `admin.css` was redefining `:root`
+  there with a hard-coded light palette -- overriding every token `portal.css` had just set,
+  including both of its dark themes -- then pinning `html { color-scheme: light }` on top. The
+  header had no theme toggle either, unlike the developer and status portals, so there was no way
+  back. The result was exactly what it looked like: anything styled by `portal.css` followed the
+  theme and anything styled by `admin.css` did not, so half the console went dark and half stayed
+  white.
+  - `admin.css` now defines only what admin adds on top, in terms of the shared tokens wherever the
+    two mean the same thing, with dark values in the same two blocks `portal.css` uses -- an
+    explicit `[data-theme]` choice, and `prefers-color-scheme` when no choice has been made. A
+    machine in dark mode now gets a dark console without touching anything.
+  - 62 hard-coded colours became tokens: surfaces, borders, muted text, status tints, the login
+    gradient, dialog scrims. White text on a coloured button stays literal, because it is correct in
+    both themes.
+  - The theme toggle from the other portals is now in the admin header, driven by the same
+    `portal.js` it already loaded.
+- **`verify-portals.mjs` now checks theming for all three portals**, because every fault here is
+  silent: a stylesheet that quietly wins, a token with no dark value, the two dark blocks drifting
+  apart, a token defined in terms of itself. Each was introduced deliberately and confirmed to fail
+  the check.
+
 ### 0.42.0
 
 _2026-09-20_
