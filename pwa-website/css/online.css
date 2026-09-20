@@ -153,12 +153,19 @@
   position: fixed;
   left: 0; right: 0;
   top: var(--ask-top, 10rem);
-  bottom: 0;
+  /* --ask-bottom is whatever the soft keyboard is covering (see keyboardInset). It is 0 with no
+     keyboard open, and on Android, where the keyboard shrinks the layout viewport by itself. */
+  bottom: var(--ask-bottom, 0px);
   display: flex;
   flex-direction: column;
   padding: 0 0.75rem env(safe-area-inset-bottom);
 }
-.assistant-result { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; overscroll-behavior: contain; padding-right: 0.15rem; }
+/* No scroll-behavior: smooth here. The only thing that scrolls this element from script is the
+   pin to the newest turn, and smooth turned that one assignment into an animation -- which the
+   next word of the answer interrupted, and which reported its own intermediate positions back as
+   if the reader had scrolled up. The thread ended up at the top of a long conversation instead of
+   at the answer. See pinToLatest() in assistant.js. */
+.assistant-result { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 0.15rem; }
 /* No gap under the composer: it sits on the bottom edge of the column, which is the bottom of the
    screen. A margin there reads as the bar floating above a strip of nothing. */
 .assistant-bar {
