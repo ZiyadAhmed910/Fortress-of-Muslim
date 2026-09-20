@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T23:53:12.783Z",
+  "generatedAt": "2026-09-20T05:24:19.756Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -837,7 +837,7 @@
     },
     {
       "path": "pwa-website/js/assistant.js",
-      "lines": 311,
+      "lines": 393,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -893,7 +893,7 @@
     },
     {
       "path": "pwa-website/js/home.js",
-      "lines": 219,
+      "lines": 218,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -909,7 +909,7 @@
     },
     {
       "path": "pwa-website/js/modes.js",
-      "lines": 87,
+      "lines": 81,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -981,7 +981,7 @@
     },
     {
       "path": "pwa-website/js/quran.js",
-      "lines": 1000,
+      "lines": 999,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -989,7 +989,7 @@
     },
     {
       "path": "pwa-website/js/reader.js",
-      "lines": 147,
+      "lines": 145,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1005,7 +1005,15 @@
     },
     {
       "path": "pwa-website/js/routes.js",
-      "lines": 41,
+      "lines": 45,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/seo.js",
+      "lines": 55,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1054,6 +1062,14 @@
     {
       "path": "pwa-website/sw.js",
       "lines": 200,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/ask-scroll.test.js",
+      "lines": 92,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2532,6 +2548,14 @@
       ]
     },
     {
+      "name": "another",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/seo.js"
+      ]
+    },
+    {
       "name": "any",
       "kind": "unknown",
       "definedIn": [],
@@ -3248,6 +3272,14 @@
       "definedIn": [],
       "referencedBy": [
         "apps/api/test/ask-scope.test.ts"
+      ]
+    },
+    {
+      "name": "fitAssistantHeight",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/assistant.js"
       ]
     },
     {
@@ -4104,6 +4136,7 @@
         "apps/developers/public/console.js",
         "apps/status/public/app.js",
         "pwa-website/js/app.js",
+        "pwa-website/js/assistant.js",
         "pwa-website/js/categories.js",
         "pwa-website/js/onboarding.js",
         "pwa-website/js/prayer-times.js",

@@ -1,7 +1,7 @@
 {
   "name": "Fortress of Muslim",
   "short_name": "Fortress",
-  "description": "Offline supplications and remembrances from Fortress of Muslim.",
+  "description": "The Quran with tajweed and translation, authentic duas from Hisn al-Muslim, hadith, prayer times and qibla. Free, ad-free, and works offline.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -33,5 +33,13 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "id": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "books",
+    "education",
+    "lifestyle"
   ]
 }

@@ -1,4 +1,5 @@
 import { els } from './dom.js';
+import { setScreen } from './seo.js';
 import { fitAssistantHeight } from './assistant.js';
 import { state } from './state.js';
 import { activateHadith } from './hadith.js';
@@ -43,31 +44,24 @@ export function setContentMode(requestedMode) {
   if (previousMode === 'prayerTimes' && mode !== 'prayerTimes') deactivatePrayerTimes();
   if (previousMode === 'qibla' && mode !== 'qibla') deactivateQibla();
   if (mode === 'duas') {
-    els.screenTitle.textContent = 'Fortress of Muslim';
-    els.screenSubtitle.textContent = 'Supplications and remembrances - works offline';
+    setScreen('Fortress of Muslim', 'Supplications and remembrances - works offline');
   } else if (mode === 'quran') {
-    els.screenTitle.textContent = 'Quran';
-    els.screenSubtitle.textContent = 'Arabic with English translation - works offline';
+    setScreen('Quran', 'Arabic with English translation - works offline');
     activateQuran();
   } else if (mode === 'hadith') {
-    els.screenTitle.textContent = 'Hadith Library';
-    els.screenSubtitle.textContent = 'Bukhari, Muslim, and Tirmidhi - online';
+    setScreen('Hadith Library', 'Bukhari, Muslim, and Tirmidhi - online');
     activateHadith();
   } else if (mode === 'prayerTimes') {
-    els.screenTitle.textContent = 'Prayer Times';
-    els.screenSubtitle.textContent = 'Prayer times for where you are - works offline';
+    setScreen('Prayer Times', 'Prayer times for where you are - works offline');
     activatePrayerTimes();
   } else if (mode === 'qibla') {
-    els.screenTitle.textContent = 'Qibla Direction';
-    els.screenSubtitle.textContent = 'The way to the Kaaba from where you are - works offline';
+    setScreen('Qibla Direction', 'The way to the Kaaba from where you are - works offline');
     activateQibla();
   } else if (mode === 'tasbih') {
-    els.screenTitle.textContent = 'Tasbih Counter';
-    els.screenSubtitle.textContent = 'Offline dhikr counter';
+    setScreen('Tasbih Counter', 'Offline dhikr counter');
     activateTasbih();
   } else {
-    els.screenTitle.textContent = 'Ask Fortress';
-    els.screenSubtitle.textContent = 'Answers with the sources to check them - online';
+    setScreen('Ask Fortress', 'Answers with the sources to check them - online');
   }
   window.scrollTo({ top: 0, behavior: 'instant' });
 }

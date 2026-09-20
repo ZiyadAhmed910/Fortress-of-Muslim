@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-19T23:53:12.783Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-20T05:24:19.756Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -140,16 +140,16 @@ Not all of these are bugs; verify before assuming.
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
 | `pwa-website/js/app.js` | js | 205 |  |  |
 | `pwa-website/js/art-motion.js` | js | 89 |  |  |
-| `pwa-website/js/assistant.js` | js | 311 |  |  |
+| `pwa-website/js/assistant.js` | js | 393 |  |  |
 | `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
 | `pwa-website/js/dom.js` | js | 160 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 153 |  |  |
-| `pwa-website/js/home.js` | js | 219 |  |  |
+| `pwa-website/js/home.js` | js | 218 |  |  |
 | `pwa-website/js/layout.js` | js | 13 |  |  |
-| `pwa-website/js/modes.js` | js | 87 |  |  |
+| `pwa-website/js/modes.js` | js | 81 |  |  |
 | `pwa-website/js/onboarding.js` | js | 182 |  |  |
 | `pwa-website/js/online.js` | js | 21 |  |  |
 | `pwa-website/js/prayer-times.js` | js | 274 |  |  |
@@ -158,16 +158,18 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/quran-audio.js` | js | 623 |  |  |
 | `pwa-website/js/quran-juz.js` | js | 72 |  |  |
 | `pwa-website/js/quran-verse-search.js` | js | 91 |  |  |
-| `pwa-website/js/quran.js` | js | 1000 |  |  |
-| `pwa-website/js/reader.js` | js | 147 |  |  |
+| `pwa-website/js/quran.js` | js | 999 |  |  |
+| `pwa-website/js/reader.js` | js | 145 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
-| `pwa-website/js/routes.js` | js | 41 |  |  |
+| `pwa-website/js/routes.js` | js | 45 |  |  |
+| `pwa-website/js/seo.js` | js | 55 |  |  |
 | `pwa-website/js/settings.js` | js | 100 |  |  |
 | `pwa-website/js/state.js` | js | 48 |  |  |
 | `pwa-website/js/tasbih.js` | js | 205 |  |  |
 | `pwa-website/js/userData.js` | js | 160 |  |  |
 | `pwa-website/js/utils.js` | js | 23 |  |  |
 | `pwa-website/sw.js` | js | 200 |  |  |
+| `pwa-website/test/ask-scroll.test.js` | js | 92 |  |  |
 | `pwa-website/test/boot-theme.test.js` | js | 103 |  |  |
 | `pwa-website/test/card-labels.test.js` | js | 47 |  |  |
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
@@ -324,6 +326,7 @@ Not all of these are bugs; verify before assuming.
 | account | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | admin | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | an | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `pwa-website/js/prayer.js` |
+| another | unknown | `(not defined in scanned files)` | `pwa-website/js/seo.js` |
 | any | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js` |
 | api_ask_content | view | `apps/api/migrations/0023_ask_content_view.sql` | `apps/api/test/publish-hadith-migration.test.ts` |
 | api_current_content | view | `apps/api/migrations/0010_api_content_visibility.sql`, `apps/api/migrations/0013_verify_and_publish_hisn.sql`, `apps/api/migrations/0017_canonical_withdrawals.sql` | `apps/api/src/lib/record-query.ts`, `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts` |
@@ -387,6 +390,7 @@ Not all of these are bugs; verify before assuming.
 | field_reviews | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | filterList | unknown | `(not defined in scanned files)` | `pwa-website/js/home.js` |
 | filters | unknown | `(not defined in scanned files)` | `apps/api/test/ask-scope.test.ts` |
+| fitAssistantHeight | unknown | `(not defined in scanned files)` | `pwa-website/js/assistant.js` |
 | for | unknown | `(not defined in scanned files)` | `pwa-website/js/quran.js`, `pwa-website/sw.js` |
 | hadith_grades | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | hadith_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
@@ -475,7 +479,7 @@ Not all of these are bugs; verify before assuming.
 | taxonomy_terms | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
 | text | unknown | `(not defined in scanned files)` | `apps/api/test/search-aliases.test.ts` |
 | that | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/test/guide-and-tasbih.test.js` |
-| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/app.ts`, `apps/api/src/quran-search.ts`, `apps/api/src/rag-intent.ts`, `apps/api/src/rag.ts`, `apps/api/test/ask-citations.test.ts`, `apps/api/test/ask-policy.test.ts`, `apps/api/test/ask-quran-sources.test.ts`, `apps/api/test/ask-scope.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/quran-search.test.ts`, `apps/api/test/search-aliases.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/categories.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran-verse-search.js`, `pwa-website/js/quran.js`, `pwa-website/js/state.js`, `pwa-website/test/boot-theme.test.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/guide-and-tasbih.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/qibla-compass.test.js`, `pwa-website/test/quran-juz.test.js`, `pwa-website/test/quran-words.test.js`, `pwa-website/test/reading-roles.test.js`, `pwa-website/test/worship-nav.test.js` |
+| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/app.ts`, `apps/api/src/quran-search.ts`, `apps/api/src/rag-intent.ts`, `apps/api/src/rag.ts`, `apps/api/test/ask-citations.test.ts`, `apps/api/test/ask-policy.test.ts`, `apps/api/test/ask-quran-sources.test.ts`, `apps/api/test/ask-scope.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/quran-search.test.ts`, `apps/api/test/search-aliases.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/assistant.js`, `pwa-website/js/categories.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran-verse-search.js`, `pwa-website/js/quran.js`, `pwa-website/js/state.js`, `pwa-website/test/boot-theme.test.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/guide-and-tasbih.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/qibla-compass.test.js`, `pwa-website/test/quran-juz.test.js`, `pwa-website/test/quran-words.test.js`, `pwa-website/test/reading-roles.test.js`, `pwa-website/test/worship-nav.test.js` |
 | there | unknown | `(not defined in scanned files)` | `pwa-website/js/assistant.js`, `pwa-website/js/quran.js`, `pwa-website/test/quran-bismillah.test.js` |
 | this | unknown | `(not defined in scanned files)` | `apps/auth/src/editorial-plane.ts`, `apps/status/public/app.js`, `pwa-website/js/quran-verse-search.js`, `pwa-website/js/quran.js` |
 | travel | unknown | `(not defined in scanned files)` | `apps/api/test/ask-follow-up.test.ts`, `apps/api/test/fuzzy-title.test.ts` |
