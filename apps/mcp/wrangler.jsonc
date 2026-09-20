@@ -1,0 +1,22 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "fortress-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-18",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "env": {
+    "test": {
+      "name": "fortress-mcp-test",
+      "routes": [{ "pattern": "mcp-test.fortressofmuslim.org", "custom_domain": true }],
+      "vars": { "PLATFORM_ENV": "test", "AUTH_BASE_URL": "https://auth-test.fortressofmuslim.org" },
+      "services": [{ "binding": "AUTH", "service": "fortress-platform-auth-test" }, { "binding": "API", "service": "fortress-platform-api-test" }]
+    },
+    "production": {
+      "name": "fortress-mcp-production",
+      "routes": [{ "pattern": "mcp.fortressofmuslim.org", "custom_domain": true }],
+      "vars": { "PLATFORM_ENV": "production", "AUTH_BASE_URL": "https://auth.fortressofmuslim.org" },
+      "services": [{ "binding": "AUTH", "service": "fortress-platform-auth-production" }, { "binding": "API", "service": "fortress-platform-api-production" }]
+    }
+  }
+}

@@ -84,6 +84,60 @@
   color: color-mix(in srgb, var(--ink) 88%, var(--muted));
 }
 
+/* A framed reading's narration lead-in: read first, but quieter than the words it introduces. */
+.segment.context {
+  color: var(--muted);
+  font-size: calc(0.95rem * var(--font-scale));
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* What kind of reading this is, shown only when it is not a plain supplication. Guidance and virtue
+   readings have no transliteration line, so the note is what stops that looking like missing data. */
+.reading-role {
+  display: grid;
+  gap: 0.18rem;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.6rem;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.reading-role-label {
+  color: var(--accent-strong);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.reading-role-detail {
+  color: var(--muted);
+  font-size: calc(0.84rem * var(--font-scale));
+  line-height: 1.4;
+}
+
+.reading-role-virtue {
+  border-left-color: #b8892a;
+  background: color-mix(in srgb, #d4a23a 11%, transparent);
+}
+
+.reading-role-virtue .reading-role-label {
+  color: #9a6f17;
+}
+
+:root.dark .reading-role-virtue .reading-role-label {
+  color: #e7c178;
+}
+
+/* Guidance and virtue readings carry their meaning in the translation, so it leads rather than
+   trailing the Arabic in a muted tone. */
+[data-role="instruction"] .segment.translation,
+[data-role="virtue"] .segment.translation {
+  color: var(--ink);
+}
+
 .reader-controls {
   position: fixed;
   left: 50%;
@@ -153,13 +207,90 @@
 .dialog-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 0.75rem;
 }
 
 .dialog-head h2 {
+  flex: 1;
   margin: 0;
   font-size: 1.2rem;
+}
+
+/* Settings reads as grouped cards rather than hairline-separated text rows. The previous version
+   drew only a 1px top border on transparent rows inside a rounded dialog, which left dangling lines
+   with no surface behind them and no press feedback -- the "weird border" look. */
+.settings-section-heading {
+  margin: 1.25rem 0 0.45rem;
+  padding: 0 0.2rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.settings-section-heading:first-of-type {
+  margin-top: 0;
+}
+
+.settings-section-note {
+  margin: -0.15rem 0 0.7rem;
+  padding: 0 0.2rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+/* One rounded surface per group; children are separated by inset hairlines that stop short of the
+   rounded corners instead of running edge to edge. */
+.settings-category-list {
+  display: grid;
+  overflow: hidden;
+  border-radius: 0.85rem;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.settings-category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.85rem 1rem;
+  border: 0;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.settings-category-row + .settings-category-row {
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.settings-category-row:active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+@media (hover: hover) {
+  .settings-category-row:hover {
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+  }
+}
+
+.settings-category-row strong,
+.settings-category-row small {
+  display: block;
+}
+
+.settings-category-row small {
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .setting-row {
@@ -167,8 +298,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border-top: 1px solid var(--line);
-  padding: 1rem 0;
+  min-height: 3.5rem;
+  border-top: 0;
+  padding: 0.85rem 1rem;
+}
+
+.setting-row-stack {
+  display: grid;
+  align-items: stretch;
+  gap: 0.55rem;
 }
 
 .setting-row strong,
@@ -177,37 +315,185 @@
 }
 
 .setting-row small {
-  margin-top: 0.2rem;
+  margin-top: 0.18rem;
   color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
-.setting-row input {
-  width: 1.35rem;
-  height: 1.35rem;
+.setting-row input[type="checkbox"] {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
   accent-color: var(--accent-strong);
 }
 
-.install-row {
+.setting-row select {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.55rem;
+  color: var(--ink);
+  background: var(--paper-strong);
+  font-size: 0.95rem;
+}
+
+.setting-row .art-motion-system-note {
+  margin-top: 0;
+  color: var(--accent-strong);
+}
+
+.setting-row .art-motion-system-note[hidden] {
   display: none;
 }
 
-.install-row.available {
-  display: flex;
+.reminder-note {
+  margin: 0;
+  padding: 0.7rem 1rem;
+  border-left: 3px solid #b7791f;
+  background: color-mix(in srgb, #b7791f 10%, var(--paper));
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.reminder-subrow {
+  padding-left: 1.9rem;
+}
+
+.setting-row:has(#remindersEnabledToggle:not(:checked)) ~ .reminder-subrow {
+  display: none;
+}
+
+/* Always shown. It used to be hidden unless the browser offered an install prompt, which meant
+   iOS -- where that event never fires -- and anyone who had already installed saw nothing at all,
+   with no way to tell which case they were in. The row now says which. */
+.install-row small {
+  text-wrap: pretty;
 }
 
 .small-action-button {
+  flex: none;
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0.55rem 0.85rem;
+  padding: 0.5rem 0.9rem;
   color: white;
   background: var(--accent-strong);
   font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.small-action-button.secondary {
+  color: var(--accent-strong);
+  background: transparent;
+}
+
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.backup-actions .small-action-button {
+  flex: 1 1 8rem;
 }
 
 .settings-version {
-  border-top: 1px solid var(--line);
-  padding-top: 0.85rem;
+  padding: 1rem;
   color: var(--muted);
   font-size: 0.86rem;
   text-align: center;
+}/* Accordion groups: the row and the panel it opens are one unit, separated from the next group by an
+   inset hairline. The panel sits on a slightly recessed surface so it reads as belonging to the row
+   above rather than as a separate card. */
+.settings-group + .settings-group {
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.settings-group[hidden] {
+  display: none;
+}
+
+.settings-category-chevron {
+  flex: none;
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.settings-group.is-open .settings-category-chevron {
+  transform: rotate(90deg);
+}
+
+.settings-group.is-open > .settings-category-row {
+  color: var(--accent-strong);
+}
+
+.settings-group.is-open > .settings-category-row strong {
+  color: var(--accent-strong);
+}
+
+/* Panels are nested inside the list card, so they carry no card of their own. */
+.settings-panel {
+  display: grid;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.settings-panel[hidden] {
+  display: none;
+}
+
+.settings-panel > .setting-row + .setting-row,
+.settings-panel > .reminder-note + .setting-row {
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.settings-panel > .settings-section-note {
+  margin: 0;
+  padding: 0.8rem 1rem 0.2rem;
+}.settings-panel > .settings-version {
+  padding: 1rem;
+}
+
+/* Quran reader chrome. A dedicated class rather than reusing .is-reader, because every content-mode
+   section lives inside #homeView and .is-reader hides that whole subtree -- which would take the
+   Quran reader with it. */
+.is-surah .content-mode-switch {
+  display: none;
+}
+
+.is-surah .back-button {
+  visibility: visible;
+}
+
+.is-surah .brand-title img {
+  display: none;
+}
+
+.is-surah .brand-title {
+  grid-template-columns: minmax(0, auto);
+}
+
+/* Leaves room for the fixed control strip at the bottom of a surah. */
+.is-surah .quran-reader {
+  padding-bottom: 5.4rem;
+}
+
+.quran-controls {
+  /* Play and download joined the strip, so it carries eight buttons rather than six. They are
+     narrower to keep the bar inside a 360px screen without wrapping. */
+  grid-template-columns: repeat(8, 2.1rem);
+  gap: 0.3rem;
+}
+
+.quran-controls .tool-button.active {
+  color: #d0a215;
+}
+
+.quran-controls .tool-button:disabled {
+  opacity: 0.35;
 }

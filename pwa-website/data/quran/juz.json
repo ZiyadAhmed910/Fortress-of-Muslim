@@ -1,0 +1,1105 @@
+{
+ "totalJuz": 30,
+ "totalAyahs": 6236,
+ "attribution": {
+  "source": "Fortress of Muslim canonical data",
+  "text": "The thirty juz boundaries of the standard Hafs mushaf, held as canonical data in this repository. Verified by tools/verify-quran-juz.mjs to tile all 6,236 ayahs of the accompanying text exactly, and independently corroborated against the quran.com and alquran.cloud APIs, which are used to check these boundaries and never to supply them. The app reads this file from its own origin; it makes no request to either project at runtime."
+ },
+ "juz": [
+  {
+   "number": 1,
+   "start": {
+    "surah": 1,
+    "ayah": 1
+   },
+   "end": {
+    "surah": 2,
+    "ayah": 141
+   },
+   "ayahCount": 148,
+   "surahs": [
+    {
+     "surah": 1,
+     "from": 1,
+     "to": 7
+    },
+    {
+     "surah": 2,
+     "from": 1,
+     "to": 141
+    }
+   ]
+  },
+  {
+   "number": 2,
+   "start": {
+    "surah": 2,
+    "ayah": 142
+   },
+   "end": {
+    "surah": 2,
+    "ayah": 252
+   },
+   "ayahCount": 111,
+   "surahs": [
+    {
+     "surah": 2,
+     "from": 142,
+     "to": 252
+    }
+   ]
+  },
+  {
+   "number": 3,
+   "start": {
+    "surah": 2,
+    "ayah": 253
+   },
+   "end": {
+    "surah": 3,
+    "ayah": 92
+   },
+   "ayahCount": 126,
+   "surahs": [
+    {
+     "surah": 2,
+     "from": 253,
+     "to": 286
+    },
+    {
+     "surah": 3,
+     "from": 1,
+     "to": 92
+    }
+   ]
+  },
+  {
+   "number": 4,
+   "start": {
+    "surah": 3,
+    "ayah": 93
+   },
+   "end": {
+    "surah": 4,
+    "ayah": 23
+   },
+   "ayahCount": 131,
+   "surahs": [
+    {
+     "surah": 3,
+     "from": 93,
+     "to": 200
+    },
+    {
+     "surah": 4,
+     "from": 1,
+     "to": 23
+    }
+   ]
+  },
+  {
+   "number": 5,
+   "start": {
+    "surah": 4,
+    "ayah": 24
+   },
+   "end": {
+    "surah": 4,
+    "ayah": 147
+   },
+   "ayahCount": 124,
+   "surahs": [
+    {
+     "surah": 4,
+     "from": 24,
+     "to": 147
+    }
+   ]
+  },
+  {
+   "number": 6,
+   "start": {
+    "surah": 4,
+    "ayah": 148
+   },
+   "end": {
+    "surah": 5,
+    "ayah": 81
+   },
+   "ayahCount": 110,
+   "surahs": [
+    {
+     "surah": 4,
+     "from": 148,
+     "to": 176
+    },
+    {
+     "surah": 5,
+     "from": 1,
+     "to": 81
+    }
+   ]
+  },
+  {
+   "number": 7,
+   "start": {
+    "surah": 5,
+    "ayah": 82
+   },
+   "end": {
+    "surah": 6,
+    "ayah": 110
+   },
+   "ayahCount": 149,
+   "surahs": [
+    {
+     "surah": 5,
+     "from": 82,
+     "to": 120
+    },
+    {
+     "surah": 6,
+     "from": 1,
+     "to": 110
+    }
+   ]
+  },
+  {
+   "number": 8,
+   "start": {
+    "surah": 6,
+    "ayah": 111
+   },
+   "end": {
+    "surah": 7,
+    "ayah": 87
+   },
+   "ayahCount": 142,
+   "surahs": [
+    {
+     "surah": 6,
+     "from": 111,
+     "to": 165
+    },
+    {
+     "surah": 7,
+     "from": 1,
+     "to": 87
+    }
+   ]
+  },
+  {
+   "number": 9,
+   "start": {
+    "surah": 7,
+    "ayah": 88
+   },
+   "end": {
+    "surah": 8,
+    "ayah": 40
+   },
+   "ayahCount": 159,
+   "surahs": [
+    {
+     "surah": 7,
+     "from": 88,
+     "to": 206
+    },
+    {
+     "surah": 8,
+     "from": 1,
+     "to": 40
+    }
+   ]
+  },
+  {
+   "number": 10,
+   "start": {
+    "surah": 8,
+    "ayah": 41
+   },
+   "end": {
+    "surah": 9,
+    "ayah": 92
+   },
+   "ayahCount": 127,
+   "surahs": [
+    {
+     "surah": 8,
+     "from": 41,
+     "to": 75
+    },
+    {
+     "surah": 9,
+     "from": 1,
+     "to": 92
+    }
+   ]
+  },
+  {
+   "number": 11,
+   "start": {
+    "surah": 9,
+    "ayah": 93
+   },
+   "end": {
+    "surah": 11,
+    "ayah": 5
+   },
+   "ayahCount": 151,
+   "surahs": [
+    {
+     "surah": 9,
+     "from": 93,
+     "to": 129
+    },
+    {
+     "surah": 10,
+     "from": 1,
+     "to": 109
+    },
+    {
+     "surah": 11,
+     "from": 1,
+     "to": 5
+    }
+   ]
+  },
+  {
+   "number": 12,
+   "start": {
+    "surah": 11,
+    "ayah": 6
+   },
+   "end": {
+    "surah": 12,
+    "ayah": 52
+   },
+   "ayahCount": 170,
+   "surahs": [
+    {
+     "surah": 11,
+     "from": 6,
+     "to": 123
+    },
+    {
+     "surah": 12,
+     "from": 1,
+     "to": 52
+    }
+   ]
+  },
+  {
+   "number": 13,
+   "start": {
+    "surah": 12,
+    "ayah": 53
+   },
+   "end": {
+    "surah": 14,
+    "ayah": 52
+   },
+   "ayahCount": 154,
+   "surahs": [
+    {
+     "surah": 12,
+     "from": 53,
+     "to": 111
+    },
+    {
+     "surah": 13,
+     "from": 1,
+     "to": 43
+    },
+    {
+     "surah": 14,
+     "from": 1,
+     "to": 52
+    }
+   ]
+  },
+  {
+   "number": 14,
+   "start": {
+    "surah": 15,
+    "ayah": 1
+   },
+   "end": {
+    "surah": 16,
+    "ayah": 128
+   },
+   "ayahCount": 227,
+   "surahs": [
+    {
+     "surah": 15,
+     "from": 1,
+     "to": 99
+    },
+    {
+     "surah": 16,
+     "from": 1,
+     "to": 128
+    }
+   ]
+  },
+  {
+   "number": 15,
+   "start": {
+    "surah": 17,
+    "ayah": 1
+   },
+   "end": {
+    "surah": 18,
+    "ayah": 74
+   },
+   "ayahCount": 185,
+   "surahs": [
+    {
+     "surah": 17,
+     "from": 1,
+     "to": 111
+    },
+    {
+     "surah": 18,
+     "from": 1,
+     "to": 74
+    }
+   ]
+  },
+  {
+   "number": 16,
+   "start": {
+    "surah": 18,
+    "ayah": 75
+   },
+   "end": {
+    "surah": 20,
+    "ayah": 135
+   },
+   "ayahCount": 269,
+   "surahs": [
+    {
+     "surah": 18,
+     "from": 75,
+     "to": 110
+    },
+    {
+     "surah": 19,
+     "from": 1,
+     "to": 98
+    },
+    {
+     "surah": 20,
+     "from": 1,
+     "to": 135
+    }
+   ]
+  },
+  {
+   "number": 17,
+   "start": {
+    "surah": 21,
+    "ayah": 1
+   },
+   "end": {
+    "surah": 22,
+    "ayah": 78
+   },
+   "ayahCount": 190,
+   "surahs": [
+    {
+     "surah": 21,
+     "from": 1,
+     "to": 112
+    },
+    {
+     "surah": 22,
+     "from": 1,
+     "to": 78
+    }
+   ]
+  },
+  {
+   "number": 18,
+   "start": {
+    "surah": 23,
+    "ayah": 1
+   },
+   "end": {
+    "surah": 25,
+    "ayah": 20
+   },
+   "ayahCount": 202,
+   "surahs": [
+    {
+     "surah": 23,
+     "from": 1,
+     "to": 118
+    },
+    {
+     "surah": 24,
+     "from": 1,
+     "to": 64
+    },
+    {
+     "surah": 25,
+     "from": 1,
+     "to": 20
+    }
+   ]
+  },
+  {
+   "number": 19,
+   "start": {
+    "surah": 25,
+    "ayah": 21
+   },
+   "end": {
+    "surah": 27,
+    "ayah": 55
+   },
+   "ayahCount": 339,
+   "surahs": [
+    {
+     "surah": 25,
+     "from": 21,
+     "to": 77
+    },
+    {
+     "surah": 26,
+     "from": 1,
+     "to": 227
+    },
+    {
+     "surah": 27,
+     "from": 1,
+     "to": 55
+    }
+   ]
+  },
+  {
+   "number": 20,
+   "start": {
+    "surah": 27,
+    "ayah": 56
+   },
+   "end": {
+    "surah": 29,
+    "ayah": 45
+   },
+   "ayahCount": 171,
+   "surahs": [
+    {
+     "surah": 27,
+     "from": 56,
+     "to": 93
+    },
+    {
+     "surah": 28,
+     "from": 1,
+     "to": 88
+    },
+    {
+     "surah": 29,
+     "from": 1,
+     "to": 45
+    }
+   ]
+  },
+  {
+   "number": 21,
+   "start": {
+    "surah": 29,
+    "ayah": 46
+   },
+   "end": {
+    "surah": 33,
+    "ayah": 30
+   },
+   "ayahCount": 178,
+   "surahs": [
+    {
+     "surah": 29,
+     "from": 46,
+     "to": 69
+    },
+    {
+     "surah": 30,
+     "from": 1,
+     "to": 60
+    },
+    {
+     "surah": 31,
+     "from": 1,
+     "to": 34
+    },
+    {
+     "surah": 32,
+     "from": 1,
+     "to": 30
+    },
+    {
+     "surah": 33,
+     "from": 1,
+     "to": 30
+    }
+   ]
+  },
+  {
+   "number": 22,
+   "start": {
+    "surah": 33,
+    "ayah": 31
+   },
+   "end": {
+    "surah": 36,
+    "ayah": 27
+   },
+   "ayahCount": 169,
+   "surahs": [
+    {
+     "surah": 33,
+     "from": 31,
+     "to": 73
+    },
+    {
+     "surah": 34,
+     "from": 1,
+     "to": 54
+    },
+    {
+     "surah": 35,
+     "from": 1,
+     "to": 45
+    },
+    {
+     "surah": 36,
+     "from": 1,
+     "to": 27
+    }
+   ]
+  },
+  {
+   "number": 23,
+   "start": {
+    "surah": 36,
+    "ayah": 28
+   },
+   "end": {
+    "surah": 39,
+    "ayah": 31
+   },
+   "ayahCount": 357,
+   "surahs": [
+    {
+     "surah": 36,
+     "from": 28,
+     "to": 83
+    },
+    {
+     "surah": 37,
+     "from": 1,
+     "to": 182
+    },
+    {
+     "surah": 38,
+     "from": 1,
+     "to": 88
+    },
+    {
+     "surah": 39,
+     "from": 1,
+     "to": 31
+    }
+   ]
+  },
+  {
+   "number": 24,
+   "start": {
+    "surah": 39,
+    "ayah": 32
+   },
+   "end": {
+    "surah": 41,
+    "ayah": 46
+   },
+   "ayahCount": 175,
+   "surahs": [
+    {
+     "surah": 39,
+     "from": 32,
+     "to": 75
+    },
+    {
+     "surah": 40,
+     "from": 1,
+     "to": 85
+    },
+    {
+     "surah": 41,
+     "from": 1,
+     "to": 46
+    }
+   ]
+  },
+  {
+   "number": 25,
+   "start": {
+    "surah": 41,
+    "ayah": 47
+   },
+   "end": {
+    "surah": 45,
+    "ayah": 37
+   },
+   "ayahCount": 246,
+   "surahs": [
+    {
+     "surah": 41,
+     "from": 47,
+     "to": 54
+    },
+    {
+     "surah": 42,
+     "from": 1,
+     "to": 53
+    },
+    {
+     "surah": 43,
+     "from": 1,
+     "to": 89
+    },
+    {
+     "surah": 44,
+     "from": 1,
+     "to": 59
+    },
+    {
+     "surah": 45,
+     "from": 1,
+     "to": 37
+    }
+   ]
+  },
+  {
+   "number": 26,
+   "start": {
+    "surah": 46,
+    "ayah": 1
+   },
+   "end": {
+    "surah": 51,
+    "ayah": 30
+   },
+   "ayahCount": 195,
+   "surahs": [
+    {
+     "surah": 46,
+     "from": 1,
+     "to": 35
+    },
+    {
+     "surah": 47,
+     "from": 1,
+     "to": 38
+    },
+    {
+     "surah": 48,
+     "from": 1,
+     "to": 29
+    },
+    {
+     "surah": 49,
+     "from": 1,
+     "to": 18
+    },
+    {
+     "surah": 50,
+     "from": 1,
+     "to": 45
+    },
+    {
+     "surah": 51,
+     "from": 1,
+     "to": 30
+    }
+   ]
+  },
+  {
+   "number": 27,
+   "start": {
+    "surah": 51,
+    "ayah": 31
+   },
+   "end": {
+    "surah": 57,
+    "ayah": 29
+   },
+   "ayahCount": 399,
+   "surahs": [
+    {
+     "surah": 51,
+     "from": 31,
+     "to": 60
+    },
+    {
+     "surah": 52,
+     "from": 1,
+     "to": 49
+    },
+    {
+     "surah": 53,
+     "from": 1,
+     "to": 62
+    },
+    {
+     "surah": 54,
+     "from": 1,
+     "to": 55
+    },
+    {
+     "surah": 55,
+     "from": 1,
+     "to": 78
+    },
+    {
+     "surah": 56,
+     "from": 1,
+     "to": 96
+    },
+    {
+     "surah": 57,
+     "from": 1,
+     "to": 29
+    }
+   ]
+  },
+  {
+   "number": 28,
+   "start": {
+    "surah": 58,
+    "ayah": 1
+   },
+   "end": {
+    "surah": 66,
+    "ayah": 12
+   },
+   "ayahCount": 137,
+   "surahs": [
+    {
+     "surah": 58,
+     "from": 1,
+     "to": 22
+    },
+    {
+     "surah": 59,
+     "from": 1,
+     "to": 24
+    },
+    {
+     "surah": 60,
+     "from": 1,
+     "to": 13
+    },
+    {
+     "surah": 61,
+     "from": 1,
+     "to": 14
+    },
+    {
+     "surah": 62,
+     "from": 1,
+     "to": 11
+    },
+    {
+     "surah": 63,
+     "from": 1,
+     "to": 11
+    },
+    {
+     "surah": 64,
+     "from": 1,
+     "to": 18
+    },
+    {
+     "surah": 65,
+     "from": 1,
+     "to": 12
+    },
+    {
+     "surah": 66,
+     "from": 1,
+     "to": 12
+    }
+   ]
+  },
+  {
+   "number": 29,
+   "start": {
+    "surah": 67,
+    "ayah": 1
+   },
+   "end": {
+    "surah": 77,
+    "ayah": 50
+   },
+   "ayahCount": 431,
+   "surahs": [
+    {
+     "surah": 67,
+     "from": 1,
+     "to": 30
+    },
+    {
+     "surah": 68,
+     "from": 1,
+     "to": 52
+    },
+    {
+     "surah": 69,
+     "from": 1,
+     "to": 52
+    },
+    {
+     "surah": 70,
+     "from": 1,
+     "to": 44
+    },
+    {
+     "surah": 71,
+     "from": 1,
+     "to": 28
+    },
+    {
+     "surah": 72,
+     "from": 1,
+     "to": 28
+    },
+    {
+     "surah": 73,
+     "from": 1,
+     "to": 20
+    },
+    {
+     "surah": 74,
+     "from": 1,
+     "to": 56
+    },
+    {
+     "surah": 75,
+     "from": 1,
+     "to": 40
+    },
+    {
+     "surah": 76,
+     "from": 1,
+     "to": 31
+    },
+    {
+     "surah": 77,
+     "from": 1,
+     "to": 50
+    }
+   ]
+  },
+  {
+   "number": 30,
+   "start": {
+    "surah": 78,
+    "ayah": 1
+   },
+   "end": {
+    "surah": 114,
+    "ayah": 6
+   },
+   "ayahCount": 564,
+   "surahs": [
+    {
+     "surah": 78,
+     "from": 1,
+     "to": 40
+    },
+    {
+     "surah": 79,
+     "from": 1,
+     "to": 46
+    },
+    {
+     "surah": 80,
+     "from": 1,
+     "to": 42
+    },
+    {
+     "surah": 81,
+     "from": 1,
+     "to": 29
+    },
+    {
+     "surah": 82,
+     "from": 1,
+     "to": 19
+    },
+    {
+     "surah": 83,
+     "from": 1,
+     "to": 36
+    },
+    {
+     "surah": 84,
+     "from": 1,
+     "to": 25
+    },
+    {
+     "surah": 85,
+     "from": 1,
+     "to": 22
+    },
+    {
+     "surah": 86,
+     "from": 1,
+     "to": 17
+    },
+    {
+     "surah": 87,
+     "from": 1,
+     "to": 19
+    },
+    {
+     "surah": 88,
+     "from": 1,
+     "to": 26
+    },
+    {
+     "surah": 89,
+     "from": 1,
+     "to": 30
+    },
+    {
+     "surah": 90,
+     "from": 1,
+     "to": 20
+    },
+    {
+     "surah": 91,
+     "from": 1,
+     "to": 15
+    },
+    {
+     "surah": 92,
+     "from": 1,
+     "to": 21
+    },
+    {
+     "surah": 93,
+     "from": 1,
+     "to": 11
+    },
+    {
+     "surah": 94,
+     "from": 1,
+     "to": 8
+    },
+    {
+     "surah": 95,
+     "from": 1,
+     "to": 8
+    },
+    {
+     "surah": 96,
+     "from": 1,
+     "to": 19
+    },
+    {
+     "surah": 97,
+     "from": 1,
+     "to": 5
+    },
+    {
+     "surah": 98,
+     "from": 1,
+     "to": 8
+    },
+    {
+     "surah": 99,
+     "from": 1,
+     "to": 8
+    },
+    {
+     "surah": 100,
+     "from": 1,
+     "to": 11
+    },
+    {
+     "surah": 101,
+     "from": 1,
+     "to": 11
+    },
+    {
+     "surah": 102,
+     "from": 1,
+     "to": 8
+    },
+    {
+     "surah": 103,
+     "from": 1,
+     "to": 3
+    },
+    {
+     "surah": 104,
+     "from": 1,
+     "to": 9
+    },
+    {
+     "surah": 105,
+     "from": 1,
+     "to": 5
+    },
+    {
+     "surah": 106,
+     "from": 1,
+     "to": 4
+    },
+    {
+     "surah": 107,
+     "from": 1,
+     "to": 7
+    },
+    {
+     "surah": 108,
+     "from": 1,
+     "to": 3
+    },
+    {
+     "surah": 109,
+     "from": 1,
+     "to": 6
+    },
+    {
+     "surah": 110,
+     "from": 1,
+     "to": 3
+    },
+    {
+     "surah": 111,
+     "from": 1,
+     "to": 5
+    },
+    {
+     "surah": 112,
+     "from": 1,
+     "to": 4
+    },
+    {
+     "surah": 113,
+     "from": 1,
+     "to": 5
+    },
+    {
+     "surah": 114,
+     "from": 1,
+     "to": 6
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 928 400" width="928" height="400" role="presentation">
+  <defs>
+    <linearGradient id="skyallduas" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0.00" stop-color="#0a1b3d"/>
+      <stop offset="0.50" stop-color="#1b3a70"/>
+      <stop offset="1.00" stop-color="#3d5a9e"/>
+    </linearGradient>
+    <radialGradient id="glowallduas" cx="0.78" cy="0.18" r="0.72">
+      <stop offset="0" stop-color="#ffd28a" stop-opacity="0.85"/>
+      <stop offset="0.45" stop-color="#ffd28a" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ffd28a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vigallduas" cx="0.5" cy="0.45" r="0.78">
+      <stop offset="0.55" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.2"/>
+    </radialGradient>
+    <!-- One ornament shared by all nine: an eight-point star on a wide repeat, faint enough to read
+         as texture rather than pattern. The first version tiled at 64px and came out a diamond mesh. -->
+    <pattern id="latallduas" width="112" height="112" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#f7ecd6" stroke-opacity="0.1" stroke-width="1.2">
+        <polygon points="56,10 67,34 91,23 80,47 104,56 80,65 91,89 67,78 56,102 45,78 21,89 32,65 8,56 32,47 21,23 45,34"/>
+      </g>
+    </pattern>
+  </defs>
+
+  <rect width="928" height="400" fill="url(#skyallduas)"/>
+  <rect width="928" height="400" fill="url(#latallduas)"/>
+  <rect width="928" height="400" fill="url(#glowallduas)"/>
+  <circle cx="554" cy="74" r="1.9" fill="#f7ecd6" fill-opacity="0.74"/><circle cx="624" cy="131" r="2.6" fill="#f7ecd6" fill-opacity="0.71"/><circle cx="69" cy="247" r="1.3" fill="#f7ecd6" fill-opacity="0.35"/><circle cx="921" cy="15" r="1.6" fill="#f7ecd6" fill-opacity="0.27"/><circle cx="67" cy="167" r="2.7" fill="#f7ecd6" fill-opacity="0.65"/><circle cx="688" cy="16" r="2.1" fill="#f7ecd6" fill-opacity="0.50"/><circle cx="189" cy="221" r="1.0" fill="#f7ecd6" fill-opacity="0.65"/><circle cx="136" cy="7" r="2.3" fill="#f7ecd6" fill-opacity="0.62"/><circle cx="801" cy="203" r="2.5" fill="#f7ecd6" fill-opacity="0.62"/><circle cx="34" cy="84" r="1.2" fill="#f7ecd6" fill-opacity="0.58"/><circle cx="355" cy="74" r="2.4" fill="#f7ecd6" fill-opacity="0.41"/><circle cx="811" cy="138" r="1.3" fill="#f7ecd6" fill-opacity="0.48"/><circle cx="533" cy="103" r="1.5" fill="#f7ecd6" fill-opacity="0.67"/><circle cx="558" cy="88" r="2.3" fill="#f7ecd6" fill-opacity="0.54"/><circle cx="371" cy="142" r="1.4" fill="#f7ecd6" fill-opacity="0.29"/><circle cx="549" cy="130" r="1.8" fill="#f7ecd6" fill-opacity="0.40"/><circle cx="419" cy="20" r="2.4" fill="#f7ecd6" fill-opacity="0.35"/><circle cx="112" cy="211" r="2.0" fill="#f7ecd6" fill-opacity="0.56"/><circle cx="865" cy="62" r="1.8" fill="#f7ecd6" fill-opacity="0.45"/><circle cx="586" cy="169" r="1.3" fill="#f7ecd6" fill-opacity="0.35"/><circle cx="573" cy="0" r="1.4" fill="#f7ecd6" fill-opacity="0.64"/><circle cx="711" cy="107" r="1.6" fill="#f7ecd6" fill-opacity="0.50"/><circle cx="236" cy="73" r="2.5" fill="#f7ecd6" fill-opacity="0.39"/><circle cx="552" cy="15" r="2.6" fill="#f7ecd6" fill-opacity="0.59"/><circle cx="416" cy="43" r="2.5" fill="#f7ecd6" fill-opacity="0.39"/><circle cx="205" cy="113" r="2.4" fill="#f7ecd6" fill-opacity="0.43"/><path d="M0 328 H928 V400 H0 Z" fill="#f7ecd6" fill-opacity="0.14"/><path d="M37.5 328.0 V274.2 A92.0 92.0 0 0 1 83.5 194.6 A92.0 92.0 0 0 1 129.5 274.2 V328.0 Z" fill="#f7ecd6" fill-opacity="0.14"/><path d="M798.5 328.0 V274.2 A92.0 92.0 0 0 1 844.5 194.6 A92.0 92.0 0 0 1 890.5 274.2 V328.0 Z" fill="#f7ecd6" fill-opacity="0.14"/><path d="M182.3 328.0 V254.1 A118.0 118.0 0 0 1 241.3 151.9 A118.0 118.0 0 0 1 300.3 254.1 V328.0 Z" fill="#f7ecd6" fill-opacity="0.2"/><path d="M627.7 328.0 V254.1 A118.0 118.0 0 0 1 686.7 151.9 A118.0 118.0 0 0 1 745.7 254.1 V328.0 Z" fill="#f7ecd6" fill-opacity="0.2"/><path d="M385.0 328.0 V223.0 A158.0 158.0 0 0 1 464.0 86.2 A158.0 158.0 0 0 1 543.0 223.0 V328.0 Z" fill="#f7ecd6" fill-opacity="0.28"/><g fill="#f7ecd6" fill-opacity="0.34"><path d="M410 144 Q407.3 90 464 49.5 Q520.7 90 518 144 Z"/><rect x="456.44" y="25.19999999999999" width="15.120000000000001" height="27" rx="7.5600000000000005"/></g><polygon points="148.5,67.0 150.6,75.0 157.7,70.8 153.5,77.9 161.5,80.0 153.5,82.1 157.7,89.2 150.6,85.0 148.5,93.0 146.4,85.0 139.3,89.2 143.4,82.1 135.5,80.0 143.4,77.9 139.3,70.8 146.4,75.0" fill="#f7ecd6" fill-opacity="0.45"/><polygon points="779.5,94.0 781.1,100.1 786.6,96.9 783.4,102.4 789.5,104.0 783.4,105.6 786.6,111.1 781.1,107.9 779.5,114.0 777.9,107.9 772.4,111.1 775.6,105.6 769.5,104.0 775.6,102.4 772.4,96.9 777.9,100.1" fill="#f7ecd6" fill-opacity="0.35"/>
+  <rect width="928" height="400" fill="url(#vigallduas)"/>
+</svg>

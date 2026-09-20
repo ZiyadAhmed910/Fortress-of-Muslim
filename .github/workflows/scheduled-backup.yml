@@ -1,0 +1,79 @@
+name: Scheduled encrypted D1 backup
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to back up"
+        required: true
+        default: "both"
+        type: choice
+        options:
+          - test
+          - production
+          - both
+
+concurrency:
+  group: scheduled-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: Backup and upload to R2
+    if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Backup test environment
+        if: github.event_name == 'schedule' || inputs.environment == 'test' || inputs.environment == 'both'
+        shell: pwsh
+        run: ./tools/backup-d1.ps1 -Environment test
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          FORTRESS_BACKUP_KEY: ${{ secrets.FORTRESS_BACKUP_KEY }}
+
+      - name: Backup production environment
+        if: github.event_name == 'schedule' || inputs.environment == 'production' || inputs.environment == 'both'
+        shell: pwsh
+        run: ./tools/backup-d1.ps1 -Environment production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          FORTRESS_BACKUP_KEY: ${{ secrets.FORTRESS_BACKUP_KEY }}
+
+      - name: Upload backups to R2
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem .fortress-backups -File
+          if (-not $files) { throw 'No backup files were produced -- refusing to report success.' }
+          foreach ($file in $files) {
+            Write-Host "Uploading $($file.Name)..."
+            npx wrangler r2 object put "fortress-platform-backups/$($file.Name)" --file $file.FullName --remote
+            if ($LASTEXITCODE -ne 0) { throw "Upload failed for $($file.Name)." }
+          }
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Remove local copies
+        if: always()
+        shell: pwsh
+        run: Remove-Item -Path .fortress-backups -Recurse -Force -ErrorAction SilentlyContinue

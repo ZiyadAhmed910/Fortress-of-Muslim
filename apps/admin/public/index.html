@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0b6f73">
+  <title>Editorial Admin | Fortress Platform</title>
+  <link rel="icon" href="/assets/fortress-favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/portal.css">
+  <link rel="stylesheet" href="/admin.css">
+  <script src="/assets/portal.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main id="login" class="login-shell" hidden>
+    <form id="login-form" class="login-panel">
+      <img src="/assets/fortress-mark.svg" alt="">
+      <span class="kicker">RESTRICTED OPERATIONS</span>
+      <h1>Fortress Admin</h1>
+      <p>Sign in with an account that has an active platform administrator role.</p>
+      <label>Email<input name="email" type="email" autocomplete="email" required></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" minlength="12" required></label>
+      <button class="primary" type="submit">Sign in</button>
+      <button type="button" data-admin-passkey>Sign in with passkey</button>
+      <p id="login-message" class="message" role="status"></p>
+    </form>
+    <form id="admin-two-factor-form" class="login-panel" hidden>
+      <img src="/assets/fortress-mark.svg" alt="">
+      <span class="kicker">SECOND FACTOR</span>
+      <h1>Verify your identity</h1>
+      <p>Enter the six-digit code from your authenticator app.</p>
+      <label>Authentication code<input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+      <label><input name="trustDevice" type="checkbox"> Trust this device for 30 days</label>
+      <button class="primary" type="submit">Verify</button>
+      <button type="button" data-admin-two-factor-cancel>Back</button>
+      <p class="message" data-two-factor-message role="status"></p>
+    </form>
+  </main>
+
+  <div id="denied" class="denied" hidden>
+    <img src="/assets/fortress-mark.svg" alt="">
+    <h1>Staff access required</h1>
+    <p>Your identity is valid, but it has no active Admin, Editor, or Reviewer role.</p>
+    <button data-sign-out>Sign out</button>
+  </div>
+
+  <div id="mfa-required" class="denied" hidden>
+    <img src="/assets/fortress-mark.svg" alt="">
+    <h1>Two-factor authentication required</h1>
+    <p>The Admin role requires two-factor authentication before this console will load. Enable it in the Developer Portal, then reload this page.</p>
+    <a id="mfa-required-link" class="button primary" href="#">Enable two-factor authentication</a>
+    <button data-sign-out>Sign out</button>
+  </div>
+
+  <div id="console" class="console" hidden>
+    <header class="topbar">
+      <button class="icon-button mobile-menu" data-menu aria-label="Open navigation">&#9776;</button>
+      <a class="brand" href="#overview"><img src="/assets/fortress-mark.svg" alt=""><span><strong>Fortress Platform</strong><small>Editorial Admin</small></span></a>
+      <span class="env">BETA</span>
+      <form id="global-search" class="global-search"><span>&#8981;</span><input name="q" placeholder="Find users, records, keys, apps, and tools" autocomplete="off"><kbd>/</kbd></form>
+      <button class="icon-button notification-bell" data-notifications-toggle aria-label="Notifications" aria-expanded="false">&#128276;<span data-notification-badge class="notification-badge" hidden>0</span></button>
+      <div class="notification-panel" data-notifications-panel hidden>
+        <header><strong>Notifications</strong><button data-notifications-read-all>Mark all read</button></header>
+        <div id="notification-list"></div>
+      </div>
+      <button class="profile" data-profile aria-expanded="false"><span data-initials>FA</span></button>
+      <div class="profile-menu" data-profile-menu hidden><strong data-user-name></strong><small data-user-email></small><span data-role></span><span data-editorial-role></span><button data-sign-out>Sign out</button></div>
+    </header>
+
+    <aside class="sidebar">
+      <nav>
+        <a href="#overview" data-nav><span>Overview</span></a>
+        <a href="#search" data-nav><span>Global search</span></a>
+        <p>EDITORIAL</p>
+        <a href="#content" data-nav><span>Create content</span></a>
+        <a href="#queue" data-nav><span>Review queue</span></a>
+        <a href="#books" data-nav><span>Hadith books</span></a>
+        <a href="#assignments" data-nav><span>Assignments</span></a>
+        <a href="#workload" data-nav><span>Workload</span></a>
+        <a href="#taxonomy" data-nav><span>Taxonomy</span></a>
+        <p>PLATFORM</p>
+        <a href="#users" data-nav><span>Users</span></a>
+        <a href="#plan-requests" data-nav><span>Plan requests</span></a>
+        <a href="#api-keys" data-nav><span>API keys</span></a>
+        <a href="#oauth-clients" data-nav><span>Connected apps</span></a>
+        <a href="#devices" data-nav><span>Devices</span></a>
+        <a href="#mcp-servers" data-nav><span>MCP toolsets</span></a>
+        <a href="#mcp-tools" data-nav><span>External tool review</span></a>
+        <a href="#named-queries" data-nav><span>Named queries</span></a>
+        <p>OPERATIONS</p>
+        <a href="#alerts" data-nav><span>Alerts</span></a>
+        <a href="#operations" data-nav><span>Operations monitor</span></a>
+        <a href="#rag" data-nav><span>RAG monitor</span></a>
+        <a href="#services" data-nav><span>Service control</span></a>
+        <a href="#rate-limits" data-nav><span>Rate limits</span></a>
+        <a href="#security" data-nav><span>Account security</span></a>
+        <a href="#audit" data-nav><span>Audit log</span></a>
+      </nav>
+      <footer>Fortress Platform <span>0.19.0</span></footer>
+    </aside>
+
+    <div class="scrim" data-scrim></div>
+    <main class="workspace">
+      <div id="toast" class="toast" hidden></div>
+
+      <section id="overview" class="view">
+        <header><div><span class="kicker">CONTENT MANAGEMENT</span><h1>Platform overview</h1><p>Create, review, and verify Fortress content.</p></div><button data-refresh>Refresh</button></header>
+        <div id="overview-alerts-banner"></div>
+        <div id="metrics" class="metrics"></div>
+        <div class="split"><section><h2>Editorial queues</h2><div id="overview-queues"></div></section><section><h2>Service health</h2><div id="overview-services"></div></section></div>
+      </section>
+
+      <section id="search" class="view" hidden>
+        <header><div><span class="kicker">CROSS-PLATFORM LOOKUP</span><h1>Global search</h1><p>Find canonical records and platform resources without exposing acquisition metadata.</p></div></header>
+        <form id="search-form" class="filter"><input name="q" placeholder="Search by title, canonical ID, name, email, or slug" minlength="2" required><button class="primary">Search</button></form>
+        <div id="search-results" class="search-results"></div>
+      </section>
+
+      <section id="queue" class="view" hidden>
+        <header><div><span class="kicker">HUMAN VERIFICATION</span><h1>Review queue</h1><p>New records begin pending review. Verify them or request a change.</p></div></header>
+        <form class="filter" data-filter="queue">
+          <input name="q" placeholder="Title or canonical ID">
+          <input name="collection" placeholder="Collection slug">
+          <select name="contentType"><option value="">All content</option><option value="dua">Duas</option><option value="hadith">Hadith</option></select>
+          <select name="assignment"><option value="">Any assignment</option><option value="assigned">Assigned</option><option value="unassigned">Unassigned</option></select>
+          <select name="state"><option value="">All statuses</option><option value="pending_review">Pending Review</option><option value="verified">Verified</option><option value="changes_requested">Change Requested</option></select>
+          <button>Apply</button>
+        </form>
+        <div id="queue-table" class="table"></div>
+        <div id="queue-bulk-actions" class="bulk-actions" hidden>
+          <strong><span data-queue-selected>0</span> selected</strong>
+          <button class="primary" data-bulk-decision="approved">Verify selected</button>
+          <button data-bulk-decision="changes_requested">Request changes</button>
+          <button data-clear-queue-selection>Clear</button>
+        </div>
+        <div id="queue-pagination" class="pagination"></div>
+      </section>
+
+      <section id="content" class="view" hidden>
+        <header><div><span class="kicker">CANONICAL AUTHORING</span><h1>Create content</h1><p>Create a pending immutable revision with its source reference and reading parts.</p></div></header>
+        <form id="record-create-form" class="editorial-form record-create-form">
+          <label>Content type<select name="contentType" required><option value="dua">Dua</option><option value="hadith">Hadith</option></select></label>
+          <label class="wide">Title<input name="title" minlength="2" maxlength="300" required></label>
+          <label>Collection<select name="collectionId" required><option value="">Choose collection</option></select></label>
+          <label>Book<select name="bookId"><option value="">Choose book</option></select></label>
+          <label>Chapter<select name="chapterId"><option value="">Choose chapter</option></select></label>
+          <label>Display number<input name="displayNumber" maxlength="120"></label>
+          <label class="wide">Narrator<textarea name="narrator" rows="2"></textarea></label>
+          <label>Grade<input name="grade" maxlength="160"></label>
+          <label>Grading authority<input name="gradingAuthority" maxlength="300"></label>
+          <label>Reference type<input name="referenceType" value="primary" maxlength="80" required></label>
+          <label>Reference locator<input name="referenceLocator" maxlength="500" required></label>
+          <div class="wide record-parts-head"><div><strong>Reading parts</strong><small>Each part becomes one swipe unit.</small></div><button type="button" data-add-record-part>Add part</button></div>
+          <div id="record-parts" class="wide"></div>
+          <button class="primary" type="submit">Create pending record</button>
+        </form>
+      </section>
+
+      <section id="books" class="view" hidden>
+        <header><div><span class="kicker">BOOK VERIFICATION</span><h1>Hadith books</h1><p>Verify one complete book and publish its records into the indexed canonical corpus.</p></div></header>
+        <div class="warning"><strong>One-person verification</strong><span>Verification stamps your identity on every current record in the book. Only use this after checking the source, numbering, text, and grading.</span></div>
+        <form class="filter" data-filter="books">
+          <input name="collection" placeholder="Collection slug">
+          <select name="status"><option value="">All statuses</option><option value="pending_review">Pending Review</option><option value="verified">Verified</option><option value="changes_requested">Change Requested</option></select>
+          <button>Apply</button>
+        </form>
+        <div id="books-table" class="table"></div>
+      </section>
+
+      <section id="assignments" class="view" hidden>
+        <header><div><span class="kicker">WORK DISTRIBUTION</span><h1>Assignments</h1><p>Assign a record, range, chapter, book, or collection to an editorial reviewer.</p></div></header>
+        <form id="assignment-form" class="editorial-form">
+          <label>Scope<select name="scopeType"><option value="record">Record</option><option value="record_range">Record range</option><option value="chapter">Chapter</option><option value="book">Book</option><option value="collection">Collection</option></select></label>
+          <label>Reviewer<select name="assignedTo" required><option value="">Choose reviewer</option></select></label>
+          <label>Canonical ID<input name="canonicalId"></label>
+          <label>Collection<select name="collectionId"><option value="">Choose collection</option></select></label>
+          <label>Book<select name="bookId"><option value="">Choose book</option></select></label>
+          <label>Chapter<select name="chapterId"><option value="">Choose chapter</option></select></label>
+          <label>Range start<input name="rangeStart" type="number" min="1"></label>
+          <label>Range end<input name="rangeEnd" type="number" min="1"></label>
+          <label class="wide">Notes<textarea name="notes" rows="2"></textarea></label>
+          <button class="primary" type="submit">Create assignment</button>
+        </form>
+        <div id="assignments-table" class="table"></div>
+      </section>
+
+      <section id="workload" class="view" hidden>
+        <header><div><span class="kicker">EDITORIAL OPERATIONS</span><h1>Verification workload</h1><p>Compare open assignments, pending records, completed work, and recent decisions by reviewer.</p></div><button data-refresh-workload>Refresh</button></header>
+        <div id="workload-metrics" class="metrics"></div>
+        <div id="workload-table" class="table"></div>
+      </section>
+
+      <section id="batches" class="view" hidden>
+        <header><div><span class="kicker">ATOMIC RELEASES</span><h1>Publication batches</h1><p>Validate approved revisions, approve the batch, then publish a new canonical dataset version.</p></div></header>
+        <form id="batch-form" class="filter"><input name="label" placeholder="Batch label" minlength="3" required><button class="primary">Create batch</button></form>
+        <div id="batches-table" class="table"></div>
+        <header class="subheader"><div><h2>Canonical datasets</h2><p>Rollback creates a new immutable dataset from a prior complete snapshot.</p></div></header>
+        <div id="datasets-table" class="table"></div>
+      </section>
+
+      <section id="users" class="view" hidden>
+        <header><div><span class="kicker">ACCESS HIERARCHY</span><h1>Manage users</h1><p>Find people quickly, then manage either platform roles or developer account access.</p></div></header>
+        <div class="segmented" role="tablist" aria-label="User management view">
+          <button class="active" type="button" role="tab" aria-selected="true" data-user-tab="team">Team access</button>
+          <button type="button" role="tab" aria-selected="false" data-user-tab="developers">Developer accounts</button>
+        </div>
+        <div data-user-panel="team">
+          <form id="roles-filter" class="filter"><input name="q" type="search" placeholder="Search name or email"><select name="role"><option value="">All roles</option><option>admin</option><option>editor</option><option>reviewer</option><option>developer</option></select><select name="status"><option value="">All statuses</option><option>active</option><option>inactive</option></select><button>Search</button></form>
+          <div id="roles-table" class="table"></div>
+        </div>
+        <div data-user-panel="developers" hidden>
+          <header class="subheader"><div><h2>Developer accounts</h2><p>Inspect credentials and suspend compromised or abusive accounts.</p></div></header>
+          <form class="filter" data-filter="users"><input name="q" type="search" placeholder="Search name or email"><select name="status"><option value="">All statuses</option><option>active</option><option>suspended</option><option>closed</option></select><button>Search</button></form>
+          <div id="users-table" class="table"></div>
+        </div>
+      </section>
+
+      <section id="plan-requests" class="view" hidden>
+        <header><div><span class="kicker">ACCESS HIERARCHY</span><h1>Plan requests</h1><p>Developers can request a plan change; approving one updates their account immediately.</p></div></header>
+        <div id="plan-requests-table" class="table"></div>
+      </section>
+
+      <section id="api-keys" class="view" hidden data-resource="api-keys"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="oauth-clients" class="view" hidden data-resource="oauth-clients"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="devices" class="view" hidden data-resource="devices"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="mcp-servers" class="view" hidden data-resource="mcp-servers"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="mcp-tools" class="view" hidden data-resource="mcp-tools"><resource-header></resource-header><div class="table resource-table"></div></section>
+      <section id="named-queries" class="view" hidden data-resource="named-queries"><resource-header></resource-header><div class="table resource-table"></div></section>
+
+      <section id="taxonomy" class="view" hidden>
+        <header><div><span class="kicker">DISCOVERY METADATA</span><h1>Taxonomy</h1><p>Manage controlled categories, topics, tags, keywords, moods, and occasions.</p></div><button class="primary" data-new-term>Add term</button></header>
+        <form class="filter" data-filter="taxonomy"><input name="q" placeholder="Label or slug"><select name="type"><option value="">All types</option><option>category</option><option>topic</option><option>tag</option><option>keyword</option><option>mood</option><option>occasion</option></select><button>Apply</button></form>
+        <div id="taxonomy-table" class="table"></div>
+      </section>
+
+      <section id="services" class="view" hidden>
+        <header><div><span class="kicker">OPERATIONS</span><h1>Service control</h1><p>Place Worker-enforced services into maintenance or disabled state.</p></div></header>
+        <div id="services-grid" class="service-grid"></div>
+      </section>
+
+      <section id="rate-limits" class="view" hidden>
+        <header><div><span class="kicker">OPERATIONS</span><h1>Rate limits</h1><p>Per-plan request limits enforced on every credentialed API request. Anonymous public reads are never limited.</p></div></header>
+        <div id="rate-limits-table" class="table"></div>
+      </section>
+
+      <section id="alerts" class="view" hidden>
+        <header><div><span class="kicker">OPERATIONS</span><h1>Alerts</h1><p>Downtime, elevated error rates, indexing failures, and unusual API usage over the last 24 hours. Evaluated fresh each time you open this page.</p></div><button data-refresh-alerts>Refresh</button></header>
+        <div id="alerts-metrics" class="metrics"></div>
+        <div id="alerts-table" class="table"></div>
+      </section>
+
+      <section id="operations" class="view" hidden>
+        <header><div><span class="kicker">LIVE OPERATIONS</span><h1>Platform monitor</h1><p>Traffic, errors, rate limiting, queues, sessions, and deployment state in one focused view.</p></div><button data-refresh-operations>Refresh</button></header>
+        <div id="operations-metrics" class="metrics"></div>
+        <div class="split"><section><h2>Request telemetry</h2><div id="operations-traffic"></div></section><section><h2>Work queues</h2><div id="operations-queues"></div></section></div>
+        <section><h2>Highest traffic routes</h2><div id="operations-routes" class="table"></div></section>
+        <section><h2>Deployment state</h2><div id="operations-deployments" class="service-grid"></div></section>
+      </section>
+
+      <section id="security" class="view" hidden>
+        <header><div><span class="kicker">ACCOUNT SECURITY</span><h1>Admin sessions</h1><p>Review active browser sessions, end unfamiliar access, and manage MFA or passkeys through your Fortress identity.</p></div><a id="identity-security-link" class="button" href="https://developers-test.fortressofmuslim.org/console.html#security">Manage MFA and passkeys</a></header>
+        <div id="security-summary" class="metrics"></div>
+        <div id="sessions-table" class="table"></div>
+      </section>
+
+      <section id="rag" class="view" hidden>
+        <header><div><span class="kicker">GROUNDING OPERATIONS</span><h1>RAG monitor</h1><p>Inspect the verified corpus and Vectorize readiness used by Ask Fortress.</p></div><button data-refresh-rag>Refresh</button></header>
+        <div id="rag-metrics" class="metrics"></div>
+        <div id="rag-state"></div>
+        <h2 class="section-heading">Ask controls</h2>
+        <p class="section-note">Which model answers, how much of each model may be spent in a day, and how many questions one visitor may ask. A limit of 0 means unlimited.</p>
+        <div id="ask-usage" class="metrics"></div>
+        <form id="ask-controls" class="ask-controls" hidden></form>
+      </section>
+
+      <section id="audit" class="view" hidden>
+        <header><div><span class="kicker">IMMUTABLE HISTORY</span><h1>Audit log</h1><p>Trace privileged changes by actor, target, request, and time.</p></div><button data-export-audit>Export CSV</button></header>
+        <form class="filter" data-filter="audit"><input name="q" placeholder="Action, target ID, or actor email"><button>Apply</button></form>
+        <div id="audit-table" class="table"></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="confirm"><form method="dialog"><h2 data-confirm-title>Confirm change</h2><p data-confirm-copy></p><div><button value="cancel">Cancel</button><button value="confirm" class="danger">Confirm</button></div></form></dialog>
+  <dialog id="term-dialog" class="editor-dialog"><form id="term-form"><header><div><span class="kicker">CONTROLLED VOCABULARY</span><h2>Add taxonomy term</h2></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header><div class="form-grid"><label>Type<select name="type" required><option>category</option><option>topic</option><option>tag</option><option>keyword</option><option>mood</option><option>occasion</option></select></label><label>Language<input name="languageCode" value="en" required></label><label>Label<input name="label" maxlength="100" required></label><label>Slug<input name="slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required></label><label class="wide">Description<textarea name="description" maxlength="500" rows="3"></textarea></label></div><footer><button type="button" data-close-dialog>Cancel</button><button class="primary" type="submit">Create term</button></footer></form></dialog>
+  <dialog id="record-dialog" class="editor-dialog content-dialog"><div id="record-detail"></div></dialog>
+  <dialog id="batch-dialog" class="editor-dialog"><form id="batch-action-form"><input name="batchId" type="hidden"><header><div><span class="kicker">PUBLICATION CONTENT</span><h2>Add approved records</h2></div><button type="button" data-close-dialog aria-label="Close">&times;</button></header><label>Canonical IDs, one per line<textarea name="canonicalIds" rows="8" required></textarea></label><footer><button type="button" data-close-dialog>Cancel</button><button class="primary" type="submit">Add records</button></footer></form></dialog>
+</body>
+</html>

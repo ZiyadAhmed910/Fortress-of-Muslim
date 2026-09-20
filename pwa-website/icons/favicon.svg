@@ -1,8 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Fortress of Muslim">
-  <rect width="64" height="64" rx="14" fill="#f3f3f0"/>
-  <path d="M16 12h22c5.5 0 10 4.5 10 10v30H24c-4.4 0-8-3.6-8-8V12z" fill="#ffffff" stroke="#b9afa0" stroke-width="2.3"/>
-  <path d="M24 12h24v40H24c-4.4 0-8-3.6-8-8V20c0-4.4 3.6-8 8-8z" fill="#f8f8f4" stroke="#7f776b" stroke-width="2.3"/>
-  <path d="M24 12v40" fill="none" stroke="#0d7abf" stroke-width="3.2" stroke-linecap="round"/>
-  <path d="M31 23h10M31 31h12M31 39h9" fill="none" stroke="#c9c2b7" stroke-width="2.2" stroke-linecap="round"/>
-  <path d="M20 18c-2.2 1.4-3.7 3.8-3.7 6.6V44c0 4.4 3.6 8 8 8" fill="none" stroke="#d8d3ca" stroke-width="1.6" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Fortress of Muslim">
+  <defs>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#245d60"/><stop offset=".55" stop-color="#113f45"/><stop offset="1" stop-color="#092c35"/></linearGradient>
+    <linearGradient id="gold" x1=".15" y1="0" x2=".75" y2="1"><stop stop-color="#fff0c5"/><stop offset=".45" stop-color="#e7c581"/><stop offset="1" stop-color="#bd8c4e"/></linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#teal)"/>
+
+  <g transform="translate(64 64) scale(0.88) translate(-64 -64)" fill="#f3d99e">
+    <path d="M64.26 17.06A45 45 0 1 0 106.94 59.74A40 40 0 1 1 64.26 17.06Z"/>
+    <path d="M94 24L97 31 104 34 97 37 94 44 91 37 84 34 91 31Z"/>
+
+  </g>
 </svg>

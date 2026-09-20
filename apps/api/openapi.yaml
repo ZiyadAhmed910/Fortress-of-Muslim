@@ -1,0 +1,867 @@
+openapi: 3.0.3
+info:
+  title: Fortress Platform API
+  version: 1.0.0
+  description: Public API for trusted, versioned Islamic knowledge data.
+  x-platform-version: 0.17.0
+servers:
+  - url: https://api.fortressofmuslim.org/v1
+    description: Production
+  - url: https://api-test.fortressofmuslim.org/v1
+    description: Test
+paths:
+  /datasets/current:
+    get:
+      operationId: getCurrentDataset
+      summary: Get the active dataset release
+      responses:
+        '200':
+          description: Active dataset metadata
+  /duas:
+    get:
+      operationId: listDuas
+      summary: List dua summaries
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: cursor
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated dua summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaListResponse'
+        '400':
+          description: Invalid pagination parameters
+  /duas/search:
+    get:
+      operationId: searchDuas
+      summary: Search dua titles and all text segments
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Paginated matching dua summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaListResponse'
+        '400':
+          description: Invalid query or pagination parameters
+  /duas/random:
+    get:
+      operationId: getRandomDua
+      summary: Retrieve one random complete dua
+      responses:
+        '200':
+          description: Complete random dua
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaResponse'
+        '404':
+          description: No published dua is available
+  /duas/{id}:
+    get:
+      operationId: getDua
+      summary: Retrieve a complete dua
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          example: dua.hisn.001
+      responses:
+        '200':
+          description: Complete dua record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaResponse'
+        '404':
+          description: Dua not found
+  /duas/{id}/evidence:
+    get:
+      operationId: getDuaEvidence
+      summary: Retrieve source provenance and editorial history for a dua
+      description: Returns the evidence currently attached to the record. Empty or pending evidence is represented honestly and never inferred.
+      parameters:
+        - $ref: '#/components/parameters/DuaId'
+      responses:
+        '200':
+          description: Traceable source, taxonomy, verification, and correction metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuaEvidenceResponse'
+        '404':
+          description: Dua not found
+  /duas/{id}/parts:
+    get:
+      operationId: listDuaParts
+      summary: Retrieve every ordered part of a dua
+      parameters:
+        - $ref: '#/components/parameters/DuaId'
+      responses:
+        '200':
+          description: Ordered swipe-sized dua parts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DuaPart'
+        '404':
+          description: Dua not found
+  /duas/{id}/parts/{position}:
+    get:
+      operationId: getDuaPart
+      summary: Retrieve one ordered part of a dua
+      parameters:
+        - $ref: '#/components/parameters/DuaId'
+        - in: path
+          name: position
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: One swipe-sized dua part
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DuaPart'
+        '400':
+          description: Invalid part position
+        '404':
+          description: Dua or part not found
+  /collections:
+    get:
+      operationId: listCollections
+      summary: List published dua and Hadith collections
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [dua, hadith]
+      responses:
+        '200':
+          description: Collection summaries with record and hierarchy counts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CollectionSummary'
+  /hadith:
+    get:
+      operationId: listHadith
+      summary: List published Hadith summaries
+      parameters:
+        - $ref: '#/components/parameters/Collection'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Paginated Hadith summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithListResponse'
+  /hadith/search:
+    get:
+      operationId: searchHadith
+      summary: Full-text search published Hadith
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+        - $ref: '#/components/parameters/Collection'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Ranked Hadith summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithListResponse'
+  /hadith/{id}:
+    get:
+      operationId: getHadith
+      summary: Retrieve one complete Hadith
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Fortress canonical record ID
+          schema:
+            type: string
+          example: hadith.bukhari.1
+      responses:
+        '200':
+          description: Complete Hadith, hierarchy, grading, text, and references
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithResponse'
+        '404':
+          description: Hadith not found
+  /hadith/resolve:
+    get:
+      operationId: resolveCanonicalHadithPath
+      summary: Resolve a sequential Fortress Hadith path
+      description: Resolves the published canonical record represented by a Fortress URL such as /bukhari/book1/1.
+      parameters:
+        - in: query
+          name: collection
+          required: true
+          schema: { type: string }
+          example: bukhari
+        - in: query
+          name: book
+          required: true
+          schema: { type: string }
+          example: '1'
+        - in: query
+          name: number
+          required: true
+          schema: { type: string }
+          example: '1'
+      responses:
+        '200':
+          description: Published canonical Hadith
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithResponse'
+        '404':
+          description: Published canonical record not found
+  /ask:
+    post:
+      operationId: askFortress
+      tags: [AI]
+      summary: Ask a source-grounded question
+      description: Retrieves semantically relevant published records and produces a concise answer with numbered source citations. This endpoint does not replace scholarly guidance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AskRequest'
+      responses:
+        '200':
+          description: Grounded answer and traceable sources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AskResponse'
+        '400':
+          description: Question is missing or invalid
+        '429':
+          description: Daily assistant allowance reached
+  /ask/stream:
+    post:
+      operationId: askFortressStreaming
+      tags: [AI]
+      summary: Ask a source-grounded question, streamed
+      description: >
+        The same answer as POST /ask, delivered as server-sent events while it is produced. Events
+        are `status` (`retrieving`, then `writing`), `sources` (the citations, sent as soon as
+        retrieval and reranking finish, before any answer text exists), `delta` (a fragment of the
+        answer), `replace` (discard the text shown so far and use this instead, sent when a
+        generated answer failed the citation rule), `done` (the complete answer and metadata) and
+        `error`. Because the response status is committed with the first byte, failures that POST
+        /ask reports as 429 or 500 arrive here as an `error` event carrying the same code.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AskRequest'
+      responses:
+        '200':
+          description: Server-sent event stream of the grounded answer
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: A sequence of `event:`/`data:` frames as described above.
+        '400':
+          description: Question is missing or invalid
+  /ask/status:
+    get:
+      operationId: getAskStatus
+      tags: [AI]
+      summary: Inspect canonical retrieval readiness
+      description: Reports whether the current published canonical dataset is empty, pending vector indexing, indexing, ready, or failed. Lexical retrieval remains available when vector retrieval is unavailable.
+      responses:
+        '200':
+          description: Retrieval readiness for the current dataset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RagStatusResponse'
+  /quran/search:
+    get:
+      operationId: searchQuran
+      tags: [Quran]
+      summary: Find ayahs by theme or phrase
+      description: >
+        Thematic search across all 6,236 ayahs. Hybrid retrieval (embeddings plus full-text) with a
+        cross-encoder rerank, which is what lets a search for a concept reach verses that never use
+        the word -- "tawakkul" appears in no English translation, while "relies upon Allah" does.
+        There is no generation step: this returns which verses relate to the query and never says
+        what a verse means.
+
+
+        The response carries references, not verse text. The Saheeh International translation used
+        for searching is not redistributable, so clients render the words from their own copy. The
+        Arabic is Tanzil Project under CC BY 3.0.
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+          description: A theme ("verses about patience") or a remembered phrase.
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+      responses:
+        '200':
+          description: Matching ayah references, best first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        surah: { type: integer, example: 65 }
+                        ayah: { type: integer, example: 3 }
+                        reference: { type: string, example: "65:3" }
+                        surahName: { type: string, example: "At-Talaq" }
+                        surahNameEnglish: { type: string, example: "The Divorce" }
+                        revelationPlace: { type: string, example: "madinah" }
+                        score: { type: number, example: 0.9412 }
+                        retrieval:
+                          type: string
+                          enum: [vector, lexical]
+        '400':
+          description: Query is missing or invalid
+  /quran/status:
+    get:
+      operationId: getQuranIndexStatus
+      tags: [Quran]
+      summary: Inspect Quran search readiness
+      description: >
+        Reports how much of the ayah corpus has been embedded. Lexical search answers throughout;
+        thematic matching improves as the embedding pass completes.
+      responses:
+        '200':
+          description: Embedding progress for the ayah corpus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      namespace: { type: string, example: "quran.saheeh.v1" }
+                      status:
+                        type: string
+                        enum: [pending, indexing, ready, failed]
+                      indexedCount: { type: integer, example: 6236 }
+                      expectedCount: { type: integer, example: 6236 }
+  /queries/{id}:
+    get:
+      operationId: executeNamedQuery
+      summary: Execute an owner-scoped named query
+      description: Runs a saved, allowlisted read-only operation. Raw SQL is never accepted.
+      security:
+        - fortressApiKey: []
+        - fortressOAuth:
+            - content:read
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Named query result
+        '404':
+          description: Query not found or not owned by the credential principal
+components:
+  headers:
+    RequestId:
+      description: Caller-supplied or edge-generated request correlation ID.
+      schema:
+        type: string
+    PlatformVersion:
+      description: Deployed Fortress Platform release.
+      schema:
+        type: string
+    ServerTiming:
+      description: Worker application processing duration.
+      schema:
+        type: string
+    DatasetVersion:
+      description: Active dataset identifier returned on versioned content routes.
+      schema:
+        type: string
+  securitySchemes:
+    fortressApiKey:
+      type: apiKey
+      in: header
+      name: X-Fortress-API-Key
+      description: Developer API key created in the Fortress Developer Portal.
+    fortressOAuth:
+      type: oauth2
+      description: OAuth 2.1 access token issued by Fortress Platform.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.fortressofmuslim.org/api/auth/oauth2/authorize
+          tokenUrl: https://auth.fortressofmuslim.org/api/auth/oauth2/token
+          scopes:
+            content:read: Read published dua records.
+            content:search: Search published dua content.
+            dataset:read: Read dataset provenance and publication metadata.
+        clientCredentials:
+          tokenUrl: https://auth.fortressofmuslim.org/api/auth/oauth2/token
+          scopes:
+            content:read: Read published dua records.
+            content:search: Search published dua content.
+            dataset:read: Read dataset provenance and publication metadata.
+  parameters:
+    DuaId:
+      in: path
+      name: id
+      required: true
+      description: Canonical or legacy dua ID
+      schema:
+        type: string
+      example: dua.hisn.001
+    Limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Cursor:
+      in: query
+      name: cursor
+      schema:
+        type: string
+    Collection:
+      in: query
+      name: collection
+      description: Collection slug such as bukhari, muslim, or tirmidhi
+      schema:
+        type: string
+  schemas:
+    ContentSegment:
+      type: object
+      required: [kind, text]
+      properties:
+        kind:
+          type: string
+          enum: [arabic, transliteration, translation, comment]
+          description: >-
+            `comment` carries context and narration text around the words, such as the narration
+            that introduces a framed reading.
+        text:
+          type: string
+    DuaSummary:
+      type: object
+      required: [id, legacyId, sequence, title, readingRole, partCount, verificationStatus, workflowState, verifiedBy, verifiedAt, revisionNumber, publishedAt, canonicalUrl]
+      properties:
+        id:
+          type: string
+          example: dua.hisn.001
+        legacyId:
+          type: string
+          example: dua-001
+        sequence:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        readingRole:
+          type: string
+          enum: [supplication, framed, instruction, virtue]
+          description: >-
+            What kind of reading this is. `supplication` is words to recite; `framed` is a narration
+            or instruction containing words to recite; `instruction` says what to do, with no fixed
+            words; `virtue` describes a merit, with nothing to recite. Do not present `instruction`
+            or `virtue` readings as something to recite.
+        partCount:
+          type: integer
+          minimum: 0
+        verificationStatus:
+          type: string
+          enum: [unverified, verified]
+        workflowState:
+          $ref: '#/components/schemas/EditorialWorkflowState'
+        verifiedBy:
+          type: string
+          nullable: true
+        verifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+        revisionNumber:
+          type: integer
+          minimum: 1
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        canonicalUrl:
+          type: string
+          format: uri
+    Dua:
+      allOf:
+        - $ref: '#/components/schemas/DuaSummary'
+        - type: object
+          required: [parts]
+          properties:
+            parts:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContentSegment'
+    DuaPart:
+      type: object
+      required: [duaId, verificationStatus, workflowState, verifiedBy, verifiedAt, position, segmentCount, segments]
+      properties:
+        duaId:
+          type: string
+        verificationStatus:
+          type: string
+          enum: [unverified, verified]
+        workflowState:
+          $ref: '#/components/schemas/EditorialWorkflowState'
+        verifiedBy:
+          type: string
+          nullable: true
+        verifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+        position:
+          type: integer
+          minimum: 1
+        segmentCount:
+          type: integer
+          minimum: 0
+        segments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentSegment'
+    Pagination:
+      type: object
+      required: [limit, nextCursor]
+      properties:
+        limit:
+          type: integer
+        nextCursor:
+          type: string
+          nullable: true
+    ResponseMeta:
+      type: object
+      required: [datasetVersion, requestId]
+      properties:
+        datasetVersion:
+          type: string
+        requestId:
+          type: string
+    DuaListResponse:
+      type: object
+      required: [data, pagination, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DuaSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    DuaResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: '#/components/schemas/Dua'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    DuaEvidenceResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [recordId, canonicalUrl, revisionNumber, verificationStatus, workflowState, verifiedBy, verifiedAt, publishedAt, references, taxonomy, verificationHistory, corrections]
+          properties:
+            recordId:
+              type: string
+            canonicalUrl:
+              type: string
+              format: uri
+            revisionNumber:
+              type: integer
+              minimum: 1
+            verificationStatus:
+              type: string
+              enum: [unverified, verified]
+            workflowState:
+              $ref: '#/components/schemas/EditorialWorkflowState'
+            verifiedBy:
+              type: string
+              nullable: true
+            verifiedAt:
+              type: string
+              format: date-time
+              nullable: true
+            publishedAt:
+              type: string
+              format: date-time
+              nullable: true
+            collection:
+              type: object
+              nullable: true
+            references:
+              type: array
+              items:
+                type: object
+            taxonomy:
+              type: array
+              items:
+                type: object
+            verificationHistory:
+              type: array
+              items:
+                type: object
+            corrections:
+              type: array
+              items:
+                type: object
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    CollectionSummary:
+      type: object
+      required: [id, slug, contentType, title, recordCount, bookCount, chapterCount, verificationStatus]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        contentType: { type: string, enum: [dua, hadith] }
+        title: { type: string }
+        titleArabic: { type: string, nullable: true }
+        recordCount: { type: integer, minimum: 0 }
+        bookCount: { type: integer, minimum: 0 }
+        chapterCount: { type: integer, minimum: 0 }
+        verificationStatus: { type: string, enum: [pending, verified, rejected, deprecated] }
+    HadithSummary:
+      type: object
+      required: [id, sequence, displayNumber, title, collection, narrator, grade, verificationStatus, workflowState, verifiedBy, verifiedAt, revisionNumber, publishedAt, canonicalUrl]
+      properties:
+        id: { type: string, example: hadith.bukhari.1 }
+        sequence: { type: integer, minimum: 1 }
+        displayNumber: { type: string }
+        title: { type: string }
+        collection: { type: object }
+        book: { type: object, nullable: true }
+        chapter: { type: object, nullable: true }
+        narrator: { type: string, nullable: true }
+        grade: { type: object, nullable: true }
+        verificationStatus: { type: string, enum: [unverified, verified] }
+        workflowState:
+          $ref: '#/components/schemas/EditorialWorkflowState'
+        verifiedBy: { type: string, nullable: true }
+        verifiedAt: { type: string, format: date-time, nullable: true }
+        revisionNumber: { type: integer, minimum: 1 }
+        publishedAt: { type: string, format: date-time, nullable: true }
+        canonicalUrl: { type: string, format: uri }
+    Hadith:
+      allOf:
+        - $ref: '#/components/schemas/HadithSummary'
+        - type: object
+          required: [segments, references]
+          properties:
+            segments:
+              type: array
+              items:
+                $ref: '#/components/schemas/ContentSegment'
+            references:
+              type: array
+              items:
+                type: object
+                required: [type, locator]
+                properties:
+                  type: { type: string }
+                  locator: { type: string }
+    EditorialWorkflowState:
+      type: string
+      enum: [pending_review, verified, changes_requested]
+    HadithListResponse:
+      type: object
+      required: [data, pagination, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HadithSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    HadithResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: '#/components/schemas/Hadith'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    AskRequest:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+          minLength: 5
+          maxLength: 500
+        history:
+          type: array
+          maxItems: 4
+          description: >
+            Earlier turns of the same conversation, oldest first. Sent so a follow-up ("what about
+            returning?") can be rewritten into a standalone question before retrieval -- there is no
+            record about "returning" in the abstract. This is the only thing history is used for: it
+            never reaches the model that writes the answer, so nothing said in an earlier turn can
+            be quoted back as though it were a cited source. `meta.rewritten` reports whether the
+            question was rewritten.
+          items:
+            type: object
+            required: [question, answer]
+            properties:
+              question: { type: string, maxLength: 500 }
+              answer: { type: string, maxLength: 2000 }
+    RagSource:
+      type: object
+      required: [index, id, contentType, title, collection, reference, canonicalUrl, verificationStatus, score]
+      properties:
+        index: { type: integer, minimum: 1 }
+        id: { type: string }
+        contentType: { type: string, enum: [dua, hadith] }
+        title: { type: string }
+        collection: { type: string }
+        reference: { type: string }
+        canonicalUrl: { type: string, format: uri }
+        verificationStatus: { type: string, enum: [verified] }
+        score: { type: number }
+    AskResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [answer, sources, meta]
+          properties:
+            answer: { type: string }
+            sources:
+              type: array
+              items:
+                $ref: '#/components/schemas/RagSource'
+            meta:
+              type: object
+              required: [datasetId, model, remainingToday, retrievalMode, vectorAvailable]
+              properties:
+                datasetId: { type: string }
+                model: { type: string, nullable: true }
+                generated: { type: boolean }
+                remainingToday:
+                  type: integer
+                  minimum: 0
+                  nullable: true
+                  description: >-
+                    Questions left today for this client, or null when no per-client limit is set
+                    (an administrator may switch the limit off) or when no dataset is published.
+                retrievalMode: { type: string, enum: [empty_dataset, vector, lexical, hybrid] }
+                vectorAvailable: { type: boolean }
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    RagStatusResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [datasetId, recordCount, contentCounts, status, indexedCount, expectedCount]
+          properties:
+            datasetId: { type: string }
+            recordCount: { type: integer, minimum: 0 }
+            contentCounts:
+              type: object
+              required: [dua, hadith]
+              properties:
+                dua: { type: integer, minimum: 0 }
+                hadith: { type: integer, minimum: 0 }
+            status: { type: string, enum: [empty, pending, indexing, ready, failed] }
+            indexedCount: { type: integer, minimum: 0 }
+            expectedCount: { type: integer, minimum: 0 }
+            lastError: { type: string, nullable: true }
+            updatedAt: { type: string, nullable: true }
+            completedAt: { type: string, nullable: true }
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'

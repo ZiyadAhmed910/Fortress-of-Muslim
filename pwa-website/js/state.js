@@ -4,14 +4,44 @@ export const state = {
   currentIndex: 0,
   currentPart: 0,
   showFavouritesOnly: false,
+  activeQuickFilter: 'all',
+  activeMood: '',
+  visibleCount: 36,
   favourites: new Set(JSON.parse(localStorage.getItem('favourites') || '[]')),
   fontScale: Number(localStorage.getItem('fontScale') || '1'),
-  darkMode: localStorage.getItem('darkMode') === 'true',
+  // Adhkar are read at dawn and after dark, so the low-light theme is the app now and light is the
+  // opt-out. Read as "not explicitly off" rather than "explicitly on", so anyone who already chose
+  // light keeps it -- a stored preference is an answer someone gave, and changing the default must
+  // not overwrite it.
+  darkMode: localStorage.getItem('darkMode') !== 'false',
   largeArabic: localStorage.getItem('largeArabic') === 'true',
-  advancedUi: localStorage.getItem('advancedUi') === 'true',
+  // Advanced is the app now, and Simple is the opt-out. Read as "not explicitly off" rather than
+  // "explicitly on", so anyone who already chose Simple keeps it -- a stored preference is an answer
+  // someone gave, and changing the default must not overwrite it.
+  advancedUi: localStorage.getItem('advancedUi') !== 'false',
   advancedListMode: false,
   advancedFilter: 'all',
   deferredInstallPrompt: null,
   waitingWorker: null,
   refreshing: false,
+  contentMode: 'duas',
+  quranSurah: null,
+  // The juz being read, once one has been opened from the Juz list. Null while browsing by surah,
+  // which is what keeps the reader's juz strip out of the way of anyone who never asked for it.
+  quranJuz: null,
+  lastWorshipMode: 'prayerTimes',
+  calculationMethod: localStorage.getItem('calculationMethod') || 'mwl',
+  asrMethod: localStorage.getItem('asrMethod') || 'standard',
+  highLatitudeRule: localStorage.getItem('highLatitudeRule') || 'angle',
+  manualLatitude: localStorage.getItem('manualLatitude') ? Number(localStorage.getItem('manualLatitude')) : null,
+  manualLongitude: localStorage.getItem('manualLongitude') ? Number(localStorage.getItem('manualLongitude')) : null,
+  lastKnownLatitude: localStorage.getItem('lastKnownLatitude') ? Number(localStorage.getItem('lastKnownLatitude')) : null,
+  lastKnownLongitude: localStorage.getItem('lastKnownLongitude') ? Number(localStorage.getItem('lastKnownLongitude')) : null,
+  prayerTimes: null,
+  prayerCountdownTimer: null,
+  deviceOrientationActive: false,
+  remindersEnabled: localStorage.getItem('remindersEnabled') === 'true',
+  prayerAdhanEnabled: localStorage.getItem('prayerAdhanEnabled') === 'true',
+  morningAdhkarEnabled: localStorage.getItem('morningAdhkarEnabled') !== 'false',
+  eveningAdhkarEnabled: localStorage.getItem('eveningAdhkarEnabled') !== 'false',
 };

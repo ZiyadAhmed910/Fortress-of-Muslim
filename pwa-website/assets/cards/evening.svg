@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 400" width="660" height="400" role="presentation">
+  <defs>
+    <linearGradient id="skyevening" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0.00" stop-color="#1d1b46"/>
+      <stop offset="0.50" stop-color="#6d2f63"/>
+      <stop offset="1.00" stop-color="#e0754c"/>
+    </linearGradient>
+    <radialGradient id="glowevening" cx="0.78" cy="0.18" r="0.72">
+      <stop offset="0" stop-color="#ffb469" stop-opacity="0.85"/>
+      <stop offset="0.45" stop-color="#ffb469" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ffb469" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vigevening" cx="0.5" cy="0.45" r="0.78">
+      <stop offset="0.55" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.2"/>
+    </radialGradient>
+    <!-- One ornament shared by all nine: an eight-point star on a wide repeat, faint enough to read
+         as texture rather than pattern. The first version tiled at 64px and came out a diamond mesh. -->
+    <pattern id="latevening" width="112" height="112" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#ffeeda" stroke-opacity="0.1" stroke-width="1.2">
+        <polygon points="56,10 67,34 91,23 80,47 104,56 80,65 91,89 67,78 56,102 45,78 21,89 32,65 8,56 32,47 21,23 45,34"/>
+      </g>
+    </pattern>
+  </defs>
+
+  <rect width="660" height="400" fill="url(#skyevening)"/>
+  <rect width="660" height="400" fill="url(#latevening)"/>
+  <rect width="660" height="400" fill="url(#glowevening)"/>
+  <circle cx="504" cy="135" r="2.5" fill="#ffeeda" fill-opacity="0.61"/><circle cx="554" cy="8" r="2.7" fill="#ffeeda" fill-opacity="0.46"/><circle cx="134" cy="139" r="1.4" fill="#ffeeda" fill-opacity="0.33"/><circle cx="439" cy="150" r="2.2" fill="#ffeeda" fill-opacity="0.57"/><circle cx="441" cy="189" r="1.1" fill="#ffeeda" fill-opacity="0.59"/><circle cx="282" cy="50" r="1.1" fill="#ffeeda" fill-opacity="0.56"/><circle cx="376" cy="35" r="1.8" fill="#ffeeda" fill-opacity="0.39"/><circle cx="549" cy="128" r="2.4" fill="#ffeeda" fill-opacity="0.36"/><circle cx="564" cy="214" r="1.9" fill="#ffeeda" fill-opacity="0.62"/><circle cx="289" cy="46" r="2.1" fill="#ffeeda" fill-opacity="0.62"/><circle cx="436" cy="55" r="2.6" fill="#ffeeda" fill-opacity="0.71"/><circle cx="141" cy="162" r="2.2" fill="#ffeeda" fill-opacity="0.44"/><circle cx="330" cy="288" r="88" fill="#ffeeda" fill-opacity="0.55"/><path d="M0 288 H660 V400 H0 Z" fill="#ffeeda" fill-opacity="0.14"/><path d="M0 288 H660" stroke="#ffeeda" stroke-opacity="0.5" stroke-width="3"/><path d="M68.0 288.0 V244.3 A62.0 62.0 0 0 1 99.0 190.6 A62.0 62.0 0 0 1 130.0 244.3 V288.0 Z" fill="#ffeeda" fill-opacity="0.26"/><path d="M530.0 288.0 V244.3 A62.0 62.0 0 0 1 561.0 190.6 A62.0 62.0 0 0 1 592.0 244.3 V288.0 Z" fill="#ffeeda" fill-opacity="0.26"/>
+  <rect width="660" height="400" fill="url(#vigevening)"/>
+</svg>

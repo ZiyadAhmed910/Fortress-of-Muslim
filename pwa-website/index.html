@@ -1,15 +1,153 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#f3f3f0">
+    <meta name="theme-color" content="#071827">
+    <!--
+      The theme is settled before the first paint rather than by app.js. Modules are deferred, so
+      anything that waits for one has already let a light page paint and then snap dark. That flash
+      used to be seen only by people who had chosen dark; now that dark is the default it would be
+      everyone, on every launch, in an app that is opened at dawn and after dark.
+
+      So the markup itself carries the defaults -- class="dark" on <html> above, the dark theme-color
+      here -- and this script only ever takes them away, for someone who explicitly chose otherwise.
+      That ordering is what makes the storage-unavailable case correct for free: if the read below
+      throws, what has already been painted is the default, which is what we wanted anyway.
+
+      The two reads must mean exactly what js/state.js means by them. test/boot-theme.test.js runs
+      this very script against a fresh import of state.js for every stored combination and fails if
+      the two ever disagree, because a copy of a default is a default that can drift.
+    -->
+    <script>
+      (function () {
+        try {
+          var dark = localStorage.getItem('darkMode') !== 'false';
+          var advanced = localStorage.getItem('advancedUi') !== 'false';
+          if (!dark) document.documentElement.classList.remove('dark');
+          if (!dark && !advanced) {
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f3f3f0');
+          }
+        } catch (error) {
+          // Private browsing and blocked storage land here; the defaults are already painted.
+        }
+      })();
+    </script>
     <title>Fortress of Muslim</title>
-    <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="icons/favicon.ico?v=build-dev" sizes="16x16 32x32">
+    <link rel="icon" href="icons/favicon.svg?v=build-dev" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=build-dev" sizes="180x180">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="styles.css?v=2026-07-12-v3">
+    <link rel="stylesheet" href="styles.css?v=build-dev">
   </head>
   <body>
+    <div id="bootFallback" hidden style="position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;padding:1.5rem;background:rgba(20,20,18,0.72);font-family:system-ui,sans-serif;">
+      <div style="max-width:22rem;padding:1.5rem;border-radius:0.9rem;background:#fff;color:#1a1a18;text-align:center;box-shadow:0 1rem 2.5rem rgba(0,0,0,0.35);">
+        <p style="margin:0 0 0.9rem;font-size:1rem;line-height:1.5;">This app didn't finish loading properly -- this can happen right after an update. Reloading with a fresh copy usually fixes it.</p>
+        <button id="bootFallbackReload" type="button" style="width:100%;padding:0.75rem 1rem;border:0;border-radius:0.6rem;background:#0b6f73;color:#fff;font-size:1rem;font-weight:700;">Reload app</button>
+        <details style="margin-top:0.9rem;text-align:left;">
+          <summary style="cursor:pointer;font-size:0.85rem;color:#5a5a54;">What went wrong?</summary>
+          <pre id="bootFallbackDetail" style="margin:0.6rem 0 0;padding:0.6rem;max-height:9rem;overflow:auto;border-radius:0.4rem;background:#f2f2ee;color:#2a2a26;font-size:0.72rem;line-height:1.45;white-space:pre-wrap;word-break:break-word;"></pre>
+          <button id="bootFallbackCopy" type="button" style="width:100%;margin-top:0.5rem;padding:0.5rem;border:1px solid #cfcfc8;border-radius:0.45rem;background:#fff;color:#2a2a26;font-size:0.82rem;font-weight:600;">Copy details</button>
+        </details>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var shown = false;
+        var reasons = [];
+
+        function note(reason) {
+          if (reasons.length < 6) reasons.push(reason);
+        }
+
+        // Recorded even when the app recovers, so the detail panel can explain a fallback that
+        // fires later, and so a report always carries the first real error rather than a generic
+        // "didn't load" with no cause.
+        window.addEventListener('error', function (event) {
+          note('error: ' + (event && event.message ? event.message : 'unknown')
+            + (event && event.filename ? ' @ ' + String(event.filename).split('/').pop() + ':' + event.lineno : ''));
+          showFallback();
+        });
+        window.addEventListener('unhandledrejection', function (event) {
+          var r = event && event.reason;
+          note('unhandledrejection: ' + (r && r.message ? r.message : String(r)));
+          showFallback();
+        });
+
+        // The app signals readiness once its shell is interactive, which happens before dua data
+        // finishes loading -- a slow network is not a broken app, and the data layer shows its own
+        // error state if the fetch fails.
+        function showFallback() {
+          if (shown || window.__fortressAppReady) return;
+          shown = true;
+          var el = document.getElementById('bootFallback');
+          // display is set here rather than in the inline style: an inline `display` outranks the
+          // UA stylesheet's [hidden]{display:none}, which would pin the banner open permanently.
+          if (el) { el.hidden = false; el.style.display = 'flex'; }
+          var detail = document.getElementById('bootFallbackDetail');
+          if (!detail) return;
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return ('caches' in window ? caches.keys() : Promise.resolve([])).then(function (keys) {
+              detail.textContent = [
+                'build: ' + buildId(),
+                'url: ' + location.href,
+                'online: ' + navigator.onLine,
+                'display: ' + (matchMedia('(display-mode: standalone)').matches ? 'installed' : 'browser'),
+                'workers: ' + regs.length + (navigator.serviceWorker.controller ? ' (controlling)' : ' (not controlling)'),
+                'caches: ' + (keys.join(', ') || 'none'),
+                '',
+                reasons.length ? reasons.join('\n') : 'no script error was captured -- the app simply never signalled ready within ' + (TIMEOUT_MS / 1000) + 's',
+              ].join('\n');
+            });
+          }).catch(function () { detail.textContent = reasons.join('\n') || 'unavailable'; });
+        }
+
+        var TIMEOUT_MS = 10000;
+        // Resolved lazily: this script runs before the module <script> at the end of <body> has
+        // been parsed, so reading it now would always report "unstamped". The build id is the most
+        // useful field in a report, since it says exactly which deploy the device is actually on.
+        function buildId() {
+          var src = (document.querySelector('script[src*="app.js"]') || {}).src || '';
+          return src.indexOf('?v=') > -1 ? src.split('?v=')[1] : 'unstamped';
+        }
+        setTimeout(function () { if (!window.__fortressAppReady) showFallback(); }, TIMEOUT_MS);
+
+        document.addEventListener('click', function (event) {
+          var copy = event.target.closest && event.target.closest('#bootFallbackCopy');
+          if (!copy) return;
+          var text = (document.getElementById('bootFallbackDetail') || {}).textContent || '';
+          if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { copy.textContent = 'Copied'; }, function () {});
+        });
+
+        document.addEventListener('click', function (event) {
+          var button = event.target.closest && event.target.closest('#bootFallbackReload');
+          if (!button) return;
+          button.disabled = true;
+          button.textContent = 'Reloading...';
+          var cleanup = [];
+          if ('serviceWorker' in navigator) {
+            cleanup.push(navigator.serviceWorker.getRegistrations()
+              .then(function (regs) { return Promise.all(regs.map(function (reg) { return reg.unregister(); })); })
+              .catch(function () {}));
+          }
+          if ('caches' in window) {
+            cleanup.push(caches.keys()
+              .then(function (keys) { return Promise.all(keys.map(function (key) { return caches.delete(key); })); })
+              .catch(function () {}));
+          }
+          // Unregistering the worker and clearing CacheStorage leaves the browser HTTP cache
+          // untouched, so reloading the same URL could serve the very same stale files and loop
+          // straight back here. Re-fetch the document past the HTTP cache, then land on a URL that
+          // has never been requested before -- a unique query string cannot hit any cache entry, in
+          // CacheStorage or the HTTP cache, so the next load is guaranteed to start clean.
+          var escapeUrl = location.pathname + '?reset=' + Date.now();
+          Promise.all(cleanup)
+            .then(function () { return fetch(escapeUrl, { cache: 'reload' }).catch(function () {}); })
+            .finally(function () { location.replace(escapeUrl); });
+        });
+      })();
+    </script>
     <div id="app" class="app-shell">
       <header class="topbar">
         <button class="icon-button back-button" id="backButton" aria-label="Back">
@@ -17,7 +155,7 @@
         </button>
         <div class="title-stack">
           <div class="brand-title">
-            <img src="icons/favicon.svg" alt="" aria-hidden="true">
+            <img src="icons/logo.svg?v=build-dev" width="32" height="32" alt="" aria-hidden="true">
             <h1 id="screenTitle">Fortress of Muslim</h1>
           </div>
           <p id="screenSubtitle">Supplications and remembrances</p>
@@ -29,37 +167,269 @@
 
       <main>
         <section class="home-view" id="homeView">
+          <nav class="content-mode-switch" aria-label="Content mode">
+            <button class="active" data-content-mode="duas" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z"/></svg>
+              <span>Duas</span>
+            </button>
+            <button data-content-mode="quran" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5S9.5 4 6 4a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2c3.5 0 6 2.5 6 2.5"/><path d="M12 6.5S14.5 4 18 4a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2c-3.5 0-6 2.5-6 2.5"/><path d="M12 6.5V17"/></svg>
+              <span>Quran</span>
+            </button>
+            <button data-content-mode="hadith" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+              <span>Hadith</span>
+            </button>
+            <button data-content-mode="ask" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a7 7 0 0 0-4 12.7V20l4-2 4 2v-4.3A7 7 0 0 0 12 3Z"/><path d="M9.5 10a2.5 2.5 0 1 1 4.2 1.8c-.9.7-1.7 1.1-1.7 2.2M12 16h.01"/></svg>
+              <span>Ask</span>
+            </button>
+            <button data-content-group="worship" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/></svg>
+              <span>Prayer</span>
+            </button>
+          </nav>
+
           <section class="advanced-home" id="advancedHome" aria-label="Advanced home">
             <div class="advanced-card-list">
-              <button class="advanced-card advanced-featured" data-advanced-filter="all" aria-label="Open all duas">
-                <img src="assets/cards/all-duas.webp" alt="">
+              <button class="advanced-card advanced-featured" data-advanced-filter="all" aria-describedby="card-all-sub card-all-count">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/all-duas.svg"><img data-living-art src="assets/cards/living/all-duas.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
+                <span class="advanced-card-label"><span class="advanced-card-title">All Duas</span><span class="advanced-card-sub" id="card-all-sub">Every supplication in the collection</span></span><span class="advanced-card-count" id="card-all-count" data-card-count="all" hidden></span>
               </button>
-              <button class="advanced-card" data-advanced-filter="morning" aria-label="Open morning duas">
-                <img src="assets/cards/morning.webp" alt="">
+              <button class="advanced-card" data-advanced-filter="morning" aria-describedby="card-morning-sub card-morning-count">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/morning.svg"><img data-living-art src="assets/cards/living/morning.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
+                <span class="advanced-card-label"><span class="advanced-card-title">Morning</span><span class="advanced-card-sub" id="card-morning-sub">Morning and waking remembrances</span></span><span class="advanced-card-count" id="card-morning-count" data-card-count="morning" hidden></span>
               </button>
-              <button class="advanced-card" data-advanced-filter="evening" aria-label="Open evening duas">
-                <img src="assets/cards/evening.webp" alt="">
+              <button class="advanced-card" data-advanced-filter="evening" aria-describedby="card-evening-sub card-evening-count">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/evening.svg"><img data-living-art src="assets/cards/living/evening.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
+                <span class="advanced-card-label"><span class="advanced-card-title">Evening</span><span class="advanced-card-sub" id="card-evening-sub">Evening remembrances</span></span><span class="advanced-card-count" id="card-evening-count" data-card-count="evening" hidden></span>
               </button>
-              <button class="advanced-card" data-advanced-filter="sleep" aria-label="Open before sleep duas">
-                <img src="assets/cards/before-sleep.webp" alt="">
+              <button class="advanced-card" data-advanced-filter="sleep" aria-describedby="card-sleep-sub card-sleep-count">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/before-sleep.svg"><img data-living-art src="assets/cards/living/before-sleep.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
+                <span class="advanced-card-label"><span class="advanced-card-title">Sleep</span><span class="advanced-card-sub" id="card-sleep-sub">Before sleep and night protection</span></span><span class="advanced-card-count" id="card-sleep-count" data-card-count="sleep" hidden></span>
               </button>
-              <button class="advanced-card" data-advanced-filter="salah" aria-label="Open salah duas">
-                <img src="assets/cards/salah.webp" alt="">
+              <button class="advanced-card" data-advanced-filter="salah" aria-describedby="card-salah-sub card-salah-count">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/salah.svg"><img data-living-art src="assets/cards/living/salah.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
+                <span class="advanced-card-label"><span class="advanced-card-title">Salah</span><span class="advanced-card-sub" id="card-salah-sub">Prayer, mosque, and ablution</span></span><span class="advanced-card-count" id="card-salah-count" data-card-count="salah" hidden></span>
               </button>
-              <button class="advanced-card" data-advanced-filter="travel" aria-label="Open travel duas">
-                <img src="assets/cards/travel.webp" alt="">
+              <button class="advanced-card" data-advanced-filter="travel" aria-describedby="card-travel-sub card-travel-count">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/travel.svg"><img data-living-art src="assets/cards/living/travel.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
+                <span class="advanced-card-label"><span class="advanced-card-title">Travel</span><span class="advanced-card-sub" id="card-travel-sub">Travel, pilgrimage, and journeys</span></span><span class="advanced-card-count" id="card-travel-count" data-card-count="travel" hidden></span>
               </button>
-              <button class="advanced-card" data-advanced-filter="favourites" aria-label="Open favourite duas">
-                <img src="assets/cards/favourites.webp" alt="">
+              <button class="advanced-card" data-advanced-filter="favourites" aria-describedby="card-favourites-sub card-favourites-count">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/favourites.svg"><img data-living-art src="assets/cards/living/favourites.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
+                <span class="advanced-card-label"><span class="advanced-card-title">Favourites</span><span class="advanced-card-sub" id="card-favourites-sub">The duas you have saved</span></span><span class="advanced-card-count" id="card-favourites-count" data-card-count="favourites" hidden></span>
+              </button>
+              <button class="advanced-card" data-advanced-filter="moods" aria-describedby="card-moods-sub card-moods-count">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/moods.svg"><img data-living-art src="assets/cards/living/moods.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
+                <span class="advanced-card-label"><span class="advanced-card-title">Moods</span><span class="advanced-card-sub" id="card-moods-sub">Duas by feeling</span></span><span class="advanced-card-count" id="card-moods-count" data-card-count="moods" hidden></span>
+              </button>
+              <button class="advanced-card" data-advanced-filter="ruqyah" aria-describedby="card-ruqyah-sub card-ruqyah-count">
+                <picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/cards/living/still/ruqyah.svg"><img data-living-art src="assets/cards/living/ruqyah.svg" alt="" width="1200" height="520" loading="lazy" decoding="async"></picture>
+                <span class="advanced-card-label"><span class="advanced-card-title">Ruqyah</span><span class="advanced-card-sub" id="card-ruqyah-sub">Protection and healing</span></span><span class="advanced-card-count" id="card-ruqyah-count" data-card-count="ruqyah" hidden></span>
               </button>
             </div>
 
           </section>
 
+          <section class="online-home quran-home" id="quranHome" hidden>
+        <div id="quranBrowse">
+          <div class="search-wrap">
+            <span aria-hidden="true">&#8981;</span>
+            <input id="quranSearch" type="search" placeholder="Search surah by name or number" autocomplete="off" aria-label="Search surahs">
+          </div>
+          <div class="quran-browse-modes" role="tablist" aria-label="Browse the Quran by">
+            <button class="chip-toggle active" id="quranBySurah" type="button" role="tab" aria-selected="true" aria-controls="quranList">Surahs</button>
+            <button class="chip-toggle" id="quranByJuz" type="button" role="tab" aria-selected="false" aria-controls="quranList">Juz</button>
+          </div>
+          <div class="quran-filter-row">
+            <p class="result-count" id="quranCount"></p>
+            <span class="quran-filter-actions">
+              <button class="text-button" id="quranClearSearch" type="button">Clear</button>
+              <button class="chip-toggle" id="quranFavFilter" type="button" aria-label="Show favourite surahs only">☆ Saved</button>
+            </span>
+          </div>
+          <div id="quranVerseResults" class="quran-verse-results"></div>
+          <div id="quranResume"></div>
+          <div class="surah-list" id="quranList"></div>
+        </div>
+        <article class="quran-reader" id="quranReader" hidden></article>
+      </section>
+
+      <section class="online-home hadith-home" id="hadithHome" hidden>
+            <div id="hadithBrowse">
+              <form class="online-search" id="hadithSearchForm">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+                <input id="hadithSearchInput" type="search" placeholder="Search Hadith" autocomplete="off" maxlength="200">
+                <button type="submit" aria-label="Search Hadith">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 7 7-7 7"/></svg>
+                </button>
+              </form>
+              <div class="online-filter-strip" id="hadithCollections" aria-label="Hadith collections"></div>
+              <div class="section-head">
+                <span id="hadithResultCount">Connect to browse Hadith</span>
+                <span class="online-indicator">Online</span>
+              </div>
+              <div class="hadith-list" id="hadithList" aria-live="polite"></div>
+              <button class="load-more-button" id="hadithLoadMore" type="button" hidden>Load more</button>
+            </div>
+            <article class="hadith-detail" id="hadithDetail" hidden aria-live="polite"></article>
+          </section>
+
+          <section class="online-home assistant-home" id="assistantHome" hidden>
+            <div class="assistant-result" id="assistantResult" aria-live="polite"></div>
+            <form class="assistant-bar" id="assistantForm">
+              <label class="visually-hidden" for="assistantQuestion">Ask the Fortress sources</label>
+              <textarea id="assistantQuestion" rows="1" minlength="5" maxlength="500" placeholder="Ask about a dua, a hadith, or a verse" required></textarea>
+              <div class="assistant-bar-controls">
+                <label class="visually-hidden" for="assistantContentType">Sources to search</label>
+                <select id="assistantContentType" aria-label="Sources to search">
+                  <option value="">All sources</option>
+                  <option value="dua">Duas</option>
+                  <option value="hadith">Hadith</option>
+                  <option value="quran">Quran verses</option>
+                </select>
+                <button class="text-button assistant-reset" id="assistantReset" type="button" hidden>New</button>
+                <span class="assistant-hint" id="assistantHint">Enter to send &middot; Ctrl+Enter for a new line</span>
+                <button class="primary-action" id="assistantSubmit" type="submit" aria-label="Ask">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-5 16-3-6-8-2Z"/><path d="m12 14 8-10"/></svg>
+                  <span>Ask</span>
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section class="online-home prayer-home" id="prayerTimesHome" hidden>
+            <div class="prayer-next-card" id="prayerNextCard">
+              <span class="prayer-next-label">Next prayer</span>
+              <strong id="prayerNextName">&ndash;</strong>
+              <span class="prayer-next-time" id="prayerNextTime">&ndash;&ndash;:&ndash;&ndash;</span>
+              <span class="prayer-next-countdown" id="prayerNextCountdown"></span>
+            </div>
+
+            <div class="prayer-location-row">
+              <span id="prayerTimesLocationLabel">Locating...</span>
+              <button class="text-button" id="prayerTimesLocationButton" type="button">Set location</button>
+            </div>
+            <p class="prayer-timezone-note" id="prayerTimesTimezoneNote" hidden>Times are shown in this device's own timezone, not the entered location's -- if you entered coordinates for a different timezone than this device is set to, clock times above will be off by that difference. The prayer angles themselves are still computed for the entered location.</p>
+
+            <p class="prayer-location-hint" id="prayerTimesLocationHint" hidden></p>
+
+            <form class="prayer-location-form" id="prayerTimesLocationForm" hidden>
+              <label>Latitude<input name="latitude" type="number" step="0.0001" min="-90" max="90" placeholder="e.g. 21.4225" required></label>
+              <label>Longitude<input name="longitude" type="number" step="0.0001" min="-180" max="180" placeholder="e.g. 39.8262" required></label>
+              <div class="prayer-location-form-actions">
+                <button class="small-action-button" type="submit">Save location</button>
+                <button class="text-button" type="button" id="prayerTimesLocationCancel">Cancel</button>
+                <button class="text-button" type="button" id="prayerTimesLocationRetry">Try device location again</button>
+              </div>
+            </form>
+
+            <div class="prayer-times-list" id="prayerTimesList" aria-label="Today's prayer times" hidden></div>
+            <p class="prayer-estimated-note" id="prayerEstimatedNote" hidden></p>
+          </section>
+
+          <section class="online-home qibla-home" id="qiblaHome" hidden>
+            <div class="prayer-location-row">
+              <span id="qiblaLocationLabel">Locating...</span>
+              <button class="text-button" id="qiblaLocationButton" type="button">Set location</button>
+            </div>
+
+            <p class="prayer-location-hint" id="qiblaLocationHint" hidden></p>
+
+            <form class="prayer-location-form" id="qiblaLocationForm" hidden>
+              <label>Latitude<input name="latitude" type="number" step="0.0001" min="-90" max="90" placeholder="e.g. 21.4225" required></label>
+              <label>Longitude<input name="longitude" type="number" step="0.0001" min="-180" max="180" placeholder="e.g. 39.8262" required></label>
+              <div class="prayer-location-form-actions">
+                <button class="small-action-button" type="submit">Save location</button>
+                <button class="text-button" type="button" id="qiblaLocationCancel">Cancel</button>
+                <button class="text-button" type="button" id="qiblaLocationRetry">Try device location again</button>
+              </div>
+            </form>
+
+            <div class="qibla-card" id="qiblaCard" hidden>
+              <div class="qibla-heading">
+                <strong>Qibla direction</strong>
+                <span id="qiblaBearing">&ndash;</span>
+              </div>
+              <button class="text-button" id="qiblaCompassButton" type="button" hidden>Use live compass</button>
+              <div class="qibla-compass" id="qiblaCompass" hidden aria-hidden="true">
+                <div class="qibla-compass-ring">
+                  <span class="qibla-compass-n">N</span>
+                  <div class="qibla-needle" id="qiblaNeedle"></div>
+                </div>
+              </div>
+              <p class="qibla-note" id="qiblaNote"></p>
+            </div>
+          </section>
+
+          <section class="online-home tasbih-home" id="tasbihHome" hidden>
+            <div class="tasbih-preset-tabs" id="tasbihPresetTabs" aria-label="Dhikr phrase"></div>
+
+<div class="tasbih-actions">
+              <button class="text-button" id="tasbihResetButton" type="button">Reset this count</button>
+              <button class="text-button" id="tasbihAddPresetButton" type="button">Add phrase</button>
+              <button class="text-button" id="tasbihDeletePresetButton" type="button" hidden>Delete phrase</button>
+            </div>
+
+            <button class="tasbih-tap-area" id="tasbihTapArea" type="button" aria-label="Tap to count">
+              <div class="tasbih-progress-ring">
+                <svg viewBox="0 0 120 120" aria-hidden="true">
+                  <circle class="tasbih-ring-track" cx="60" cy="60" r="52"></circle>
+                  <circle class="tasbih-ring-fill" id="tasbihRingFill" cx="60" cy="60" r="52"></circle>
+                </svg>
+                <div class="tasbih-count-display">
+                  <strong id="tasbihCount">0</strong>
+                  <span id="tasbihTarget">/ 33</span>
+                </div>
+              </div>
+              <p class="tasbih-arabic" id="tasbihArabicLabel" dir="rtl" lang="ar"></p>
+              <p class="tasbih-label" id="tasbihLabel">SubhanAllah</p>
+              <small class="tasbih-hint">Tap anywhere to count &middot; swipe to switch phrase</small>
+            </button>
+
+            
+
+            <p class="tasbih-lifetime" id="tasbihLifetime"></p>
+          </section>
+
+          <dialog class="settings-dialog tasbih-preset-dialog" id="tasbihPresetDialog">
+            <form method="dialog" id="tasbihPresetForm">
+              <div class="dialog-head">
+                <h2>Add a phrase</h2>
+                <button class="icon-button" type="submit" value="cancel" formnovalidate aria-label="Close">×</button>
+              </div>
+              <label class="tasbih-preset-field">Label<input name="label" maxlength="60" required></label>
+              <label class="tasbih-preset-field">Arabic (optional)<input name="labelArabic" dir="rtl" lang="ar" maxlength="60"></label>
+              <label class="tasbih-preset-field">Target count<input name="target" type="number" min="1" max="9999" value="33"></label>
+              <div class="tasbih-preset-form-actions">
+                <button class="small-action-button secondary" type="submit" value="cancel" formnovalidate>Cancel</button>
+                <button class="small-action-button" type="submit" value="save">Save</button>
+              </div>
+            </form>
+          </dialog>
+
+          <dialog class="settings-dialog tasbih-confirm-dialog" id="tasbihDeleteConfirmDialog">
+            <form method="dialog">
+              <p>Delete this phrase? This can't be undone.</p>
+              <div class="tasbih-preset-form-actions">
+                <button class="small-action-button secondary" value="cancel" type="submit">Cancel</button>
+                <button class="small-action-button" value="confirm" type="submit">Delete</button>
+              </div>
+            </form>
+          </dialog>
+
           <div class="simple-home" id="simpleHome">
             <div class="search-wrap">
-              <span aria-hidden="true">⌕</span>
-              <input id="searchInput" type="search" placeholder="Search all duas" autocomplete="off">
+              <span aria-hidden="true">&#8981;</span>
+          <input id="searchInput" type="search" placeholder="Search all duas" autocomplete="off" aria-label="Search duas">
+            </div>
+
+            <div class="filter-strip" id="categoryChips" aria-label="Category filters"></div>
+            <div class="mood-panel" id="moodPanel" hidden>
+              <span>Feeling</span>
+              <div class="mood-chips" id="moodChips" aria-label="Mood filters"></div>
+              <p class="mood-description" id="moodDescription"></p>
             </div>
 
             <div class="section-head">
@@ -68,6 +438,7 @@
             </div>
 
             <div class="dua-list" id="duaList" aria-live="polite"></div>
+            <button class="load-more-button" id="loadMoreButton" type="button" hidden>Load more</button>
           </div>
 
           <nav class="advanced-bottom-nav" aria-label="Advanced quick navigation">
@@ -76,16 +447,34 @@
               <strong>Home</strong>
             </button>
             <button data-advanced-filter="favourites" type="button">
-              <span aria-hidden="true">♡</span>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M20.8 8.6c0 5.4-8.8 10.2-8.8 10.2S3.2 14 3.2 8.6A4.6 4.6 0 0 1 12 6.7a4.6 4.6 0 0 1 8.8 1.9Z"/></svg>
+              </span>
               <strong>Favourites</strong>
             </button>
             <button data-advanced-filter="morning" type="button">
-              <span aria-hidden="true">☼</span>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 18h16"/><path d="M7 15a5 5 0 0 1 10 0"/><path d="M12 3v3M5.6 8.6 7.8 10.8M18.4 8.6 16.2 10.8"/></svg>
+              </span>
               <strong>Morning</strong>
             </button>
             <button data-advanced-filter="evening" type="button">
-              <span aria-hidden="true">☾</span>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M18 15.4A7 7 0 0 1 8.6 6a7.6 7.6 0 1 0 9.4 9.4Z"/><path d="M4 20h16"/></svg>
+              </span>
               <strong>Evening</strong>
+            </button>
+            <button data-advanced-filter="moods" type="button">
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M5 13c0-5 3-8 7-8s7 3 7 8c0 4-3 7-7 7s-7-3-7-7Z"/><path d="M9 12c1 1 2 1.5 3 1.5s2-.5 3-1.5"/><path d="M9 9h.01M15 9h.01"/></svg>
+              </span>
+              <strong>Moods</strong>
+            </button>
+            <button data-advanced-filter="ruqyah" type="button">
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3 19 6v6c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3Z"/><path d="M9 12h6M12 9v6"/></svg>
+              </span>
+              <strong>Ruqyah</strong>
             </button>
           </nav>
 
@@ -94,6 +483,22 @@
             <span>Favourites</span>
           </button>
         </section>
+
+
+          <nav class="worship-subnav" id="worshipSubnav" aria-label="Worship tools" hidden>
+            <button data-content-mode="prayerTimes" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <span>Times</span>
+            </button>
+            <button data-content-mode="qibla" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2Z"/></svg>
+              <span>Qibla</span>
+            </button>
+            <button data-content-mode="tasbih" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6"/><circle cx="20" cy="12" r="1.6"/><circle cx="12" cy="20" r="1.6"/><circle cx="4" cy="12" r="1.6"/></svg>
+              <span>Tasbih</span>
+            </button>
+          </nav>
 
         <section class="reader-view" id="readerView" aria-live="polite">
           <div class="reader-card" id="readerCard">
@@ -131,42 +536,267 @@
       <dialog class="settings-dialog" id="settingsDialog">
         <form method="dialog">
           <div class="dialog-head">
-            <h2>Settings</h2>
+            <h2 id="settingsTitle">Settings</h2>
             <button class="icon-button" value="close" aria-label="Close">×</button>
           </div>
-          <label class="setting-row">
-            <span>
-              <strong>Dark mode</strong>
-              <small>Use a low-light reading theme.</small>
-            </span>
-            <input id="darkModeToggle" type="checkbox">
-          </label>
-          <label class="setting-row">
-            <span>
-              <strong>Large Arabic</strong>
-              <small>Make Arabic text more prominent.</small>
-            </span>
-            <input id="arabicSizeToggle" type="checkbox">
-          </label>
-          <label class="setting-row">
-            <span>
-              <strong>Advanced UI</strong>
-              <small>Use the graphic category home screen.</small>
-            </span>
-            <input id="advancedUiToggle" type="checkbox">
-          </label>
-          <div class="setting-row install-row" id="installRow">
-            <span>
-              <strong>Install app</strong>
-              <small>Add this PWA to your device home screen.</small>
-            </span>
-            <button class="small-action-button" id="installButton" type="button">Install</button>
+
+          <div class="settings-category-list" id="settingsCategoryList">
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="appearance" aria-expanded="false" aria-controls="settings-panel-appearance">
+                <span><strong>Appearance</strong><small>Dark mode, Arabic text size, home screen</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-appearance" data-settings-panel="appearance" hidden>
+            <label class="setting-row">
+              <span>
+                <strong>Dark mode</strong>
+                <small>Use a low-light reading theme.</small>
+              </span>
+              <input id="darkModeToggle" type="checkbox">
+            </label>
+            <label class="setting-row">
+              <span>
+                <strong>Large Arabic</strong>
+                <small>Make Arabic text more prominent.</small>
+              </span>
+              <input id="arabicSizeToggle" type="checkbox">
+            </label>
+            <label class="setting-row">
+              <span>
+                <strong>Pictures on the home screen</strong>
+                <small>Show the home screen as cards with artwork. Turn off for a plain list, which is lighter on older phones.</small>
+              </span>
+              <input id="advancedUiToggle" type="checkbox">
+            </label>
+            <div class="setting-row setting-row-stack" id="artMotionRow">
+              <label for="artMotion"><strong>Artwork animation</strong></label>
+              <select id="artMotion" aria-describedby="artMotionDescription artMotionSystemNote">
+                <option value="optimized">Optimized (default)</option>
+                <option value="full">Full animation</option>
+                <option value="still">Still</option>
+              </select>
+              <small id="artMotionDescription">Gentle light and limited movement, balanced for everyday devices.</small>
+              <small id="artMotionSystemNote" class="art-motion-system-note" hidden>Your device’s reduced motion setting is on. Artwork stays still; your choice is saved.</small>
+            </div>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="quran" aria-expanded="false" aria-controls="settings-panel-quran">
+                <span><strong>Quran</strong><small>Tajweed, reading mode, offline download</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-quran" data-settings-panel="quran" hidden>
+            <label class="setting-row">
+              <span>
+                <strong>Tajweed colouring</strong>
+                <small>Colour the Arabic by recitation rule.</small>
+              </span>
+              <input id="quranTajweedToggle" type="checkbox">
+            </label>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>Reading mode</strong>
+                <small>Pages turn twenty ayahs at a time. Continuous scrolls the whole surah.</small>
+              </span>
+              <select id="quranReadingModeSelect">
+                <option value="pages">Pages</option>
+                <option value="scroll">Continuous scroll</option>
+              </select>
+            </div>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>Reciter</strong>
+                <small>Used for the ayah-by-ayah player.</small>
+              </span>
+              <select id="quranReciterSelect"></select>
+            </div>
+            <label class="setting-row">
+              <span>
+                <strong>Word by word</strong>
+                <small>Show each word with its meaning, and tap any word to hear it. Tajweed colouring is not shown in this mode.</small>
+              </span>
+              <input id="quranWordModeToggle" type="checkbox">
+            </label>
+            <label class="setting-row">
+              <span>
+                <strong>Follow the recitation</strong>
+                <small>Scroll to each ayah as it is recited, and keep the screen awake while it plays. Turn off to listen with the screen locked.</small>
+              </span>
+              <input id="quranAutoScrollToggle" type="checkbox">
+            </label>
+            <div class="setting-row">
+              <span>
+                <strong>Offline Quran</strong>
+                <small>Surahs are saved as you read them. Download everything to read with no connection. Recitation audio downloads per surah, from the reader.</small>
+              </span>
+              <button class="small-action-button" id="quranDownloadButton" type="button">Download</button>
+            </div>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="prayer" aria-expanded="false" aria-controls="settings-panel-prayer">
+                <span><strong>Prayer &amp; Qibla</strong><small>Calculation method, Asr method</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-prayer" data-settings-panel="prayer" hidden>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>Calculation method</strong>
+                <small>Sets the Fajr/Isha angles used to compute your prayer times.</small>
+              </span>
+              <select id="calculationMethodSelect">
+                <option value="mwl">Muslim World League</option>
+                <option value="isna">Islamic Society of North America</option>
+                <option value="egyptian">Egyptian General Authority</option>
+                <option value="karachi">University of Islamic Sciences, Karachi</option>
+                <option value="ummalqura">Umm al-Qura, Makkah</option>
+              </select>
+            </div>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>High latitude</strong>
+                <small>Above about 48&deg; the sun does not always reach the Fajr and Isha angles. This chooses how those are estimated.</small>
+              </span>
+              <select id="highLatitudeSelect">
+                <option value="angle">Angle-based (recommended)</option>
+                <option value="seventh">One-seventh of the night</option>
+                <option value="midnight">Middle of the night</option>
+                <option value="none">None (leave blank)</option>
+              </select>
+            </div>
+            <div class="setting-row setting-row-stack">
+              <span>
+                <strong>Asr calculation</strong>
+                <small>Hanafi uses a longer shadow length, so Asr falls later.</small>
+              </span>
+              <select id="asrMethodSelect">
+                <option value="standard">Standard (Shafi, Maliki, Hanbali)</option>
+                <option value="hanafi">Hanafi</option>
+              </select>
+            </div>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="reminders" aria-expanded="false" aria-controls="settings-panel-reminders">
+                <span><strong>Reminders</strong><small>Prayer notifications, morning &amp; evening adhkar</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-reminders" data-settings-panel="reminders" hidden>
+            <label class="setting-row">
+              <span>
+                <strong>Prayer reminders</strong>
+                <small>Reminders for morning and evening adhkar, worked out on your phone -- no account, and nothing sent anywhere. Only fires while this app/tab is open (even in the background); a fully closed app or browser can't reliably notify you on the web, this is a platform limit, not a bug here.</small>
+              </span>
+              <input id="remindersEnabledToggle" type="checkbox">
+            </label>
+            <p class="reminder-note reminder-note-warning" id="remindersUnsupportedNote" hidden>Notifications are not supported in this browser.</p>
+            <p class="reminder-note reminder-note-warning" id="remindersBlockedNote" hidden>Notifications are blocked for this site -- allow them in your browser's site settings to use reminders.</p>
+            <p class="reminder-note reminder-note-warning" id="remindersLocationNote" hidden>Set your location on the Prayer Times or Qibla tab first so reminders know when to fire.</p>
+            <label class="setting-row reminder-subrow">
+              <span>
+                <strong>Prayer times</strong>
+                <small>Notify at Fajr, Dhuhr, Asr, Maghrib and Isha.</small>
+              </span>
+              <input id="prayerAdhanToggle" type="checkbox">
+            </label>
+            <label class="setting-row reminder-subrow">
+              <span>
+                <strong>Morning adhkar</strong>
+                <small>15 minutes after Fajr.</small>
+              </span>
+              <input id="morningAdhkarToggle" type="checkbox">
+            </label>
+            <label class="setting-row reminder-subrow">
+              <span>
+                <strong>Evening adhkar</strong>
+                <small>15 minutes after Asr.</small>
+              </span>
+              <input id="eveningAdhkarToggle" type="checkbox">
+            </label>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="data" aria-expanded="false" aria-controls="settings-panel-data">
+                <span><strong>Data</strong><small>Install app, backup &amp; restore</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-data" data-settings-panel="data" hidden>
+            <div class="setting-row install-row" id="installRow">
+              <span>
+                <strong>Install app</strong>
+                <small id="installHint">Add this app to your home screen.</small>
+              </span>
+              <button class="small-action-button" id="installButton" type="button" hidden>Install</button>
+            </div>
+<div class="setting-row setting-row-stack">
+              <span>
+                <strong>Backup</strong>
+                <small>Export or restore favourites and settings.</small>
+              </span>
+              <span class="backup-actions">
+                <button class="small-action-button" id="exportDataButton" type="button">Export</button>
+                <button class="small-action-button secondary" id="importDataButton" type="button">Import</button>
+                <input id="importDataInput" type="file" accept="application/json,.json" hidden>
+              </span>
+            </div>
+              </section>
+            </div>
+            <div class="settings-group">
+              <button type="button" class="settings-category-row" data-settings-toggle="about" aria-expanded="false" aria-controls="settings-panel-about">
+                <span><strong>About</strong><small>Version info</small></span>
+                <span class="settings-category-chevron" aria-hidden="true">›</span>
+              </button>
+              <section class="settings-panel" id="settings-panel-about" data-settings-panel="about" hidden>
+                <div class="setting-row">
+                  <span>
+                    <strong>Walkthrough</strong>
+                    <small>Show the first-run introduction again.</small>
+                  </span>
+                  <button class="small-action-button" id="replayOnboardingButton" type="button">Show</button>
+                </div>
+                <div class="settings-version" id="appVersion" aria-label="App version">Version 1.013</div>
+              </section>
+            </div>
           </div>
-          <div class="settings-version" id="appVersion" aria-label="App version">Version 1.00</div>
         </form>
       </dialog>
 
+      <div class="onboarding" id="onboarding" hidden role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+        <div class="onboarding-card">
+          <div class="onboarding-visual" id="onboardingVisual" aria-hidden="true"></div>
+          <h2 id="onboardingTitle"></h2>
+          <p class="onboarding-body" id="onboardingBody"></p>
+          <button type="button" class="onboarding-jump" id="onboardingAction" data-onboarding-action hidden></button>
+          <div class="onboarding-progress" id="onboardingProgress" role="group" aria-label="Walkthrough steps"></div>
+          <div class="onboarding-actions">
+            <button type="button" class="onboarding-skip" data-onboarding-skip>Skip</button>
+            <span class="onboarding-spacer"></span>
+            <button type="button" class="onboarding-back" id="onboardingBack" data-onboarding-back hidden>Back</button>
+            <button type="button" class="onboarding-next" id="onboardingNext" data-onboarding-next>Next</button>
+          </div>
+        </div>
+      </div>
+      <div class="quran-player" id="quranPlayer" hidden role="region" aria-label="Recitation player">
+        <div class="quran-player-main">
+          <button class="quran-player-button" type="button" data-player-action="previous" aria-label="Previous ayah">&#9664;&#9664;</button>
+          <button class="quran-player-button quran-player-toggle" id="quranPlayerToggle" type="button" data-player-action="toggle" aria-label="Pause recitation">&#10074;&#10074;</button>
+          <button class="quran-player-button" type="button" data-player-action="next" aria-label="Next ayah">&#9654;&#9654;</button>
+          <span class="quran-player-label" id="quranPlayerLabel" aria-live="polite"></span>
+          <button class="quran-player-button" id="quranPlayerRepeat" type="button" data-player-action="repeat" aria-label="Repeat off">&#8635;</button>
+          <button class="quran-player-button" type="button" data-player-action="close" aria-label="Stop recitation">&#10005;</button>
+        </div>
+        <label class="quran-player-reciter">
+          <span class="visually-hidden">Reciter</span>
+          <select id="quranPlayerReciter"></select>
+        </label>
+      </div>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="update-banner" id="installBanner" role="status" aria-live="polite">
+        <span>Install Fortress of Muslim on this device?</span>
+        <button id="installBannerButton" type="button">Install</button>
+        <button id="dismissInstallButton" type="button" aria-label="Dismiss install message">&times;</button>
+      </div>
+
       <div class="update-banner" id="updateBanner" role="status" aria-live="polite">
         <span>New version available.</span>
         <button id="updateButton" type="button">Update</button>
@@ -174,6 +804,6 @@
       </div>
     </div>
 
-    <script type="module" src="js/app.js?v=2026-07-12-v3"></script>
+    <script type="module" src="js/app.js?v=build-dev"></script>
   </body>
 </html>

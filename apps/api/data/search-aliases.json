@@ -1,0 +1,749 @@
+{
+  "note": "Search-only aliases: the everyday words people type when looking for a chapter, where the book's own wording differs. Never displayed, never part of a revision, never religious text -- these exist so 'toilet' finds the bathroom readings and 'wudu' finds ablution. Keyed by Hisn al-Muslim chapter number; every reading in that chapter inherits them. Loaded into canonical_search_aliases by migration 0020 and appended to the lexical index and the text each record is embedded from.",
+  "chapters": {
+    "1": [
+      "wake up",
+      "woke up",
+      "getting out of bed",
+      "after sleeping",
+      "first thing in the morning"
+    ],
+    "2": [
+      "clothes",
+      "clothing",
+      "getting dressed",
+      "putting on clothes"
+    ],
+    "3": [
+      "new clothes",
+      "new dress",
+      "new shirt",
+      "just bought clothes"
+    ],
+    "4": [
+      "complimenting new clothes",
+      "someone wearing new clothes"
+    ],
+    "5": [
+      "taking off clothes",
+      "removing clothes",
+      "getting undressed",
+      "changing clothes"
+    ],
+    "6": [
+      "toilet",
+      "washroom",
+      "restroom",
+      "lavatory",
+      "loo",
+      "wc",
+      "going to the toilet",
+      "entering the toilet"
+    ],
+    "7": [
+      "leaving the toilet",
+      "after the toilet",
+      "coming out of the washroom",
+      "exiting the restroom"
+    ],
+    "8": [
+      "wudu",
+      "wudhu",
+      "wuzu",
+      "washing before prayer",
+      "ritual washing"
+    ],
+    "9": [
+      "after wudu",
+      "finishing wudu",
+      "completed ablution"
+    ],
+    "10": [
+      "leaving the house",
+      "going out",
+      "stepping out",
+      "exiting home"
+    ],
+    "11": [
+      "coming home",
+      "entering the house",
+      "returning home",
+      "arriving home"
+    ],
+    "12": [
+      "walking to the masjid",
+      "heading to the mosque",
+      "on the way to masjid"
+    ],
+    "13": [
+      "entering the masjid",
+      "coming into the mosque",
+      "masjid entry"
+    ],
+    "14": [
+      "leaving the masjid",
+      "exiting the mosque",
+      "coming out of the masjid"
+    ],
+    "15": [
+      "adhan",
+      "azan",
+      "muezzin",
+      "muadhdhin",
+      "after the adhan",
+      "iqamah"
+    ],
+    "16": [
+      "opening supplication",
+      "istiftah",
+      "beginning the prayer",
+      "after takbir",
+      "start of salah"
+    ],
+    "17": [
+      "ruku",
+      "rukoo",
+      "bowing in salah",
+      "bowing in salat"
+    ],
+    "18": [
+      "itidal",
+      "standing after ruku",
+      "rising from bowing",
+      "sami allahu liman hamidah"
+    ],
+    "19": [
+      "sujood",
+      "sajdah",
+      "prostration",
+      "prostrating in salah"
+    ],
+    "20": [
+      "between the prostrations",
+      "sitting between sajdah",
+      "jalsa"
+    ],
+    "21": [
+      "sajdah tilawah",
+      "prostration of recitation",
+      "quran prostration"
+    ],
+    "22": [
+      "attahiyat",
+      "tahiyyat",
+      "sitting in prayer",
+      "tashahud"
+    ],
+    "23": [
+      "durood",
+      "darood",
+      "salawat",
+      "blessings on the prophet",
+      "salat ibrahimiyya"
+    ],
+    "24": [
+      "before ending the prayer",
+      "before salaam",
+      "end of salah"
+    ],
+    "25": [
+      "after prayer",
+      "after salah",
+      "post prayer remembrance",
+      "finishing the prayer"
+    ],
+    "26": [
+      "istikhara",
+      "istikhaarah",
+      "making a decision",
+      "guidance prayer",
+      "which choice"
+    ],
+    "27": [
+      "morning adhkar",
+      "evening adhkar",
+      "morning azkar",
+      "daily remembrance",
+      "morning and evening dhikr"
+    ],
+    "28": [
+      "bedtime",
+      "going to bed",
+      "before bed",
+      "night time"
+    ],
+    "29": [
+      "cannot sleep",
+      "insomnia",
+      "restless at night",
+      "waking in the night",
+      "turning in bed"
+    ],
+    "30": [
+      "nightmare",
+      "night terror",
+      "scared at night",
+      "frightened in sleep"
+    ],
+    "31": [
+      "nightmare",
+      "saw a dream"
+    ],
+    "32": [
+      "qunut",
+      "witr qunoot",
+      "dua qunoot"
+    ],
+    "33": [
+      "after witr",
+      "subhanal malikil quddus"
+    ],
+    "34": [
+      "anxious",
+      "worried",
+      "depressed",
+      "sadness",
+      "grief",
+      "stress"
+    ],
+    "35": [
+      "distressed",
+      "hardship",
+      "difficulty",
+      "in trouble",
+      "desperate"
+    ],
+    "36": [
+      "facing an enemy",
+      "confronting a ruler",
+      "meeting authority",
+      "facing power"
+    ],
+    "37": [
+      "unjust ruler",
+      "tyrant",
+      "oppressive leader",
+      "injustice from authority"
+    ],
+    "38": [
+      "opponents",
+      "adversaries"
+    ],
+    "39": [
+      "afraid of people",
+      "afraid of a crowd",
+      "threatened by a group"
+    ],
+    "40": [
+      "doubts about faith",
+      "questioning faith",
+      "weak iman",
+      "waswas about belief"
+    ],
+    "41": [
+      "loan",
+      "owing money",
+      "repay a debt",
+      "financial burden",
+      "paying off debt"
+    ],
+    "42": [
+      "waswas",
+      "whispers in prayer",
+      "distraction in salah",
+      "losing concentration"
+    ],
+    "43": [
+      "things are difficult",
+      "stuck",
+      "obstacles",
+      "nothing is working"
+    ],
+    "44": [
+      "sinned",
+      "after a sin",
+      "guilt",
+      "repenting a sin"
+    ],
+    "45": [
+      "shaytan",
+      "satan",
+      "evil whispers",
+      "evil thoughts",
+      "waswas"
+    ],
+    "46": [
+      "calamity struck",
+      "something bad happened",
+      "misfortune",
+      "setback"
+    ],
+    "47": [
+      "newborn",
+      "new baby",
+      "baby born",
+      "childbirth congratulations"
+    ],
+    "48": [
+      "protecting children",
+      "kids protection",
+      "children safety",
+      "evil eye on children"
+    ],
+    "49": [
+      "sick person",
+      "patient",
+      "ill",
+      "hospital visit",
+      "visiting the ill"
+    ],
+    "50": [
+      "reward for visiting the sick",
+      "virtue of visiting a patient"
+    ],
+    "51": [
+      "terminally ill",
+      "no hope of recovery",
+      "dying person"
+    ],
+    "52": [
+      "dying",
+      "deathbed",
+      "last moments",
+      "talqeen"
+    ],
+    "53": [
+      "disaster",
+      "tragedy",
+      "loss",
+      "inna lillahi",
+      "bereaved"
+    ],
+    "54": [
+      "someone died",
+      "at the moment of death"
+    ],
+    "55": [
+      "janazah",
+      "salat al janazah"
+    ],
+    "56": [
+      "child died",
+      "infant death",
+      "baby funeral"
+    ],
+    "57": [
+      "condolences",
+      "sympathy",
+      "consoling",
+      "comforting the grieving"
+    ],
+    "58": [
+      "burial",
+      "lowering into the grave",
+      "laying to rest"
+    ],
+    "59": [
+      "after burial",
+      "after the funeral",
+      "at the graveside"
+    ],
+    "60": [
+      "graveyard",
+      "cemetery",
+      "visiting the dead",
+      "qabristan"
+    ],
+    "61": [
+      "strong wind",
+      "gale",
+      "hurricane",
+      "cyclone"
+    ],
+    "62": [
+      "thunderstorm",
+      "lightning"
+    ],
+    "63": [
+      "asking for rain",
+      "istisqa",
+      "drought",
+      "need rain",
+      "no rain"
+    ],
+    "64": [
+      "raining",
+      "rainfall",
+      "rain falling"
+    ],
+    "65": [
+      "after the rain",
+      "rain stopped"
+    ],
+    "66": [
+      "too much rain",
+      "stop the rain",
+      "flooding",
+      "clear weather"
+    ],
+    "67": [
+      "new moon",
+      "hilal",
+      "moon sighting",
+      "start of the month",
+      "ramadan moon"
+    ],
+    "68": [
+      "iftar",
+      "opening the fast",
+      "ending the fast",
+      "roza",
+      "breaking the fast"
+    ],
+    "69": [
+      "meal",
+      "food",
+      "before food",
+      "bismillah before eating"
+    ],
+    "70": [
+      "after eating",
+      "finished the meal",
+      "after food"
+    ],
+    "71": [
+      "thanking the host",
+      "hospitality"
+    ],
+    "72": [
+      "someone fed me",
+      "offered a drink",
+      "feeding others"
+    ],
+    "73": [
+      "iftar at someone's house",
+      "guest for iftar"
+    ],
+    "74": [
+      "invited while fasting",
+      "offered food while fasting",
+      "declining food while fasting"
+    ],
+    "75": [
+      "abused while fasting",
+      "argument while fasting",
+      "provoked while fasting"
+    ],
+    "76": [
+      "first fruit",
+      "new harvest",
+      "fruit season"
+    ],
+    "77": [
+      "sneeze",
+      "alhamdulillah after sneezing",
+      "yarhamukallah"
+    ],
+    "78": [
+      "non muslim sneezes",
+      "disbeliever sneezing"
+    ],
+    "79": [
+      "marriage congratulations",
+      "wedding",
+      "just married",
+      "nikah"
+    ],
+    "80": [
+      "new wife",
+      "buying livestock"
+    ],
+    "81": [
+      "intimacy",
+      "marital relations",
+      "husband and wife",
+      "before intercourse"
+    ],
+    "82": [
+      "anger",
+      "rage",
+      "temper",
+      "losing my temper"
+    ],
+    "83": [
+      "someone suffering",
+      "afflicted person",
+      "seeing disability",
+      "someone in hardship"
+    ],
+    "84": [
+      "majlis",
+      "meeting",
+      "assembly",
+      "gathering of people"
+    ],
+    "85": [
+      "kaffaratul majlis",
+      "ending a meeting",
+      "leaving a gathering",
+      "closing a gathering"
+    ],
+    "86": [
+      "someone prayed for me",
+      "replying to forgiveness"
+    ],
+    "87": [
+      "jazakallah",
+      "thank you",
+      "gratitude",
+      "someone helped me",
+      "returning a favour"
+    ],
+    "88": [
+      "antichrist",
+      "false messiah"
+    ],
+    "89": [
+      "loves you for allah's sake",
+      "brotherhood",
+      "declaring love"
+    ],
+    "90": [
+      "gift of money",
+      "someone gave wealth",
+      "generosity",
+      "offered money"
+    ],
+    "91": [
+      "repaid a loan",
+      "debt paid back",
+      "settled the debt"
+    ],
+    "92": [
+      "associating partners",
+      "polytheism",
+      "hidden shirk"
+    ],
+    "93": [
+      "barakallahu feek",
+      "replying to a blessing"
+    ],
+    "94": [
+      "superstition",
+      "bad omen",
+      "tiyara",
+      "luck",
+      "unlucky"
+    ],
+    "95": [
+      "car",
+      "vehicle",
+      "driving",
+      "riding",
+      "bus",
+      "plane",
+      "boarding"
+    ],
+    "96": [
+      "journey",
+      "trip",
+      "travelling",
+      "safar",
+      "going away",
+      "travel dua"
+    ],
+    "97": [
+      "arriving at a city",
+      "entering a new town",
+      "reaching a village"
+    ],
+    "98": [
+      "shopping",
+      "mall",
+      "bazaar",
+      "going shopping"
+    ],
+    "99": [
+      "vehicle trouble",
+      "breakdown",
+      "the animal stumbles"
+    ],
+    "100": [
+      "leaving someone behind",
+      "farewell",
+      "saying goodbye"
+    ],
+    "101": [
+      "seeing someone off",
+      "farewell to a traveller",
+      "safe journey"
+    ],
+    "102": [
+      "going uphill",
+      "going downhill",
+      "ascending",
+      "descending"
+    ],
+    "103": [
+      "dawn on a journey",
+      "fajr while travelling"
+    ],
+    "104": [
+      "resting place",
+      "camping",
+      "staying somewhere",
+      "stopping for the night",
+      "hotel"
+    ],
+    "105": [
+      "coming back home",
+      "back from a trip",
+      "returning from a journey"
+    ],
+    "106": [
+      "good news",
+      "bad news",
+      "hearing news"
+    ],
+    "107": [
+      "virtue of durood",
+      "reward of salawat",
+      "benefits of blessings on the prophet"
+    ],
+    "108": [
+      "salam",
+      "assalamu alaikum",
+      "spreading peace"
+    ],
+    "109": [
+      "greeting a non muslim",
+      "replying to a non muslim"
+    ],
+    "110": [
+      "rooster crowing",
+      "cock crowing",
+      "donkey braying",
+      "animal sounds"
+    ],
+    "111": [
+      "dogs barking",
+      "barking at night"
+    ],
+    "112": [
+      "insulted someone",
+      "said something bad",
+      "apologising"
+    ],
+    "113": [
+      "complimenting someone",
+      "praising someone",
+      "praise etiquette"
+    ],
+    "114": [
+      "being complimented",
+      "when praised"
+    ],
+    "115": [
+      "labbayk",
+      "pilgrimage",
+      "talbiyah"
+    ],
+    "116": [
+      "hajar al aswad",
+      "tawaf"
+    ],
+    "117": [
+      "rabbana atina",
+      "tawaf supplication"
+    ],
+    "118": [
+      "saee",
+      "sai",
+      "safa marwah",
+      "walking between the hills"
+    ],
+    "119": [
+      "arafat",
+      "ninth of dhul hijjah",
+      "standing at arafah"
+    ],
+    "120": [
+      "muzdalifah",
+      "mashar al haram"
+    ],
+    "121": [
+      "stoning",
+      "rami",
+      "throwing pebbles"
+    ],
+    "122": [
+      "amazed",
+      "wonder",
+      "surprise",
+      "delighted",
+      "astonished"
+    ],
+    "123": [
+      "happy news",
+      "joyful news",
+      "pleasant surprise"
+    ],
+    "124": [
+      "hurts",
+      "ache",
+      "injury",
+      "sore",
+      "body pain"
+    ],
+    "125": [
+      "evil eye",
+      "nazar",
+      "ayn",
+      "jealousy",
+      "mashallah"
+    ],
+    "126": [
+      "frightened",
+      "shock",
+      "sudden fear",
+      "jumped"
+    ],
+    "127": [
+      "qurbani",
+      "udhiya",
+      "zabiha",
+      "eid sacrifice"
+    ],
+    "128": [
+      "jinn",
+      "evil spirits",
+      "protection from jinn"
+    ],
+    "129": [
+      "tawbah",
+      "istighfar",
+      "astaghfirullah",
+      "seeking pardon"
+    ],
+    "130": [
+      "subhanallah",
+      "alhamdulillah",
+      "la ilaha illallah",
+      "allahu akbar",
+      "dhikr reward",
+      "virtue of remembrance"
+    ],
+    "131": [
+      "counting dhikr",
+      "counting on fingers",
+      "how to do tasbih"
+    ],
+    "132": [
+      "good manners",
+      "akhlaq",
+      "character",
+      "etiquette",
+      "comprehensive good"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+-- The unverified-content fallback becomes a switch, and it starts off.
+--
+-- When verified results come up thin, Ask could supplement them with current-but-unverified records.
+-- That path has no index behind it: it runs a LIKE over every segment of every current record, once
+-- per meaningful word in the question. With 14,625 current records and 30,613 segments -- most of
+-- them the Hadith corpus still awaiting review -- one such question reads up to ~200,000 rows.
+--
+-- Measured against D1's free daily allowance of 5,000,000 row reads, that is about 25 unanswered
+-- questions before the whole database stops serving reads. It is what took the test environment
+-- down on 2026-09-12. Ask's own rule is that it answers from verified, published sources; this was
+-- always the exception, so the exception is now opt-in and the cost is written down.
+--
+-- Turning it on without first putting an index behind that search is not advisable.
+ALTER TABLE ask_settings ADD COLUMN unverified_fallback INTEGER NOT NULL DEFAULT 0 CHECK (unverified_fallback IN (0, 1));

@@ -1,0 +1,16 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "fortress-developers",
+  "compatibility_date": "2026-07-18",
+  "assets": { "directory": "./dist", "not_found_handling": "single-page-application" },
+  "env": {
+    "test": {
+      "name": "fortress-developers-test",
+      "routes": [{ "pattern": "developers-test.fortressofmuslim.org", "custom_domain": true }]
+    },
+    "production": {
+      "name": "fortress-developers-production",
+      "routes": [{ "pattern": "developers.fortressofmuslim.org", "custom_domain": true }]
+    }
+  }
+}

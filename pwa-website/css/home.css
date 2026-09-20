@@ -37,6 +37,7 @@
 }
 
 .advanced-card {
+  position: relative;
   display: block;
   overflow: hidden;
   width: 100%;
@@ -48,17 +49,28 @@
   box-shadow: 0 10px 22px rgba(55, 58, 55, 0.13);
 }
 
+.advanced-card picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .advanced-card img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: cover;
   object-position: center;
 }
 
 .advanced-featured {
   grid-column: 1 / -1;
-  aspect-ratio: 2.32 / 1;
+  aspect-ratio: 30 / 13;
+}
+
+.advanced-card:focus-visible {
+  outline: 3px solid var(--accent-strong);
+  outline-offset: 3px;
 }
 
 .advanced-card:active {
@@ -71,7 +83,7 @@
   bottom: max(0.65rem, env(safe-area-inset-bottom));
   z-index: 26;
   display: none;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   width: min(100% - 1rem, 31rem);
   border: 1px solid var(--line);
   border-radius: 1.1rem;
@@ -96,14 +108,28 @@
 }
 
 .advanced-bottom-nav span {
-  font-size: 1.35rem;
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  font-size: 1.25rem;
   line-height: 1;
+}
+
+.advanced-bottom-nav svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .advanced-bottom-nav strong {
   overflow: hidden;
   width: 100%;
-  font-size: 0.74rem;
+  font-size: 0.64rem;
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -113,6 +139,203 @@
   color: var(--accent-strong);
 }
 
+.filter-strip,
+.mood-chips {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.1rem 0 0.7rem;
+  scrollbar-width: none;
+}
+
+.filter-strip::-webkit-scrollbar,
+.mood-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chip {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.48rem 0.75rem;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--paper-strong) 88%, transparent);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.filter-chip.active {
+  border-color: color-mix(in srgb, var(--accent-strong) 60%, var(--line));
+  color: white;
+  background: var(--accent-strong);
+}
+
+.mood-panel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.2rem;
+}
+
+.mood-panel[hidden] {
+  display: none;
+}
+
+.mood-panel > span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.mood-description {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.chip-count {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.05rem 0.42rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.row-title mark {
+  border-radius: 0.25rem;
+  padding: 0 0.08rem;
+  color: inherit;
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+.load-more-button {
+  display: block;
+  width: min(100%, 18rem);
+  margin: 1rem auto 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.74rem 1rem;
+  color: var(--accent-strong);
+  background: var(--paper-strong);
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(40, 34, 25, 0.08);
+}
+
+.load-more-button[hidden] {
+  display: none;
+}
+
+.skeleton-row {
+  min-height: 4.2rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent),
+    color-mix(in srgb, var(--paper-strong) 80%, transparent);
+  background-size: 220% 100%, 100% 100%;
+  animation: skeleton-pulse 1.25s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  from {
+    background-position: 120% 0, 0 0;
+  }
+
+  to {
+    background-position: -120% 0, 0 0;
+  }
+}
+
 :root.dark .advanced-card {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+/* --- Card titles --------------------------------------------------------------------------------
+   The artwork carries no text by design, so the title lives here in the document: it is real text,
+   so it is selectable, translatable, read by screen readers, and cannot be cropped away when the
+   tile's aspect ratio crops the art.
+
+   The scene behind it ranges from near-black (Before Sleep, Ruqyah) to pale cream (Salah), so no
+   single text colour survives every card on its own. A scrim rising from the bottom edge gives the
+   white text a consistent dark ground without flattening the upper, most detailed part of the art. */
+
+.advanced-card-label {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: grid;
+  gap: 0.12rem;
+  padding: 1.6rem 0.8rem 0.62rem;
+  background: linear-gradient(to top,
+    rgba(5, 11, 22, 0.86) 0%,
+    rgba(5, 11, 22, 0.62) 42%,
+    rgba(5, 11, 22, 0) 100%);
+  color: #fff;
+  text-align: left;
+  pointer-events: none;
+}
+
+.advanced-card-title {
+  font-size: 1.02rem;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: 0.005em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+/* Wraps to two lines rather than truncating: at tile width "Before sleep and night protection"
+   came out as "Before sleep and night prot…", which reads as broken rather than brief. */
+.advanced-card-sub {
+  display: -webkit-box;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.68rem;
+  line-height: 1.28;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  /* Always two lines tall on tiles, so titles sit on the same baseline across a row whether their
+     subtitle wraps or not -- otherwise Morning rode visibly higher than Evening beside it. */
+  min-height: calc(1.28em * 2);
+}
+
+/* The count sits in the top corner, clear of the title, as a frosted chip so it reads over sky. */
+.advanced-card-count {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(5, 11, 22, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.advanced-featured .advanced-card-label {
+  padding: 2.4rem 1.05rem 0.9rem;
+}
+
+.advanced-featured .advanced-card-title {
+  font-size: 1.42rem;
+}
+
+.advanced-featured .advanced-card-sub {
+  min-height: 0;
+  font-size: 0.82rem;
+}
+
+.advanced-featured .advanced-card-count {
+  top: 0.7rem;
+  right: 0.7rem;
+  font-size: 0.7rem;
 }

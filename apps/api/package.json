@@ -1,0 +1,33 @@
+{
+  "name": "@fortress/api",
+  "version": "0.39.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --env test",
+    "deploy:test": "wrangler deploy --env test",
+    "deploy:production": "wrangler deploy --env production",
+    "db:generate": "node tools/generate-legacy-migration.mjs",
+    "db:verify": "node tools/verify-migrations.mjs",
+    "editorial:verify": "node tools/verify-editorial-workflow.mjs",
+    "db:migrate:test": "wrangler d1 migrations apply fortress-platform-test --remote --env test",
+    "db:migrate:production": "wrangler d1 migrations apply fortress-platform-production --remote --env production",
+    "openapi:verify": "node tools/verify-openapi.mjs",
+    "rag:index:test": "node tools/index-rag.mjs test",
+    "rag:index:production": "node tools/index-rag.mjs production",
+    "test": "vitest run && npm run db:verify && npm run editorial:verify && npm run openapi:verify",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fortress/contracts": "0.39.0",
+    "hono": "^4.8.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250711.0",
+    "cheerio": "^1.1.2",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.24.0",
+    "yaml": "^2.8.0"
+  }
+}

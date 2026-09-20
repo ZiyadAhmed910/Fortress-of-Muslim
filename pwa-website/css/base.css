@@ -85,3 +85,14 @@ input {
 button {
   cursor: pointer;
 }
+
+/* The `hidden` attribute is only enforced by a UA rule with the specificity of a bare attribute
+   selector, so ANY class rule that sets `display` silently defeats it -- the element stays on
+   screen while every script that checks `.hidden` correctly reports it as hidden. That mismatch has
+   produced three separate bugs in this app (a boot banner pinned open, a stale sign-out button, a
+   recitation bar that would not close) and had left the qibla card and both location forms
+   displaying while marked hidden. Enforcing it once here removes the whole class of bug: code that
+   wants an element shown must clear the attribute, which is what it meant anyway. */
+[hidden] {
+  display: none !important;
+}

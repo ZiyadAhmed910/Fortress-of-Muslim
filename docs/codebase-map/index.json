@@ -1,0 +1,4304 @@
+{
+  "generatedAt": "2026-09-19T23:53:12.783Z",
+  "files": [
+    {
+      "path": "apps/api/src/app.ts",
+      "lines": 686,
+      "language": "ts",
+      "exports": [
+        "function createApp",
+        "const app"
+      ],
+      "imports": [
+        "@fortress/contracts",
+        "hono",
+        "hono/cors",
+        "./lib/pagination",
+        "./lib/record-query",
+        "./rag",
+        "./quran-search",
+        "./repositories/content-repository",
+        "./repositories/d1-content-repository",
+        "./types"
+      ],
+      "routeCount": 29
+    },
+    {
+      "path": "apps/api/src/index.ts",
+      "lines": 58,
+      "language": "ts",
+      "exports": [
+        "class ApiWorker"
+      ],
+      "imports": [
+        "cloudflare:workers",
+        "./app",
+        "./lib/record-query",
+        "./rag",
+        "./quran-search",
+        "./repositories/d1-content-repository",
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/lib/fuzzy-title.ts",
+      "lines": 75,
+      "language": "ts",
+      "exports": [
+        "type TitleCandidate",
+        "type RankedTitle",
+        "function rankDuaTitles"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/lib/pagination.ts",
+      "lines": 15,
+      "language": "ts",
+      "exports": [
+        "function encodeCursor",
+        "function decodeCursor"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/lib/record-query.ts",
+      "lines": 88,
+      "language": "ts",
+      "exports": [
+        "type RecordQueryDefinition",
+        "function executeRecordQuery"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/quran-search.ts",
+      "lines": 269,
+      "language": "ts",
+      "exports": [
+        "const QURAN_NAMESPACE",
+        "type QuranMatch",
+        "function quranCandidates",
+        "function searchQuran",
+        "const ayahRerankText",
+        "function getQuranIndexStatus",
+        "function indexQuranBatch"
+      ],
+      "imports": [
+        "./rag",
+        "./rag-synonyms",
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/rag-intent.ts",
+      "lines": 36,
+      "language": "ts",
+      "exports": [
+        "type AskIntent",
+        "function detectAskIntent"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/rag-reference.ts",
+      "lines": 19,
+      "language": "ts",
+      "exports": [
+        "type ExactHadithReference",
+        "function parseExactHadithReference"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/rag-synonyms.ts",
+      "lines": 66,
+      "language": "ts",
+      "exports": [
+        "function expandRetrievalQuery"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/rag.ts",
+      "lines": 1686,
+      "language": "ts",
+      "exports": [
+        "const EMBEDDING_MODEL",
+        "type AyahRecord",
+        "type AskRecord",
+        "type AskScope",
+        "type RagSource",
+        "function extractAnswerText",
+        "type AskSettings",
+        "function loadAskSettings",
+        "function chooseAskModel",
+        "function rerankByRelevance",
+        "function rankByRelevance",
+        "function composeContexts",
+        "function indexRecordBatch",
+        "function indexNextPendingBatch",
+        "function getRagStatus",
+        "type AskAnswer",
+        "function answerQuestion",
+        "function extractDeltaText",
+        "function streamAnswer",
+        "type AskTurn",
+        "function contextualiseQuestion",
+        "function mergeCandidates",
+        "const EMBEDDING_CALL_TOKEN_BUDGET",
+        "function embeddingCalls",
+        "function errorMessage",
+        "class RagRateLimitError"
+      ],
+      "imports": [
+        "@fortress/contracts",
+        "./repositories/content-repository",
+        "./rag-reference",
+        "./rag-intent",
+        "./rag-synonyms",
+        "./quran-search",
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/repositories/content-repository.ts",
+      "lines": 63,
+      "language": "ts",
+      "exports": [
+        "type DatasetSummary",
+        "type DuaTitleMatch",
+        "type RagRecordMatch",
+        "type RagFilters",
+        "type RecordEvidence",
+        "interface ContentRepository"
+      ],
+      "imports": [
+        "@fortress/contracts"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/repositories/d1-content-repository.ts",
+      "lines": 742,
+      "language": "ts",
+      "exports": [
+        "class D1ContentRepository"
+      ],
+      "imports": [
+        "@fortress/contracts",
+        "../lib/fuzzy-title",
+        "./content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/types.ts",
+      "lines": 70,
+      "language": "ts",
+      "exports": [
+        "type Bindings",
+        "type ApiVariables"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/api.test.ts",
+      "lines": 731,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "@fortress/contracts",
+        "../src/app",
+        "../src/repositories/content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/arabic-search.test.ts",
+      "lines": 133,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/repositories/d1-content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/ask-citations.test.ts",
+      "lines": 152,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/repositories/content-repository",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/ask-follow-up.test.ts",
+      "lines": 142,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/repositories/content-repository",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/ask-intent.test.ts",
+      "lines": 125,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/rag-intent",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/ask-policy.test.ts",
+      "lines": 244,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/ask-quran-sources.test.ts",
+      "lines": 249,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/repositories/content-repository",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/ask-scope.test.ts",
+      "lines": 200,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/repositories/content-repository",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/ask-streaming.test.ts",
+      "lines": 235,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/repositories/content-repository",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/canonical-withdrawal.test.ts",
+      "lines": 111,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/fuzzy-title.test.ts",
+      "lines": 30,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/lib/fuzzy-title"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/hadith-reference.test.ts",
+      "lines": 127,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/repositories/d1-content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/publish-hadith-migration.test.ts",
+      "lines": 235,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/quran-search.test.ts",
+      "lines": 180,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/quran-search"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/rag-filters.test.ts",
+      "lines": 208,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/repositories/d1-content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/rag-index.test.ts",
+      "lines": 125,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/rag-quality.test.ts",
+      "lines": 193,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/repositories/content-repository",
+        "../src/rag"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/rag-reference.test.ts",
+      "lines": 28,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/rag-reference"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/rag-synonyms.test.ts",
+      "lines": 53,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/rag-synonyms"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/reading-roles-migration.test.ts",
+      "lines": 264,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/repositories/d1-content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/record-query.test.ts",
+      "lines": 182,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/lib/record-query"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/search-aliases.test.ts",
+      "lines": 123,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/auth.config.ts",
+      "lines": 19,
+      "language": "ts",
+      "exports": [
+        "const auth",
+        "default export"
+      ],
+      "imports": [
+        "./src/auth",
+        "better-sqlite3"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/src/admin-plane.ts",
+      "lines": 1060,
+      "language": "ts",
+      "exports": [
+        "function requiresMfaEnrollment",
+        "function handleAdminPlane"
+      ],
+      "imports": [
+        "./types",
+        "./editorial-plane"
+      ],
+      "routeCount": 26
+    },
+    {
+      "path": "apps/auth/src/auth.ts",
+      "lines": 117,
+      "language": "ts",
+      "exports": [
+        "const FORTRESS_SCOPES",
+        "function createAuth"
+      ],
+      "imports": [
+        "@better-auth/api-key",
+        "@better-auth/oauth-provider",
+        "@better-auth/passkey",
+        "better-auth",
+        "better-auth/plugins",
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/src/editorial-plane.ts",
+      "lines": 2340,
+      "language": "ts",
+      "exports": [
+        "type EditorialRole",
+        "function handleEditorialPlane",
+        "class EditorialForbiddenError"
+      ],
+      "imports": [
+        "./types",
+        "./webhooks",
+        "./taxonomy",
+        "./notifications"
+      ],
+      "routeCount": 34
+    },
+    {
+      "path": "apps/auth/src/index.ts",
+      "lines": 895,
+      "language": "ts",
+      "exports": [
+        "class AuthWorker"
+      ],
+      "imports": [
+        "cloudflare:workers",
+        "@fortress/contracts",
+        "@better-auth/oauth-provider/resource-client",
+        "better-auth/client",
+        "./auth",
+        "./admin-plane",
+        "./security",
+        "./webhooks",
+        "./types"
+      ],
+      "routeCount": 30
+    },
+    {
+      "path": "apps/auth/src/notifications.ts",
+      "lines": 49,
+      "language": "ts",
+      "exports": [
+        "type NotificationType",
+        "function notificationStatement",
+        "function listNotifications",
+        "function markNotificationRead",
+        "function markAllNotificationsRead"
+      ],
+      "imports": [
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/src/security.ts",
+      "lines": 33,
+      "language": "ts",
+      "exports": [
+        "function isMutation",
+        "function isTrustedBrowserMutation",
+        "function hasOversizedBody"
+      ],
+      "imports": [
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/src/taxonomy.ts",
+      "lines": 27,
+      "language": "ts",
+      "exports": [
+        "const TAXONOMY_KEYWORD_GROUPS",
+        "function suggestTaxonomySlugs"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/src/types.ts",
+      "lines": 78,
+      "language": "ts",
+      "exports": [
+        "type AuthEnvironment",
+        "type Bindings",
+        "type ServiceState",
+        "type McpToolDefinition",
+        "type KeyVerification",
+        "type TokenVerification",
+        "type RateLimitResult",
+        "type NamedQueryDefinition"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/src/webhooks.ts",
+      "lines": 113,
+      "language": "ts",
+      "exports": [
+        "type WebhookEventType",
+        "const WEBHOOK_EVENT_TYPES",
+        "function triggerWebhookEvent",
+        "function signPayload",
+        "function redeliverWebhook",
+        "function parseWebhookRegistration"
+      ],
+      "imports": [
+        "./types"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/test/admin-mfa-gate.test.ts",
+      "lines": 29,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/admin-plane"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/test/editorial-pilot.test.ts",
+      "lines": 641,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/editorial-plane"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/test/security.test.ts",
+      "lines": 43,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "vitest",
+        "../src/security"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/test/webhooks.test.ts",
+      "lines": 195,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:crypto",
+        "vitest",
+        "../src/webhooks"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/mcp/src/index.ts",
+      "lines": 74,
+      "language": "ts",
+      "exports": [
+        "default export"
+      ],
+      "imports": [
+        "@fortress/contracts"
+      ],
+      "routeCount": 2
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "lines": 165,
+      "language": "ts",
+      "exports": [
+        "const API_VERSION",
+        "const PLATFORM_NAME",
+        "const PLATFORM_VERSION",
+        "const CURRENT_DATASET_ID",
+        "const contentSegmentSchema",
+        "const editorialWorkflowStateSchema",
+        "const recordVerificationStatusSchema",
+        "const readingRoleSchema",
+        "const duaSummarySchema",
+        "const duaSchema",
+        "const duaPartSchema",
+        "const paginationSchema",
+        "const searchSchema",
+        "const quranSearchSchema",
+        "const partPositionSchema",
+        "const contentTypeSchema",
+        "const collectionSummarySchema",
+        "const hadithSummarySchema",
+        "const hadithSchema",
+        "const hadithListSchema",
+        "const hadithSearchSchema",
+        "const askFiltersSchema",
+        "const askTurnSchema",
+        "const askQuestionSchema",
+        "const vectorIndexBatchSchema",
+        "type ContentSegment",
+        "type ReadingRole",
+        "type DuaSummary",
+        "type Dua",
+        "type DuaPart",
+        "type Pagination",
+        "type ContentType",
+        "type CollectionSummary",
+        "type HadithSummary",
+        "type Hadith",
+        "type AskFilters",
+        "type AskQuestion"
+      ],
+      "imports": [
+        "zod"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/admin/public/app.js",
+      "lines": 1526,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/developers/public/app.js",
+      "lines": 63,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/developers/public/console.js",
+      "lines": 777,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/developers/public/device.js",
+      "lines": 6,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/developers/public/oauth.js",
+      "lines": 112,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/status/public/app.js",
+      "lines": 131,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "packages/portal-ui/assets/portal.js",
+      "lines": 42,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/app.js",
+      "lines": 205,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/art-motion.js",
+      "lines": 89,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/assistant.js",
+      "lines": 311,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/categories.js",
+      "lines": 150,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/constants.js",
+      "lines": 3,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/data.js",
+      "lines": 13,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/dom.js",
+      "lines": 160,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/filters.js",
+      "lines": 25,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/hadith.js",
+      "lines": 153,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/home.js",
+      "lines": 219,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/layout.js",
+      "lines": 13,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/modes.js",
+      "lines": 87,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/onboarding.js",
+      "lines": 182,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/online.js",
+      "lines": 21,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/prayer-times.js",
+      "lines": 274,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/prayer.js",
+      "lines": 594,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/pwa.js",
+      "lines": 146,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/quran-audio.js",
+      "lines": 623,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/quran-juz.js",
+      "lines": 72,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/quran-verse-search.js",
+      "lines": 91,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/quran.js",
+      "lines": 1000,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/reader.js",
+      "lines": 147,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/reminders.js",
+      "lines": 221,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/routes.js",
+      "lines": 41,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/settings.js",
+      "lines": 100,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/state.js",
+      "lines": 48,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/tasbih.js",
+      "lines": 205,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/userData.js",
+      "lines": 160,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/utils.js",
+      "lines": 23,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/sw.js",
+      "lines": 200,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/boot-theme.test.js",
+      "lines": 103,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/card-labels.test.js",
+      "lines": 47,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/categories.test.js",
+      "lines": 121,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/guide-and-tasbih.test.js",
+      "lines": 61,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/install-affordance.test.js",
+      "lines": 70,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/prayer-times.test.js",
+      "lines": 167,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/preference-defaults.test.js",
+      "lines": 82,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/qibla-compass.test.js",
+      "lines": 209,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/quran-bismillah.test.js",
+      "lines": 41,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/quran-download.test.js",
+      "lines": 119,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/quran-juz.test.js",
+      "lines": 111,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/quran-words.test.js",
+      "lines": 133,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/reading-roles.test.js",
+      "lines": 101,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/reciters.test.js",
+      "lines": 39,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/worship-nav.test.js",
+      "lines": 62,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/vitest.config.js",
+      "lines": 12,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0001_content_schema.sql",
+      "lines": 62,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0002_import_legacy_dataset.sql",
+      "lines": 1566,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0003_canonical_knowledge.sql",
+      "lines": 305,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0004_corpus_ingestion.sql",
+      "lines": 45,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0005_rag_usage.sql",
+      "lines": 10,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0006_canonical_editorial.sql",
+      "lines": 427,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0007_rag_index_state.sql",
+      "lines": 20,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0008_publication_snapshots.sql",
+      "lines": 15,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0009_single_verification.sql",
+      "lines": 28,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0010_api_content_visibility.sql",
+      "lines": 32,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0011_public_read_indexes.sql",
+      "lines": 12,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0012_normalize_single_verification_states.sql",
+      "lines": 5,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0013_verify_and_publish_hisn.sql",
+      "lines": 152,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0014_book_editorial_and_manual_records.sql",
+      "lines": 31,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0015_taxonomy_seed.sql",
+      "lines": 23,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0016_editorial_notifications.sql",
+      "lines": 18,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0017_canonical_withdrawals.sql",
+      "lines": 83,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0018_hisn_reading_roles.sql",
+      "lines": 729,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0019_ask_controls.sql",
+      "lines": 44,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0020_search_aliases.sql",
+      "lines": 193,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0021_ask_unverified_fallback.sql",
+      "lines": 15,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0022_publish_hadith_corpus.sql",
+      "lines": 141,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0023_ask_content_view.sql",
+      "lines": 23,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0024_quran_search.sql",
+      "lines": 55,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0025_quran_ayahs.sql",
+      "lines": 6480,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0026_quran_arabic.sql",
+      "lines": 6590,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0027_ask_query_log.sql",
+      "lines": 42,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/migrations/0028_ask_log_rejected.sql",
+      "lines": 15,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0001_identity.sql",
+      "lines": 81,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0002_control_plane.sql",
+      "lines": 89,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0003_developer_console.sql",
+      "lines": 51,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0004_admin_console.sql",
+      "lines": 34,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0005_query_and_mcp_toolsets.sql",
+      "lines": 43,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0006_editorial_roles.sql",
+      "lines": 19,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0007_platform_roles.sql",
+      "lines": 67,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0008_account_security.sql",
+      "lines": 34,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0009_operational_alerts.sql",
+      "lines": 21,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0010_rate_limits.sql",
+      "lines": 26,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0011_webhooks.sql",
+      "lines": 32,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    }
+  ],
+  "routes": [
+    {
+      "style": "hono",
+      "method": "USE",
+      "path": "*",
+      "file": "apps/api/src/app.ts",
+      "line": 35
+    },
+    {
+      "style": "hono",
+      "method": "USE",
+      "path": "*",
+      "file": "apps/api/src/app.ts",
+      "line": 41
+    },
+    {
+      "style": "hono",
+      "method": "USE",
+      "path": "/v1/queries/*",
+      "file": "apps/api/src/app.ts",
+      "line": 109
+    },
+    {
+      "style": "hono",
+      "method": "USE",
+      "path": "/v1/*",
+      "file": "apps/api/src/app.ts",
+      "line": 140
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/",
+      "file": "apps/api/src/app.ts",
+      "line": 142
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/health",
+      "file": "apps/api/src/app.ts",
+      "line": 151
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/health/database",
+      "file": "apps/api/src/app.ts",
+      "line": 159
+    },
+    {
+      "style": "hono",
+      "method": "USE",
+      "path": "/v1/*",
+      "file": "apps/api/src/app.ts",
+      "line": 172
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1",
+      "file": "apps/api/src/app.ts",
+      "line": 197
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/datasets/current",
+      "file": "apps/api/src/app.ts",
+      "line": 216
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/collections",
+      "file": "apps/api/src/app.ts",
+      "line": 231
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas",
+      "file": "apps/api/src/app.ts",
+      "line": 241
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/search",
+      "file": "apps/api/src/app.ts",
+      "line": 274
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/random",
+      "file": "apps/api/src/app.ts",
+      "line": 305
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/:id/evidence",
+      "file": "apps/api/src/app.ts",
+      "line": 321
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/:id/parts",
+      "file": "apps/api/src/app.ts",
+      "line": 327
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/:id/parts/:position",
+      "file": "apps/api/src/app.ts",
+      "line": 341
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/duas/:id",
+      "file": "apps/api/src/app.ts",
+      "line": 370
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/hadith",
+      "file": "apps/api/src/app.ts",
+      "line": 385
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/hadith/search",
+      "file": "apps/api/src/app.ts",
+      "line": 402
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/hadith/resolve",
+      "file": "apps/api/src/app.ts",
+      "line": 420
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/hadith/:id",
+      "file": "apps/api/src/app.ts",
+      "line": 438
+    },
+    {
+      "style": "hono",
+      "method": "POST",
+      "path": "/v1/ask",
+      "file": "apps/api/src/app.ts",
+      "line": 444
+    },
+    {
+      "style": "hono",
+      "method": "POST",
+      "path": "/v1/ask/stream",
+      "file": "apps/api/src/app.ts",
+      "line": 471
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/quran/search",
+      "file": "apps/api/src/app.ts",
+      "line": 500
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/quran/status",
+      "file": "apps/api/src/app.ts",
+      "line": 524
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/ask/status",
+      "file": "apps/api/src/app.ts",
+      "line": 527
+    },
+    {
+      "style": "hono",
+      "method": "POST",
+      "path": "/v1/internal/vector-index",
+      "file": "apps/api/src/app.ts",
+      "line": 533
+    },
+    {
+      "style": "hono",
+      "method": "GET",
+      "path": "/v1/queries/:id",
+      "file": "apps/api/src/app.ts",
+      "line": 544
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/session",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 80
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/sources",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 117
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/references",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 118
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/content",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 119
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/overview",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 124
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/operations",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 125
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/sessions",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 126
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/search",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 127
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/users",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 128
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/resources",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 129
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/taxonomy",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 130
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/taxonomy",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 131
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/services",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 135
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/ask-controls",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 136
+    },
+    {
+      "style": "manual",
+      "method": "PATCH",
+      "path": "/v1/admin/ask-controls",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 137
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/audit",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 141
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/alerts",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 142
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/rate-limits",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 143
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/access-requests",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 144
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/users\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 146
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/sessions\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 153
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/services\\/([a-z-]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 158
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/rate-limits\\/([a-z-]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 164
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "\r",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 170
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/alerts\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 178
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/access-requests\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 184
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/editorial",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 56
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/overview",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 58
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/rag",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 61
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/workload",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 64
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/queue",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 67
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/lookups",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 70
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/records",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 73
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/records/bulk-decision",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 77
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/books",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 81
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/assignments",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 84
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/assignments",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 87
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/assignments\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 91
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/batches",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 99
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/batches",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 102
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/roles",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 106
+    },
+    {
+      "style": "manual",
+      "method": "PATCH",
+      "path": "/v1/admin/editorial/roles",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 110
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/notifications",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 114
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/admin/editorial/notifications/read-all",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 117
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/notifications\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 120
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/books\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 127
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 137
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 141
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 145
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 153
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 158
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 163
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 171
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/records\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 175
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "\r",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 180
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 193
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 202
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/batches\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 206
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/editorial/datasets",
+      "matchKind": "exact",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 216
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/admin\\/editorial\\/datasets\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/editorial-plane.ts",
+      "line": 219
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/health",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 52
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/oauth/client-name",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 71
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/index.ts",
+      "line": 82
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/index.ts",
+      "line": 93
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/v1/admin/",
+      "matchKind": "prefix",
+      "file": "apps/auth/src/index.ts",
+      "line": 96
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/profile",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 115
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/usage",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 122
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/plans",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 169
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/access-requests",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 176
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/access-requests",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 185
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/mcp-servers",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 212
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/mcp-servers",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 222
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/devices",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 243
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/devices",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 253
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/devices\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 277
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/oauth-clients\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 286
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/named-queries",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 312
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/named-queries",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 324
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/named-queries\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 338
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/mcp/catalog",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 352
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/mcp/toolsets",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 354
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/mcp/toolsets",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 366
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 374
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 388
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/mcp\\/toolsets\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 403
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/control/webhooks",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 421
+    },
+    {
+      "style": "manual",
+      "method": "POST",
+      "path": "/v1/control/webhooks",
+      "matchKind": "exact",
+      "file": "apps/auth/src/index.ts",
+      "line": 441
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/webhooks\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 454
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/webhooks\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 468
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/^\\/v1\\/control\\/webhooks\\/deliveries\\/([^/]+",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/index.ts",
+      "line": 481
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/health",
+      "matchKind": "exact",
+      "file": "apps/mcp/src/index.ts",
+      "line": 37
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/.well-known/oauth-protected-resource",
+      "matchKind": "exact",
+      "file": "apps/mcp/src/index.ts",
+      "line": 38
+    }
+  ],
+  "schema": [
+    {
+      "name": "_m0018_eligible",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "_m0018_record_plan",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "_m0018_role_plan",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "_m0018_segment_plan",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "a",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js",
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-follow-up.test.ts",
+        "apps/api/test/ask-policy.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/src/index.ts",
+        "pwa-website/js/layout.js",
+        "pwa-website/js/prayer.js",
+        "pwa-website/js/quran-audio.js",
+        "pwa-website/js/reminders.js",
+        "pwa-website/js/userData.js",
+        "pwa-website/sw.js"
+      ]
+    },
+    {
+      "name": "access_requests",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "account",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "admin",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "an",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "any",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js"
+      ]
+    },
+    {
+      "name": "api_ask_content",
+      "kind": "view",
+      "definedIn": [
+        "apps/api/migrations/0023_ask_content_view.sql"
+      ],
+      "referencedBy": [
+        "apps/api/test/publish-hadith-migration.test.ts"
+      ]
+    },
+    {
+      "name": "api_current_content",
+      "kind": "view",
+      "definedIn": [
+        "apps/api/migrations/0010_api_content_visibility.sql",
+        "apps/api/migrations/0013_verify_and_publish_hisn.sql",
+        "apps/api/migrations/0017_canonical_withdrawals.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts"
+      ]
+    },
+    {
+      "name": "api_published_content",
+      "kind": "view",
+      "definedIn": [
+        "apps/api/migrations/0010_api_content_visibility.sql",
+        "apps/api/migrations/0013_verify_and_publish_hisn.sql",
+        "apps/api/migrations/0017_canonical_withdrawals.sql"
+      ],
+      "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts"
+      ]
+    },
+    {
+      "name": "apikey",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "Arabic",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js"
+      ]
+    },
+    {
+      "name": "ask_model_usage",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0019_ask_controls.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "ask_query_log",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0027_ask_query_log.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "ask_settings",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0019_ask_controls.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-policy.test.ts",
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "audit_events",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "banner",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/install-affordance.test.js"
+      ]
+    },
+    {
+      "name": "before",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "pwa-website/js/userData.js"
+      ]
+    },
+    {
+      "name": "books",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "both",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts"
+      ]
+    },
+    {
+      "name": "calls",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "canonical_dataset_items",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0008_publication_snapshots.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "canonical_dataset_versions",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "canonical_publication_history",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "canonical_publications",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/rag-index.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "canonical_reading_roles",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0018_hisn_reading_roles.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts"
+      ]
+    },
+    {
+      "name": "canonical_records",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "canonical_references",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "canonical_search_aliases",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0020_search_aliases.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "canonical_search_fts",
+      "kind": "virtual_table",
+      "definedIn": [
+        "apps/api/test/record-query.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "canonical_withdrawals",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0017_canonical_withdrawals.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts"
+      ]
+    },
+    {
+      "name": "chapters",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "cited",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/quran-search.ts"
+      ]
+    },
+    {
+      "name": "collections",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "content_audit_events",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "content_parts",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0001_content_schema.sql"
+      ],
+      "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "content_records",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0001_content_schema.sql"
+      ],
+      "referencedBy": [
+        "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "content_revisions",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "content_search_fts",
+      "kind": "virtual_table",
+      "definedIn": [
+        "apps/api/test/record-query.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/api/migrations/0004_corpus_ingestion.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "content_segments",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0001_content_schema.sql"
+      ],
+      "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "contributors",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "correction_history",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "cross_references",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "curated",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/categories.test.js"
+      ]
+    },
+    {
+      "name": "dataset_sources",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "dataset_versions",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0001_content_schema.sql"
+      ],
+      "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "date",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer-times.js"
+      ]
+    },
+    {
+      "name": "developer_profiles",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "device_registrations",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0003_developer_console.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "deviceCode",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0003_developer_console.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "different",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/quran-words.test.js"
+      ]
+    },
+    {
+      "name": "disagreement_queue",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "dua_metadata",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "each",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/ask-policy.test.ts"
+      ]
+    },
+    {
+      "name": "editorial_assignments",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "editorial_notifications",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0016_editorial_notifications.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/notifications.ts"
+      ]
+    },
+    {
+      "name": "editorial_record_state",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "editorial_role_grants",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0006_editorial_roles.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "either",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "ever",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/quran-search.test.ts"
+      ]
+    },
+    {
+      "name": "every",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/auth/test/admin-mfa-gate.test.ts",
+        "pwa-website/js/onboarding.js"
+      ]
+    },
+    {
+      "name": "everyayah",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran-audio.js"
+      ]
+    },
+    {
+      "name": "evidence",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "evil",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/ask-policy.test.ts",
+        "apps/api/test/search-aliases.test.ts"
+      ]
+    },
+    {
+      "name": "exactly",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "favourites",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran.js"
+      ]
+    },
+    {
+      "name": "field_reviews",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "filterList",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/home.js"
+      ]
+    },
+    {
+      "name": "filters",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/ask-scope.test.ts"
+      ]
+    },
+    {
+      "name": "for",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran.js",
+        "pwa-website/sw.js"
+      ]
+    },
+    {
+      "name": "hadith_grades",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0004_corpus_ingestion.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "hadith_metadata",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "harm",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/categories.js"
+      ]
+    },
+    {
+      "name": "index",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/boot-theme.test.js"
+      ]
+    },
+    {
+      "name": "invitation",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "is",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/ask-policy.test.ts"
+      ]
+    },
+    {
+      "name": "it",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran-audio.js"
+      ]
+    },
+    {
+      "name": "its",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "pwa-website/js/assistant.js",
+        "pwa-website/test/categories.test.js",
+        "pwa-website/test/quran-bismillah.test.js"
+      ]
+    },
+    {
+      "name": "json_each",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/auth/src/webhooks.ts"
+      ]
+    },
+    {
+      "name": "jwks",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "keyword",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/auth/src/taxonomy.ts"
+      ]
+    },
+    {
+      "name": "landscape",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer.js",
+        "pwa-website/test/qibla-compass.test.js"
+      ]
+    },
+    {
+      "name": "languages",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "Maghrib",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/prayer-times.test.js"
+      ]
+    },
+    {
+      "name": "making",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "mcp_server_registrations",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "mcp_tool_definitions",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "mcp_toolset_tools",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0005_query_and_mcp_toolsets.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "mcp_toolsets",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0005_query_and_mcp_toolsets.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "member",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "memory",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "metal",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "named_queries",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0003_developer_console.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "natural",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/fuzzy-title.test.ts"
+      ]
+    },
+    {
+      "name": "north",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "nothing",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/ask-scope.test.ts"
+      ]
+    },
+    {
+      "name": "now",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/reminders.js"
+      ]
+    },
+    {
+      "name": "oauthAccessToken",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "oauthClient",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/auth.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "oauthClientAssertion",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "oauthClientResource",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "oauthConsent",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "oauthRefreshToken",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "oauthResource",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "one",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-quran-sources.test.ts",
+        "pwa-website/js/pwa.js"
+      ]
+    },
+    {
+      "name": "opening",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran.js"
+      ]
+    },
+    {
+      "name": "operational_alerts",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0009_operational_alerts.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "or",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/onboarding.js"
+      ]
+    },
+    {
+      "name": "organization",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "our",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran-juz.js"
+      ]
+    },
+    {
+      "name": "passkey",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0008_account_security.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "plan_limits",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0010_rate_limits.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "platform",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js"
+      ]
+    },
+    {
+      "name": "platform_admins",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0004_admin_console.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "platform_role_grants",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/migrations/0007_platform_roles.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/src/index.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "platform_services",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0004_admin_console.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "publication_batch_items",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "publication_batches",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "publication_history",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "quran",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/quran-words.test.js"
+      ]
+    },
+    {
+      "name": "quran_ayahs",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0024_quran_search.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/quran-search.ts",
+        "apps/api/test/quran-search.test.ts"
+      ]
+    },
+    {
+      "name": "quran_index_state",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0024_quran_search.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/quran-search.ts",
+        "apps/api/test/quran-search.test.ts"
+      ]
+    },
+    {
+      "name": "quran_search_fts",
+      "kind": "virtual_table",
+      "definedIn": [
+        "apps/api/migrations/0024_quran_search.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/quran-search.ts"
+      ]
+    },
+    {
+      "name": "rag_daily_usage",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0005_rag_usage.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "rag_index_state",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0007_rag_index_state.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "rate_limit_counters",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0010_rate_limits.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "record_numberings",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0004_corpus_ingestion.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "record_placements",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "record_search_metadata",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "record_taxonomy",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "retrieved",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "review_decisions",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "revision_metadata",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/hadith-reference.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/record-query.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "revision_parts",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/lib/record-query.ts",
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "revision_segments",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/test/search-aliases.test.ts",
+        "apps/api/migrations/0006_canonical_editorial.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/rag-filters.test.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "Ruqyah",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/categories.test.js"
+      ]
+    },
+    {
+      "name": "screen",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/card-labels.test.js"
+      ]
+    },
+    {
+      "name": "segment_translations",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "service",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/publish-hadith-migration.test.ts"
+      ]
+    },
+    {
+      "name": "session",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
+      "name": "SET",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "Settings",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/onboarding.js",
+        "pwa-website/js/quran.js"
+      ]
+    },
+    {
+      "name": "several",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "six",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "solar",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer-times.js"
+      ]
+    },
+    {
+      "name": "something",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-follow-up.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "packages/contracts/src/index.ts"
+      ]
+    },
+    {
+      "name": "source_materials",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "source_references",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "sources",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/ask-follow-up.test.ts"
+      ]
+    },
+    {
+      "name": "splitting",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/quran-audio.js"
+      ]
+    },
+    {
+      "name": "sqlite_master",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/reading-roles-migration.test.ts"
+      ]
+    },
+    {
+      "name": "sunset",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer-times.js"
+      ]
+    },
+    {
+      "name": "supplications",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/publish-hadith-migration.test.ts"
+      ]
+    },
+    {
+      "name": "Surah",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts"
+      ]
+    },
+    {
+      "name": "taxonomy_terms",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts"
+      ]
+    },
+    {
+      "name": "text",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/search-aliases.test.ts"
+      ]
+    },
+    {
+      "name": "that",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer-times.js",
+        "pwa-website/test/guide-and-tasbih.test.js"
+      ]
+    },
+    {
+      "name": "the",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js",
+        "apps/api/src/app.ts",
+        "apps/api/src/quran-search.ts",
+        "apps/api/src/rag-intent.ts",
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-citations.test.ts",
+        "apps/api/test/ask-policy.test.ts",
+        "apps/api/test/ask-quran-sources.test.ts",
+        "apps/api/test/ask-scope.test.ts",
+        "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/publish-hadith-migration.test.ts",
+        "apps/api/test/quran-search.test.ts",
+        "apps/api/test/search-aliases.test.ts",
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/developers/public/console.js",
+        "apps/status/public/app.js",
+        "pwa-website/js/app.js",
+        "pwa-website/js/categories.js",
+        "pwa-website/js/onboarding.js",
+        "pwa-website/js/prayer-times.js",
+        "pwa-website/js/prayer.js",
+        "pwa-website/js/quran-audio.js",
+        "pwa-website/js/quran-verse-search.js",
+        "pwa-website/js/quran.js",
+        "pwa-website/js/state.js",
+        "pwa-website/test/boot-theme.test.js",
+        "pwa-website/test/categories.test.js",
+        "pwa-website/test/guide-and-tasbih.test.js",
+        "pwa-website/test/prayer-times.test.js",
+        "pwa-website/test/qibla-compass.test.js",
+        "pwa-website/test/quran-juz.test.js",
+        "pwa-website/test/quran-words.test.js",
+        "pwa-website/test/reading-roles.test.js",
+        "pwa-website/test/worship-nav.test.js"
+      ]
+    },
+    {
+      "name": "there",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/assistant.js",
+        "pwa-website/js/quran.js",
+        "pwa-website/test/quran-bismillah.test.js"
+      ]
+    },
+    {
+      "name": "this",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/auth/src/editorial-plane.ts",
+        "apps/status/public/app.js",
+        "pwa-website/js/quran-verse-search.js",
+        "pwa-website/js/quran.js"
+      ]
+    },
+    {
+      "name": "travel",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/ask-follow-up.test.ts",
+        "apps/api/test/fuzzy-title.test.ts"
+      ]
+    },
+    {
+      "name": "true",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer-times.js",
+        "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "twoFactor",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0008_account_security.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "unverified",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/admin/public/app.js"
+      ]
+    },
+    {
+      "name": "usage_events",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0002_control_plane.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "user",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/admin-plane.ts",
+        "apps/auth/src/editorial-plane.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "vector",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/test/api.test.ts"
+      ]
+    },
+    {
+      "name": "verification",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/migrations/0001_identity.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "verification_records",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0003_canonical_knowledge.sql"
+      ],
+      "referencedBy": []
+    },
+    {
+      "name": "verses",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-quran-sources.test.ts",
+        "apps/api/test/ask-scope.test.ts"
+      ]
+    },
+    {
+      "name": "webhook_deliveries",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/test/webhooks.test.ts",
+        "apps/auth/migrations/0011_webhooks.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts",
+        "apps/auth/src/webhooks.ts",
+        "apps/auth/test/webhooks.test.ts"
+      ]
+    },
+    {
+      "name": "webhook_subscriptions",
+      "kind": "table",
+      "definedIn": [
+        "apps/auth/test/editorial-pilot.test.ts",
+        "apps/auth/test/webhooks.test.ts",
+        "apps/auth/migrations/0011_webhooks.sql"
+      ],
+      "referencedBy": [
+        "apps/auth/src/index.ts",
+        "apps/auth/src/webhooks.ts",
+        "apps/auth/test/webhooks.test.ts"
+      ]
+    },
+    {
+      "name": "what",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/reading-roles-migration.test.ts",
+        "apps/auth/test/editorial-pilot.test.ts"
+      ]
+    },
+    {
+      "name": "whatever",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/rag.ts",
+        "apps/api/test/ask-quran-sources.test.ts",
+        "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "where",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/modes.js"
+      ]
+    },
+    {
+      "name": "wherever",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/qibla-compass.test.js"
+      ]
+    }
+  ]
+}

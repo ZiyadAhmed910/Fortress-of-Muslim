@@ -55,6 +55,27 @@ Excluded from deploy:
 - visualization prototype files
 - README/dev-only files
 
+## Automated safeguards
+
+Every platform check runs the complete typecheck and test suite plus `npm audit --omit=dev --audit-level=high`. Deployment jobs have bounded runtimes so a stalled provider cannot leave a workflow running indefinitely.
+
+After deployment, GitHub Actions verifies the live environment:
+
+- API, Auth, and MCP health responses must report `ok` and the exact repository platform version.
+- Developer, Status, and Admin portals must return the Fortress brand and deployed Content Security Policy.
+- Bluehost test and production PWA origins must return a successful HTTP response.
+
+The smoke checks retry briefly because Cloudflare and Bluehost can take a few seconds to converge. A failed smoke check fails the deployment workflow and must be investigated before promotion.
+
+Run the same platform checks manually with:
+
+```powershell
+npm run smoke:test:services
+npm run smoke:test:portals
+npm run smoke:production:services
+npm run smoke:production:portals
+```
+
 ## Promoting dev to production
 
 When test is good:

@@ -1,0 +1,392 @@
+import { els } from './dom.js';
+import { apiBaseUrl, apiRequest } from './online.js';
+import { escapeHtml, toast } from './utils.js';
+import { openCanonicalRoute } from './routes.js';
+
+// Ask is a conversation now, because research is. Someone asks about travelling, reads the answer,
+// and the next thing they want is "what about returning?" -- which used to mean retyping the whole
+// question. Follow-ups carry the earlier turns so the server can rewrite the short one into
+// something retrievable.
+//
+// The history is used to rewrite the query and for nothing else: the model that writes an answer
+// still sees only retrieved sources, so nothing it said earlier can be quoted back as though it had
+// a citation. Every turn keeps its own sources, visible against that turn.
+//
+// An answer takes seconds of real work -- retrieval, reranking, then a model writing prose. The
+// streaming endpoint reports its stage, hands over the sources as soon as retrieval has them, and
+// writes the answer a word at a time. If any of that fails, the single-response endpoint answers.
+const STAGE_LABELS = {
+  retrieving: 'Searching the published sources',
+  writing: 'Writing the answer',
+};
+// What the server accepts, and about two turns further back than a follow-up usually reaches.
+const HISTORY_TURNS = 4;
+/** How near the bottom still counts as reading the newest turn, in pixels. */
+const STICK_TOLERANCE = 80;
+
+/** Every turn asked in this conversation. Cleared by "New conversation", never persisted. */
+let conversation = [];
+/** The markup each turn was last drawn with, so a re-render can touch only what changed. */
+let rendered = [];
+/** Whether the thread should keep scrolling to the newest turn -- false once the reader scrolls up. */
+let followingLatest = true;
+
+export function initAssistant() {
+  // Enter sends; Ctrl/Alt/Cmd+Enter inserts a newline. This is the reverse of what it was, and the
+  // reverse of the usual editor convention, because a chat composer is not an editor: nearly every
+  // question here is one line, and making the common action the modified one is what made the box
+  // feel unresponsive.
+  els.assistantQuestion.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    if (event.ctrlKey || event.altKey || event.metaKey) {
+      event.preventDefault();
+      insertNewline();
+      return;
+    }
+    if (event.shiftKey) return;        // shift+Enter is a newline everywhere; leave it alone
+    event.preventDefault();
+    els.assistantForm.requestSubmit();
+  });
+  els.assistantQuestion.addEventListener('input', autoGrow);
+  els.assistantResult.addEventListener('click', async (event) => {
+    if (event.target.closest('[data-new-conversation]')) return resetConversation();
+    // A citation opens the record it points at, through the same router that resolves these paths
+    // on load -- so "open the hadith" means exactly what /bukhari/book1/1 has always meant.
+    const open = event.target.closest('[data-open-source]');
+    if (!open) return;
+    const source = currentSources().find((item) => item.id === open.dataset.openSource);
+    if (!source) return;
+    const path = new URL(source.canonicalUrl, location.origin).pathname;
+    const opened = await openCanonicalRoute(path);
+    if (!opened) toast('That source could not be opened in the app.');
+  });
+  els.assistantReset.addEventListener('click', resetConversation);
+  els.assistantResult.addEventListener('scroll', () => {
+    const thread = els.assistantResult;
+    followingLatest = shouldStickToBottom(thread.scrollTop, thread.scrollHeight, thread.clientHeight);
+  }, { passive: true });
+  // Sending must not take the caret out of the box. Tapping the button blurs the textarea, which on
+  // a phone closes the soft keyboard, and closing it resizes the visual viewport under the answer --
+  // then something refocuses and it all happens again in reverse. Preventing the default on
+  // pointerdown leaves focus where it is; the click still fires and still submits.
+  els.assistantSubmit.addEventListener('pointerdown', (event) => event.preventDefault());
+  els.assistantForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const question = els.assistantQuestion.value.trim();
+    if (question.length < 5) return;
+    els.assistantSubmit.disabled = true;
+    const scope = els.assistantContentType.value;
+    // Quran is a scope the server understands now: verses are retrieved and reranked alongside duas
+    // and hadith, and cited the same way. "All sources" genuinely means all of them.
+    const filters = scope ? { contentType: scope } : undefined;
+    const history = conversation.slice(-HISTORY_TURNS).map((turn) => ({
+      question: turn.question,
+      answer: turn.answer,
+    }));
+
+    const turn = { question, answer: '', sources: [], meta: {}, stage: 'retrieving', scope };
+    conversation.push(turn);
+    followingLatest = true;
+    els.assistantQuestion.value = '';
+    autoGrow();
+    render();
+
+    try {
+      await streamAnswer(question, filters, history, turn);
+    } catch (error) {
+      try {
+        const body = await apiRequest('/v1/ask', {
+          method: 'POST',
+          body: JSON.stringify({ question, filters, history }),
+        });
+        Object.assign(turn, { answer: body.data.answer, sources: body.data.sources, meta: body.data.meta, stage: null });
+      } catch (fallbackError) {
+        Object.assign(turn, { stage: null, error: fallbackError.message });
+      }
+      render();
+    } finally {
+      els.assistantSubmit.disabled = false;
+      updatePlaceholder();
+    }
+    // Deliberately no focus() here. It used to run when the answer finished, seconds after the
+    // question was sent -- which on a phone reopened a keyboard the reader had watched close, and
+    // shoved the layout up as the answer landed. Focus never leaves the box now, so there is
+    // nothing to restore.
+  });
+  updatePlaceholder();
+  fitAssistantHeight();
+  window.addEventListener('resize', fitAssistantHeight);
+  // The soft keyboard is not a window resize: on a phone `innerHeight` does not change when it
+  // opens, and only the visual viewport reports it. Without this the composer sits behind the
+  // keyboard on iOS.
+  window.visualViewport?.addEventListener('resize', fitAssistantKeyboard);
+  window.visualViewport?.addEventListener('scroll', fitAssistantKeyboard);
+}
+
+function insertNewline() {
+  const box = els.assistantQuestion;
+  const { selectionStart: start, selectionEnd: end, value } = box;
+  box.value = `${value.slice(0, start)}\n${value.slice(end)}`;
+  box.selectionStart = box.selectionEnd = start + 1;
+  autoGrow();
+}
+
+/**
+ * Sizes the chat column to whatever is actually left below the header and tabs, rather than a
+ * guessed constant. Measured because the chrome above it is not a fixed height -- it differs
+ * between phone and desktop, and between this app's header states -- and a guess that is 57px out
+ * leaves the whole page scrolling, which is the thing the layout exists to stop.
+ */
+export function fitAssistantHeight() {
+  const home = els.assistantHome;
+  if (!home || home.hidden || !home.getClientRects().length) return;
+  // Where the column starts. The stylesheet pins it from there to the bottom of the viewport, so
+  // this is the only number it needs -- and it has to be measured, because the header and tabs
+  // above are not the same height on a phone as on a desktop.
+  //
+  // Read with the pin temporarily released: once the element is fixed, its own top is whatever was
+  // last set here, and measuring that would just echo the previous value back.
+  home.style.position = 'static';
+  const top = Math.round(home.getBoundingClientRect().top);
+  home.style.position = '';
+  document.documentElement.style.setProperty('--ask-top', `${top}px`);
+  fitAssistantKeyboard();
+}
+
+/**
+ * How much of the layout viewport something is covering from the bottom -- in practice, the soft
+ * keyboard. Pure so the arithmetic can be checked without a phone: `window.innerHeight` is the
+ * layout viewport, which a keyboard does not change on iOS, and the visual viewport is the part
+ * still visible above it.
+ */
+export function keyboardInset(innerHeight, viewport) {
+  if (!viewport) return 0;
+  return Math.max(0, Math.round(innerHeight - viewport.height - viewport.offsetTop));
+}
+
+/**
+ * Keeps the bottom of the chat column above the keyboard, and the newest turn in view while it
+ * appears. Separate from fitAssistantHeight because this runs on every visual-viewport event and
+ * must not force the reflow that measuring --ask-top does.
+ */
+function fitAssistantKeyboard() {
+  const home = els.assistantHome;
+  if (!home || home.hidden) return;
+  document.documentElement.style.setProperty('--ask-bottom', `${keyboardInset(window.innerHeight, window.visualViewport)}px`);
+  if (followingLatest) pinToLatest();
+}
+
+/**
+ * Whether the thread should follow what is being written. A chat pins itself to the newest message,
+ * but only for a reader who is already there -- yanking the view down while someone is scrolled up
+ * reading an earlier answer is worse than not following at all. The tolerance is what "at the
+ * bottom" has to survive: sub-pixel heights, and another word of the answer arriving between the
+ * scroll and the measurement.
+ */
+export function shouldStickToBottom(scrollTop, scrollHeight, clientHeight, tolerance = STICK_TOLERANCE) {
+  return scrollHeight - scrollTop - clientHeight <= tolerance;
+}
+
+/**
+ * Scrolls the thread to the newest turn. Instantly, on purpose: a smooth scroll here is an
+ * animation, and an animation reports every frame of itself back through the scroll listener as
+ * though the reader had scrolled away -- which switched following off mid-answer and left the
+ * thread wherever the next re-render had dropped it.
+ */
+function pinToLatest() {
+  const thread = els.assistantResult;
+  thread.scrollTo({ top: thread.scrollHeight, behavior: 'instant' });
+}
+
+/** Grows the composer to fit what is typed, up to the max-height the stylesheet sets. */
+function autoGrow() {
+  const box = els.assistantQuestion;
+  box.style.height = 'auto';
+  box.style.height = `${box.scrollHeight}px`;
+}
+
+const currentSources = () => conversation.flatMap((turn) => turn.sources || []);
+
+function resetConversation() {
+  conversation = [];
+  rendered = [];
+  followingLatest = true;
+  els.assistantResult.innerHTML = '';
+  updatePlaceholder();
+  autoGrow();
+  els.assistantQuestion.focus();
+}
+
+function updatePlaceholder() {
+  els.assistantQuestion.placeholder = conversation.length
+    ? 'Ask a follow-up, or something new'
+    : 'Ask about a dua, a hadith, or a verse';
+}
+
+/**
+ * Reads the server-sent answer into `turn`, re-rendering as it arrives. Throws if the stream cannot
+ * be opened at all so the caller can fall back; an `error` event inside a stream that did start is
+ * shown as-is, because by then the request really was made and counted against the daily limit.
+ */
+async function streamAnswer(question, filters, history, turn) {
+  if (!navigator.onLine) throw new Error('This section needs an internet connection.');
+  const response = await fetch(`${apiBaseUrl()}/v1/ask/stream`, {
+    method: 'POST',
+    headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, filters, history }),
+    // No AbortSignal.timeout: the whole point is a response that arrives over time. The stream
+    // ends when the server closes it.
+    cache: 'no-store',
+  });
+  if (!response.ok || !response.body) throw new Error(`Fortress API returned ${response.status}.`);
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let boundary = buffer.indexOf('\n\n');
+    while (boundary !== -1) {
+      const frame = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      boundary = buffer.indexOf('\n\n');
+      const name = (frame.match(/^event: (.+)$/m) || [])[1];
+      const raw = (frame.match(/^data: (.+)$/m) || [])[1];
+      if (!name || !raw) continue;
+      let data;
+      try { data = JSON.parse(raw); } catch { continue; }
+      if (name === 'status') turn.stage = data.stage;
+      else if (name === 'sources') {
+        turn.sources = data.sources || [];
+        turn.meta = data.meta || {};
+      } else if (name === 'delta') turn.answer += data.text || '';
+      else if (name === 'replace') turn.answer = data.answer || '';
+      else if (name === 'done') {
+        turn.answer = data.answer ?? turn.answer;
+        turn.meta = data.meta || turn.meta;
+        turn.stage = null;
+        render();
+        return;
+      } else if (name === 'error') {
+        turn.stage = null;
+        turn.error = data.message || 'Ask could not answer that.';
+        render();
+        return;
+      }
+      render();
+    }
+  }
+  turn.stage = null;
+  if (!turn.answer) throw new Error('The answer was cut short.');
+  render();
+}
+
+/**
+ * Draws the conversation, rewriting only the turns whose markup actually changed -- which during an
+ * answer means the last one and nothing else.
+ *
+ * It used to replace the whole thread on every stream event. An answer arrives in dozens of those,
+ * and each one reset the thread's scroll position to the top, threw away any source a reader had
+ * opened on an earlier turn, and made the browser re-parse the entire conversation for one more
+ * word. The longer the conversation, the worse all three got -- which is exactly when a reader is
+ * most likely to have scrolled somewhere they wanted to stay.
+ */
+function render() {
+  const thread = els.assistantResult;
+  while (thread.children.length > conversation.length) thread.lastElementChild.remove();
+  rendered.length = conversation.length;
+  conversation.forEach((turn, index) => {
+    const html = renderTurn(turn);
+    if (rendered[index] === html) return;
+    rendered[index] = html;
+    let section = thread.children[index];
+    if (!section) {
+      section = document.createElement('section');
+      section.className = 'assistant-turn';
+      section.setAttribute('aria-label', `Question ${index + 1}`);
+      thread.append(section);
+    }
+    section.innerHTML = html;
+  });
+  // Offered as soon as one question has been answered -- it used to wait for a second, by which
+  // point a reader wanting to start over had already scrolled looking for it.
+  els.assistantReset.hidden = !conversation.some((turn) => !turn.stage);
+  if (followingLatest) pinToLatest();
+}
+
+function renderTurn(turn) {
+  const streaming = turn.stage === 'writing' && turn.answer;
+  return `
+      <p class="assistant-question">${escapeHtml(turn.question)}${turn.scope === 'quran' ? ' <span class="assistant-scope">Quran</span>' : ''}</p>
+      ${turn.error ? `<div class="empty-state">${escapeHtml(turn.error)}</div>` : ''}
+      ${turn.stage && !turn.answer ? `
+        <div class="assistant-stage" role="status">
+          <div class="assistant-thinking"><span></span><span></span><span></span></div>
+          <span>${escapeHtml(STAGE_LABELS[turn.stage] || 'Thinking')}</span>
+        </div>` : ''}
+      ${turn.answer ? `<article class="assistant-answer"><p>${formatAnswer(turn.answer)}${streaming ? '<span class="assistant-cursor" aria-hidden="true"></span>' : ''}</p></article>` : ''}
+      ${turn.sources.length ? `<div class="assistant-sources">${renderSources(turn.sources)}</div>` : ''}
+      ${unverifiedNote(turn.meta)}
+      ${!turn.stage && typeof turn.meta.remainingToday === 'number'
+        ? `<p class="assistant-remaining">${turn.meta.remainingToday} questions remaining today on this connection.</p>` : ''}
+  `;
+}
+
+const formatAnswer = (answer) => escapeHtml(answer || '').replace(/\n/g, '<br>');
+
+const unverifiedNote = (meta) => (meta && meta.includesUnverifiedSource
+  ? '<p class="assistant-note">At least one source below has not been checked against its original text yet -- each is marked.</p>'
+  : '');
+
+/**
+ * A citation opens. Seeing "[1] Sahih al-Bukhari 6499" and having to go and find it is the point at
+ * which a grounded answer stops being checkable, so the words travel with the citation and the
+ * source expands in place. "Open" then goes to the record itself -- the verse in the reader, the
+ * dua, the hadith -- rather than leaving the reader to search for it.
+ */
+function renderSources(sources) {
+  return sources.map((source) => {
+    const isVerified = source.verificationStatus === 'verified';
+    const hasText = Boolean(source.arabic || source.translation);
+    return `
+    <details class="assistant-source${isVerified ? '' : ' assistant-source--unverified'}">
+      <summary>
+        <span class="assistant-source-ref">
+          <span>[${source.index}] ${escapeHtml(source.collection)}</span>
+          <strong>${escapeHtml(withoutCollection(source))}</strong>
+        </span>
+        <small>${isVerified ? 'Checked against source' : 'Source not checked yet'}</small>
+      </summary>
+      <div class="assistant-source-body">
+        ${source.arabic ? `<p class="verse-arabic" dir="rtl" lang="ar">${escapeHtml(source.arabic)}</p>` : ''}
+        ${source.translation ? `<p class="verse-translation">${escapeHtml(source.translation)}</p>` : ''}
+        ${hasText ? '' : '<p class="verse-translation">Open the source to read it.</p>'}
+        <button class="text-button" type="button" data-open-source="${escapeHtml(source.id)}"
+          data-content-type="${escapeHtml(source.contentType)}"
+          ${source.surah ? `data-surah="${source.surah}" data-ayah="${source.ayah}"` : ''}>
+          Open ${escapeHtml(sourceKindLabel(source.contentType))}
+        </button>
+      </div>
+    </details>
+  `;
+  }).join('');
+}
+
+const sourceKindLabel = (contentType) => (
+  contentType === 'quran' ? 'in the Quran' : contentType === 'hadith' ? 'the hadith' : 'the dua'
+);
+
+/**
+ * A hadith's reference already names its collection ("Sahih al-Bukhari 6472"), which the line above
+ * it also names -- so the citation read "Sahih al-Bukhari Sahih al-Bukhari 6472". The collection
+ * stays on the muted line; the strong line is what distinguishes this source from its neighbours.
+ */
+function withoutCollection(source) {
+  const reference = source.reference || '';
+  const collection = source.collection || '';
+  return collection && reference.startsWith(collection)
+    ? reference.slice(collection.length).trim() || reference
+    : reference;
+}

@@ -50,13 +50,15 @@
   font-weight: 800;
 }
 
-.update-banner #updateButton {
+.update-banner #updateButton,
+.update-banner #installBannerButton {
   padding: 0.48rem 0.75rem;
   color: white;
   background: var(--accent-strong);
 }
 
-.update-banner #dismissUpdateButton {
+.update-banner #dismissUpdateButton,
+.update-banner #dismissInstallButton {
   width: 2rem;
   height: 2rem;
   font-size: 1.25rem;
@@ -70,4 +72,198 @@
   color: var(--muted);
   background: color-mix(in srgb, var(--paper) 76%, transparent);
   text-align: center;
+}
+
+/* --- First-run walkthrough ------------------------------------------------ */
+
+.onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: color-mix(in srgb, #14140f 62%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+.onboarding-card {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 22rem);
+  padding: 1.5rem 1.35rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  background: var(--paper-strong);
+  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.32);
+  text-align: center;
+}
+
+.onboarding-card h2 {
+  margin: 0;
+  font-size: 1.12rem;
+  line-height: 1.35;
+}
+
+.onboarding-body {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.onboarding-progress {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.onboarding-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+}
+
+.onboarding-dot.is-current {
+  width: 1.35rem;
+  background: var(--accent-strong);
+}
+
+.onboarding-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.onboarding-spacer { flex: 1 1 auto; }
+
+.onboarding-actions button {
+  padding: 0.55rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Skip is deliberately quiet but never hidden -- it is on every step, because a tour someone
+   cannot leave is worse than no tour. */
+.onboarding-skip {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-weight: 500 !important;
+}
+
+.onboarding-next {
+  border-color: var(--accent-strong) !important;
+  background: var(--accent-strong) !important;
+  color: #fff !important;
+}
+
+/* --- Walkthrough visuals -------------------------------------------------- */
+
+.onboarding-visual {
+  display: grid;
+  place-items: center;
+  min-height: 4.6rem;
+  margin-bottom: 0.15rem;
+}
+
+.onboarding-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.onboarding-glyph {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.onboarding-glyph.is-large {
+  width: 3rem;
+  height: 3rem;
+  color: var(--accent-strong);
+  stroke-width: 1.4;
+}
+
+/* The Settings step shows the real control -- the same glyph in the same round button the header
+   uses -- scaled up to sit alongside the other steps' large glyphs. */
+.onboarding-control {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.onboarding-plus {
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 300;
+}
+
+/* A miniature of the real tab bar. Same icons, same order, so the tab named in the text is one the
+   reader has already seen before they go looking for it. */
+.onboarding-nav {
+  display: flex;
+  gap: 0.1rem;
+  justify-content: center;
+  width: 100%;
+  padding: 0.45rem 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: var(--paper);
+}
+
+.onboarding-tab {
+  display: grid;
+  flex: 1 1 0;
+  gap: 0.18rem;
+  justify-items: center;
+  padding: 0.25rem 0.1rem;
+  border-radius: 0.45rem;
+  color: var(--muted);
+}
+
+.onboarding-tab small {
+  font-size: 0.58rem;
+  letter-spacing: 0.01em;
+}
+
+.onboarding-tab.is-active {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+/* The offer to jump straight to the feature. Prominent enough to be the obvious thing to do, but
+   below the text so it does not compete with reading it. */
+.onboarding-jump {
+  width: 100%;
+  margin-top: 0.15rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--accent-strong);
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--accent-strong);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.onboarding-jump:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }

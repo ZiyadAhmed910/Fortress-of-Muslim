@@ -25,7 +25,7 @@
 
 .brand-title {
   display: inline-grid;
-  grid-template-columns: 1.7rem minmax(0, auto);
+  grid-template-columns: 2rem minmax(0, auto);
   gap: 0.45rem;
   align-items: center;
   justify-content: center;
@@ -33,9 +33,8 @@
 }
 
 .brand-title img {
-  width: 1.7rem;
-  height: 1.7rem;
-  border-radius: 0.38rem;
+  width: 2rem;
+  height: 2rem;
 }
 
 .is-reader .brand-title img {
@@ -63,6 +62,14 @@
   font-size: 0.82rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .title-stack h1 {
+    font-size: 1rem;
+    white-space: normal;
+    text-wrap: balance;
+  }
 }
 
 .icon-button,
