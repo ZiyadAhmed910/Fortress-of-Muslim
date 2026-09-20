@@ -258,20 +258,68 @@
 /* Prayer Times & Qibla -- computed entirely on-device, no network calls. */
 .prayer-home { display: grid; gap: 1rem; }
 
+/* A sky above a quiet foreground keeps the clock legible at noon and at night. */
 .prayer-next-card {
+  position: relative;
   display: grid;
-  gap: 0.2rem;
-  justify-items: center;
-  padding: 1.4rem 1rem;
-  border-radius: 0.9rem;
-  color: white;
-  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
-  text-align: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .15rem .8rem;
+  align-content: end;
+  min-height: clamp(18rem, 38vw, 22rem);
+  padding: 1.25rem 1.4rem;
+  border: 1px solid rgba(176, 200, 215, .25);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  isolation: isolate;
+  color: #f8f4e9;
+  background: linear-gradient(160deg, #1c4e73, #071a29);
+  text-align: left;
 }
-.prayer-next-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; opacity: 0.85; }
-.prayer-next-card strong { font-size: 1.7rem; }
-.prayer-next-time { font-size: 1.1rem; font-weight: 700; }
-.prayer-next-countdown { font-size: 0.85rem; opacity: 0.9; }
+.prayer-next-card .sky {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+.prayer-next-card > :not(.sky) {
+  position: relative;
+  text-shadow: 0 1px 8px rgba(2, 8, 18, .35);
+}
+.sky-rays path { opacity: .55; animation: sky-ray-light 9s ease-in-out infinite; animation-delay: var(--ray-delay); }
+.sky-aura { animation: sky-aura 8s ease-in-out infinite; transform-origin: 0 0; }
+.sky-corona { animation: sky-corona 6s ease-in-out infinite; transform-origin: 0 0; }
+.sky-stars circle { animation: sky-twinkle 5s ease-in-out infinite; animation-delay: var(--twinkle-delay, 0s); }
+.sky-moon-glow { animation: sky-aura 10s ease-in-out infinite; transform-origin: 0 0; }
+.sky-full .sky-rays path { animation-duration: 6s; }
+.sky-full .sky-aura { animation-duration: 5s; }
+.sky-full .sky-corona { animation-duration: 4s; }
+.sky-full .sky-haze path { animation: sky-haze 16s ease-in-out infinite alternate; }
+@keyframes sky-ray-light {
+  0%, 100% { opacity: .25; }
+  50% { opacity: .8; }
+}
+@keyframes sky-aura {
+  0%, 100% { opacity: .6; transform: scale(.88); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+@keyframes sky-corona {
+  0%, 100% { opacity: .12; transform: scale(1); }
+  50% { opacity: .28; transform: scale(1.22); }
+}
+@keyframes sky-twinkle {
+  0%, 100% { opacity: .22; }
+  50% { opacity: .9; }
+}
+@keyframes sky-haze { to { transform: translateX(4px); opacity: .6; } }
+.sky-static *, .sky-static.sky-full * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .sky * { animation: none !important; }
+}
+.prayer-next-label { grid-column: 1; font-size: .65rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .72; }
+.prayer-next-card strong { grid-column: 1; font-size: 1.85rem; font-weight: 650; line-height: 1.2; }
+.prayer-next-time { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.prayer-next-countdown { grid-column: 1 / -1; font-size: .78rem; opacity: .72; }
 
 .prayer-location-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; font-size: 0.85rem; color: var(--muted); }
 .prayer-timezone-note { margin: -0.4rem 0 0; padding: 0.6rem 0.8rem; border-left: 3px solid #b7791f; border-radius: 0.3rem; background: color-mix(in srgb, #b7791f 10%, var(--paper-strong)); color: var(--muted); font-size: 0.76rem; line-height: 1.4; }

@@ -1,4 +1,5 @@
 import { state } from './state.js';
+import { renderSky } from './sky.js';
 import { els } from './dom.js';
 import { toast } from './utils.js';
 import {
@@ -377,6 +378,7 @@ function renderNextPrayer(times) {
     els.prayerNextName.textContent = '–';
     els.prayerNextTime.textContent = '––:––';
     els.prayerNextCountdown.textContent = '';
+    drawSky();
     return;
   }
   els.prayerNextName.textContent = upcoming.isTomorrow ? `${upcoming.label} (tomorrow)` : upcoming.label;
@@ -387,6 +389,20 @@ function renderNextPrayer(times) {
   els.prayerTimesList.querySelectorAll('[data-prayer-row]').forEach((row) => {
     row.classList.toggle('prayer-row-active', row.dataset.prayerRow === upcoming.key);
   });
+  drawSky();
+}
+
+/**
+ * Redraws the sky behind the card from the same location the times were computed for.
+ *
+ * Called on every countdown tick, which sounds wasteful and is not: it sets a handful of attributes,
+ * and the sun moves a quarter of a degree in that time. The point is that a card left open through
+ * Maghrib actually shows the sun going down, rather than whatever the sky looked like when the tab
+ * was opened.
+ */
+function drawSky() {
+  if (!currentCoordinates) return;
+  renderSky(els.prayerNextCard, currentCoordinates);
 }
 
 function renderQibla(latitude, longitude) {

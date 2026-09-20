@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T08:30:05.652Z",
+  "generatedAt": "2026-09-20T10:26:23.947Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -829,7 +829,7 @@
     },
     {
       "path": "pwa-website/js/art-motion.js",
-      "lines": 89,
+      "lines": 93,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -933,7 +933,7 @@
     },
     {
       "path": "pwa-website/js/prayer-times.js",
-      "lines": 274,
+      "lines": 344,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -941,7 +941,7 @@
     },
     {
       "path": "pwa-website/js/prayer.js",
-      "lines": 594,
+      "lines": 610,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1022,6 +1022,14 @@
     {
       "path": "pwa-website/js/settings.js",
       "lines": 100,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/sky.js",
+      "lines": 259,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1190,6 +1198,14 @@
     {
       "path": "pwa-website/test/reciters.test.js",
       "lines": 39,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/sky.test.js",
+      "lines": 232,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2515,9 +2531,11 @@
         "pwa-website/js/prayer.js",
         "pwa-website/js/quran-audio.js",
         "pwa-website/js/reminders.js",
+        "pwa-website/js/sky.js",
         "pwa-website/js/userData.js",
         "pwa-website/sw.js",
-        "pwa-website/test/deep-links.test.js"
+        "pwa-website/test/deep-links.test.js",
+        "pwa-website/test/sky.test.js"
       ]
     },
     {
@@ -2553,6 +2571,7 @@
       "definedIn": [],
       "referencedBy": [
         "apps/api/src/rag.ts",
+        "pwa-website/js/prayer-times.js",
         "pwa-website/js/prayer.js"
       ]
     },
@@ -3326,6 +3345,14 @@
       ]
     },
     {
+      "name": "here",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer-times.js"
+      ]
+    },
+    {
       "name": "index",
       "kind": "unknown",
       "definedIn": [],
@@ -3508,6 +3535,14 @@
       "definedIn": [],
       "referencedBy": [
         "apps/api/test/fuzzy-title.test.ts"
+      ]
+    },
+    {
+      "name": "negative",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/sky.js"
       ]
     },
     {
@@ -4163,6 +4198,7 @@
         "pwa-website/js/quran-verse-search.js",
         "pwa-website/js/quran.js",
         "pwa-website/js/seo.js",
+        "pwa-website/js/sky.js",
         "pwa-website/js/state.js",
         "pwa-website/test/boot-theme.test.js",
         "pwa-website/test/categories.test.js",
@@ -4172,6 +4208,7 @@
         "pwa-website/test/quran-juz.test.js",
         "pwa-website/test/quran-words.test.js",
         "pwa-website/test/reading-roles.test.js",
+        "pwa-website/test/sky.test.js",
         "pwa-website/test/worship-nav.test.js"
       ]
     },
@@ -4194,6 +4231,14 @@
         "apps/status/public/app.js",
         "pwa-website/js/quran-verse-search.js",
         "pwa-website/js/quran.js"
+      ]
+    },
+    {
+      "name": "those",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/prayer-times.js"
       ]
     },
     {

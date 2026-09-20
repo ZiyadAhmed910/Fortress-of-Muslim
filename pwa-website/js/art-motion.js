@@ -61,6 +61,10 @@ export function applyArtMotion() {
   if (controls.select) controls.select.value = preference;
   if (controls.description) controls.description.textContent = ART_MOTION_DESCRIPTIONS[preference];
   if (controls.systemNote) controls.systemNote.hidden = !reducedMotion?.matches;
+  document.querySelectorAll('.sky').forEach((sky) => {
+    sky.classList.toggle('sky-static', mode === 'still');
+    sky.classList.toggle('sky-full', mode === 'full');
+  });
 }
 
 // Settings calls this after the module-driven app has parsed the DOM. The gallery can use the

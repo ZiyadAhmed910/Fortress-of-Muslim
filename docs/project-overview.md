@@ -174,6 +174,10 @@ What it actually contains today:
   high-latitude conventions plus a nearest-latitude fallback inside the polar circles, with derived
   times labelled as estimated. `test/prayer-times.test.js` covers ordering across a full year,
   Hanafi vs standard Asr, all three night-division rules at Oslo, and the polar case at Tromsø.
+- **Prayer-card sky** — a responsive SVG with a clock-driven sun arc anchored to Sunrise,
+  Dhuhr and Maghrib, plus a decorative crescent tracking progress through the night. Solar
+  altitude controls twilight colours; layered rays and glow animate independently of position.
+  Artwork motion preferences apply immediately; Still keeps time updates but stops ambient motion.
 - **Qibla** — great-circle bearing plus a live compass that works in any pose. The device's top
   edge and its back are both derived from the spec's rotation matrix, and whichever is more
   horizontal is used: flat in the palm follows the top edge, held upright follows where the phone

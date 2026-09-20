@@ -174,6 +174,56 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.43.0
+
+_2026-09-20_
+
+- **The admin console has a dark theme again, and a switch to reach it.** It had neither. Every
+  portal loads `portal.css` and then its own stylesheet, and `admin.css` was redefining `:root`
+  there with a hard-coded light palette -- overriding every token `portal.css` had just set,
+  including both of its dark themes -- then pinning `html { color-scheme: light }` on top. The
+  header had no theme toggle either, unlike the developer and status portals, so there was no way
+  back. The result was exactly what it looked like: anything styled by `portal.css` followed the
+  theme and anything styled by `admin.css` did not, so half the console went dark and half stayed
+  white.
+  - `admin.css` now defines only what admin adds on top, in terms of the shared tokens wherever the
+    two mean the same thing, with dark values in the same two blocks `portal.css` uses -- an
+    explicit `[data-theme]` choice, and `prefers-color-scheme` when no choice has been made. A
+    machine in dark mode now gets a dark console without touching anything.
+  - 62 hard-coded colours became tokens: surfaces, borders, muted text, status tints, the login
+    gradient, dialog scrims. White text on a coloured button stays literal, because it is correct in
+    both themes.
+  - The theme toggle from the other portals is now in the admin header, driven by the same
+    `portal.js` it already loaded.
+- **`verify-portals.mjs` now checks theming for all three portals**, because every fault here is
+  silent: a stylesheet that quietly wins, a token with no dark value, the two dark blocks drifting
+  apart, a token defined in terms of itself. Each was introduced deliberately and confirmed to fail
+  the check.
+
+### 0.42.0
+
+_2026-09-20_
+
+- **The next-prayer card is a sky now, and it is the real one.** The sun sits where the sun sits,
+  from your location, at this moment: overhead at Dhuhr, on the horizon at Maghrib, gone at Isha
+  with the moon up and the stars out. Nothing here interpolates between sunrise and sunset, because
+  a real sun does not trace a symmetrical arc about clock noon -- it traces one about solar noon,
+  and the two are up to sixteen minutes apart before longitude is considered. Faking it would look
+  approximately right and be wrong at exactly the moment someone is looking: the prayer time itself.
+  - `prayer-times.js` gains `solarPosition()` -- the same Meeus solar position the prayer times are
+    already computed from, asked for altitude and hour angle instead of for a clock time -- and
+    `moonIllumination()` for the moon's phase.
+  - The palette is keyed to solar altitude and interpolated, with its stops at the real twilight
+    boundaries (-18 astronomical, -12 nautical, -6 civil, 0 the horizon), so dusk is a slide rather
+    than four states that snap.
+  - `test/sky.test.js` ties it back to the prayer times: across three latitudes and both
+    hemispheres, the sun's highest altitude of the day falls within two minutes of the computed
+    Dhuhr, and reaches the `90 - |latitude - declination|` that geometry predicts.
+- **Almost nothing moves.** The sun shifts about a degree every four minutes -- invisible while you
+  watch, clearly different when you come back -- so only the rays breathe and the stars twinkle. A
+  sun that visibly slides would be lying about how fast the sky moves. Both stop entirely under
+  `prefers-reduced-motion` or the Still artwork setting.
+
 ### 0.41.0
 
 _2026-09-20_
@@ -1331,6 +1381,17 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — prayer-card sky progression
+
+- Rebuilt the prayer sky with separate sun and crescent arcs, soft layered rays, changing glow,
+  twilight colours, stars and a dark foreground for readable prayer times.
+- The display arc follows the clock between local Sunrise, Dhuhr and Maghrib. The crescent shows
+  progress through the night; it is decorative rather than a lunar ephemeris. Polar locations
+  keep the actual solar-altitude fallback instead of inventing sunrise or sunset.
+- Artwork preferences now apply to the sky immediately. Still/reduced motion stop ambient
+  effects while clock-derived positions continue updating. Added clock, midnight, polar and
+  browser checks, including the live prayer tab's countdown updates.
 
 ### Unreleased — dark, continuous, and no flash on the way in
 
