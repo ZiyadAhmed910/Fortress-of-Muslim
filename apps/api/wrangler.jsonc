@@ -73,8 +73,12 @@
       ],
       "vectorize": [
         {
+          // 1024-dim, to match @cf/baai/bge-m3 in rag.ts. The original fortress-rag-production is
+          // 768-dim from bge-base-en-v1.5 and cannot be resized -- Vectorize locks dimensions at
+          // creation -- so this is a new index rather than a migration of that one. The old index
+          // is left in place until this one is populated and proven.
           "binding": "VECTOR_INDEX",
-          "index_name": "fortress-rag-production"
+          "index_name": "fortress-rag-production-m3"
         }
       ],
       "services": [
