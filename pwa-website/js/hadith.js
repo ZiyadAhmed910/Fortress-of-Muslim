@@ -1,4 +1,5 @@
 import { els } from './dom.js';
+import { setScreen } from './seo.js';
 import { apiRequest } from './online.js';
 import { escapeHtml } from './utils.js';
 
@@ -113,6 +114,12 @@ export async function openCanonicalHadith(collection, book, number) {
 }
 
 function renderHadith(hadith) {
+  // Named here rather than left as "Hadith Library": each hadith has its own URL, and a URL whose
+  // title is the name of the section it lives in is indistinguishable from every other one.
+  setScreen(
+    `${hadith.collection.title} ${hadith.displayNumber}`,
+    hadith.chapter?.title || hadith.book?.title || hadith.title,
+  );
   const segments = hadith.segments.map((segment) => `<p class="segment ${segment.kind}" ${segment.kind === 'arabic' ? 'dir="rtl" lang="ar"' : ''}>${escapeHtml(segment.text)}</p>`).join('');
   els.hadithDetail.innerHTML = `
       <button class="inline-back" data-close-hadith type="button" aria-label="Back to Hadith results">

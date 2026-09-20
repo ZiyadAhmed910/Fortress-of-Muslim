@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T05:24:19.756Z",
+  "generatedAt": "2026-09-20T08:30:05.652Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -885,7 +885,7 @@
     },
     {
       "path": "pwa-website/js/hadith.js",
-      "lines": 153,
+      "lines": 160,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1013,7 +1013,7 @@
     },
     {
       "path": "pwa-website/js/seo.js",
-      "lines": 55,
+      "lines": 70,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1094,6 +1094,14 @@
     {
       "path": "pwa-website/test/categories.test.js",
       "lines": 121,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/deep-links.test.js",
+      "lines": 55,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2508,7 +2516,8 @@
         "pwa-website/js/quran-audio.js",
         "pwa-website/js/reminders.js",
         "pwa-website/js/userData.js",
-        "pwa-website/sw.js"
+        "pwa-website/sw.js",
+        "pwa-website/test/deep-links.test.js"
       ]
     },
     {
@@ -3203,6 +3212,7 @@
         "apps/api/test/publish-hadith-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/test/admin-mfa-gate.test.ts",
+        "pwa-website/js/hadith.js",
         "pwa-website/js/onboarding.js"
       ]
     },
@@ -3647,6 +3657,14 @@
         "apps/auth/migrations/0008_account_security.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "paths",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/deep-links.test.js"
+      ]
     },
     {
       "name": "plan_limits",
@@ -4144,6 +4162,7 @@
         "pwa-website/js/quran-audio.js",
         "pwa-website/js/quran-verse-search.js",
         "pwa-website/js/quran.js",
+        "pwa-website/js/seo.js",
         "pwa-website/js/state.js",
         "pwa-website/test/boot-theme.test.js",
         "pwa-website/test/categories.test.js",
