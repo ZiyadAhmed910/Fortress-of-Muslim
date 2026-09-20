@@ -3,6 +3,18 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <!-- Every asset in this file is referenced relatively, and the app is served from paths several
+         levels deep: /quran/2/255, /tirmidhi/book1/1. Without this, a browser at /tirmidhi/book1/1
+         asks for /tirmidhi/book1/styles.css and /tirmidhi/book1/js/app.js, gets 404s for both, and
+         renders an unstyled skeleton with no JavaScript -- which is what opening any deep link
+         directly actually did.
+
+         This also fixes fetch() inside the modules: a relative fetch resolves against the document
+         base, not against the module that made the call, so ./data/quran/index.json was being asked
+         for in the same wrong place. ES module imports are unaffected either way, being resolved
+         against the importing module's own URL. -->
+    <base href="/">
     <meta name="theme-color" content="#071827">
     <!--
       The theme is settled before the first paint rather than by app.js. Modules are deferred, so
