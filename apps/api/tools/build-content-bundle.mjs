@@ -168,12 +168,41 @@ const preamble = [
   "UPDATE dataset_versions SET publication_status = 'deprecated' WHERE publication_status = 'active';",
   '',
 ].join('\n');
+// canonical_dataset_versions needs the same treatment, for a subtler reason that cost a production
+// outage to find. There is no single-published constraint here -- several may be published at once
+// -- so nothing fails loudly. But currentDatasetRow() picks the most recently published one:
+//
+//   SELECT id FROM canonical_dataset_versions WHERE publication_status = 'published'
+//   ORDER BY published_at DESC, created_at DESC LIMIT 1
+//
+// Migrations create canonical.hisn.verified.2026-07-23 as 'published', stamped with the time the
+// migration ran -- which on a fresh environment is today, and therefore newer than a hadith corpus
+// published months ago. INSERT OR IGNORE then skips the bundle's own row for that id, the one that
+// says 'superseded'. The result is a database holding all 14,625 records while Ask indexes 135 and
+// reports zero hadith, with nothing anywhere reporting an error.
+const canonicalDatasets = JSON.parse(wrangler([
+  'd1', 'execute', source, '--remote', '--json',
+  '--command', 'SELECT id, publication_status, record_count, published_at, created_at FROM canonical_dataset_versions ORDER BY id',
+], { encoding: 'utf8' }).match(/\[[\s\S]*\]/)[0])[0].results;
+
+const literal = (value) => (value === null || value === undefined ? 'NULL' : quote(value));
+
 const postamble = [
   '',
   '-- Rows the migrations had already created kept their own status above; set the real ones now.',
   '-- Non-active first, so the one active dataset is the last thing to claim that slot.',
   ...[...inactive, ...active].map((row) =>
     `UPDATE dataset_versions SET publication_status = ${quote(row.publication_status)} WHERE id = ${quote(row.id)};`),
+  '',
+  '-- And the canonical datasets, where being silently wrong is the failure mode rather than an',
+  '-- error: which one is current is decided by publication_status and published_at together, so',
+  '-- both have to be the source environment\'s values and not whatever the migration stamped.',
+  ...canonicalDatasets.map((row) => 'UPDATE canonical_dataset_versions SET '
+    + `publication_status = ${quote(row.publication_status)}, `
+    + `record_count = ${Number(row.record_count)}, `
+    + `published_at = ${literal(row.published_at)}, `
+    + `created_at = ${literal(row.created_at)} `
+    + `WHERE id = ${quote(row.id)};`),
   '',
 ].join('\n');
 sql = `${preamble}${sql}${postamble}`;
