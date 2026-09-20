@@ -47,6 +47,16 @@ generator, then rebuild the portals with `npm run build --workspace @fortress/po
 
 ## Living card artwork
 
+The next-prayer card also has an inline SVG sky (`js/sky.js`). Its sun follows a display arc
+between the local horizon crossings, peaking at Dhuhr. The crescent represents the night’s
+progress, not an astronomical moonrise prediction. Colours use solar altitude; the existing
+20-second prayer countdown updates positions and tab resume refreshes the current time.
+Soft rays, glow and stars animate separately and obey artwork/reduced-motion settings.
+Sunlight is a separate background layer: broad, softly blurred shafts change direction with
+the sun, while the disc keeps its own concentrated glow. The shafts do not converge at the disc.
+Run `node pwa-website/tools/check-prayer-sky.mjs` from the repository root to check the live
+tab, time progression, responsive geometry and motion controls and render a six-phase preview.
+
 Open `http://localhost:8080/art-preview.html` to review all nine animated, text-free banners.
 You can also open `art-preview.html` directly from disk; its animation controls work with
 `file://`. The full PWA still needs the local server because it uses ES modules and data requests.

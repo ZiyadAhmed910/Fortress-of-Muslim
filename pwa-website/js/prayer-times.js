@@ -306,7 +306,12 @@ export function solarPosition(latitude, longitude, date = new Date(), timezoneOf
     cosDeg(hourAngleDegrees) * sinDeg(latitude) - tanDeg(declination) * cosDeg(latitude),
   ) + 180, 360);
 
-  return { altitude, azimuth, declination, hourAngle: hourAngleDegrees };
+  const horizonHours = hourAngle(latitude, declination, -SUNRISE_SUNSET_ANGLE);
+  return {
+    altitude, azimuth, declination, hourAngle: hourAngleDegrees,
+    // The same horizon crossing used for Sunrise and Maghrib; null during polar day/night.
+    horizonHourAngle: horizonHours === null ? null : horizonHours * 15,
+  };
 }
 
 // One synodic month, and a new moon known to have occurred at this instant. Everything about the

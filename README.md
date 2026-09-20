@@ -1382,6 +1382,17 @@ The service worker build/cache version is stamped from the current commit SHA. T
 
 ## Release Notes
 
+### Unreleased — prayer-card sky progression
+
+- Rebuilt the prayer sky with separate sun and crescent arcs, soft layered rays, changing glow,
+  twilight colours, stars and a dark foreground for readable prayer times.
+- The display arc follows the clock between local Sunrise, Dhuhr and Maghrib. The crescent shows
+  progress through the night; it is decorative rather than a lunar ephemeris. Polar locations
+  keep the actual solar-altitude fallback instead of inventing sunrise or sunset.
+- Artwork preferences now apply to the sky immediately. Still/reduced motion stop ambient
+  effects while clock-derived positions continue updating. Added clock, midnight, polar and
+  browser checks, including the live prayer tab's countdown updates.
+
 ### Unreleased — dark, continuous, and no flash on the way in
 
 - **Dark mode is the default.** Adhkar are read at dawn and after dark, so the low-light theme is
