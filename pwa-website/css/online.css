@@ -259,14 +259,69 @@
 .prayer-home { display: grid; gap: 1rem; }
 
 .prayer-next-card {
+  position: relative;
   display: grid;
   gap: 0.2rem;
   justify-items: center;
-  padding: 1.4rem 1rem;
+  /* Deeper at the top than the bottom: the sun is highest at Dhuhr, which is exactly when someone
+     is most likely to be looking at this card, and with even padding it sits behind the label. */
+  padding: 2.4rem 1rem 1.3rem;
   border-radius: 0.9rem;
+  overflow: hidden;
+  isolation: isolate;
   color: white;
+  /* Still the gradient, and it still matters: it is what is seen before a location is known, and
+     what shows through if the sky fails to draw. */
   background: linear-gradient(135deg, var(--accent-strong), var(--accent));
   text-align: center;
+}
+
+/* The sky sits behind the card's own text rather than replacing the card. */
+.prayer-next-card .sky {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+
+/* The text has to stay readable against a sky that is white-hot at noon and near-black at Isha, so
+   it carries its own shadow rather than the sky being dimmed to suit it. Dimming the sky would
+   throw away the thing the card is for. */
+.prayer-next-card > * {
+  position: relative;
+  text-shadow: 0 1px 3px rgba(2, 8, 18, 0.55), 0 0 18px rgba(2, 8, 18, 0.35);
+}
+
+.sky-stars circle { animation: sky-twinkle 4.5s ease-in-out infinite; animation-delay: var(--twinkle-delay, 0s); }
+.sky-rays rect { fill: rgba(255, 244, 214, 0.55); transform-origin: 0 0; }
+.sky[data-phase="golden"] .sky-rays rect { fill: rgba(255, 206, 150, 0.6); }
+
+/* The only thing that moves. The sun's position changes about a degree every four minutes, which is
+   invisible while you watch -- so the rays breathe instead, and that is what makes the card feel
+   alive without pretending the sky moves faster than it does. */
+.sky-rays { animation: sky-breathe 7s ease-in-out infinite; transform-origin: 0 0; }
+.sky-full .sky-rays { animation-duration: 4.5s; }
+
+@keyframes sky-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1) rotate(0deg); }
+  50% { opacity: 0.95; transform: scale(1.09) rotate(7deg); }
+}
+
+@keyframes sky-twinkle {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+/* "Still" means still: a sky that is correct and does not move at all. */
+.sky-static .sky-rays,
+.sky-static .sky-stars circle { animation: none; }
+.sky-static .sky-rays { opacity: 0.75; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-rays,
+  .sky-stars circle { animation: none; }
+  .sky-rays { opacity: 0.75; }
 }
 .prayer-next-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; opacity: 0.85; }
 .prayer-next-card strong { font-size: 1.7rem; }

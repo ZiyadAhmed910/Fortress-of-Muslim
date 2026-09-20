@@ -271,3 +271,68 @@ export function nextPrayer(times, now = new Date()) {
   if (!first) return null;
   return { ...first, minutesUntil: Math.round((24 - nowDecimal + first.time.decimalHours) * 60), isTomorrow: true };
 }
+
+/**
+ * Where the sun actually is, right now, from here: how high above the horizon and in which
+ * direction. Both in degrees, altitude negative when the sun is below the horizon.
+ *
+ * This is the same solar position the prayer times are computed from, asked a different question.
+ * It exists so the sky in the prayer card can be drawn from the real thing rather than from an
+ * interpolation between sunrise and sunset: at Dhuhr the sun is at its highest because the hour
+ * angle is zero, not because a fraction happened to reach one half. The difference is visible --
+ * the arc a real sun traces is not symmetrical about clock noon, it is symmetrical about solar
+ * noon, and the two are up to sixteen minutes apart before longitude is even considered.
+ *
+ * Azimuth is measured clockwise from true north, so 180 is due south.
+ */
+export function solarPosition(latitude, longitude, date = new Date(), timezoneOffsetHours = -date.getTimezoneOffset() / 60) {
+  const jd = julianDay(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  const { declination, equationOfTime } = sunPosition(jd);
+
+  // Hours since local solar midnight, turned into the sun's hour angle: zero at solar noon,
+  // fifteen degrees for every hour either side.
+  const clockHours = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+  const solarNoon = 12 - equationOfTime / 60 - longitude / 15 + timezoneOffsetHours;
+  const hourAngleDegrees = (clockHours - solarNoon) * 15;
+
+  const sinAltitude = sinDeg(latitude) * sinDeg(declination)
+    + cosDeg(latitude) * cosDeg(declination) * cosDeg(hourAngleDegrees);
+  const altitude = arcsinDeg(Math.max(-1, Math.min(1, sinAltitude)));
+
+  // atan2 form: stable at the poles and through the singularity at local noon, which the
+  // arccos form is not.
+  const azimuth = fixRange(arctan2Deg(
+    sinDeg(hourAngleDegrees),
+    cosDeg(hourAngleDegrees) * sinDeg(latitude) - tanDeg(declination) * cosDeg(latitude),
+  ) + 180, 360);
+
+  return { altitude, azimuth, declination, hourAngle: hourAngleDegrees };
+}
+
+// One synodic month, and a new moon known to have occurred at this instant. Everything about the
+// moon below is derived from those two numbers.
+const SYNODIC_MONTH_DAYS = 29.530588853;
+const KNOWN_NEW_MOON_JD = 2451550.1; // 2000-01-06 18:14 UTC
+
+/**
+ * How full the moon looks tonight: its age in days through the cycle, and the fraction of the disc
+ * that is lit.
+ *
+ * Deliberately the simple mean-phase calculation rather than a full lunar theory. It is accurate to
+ * within a few hours of the true phase, which is invisible at the size this is drawn, and it avoids
+ * carrying several hundred lines of periodic terms to decide how wide a crescent should be.
+ */
+export function moonIllumination(date = new Date()) {
+  const jd = julianDay(date.getFullYear(), date.getMonth() + 1, date.getDate())
+    + (date.getHours() + date.getMinutes() / 60) / 24;
+  const age = fixRange(jd - KNOWN_NEW_MOON_JD, SYNODIC_MONTH_DAYS);
+  const phase = age / SYNODIC_MONTH_DAYS; // 0 and 1 are new, 0.5 is full
+  return {
+    age,
+    phase,
+    // Waxing through the first half of the cycle: which side the light is on, so the crescent can
+    // be drawn facing the right way rather than always the same way.
+    waxing: phase < 0.5,
+    illuminated: (1 - Math.cos(2 * Math.PI * phase)) / 2,
+  };
+}
