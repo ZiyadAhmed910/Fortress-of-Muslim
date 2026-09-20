@@ -378,6 +378,7 @@ function renderNextPrayer(times) {
     els.prayerNextName.textContent = '–';
     els.prayerNextTime.textContent = '––:––';
     els.prayerNextCountdown.textContent = '';
+    drawSky();
     return;
   }
   els.prayerNextName.textContent = upcoming.isTomorrow ? `${upcoming.label} (tomorrow)` : upcoming.label;
@@ -400,10 +401,8 @@ function renderNextPrayer(times) {
  * was opened.
  */
 function drawSky() {
-  const latitude = state.manualLatitude ?? state.lastKnownLatitude;
-  const longitude = state.manualLongitude ?? state.lastKnownLongitude;
-  if (latitude === null || longitude === null) return;
-  renderSky(els.prayerNextCard, { latitude, longitude });
+  if (!currentCoordinates) return;
+  renderSky(els.prayerNextCard, currentCoordinates);
 }
 
 function renderQibla(latitude, longitude) {

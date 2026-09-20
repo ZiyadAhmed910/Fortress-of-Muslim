@@ -1,6 +1,64 @@
 import { describe, expect, it } from 'vitest';
 import { computePrayerTimes, moonIllumination, solarPosition } from '../js/prayer-times.js';
-import { bodyPosition, skyPalette } from '../js/sky.js';
+import { arcPosition, bodyPosition, skyPalette, skyState } from '../js/sky.js';
+
+describe('the clock-driven display arc', () => {
+  const latitude = 21.4225, longitude = 39.8262;
+  const date = new Date(2026, 8, 20);
+  const times = computePrayerTimes(latitude, longitude, date);
+  const at = time => {
+    const instant = new Date(date);
+    instant.setHours(0, 0, 0, 0);
+    instant.setTime(instant.getTime() + time.decimalHours * 3600000);
+    return skyState(latitude, longitude, instant);
+  };
+  it('anchors the arc at Sunrise, Dhuhr and Maghrib', () => {
+    expect(at(times.sunrise).sun.x).toBeCloseTo(.08, 3);
+    expect(at(times.sunrise).sun.height).toBeCloseTo(0, 2);
+    expect(at(times.dhuhr).sun.x).toBeCloseTo(.5, 3);
+    expect(at(times.dhuhr).sun.height).toBeCloseTo(1, 3);
+    expect(at(times.maghrib).sun.x).toBeCloseTo(.92, 3);
+    expect(at(times.maghrib).sun.height).toBeCloseTo(0, 2);
+  });
+  it('moves left to right around a smooth upper arc', () => {
+    let previous = 0;
+    for (let progress = 0; progress <= 1; progress += .025) {
+      const point = arcPosition(progress);
+      expect(point.x).toBeGreaterThanOrEqual(previous);
+      expect(point.height).toBeGreaterThanOrEqual(0);
+      previous = point.x;
+    }
+  });
+  it('shows the sun throughout the day and the moon after sunset', () => {
+    const morning = at({ decimalHours: (times.sunrise.decimalHours + times.dhuhr.decimalHours) / 2 });
+    const afternoon = at(times.asr);
+    const evening = at({ decimalHours: times.maghrib.decimalHours + 1 });
+    expect(morning.day).toBe(true);
+    expect(afternoon.day).toBe(true);
+    expect(morning.sunProgress).toBeCloseTo(.25, 2);
+    expect(afternoon.sunProgress).toBeGreaterThan(.5);
+    expect(afternoon.sunProgress).toBeLessThan(1);
+    expect(evening.day).toBe(false);
+    expect(evening.moonProgress).toBeGreaterThan(0);
+    expect(evening.moonProgress).toBeLessThan(.2);
+  });
+  it('keeps the night arc continuous across device midnight', () => {
+    // Use a longitude whose night spans midnight in the test runner's own timezone.
+    const localLongitude = -date.getTimezoneOffset() / 60 * 15;
+    const before = skyState(21, localLongitude, new Date(2026, 8, 20, 23, 59, 59));
+    const after = skyState(21, localLongitude, new Date(2026, 8, 21, 0, 0, 1));
+    expect(before.day).toBe(false);
+    expect(after.day).toBe(false);
+    expect(Math.abs(before.moon.x - after.moon.x)).toBeLessThan(.003);
+  });
+  it('handles polar summer and winter without inventing horizon crossings', () => {
+    for (const month of [5, 11]) {
+      const sky = skyState(89, 0, new Date(2026, month, 21, 12));
+      expect(sky.polar).toBe(true);
+      expect(Number.isFinite(sky.sun.x + sky.sun.height + sky.moon.x + sky.moon.height)).toBe(true);
+    }
+  });
+});
 
 // The sky behind the prayer card is drawn from the real solar position rather than from a fraction
 // of the way between sunrise and sunset. That choice is only worth anything if the position is

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T08:48:50.011Z",
+  "generatedAt": "2026-09-20T10:26:23.947Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -829,7 +829,7 @@
     },
     {
       "path": "pwa-website/js/art-motion.js",
-      "lines": 89,
+      "lines": 93,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -933,7 +933,7 @@
     },
     {
       "path": "pwa-website/js/prayer-times.js",
-      "lines": 339,
+      "lines": 344,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -941,7 +941,7 @@
     },
     {
       "path": "pwa-website/js/prayer.js",
-      "lines": 611,
+      "lines": 610,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1205,7 +1205,7 @@
     },
     {
       "path": "pwa-website/test/sky.test.js",
-      "lines": 174,
+      "lines": 232,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2531,6 +2531,7 @@
         "pwa-website/js/prayer.js",
         "pwa-website/js/quran-audio.js",
         "pwa-website/js/reminders.js",
+        "pwa-website/js/sky.js",
         "pwa-website/js/userData.js",
         "pwa-website/sw.js",
         "pwa-website/test/deep-links.test.js",
@@ -4197,6 +4198,7 @@
         "pwa-website/js/quran-verse-search.js",
         "pwa-website/js/quran.js",
         "pwa-website/js/seo.js",
+        "pwa-website/js/sky.js",
         "pwa-website/js/state.js",
         "pwa-website/test/boot-theme.test.js",
         "pwa-website/test/categories.test.js",
@@ -4384,8 +4386,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "pwa-website/js/modes.js",
-        "pwa-website/js/sky.js"
+        "pwa-website/js/modes.js"
       ]
     },
     {

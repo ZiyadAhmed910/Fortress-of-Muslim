@@ -1,31 +1,12 @@
-import { moonIllumination, solarPosition } from './prayer-times.js';
+import { solarPosition } from './prayer-times.js';
 import { getArtMotionPreference } from './art-motion.js';
 
-// The sky behind the next-prayer card, drawn from where the sun actually is.
-//
-// Not an animation of a day, and not a loop: it is a reading. The sun sits where the sun sits, from
-// this location, at this moment -- so at Dhuhr it is overhead because the hour angle is zero, and
-// at Maghrib it is on the horizon because its altitude is zero. The same solar position the prayer
-// times themselves are computed from, asked to draw itself.
-//
-// That is the whole idea, and it is why nothing here interpolates between sunrise and sunset. A real
-// sun does not trace a symmetrical arc about clock noon; it traces one about solar noon, and the two
-// are up to sixteen minutes apart before longitude is considered. Faking it would look approximately
-// right and be wrong exactly when someone is watching -- at the prayer time itself.
-//
-// What moves and what does not
-// ----------------------------
-// The sun's position changes with the clock, which means it moves about a degree every four minutes:
-// invisible while you watch, clearly different when you come back. The only continuous motion is the
-// shimmer of the rays and the twinkle of the stars, and both stop when the reader has asked for less
-// motion. Nothing here animates position, because a sun that visibly slides is telling a lie about
-// how fast the sky moves.
+// A decorative clock-driven sky. Solar colours use the actual altitude; the display arc is
+// normalized between the same horizon crossings as Sunrise/Maghrib, with Dhuhr at its peak.
+// The moon represents progress through the night, not a measured lunar position. Only light,
+// haze and stars loop: celestial positions change with time, including in Still mode.
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
-// Wide and short, to match the card. The viewBox has to be roughly the card's own proportions:
-// with a square viewBox and preserveAspectRatio "slice", a 350x124 card shows only the middle third
-// of the drawing, and the sun at its zenith is cropped off the top entirely -- which is precisely
-// the moment the card most wants to show it.
 const WIDTH = 100;
 const HEIGHT = 34;
 const HORIZON_Y = 27;
@@ -99,17 +80,29 @@ export function bodyPosition(altitude, hourAngle) {
   return { x, y };
 }
 
-/** The lit part of the moon, as a path over its disc. */
-function moonShadowPath(cx, cy, r, phase, waxing) {
-  // The terminator is an ellipse seen edge-on: its half-width shrinks to nothing at full moon and
-  // opens to the full radius at new. Signed, so the shadow bulges the correct way either side of half.
-  const k = Math.cos(2 * Math.PI * phase); // 1 at new, -1 at full
-  const rx = Math.abs(k) * r;
-  const sweepOuter = waxing ? 0 : 1;
-  const sweepInner = k > 0 ? sweepOuter : 1 - sweepOuter;
-  return `M ${cx} ${cy - r}`
-    + ` A ${r} ${r} 0 0 ${sweepOuter} ${cx} ${cy + r}`
-    + ` A ${rx} ${r} 0 0 ${sweepInner} ${cx} ${cy - r} Z`;
+/** A normalized semicircle, projected to the card's aspect ratio when rendered. */
+export function arcPosition(progress) {
+  const t = clamp(progress, 0, 1);
+  return { x: .5 - .42 * Math.cos(Math.PI * t), height: Math.sin(Math.PI * t) };
+}
+
+/** Clock-derived positions remain continuous across solar midnight and device midnight. */
+export function skyState(latitude, longitude, now = new Date()) {
+  const solar = solarPosition(latitude, longitude, now);
+  const angle = ((solar.hourAngle + 180) % 360 + 360) % 360 - 180;
+  const horizon = solar.horizonHourAngle;
+  const polar = !Number.isFinite(horizon) || horizon <= 0 || horizon >= 180;
+  if (polar) {
+    // Do not invent a sunrise or sunset when none occurs at this latitude.
+    const at = bodyPosition(solar.altitude, angle);
+    return { ...solar, polar, day: solar.altitude >= -.833,
+      sun: { x: at.x / 100, height: clamp((27 - at.y) / 20.5, 0, 1) },
+      moon: arcPosition(((angle + 360) % 360) / 360), sunProgress: .5, moonProgress: .5 };
+  }
+  const sunProgress = (angle + horizon) / (2 * horizon);
+  const moonProgress = ((angle - horizon + 360) % 360) / (360 - 2 * horizon);
+  return { ...solar, polar, day: Math.abs(angle) <= horizon,
+    sun: arcPosition(sunProgress), moon: arcPosition(moonProgress), sunProgress, moonProgress };
 }
 
 const element = (name, attributes = {}) => {
@@ -133,125 +126,132 @@ const STARS = Array.from({ length: 34 }, (_unused, index) => {
 
 let root = null;
 let parts = null;
+let observer = null;
+let lastInput = null;
+let serial = 0;
 
 function build(container) {
-  const svg = element('svg', {
-    class: 'sky',
-    viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
-    preserveAspectRatio: 'xMidYMid slice',
-    'aria-hidden': 'true',
-    focusable: 'false',
-  });
-
-  const defs = element('defs');
-  const gradient = element('linearGradient', { id: 'skyGradient', x1: '0', y1: '0', x2: '0', y2: '1' });
-  const stopTop = element('stop', { offset: '0%' });
-  const stopBottom = element('stop', { offset: '100%' });
-  gradient.append(stopTop, stopBottom);
-
-  // The light pooling around whichever body is up, which is what actually sells sunrise and sunset.
-  const halo = element('radialGradient', { id: 'skyHalo' });
-  const haloInner = element('stop', { offset: '0%', 'stop-opacity': '0.85' });
-  const haloOuter = element('stop', { offset: '100%', 'stop-opacity': '0' });
-  halo.append(haloInner, haloOuter);
-  defs.append(gradient, halo);
-
-  const background = element('rect', { width: WIDTH, height: HEIGHT, fill: 'url(#skyGradient)' });
-  const starField = element('g', { class: 'sky-stars' });
+  const id = `prayerSky${++serial}`;
+  const svg = element('svg', { class: 'sky', viewBox: '0 0 100 70',
+    'aria-hidden': 'true', focusable: 'false' });
+  // Geometry is normalized to the actual card dimensions, keeping discs round at every width.
+  svg.innerHTML = `<defs>
+    <linearGradient id="${id}sky" x2="0" y2="1"><stop offset="0"/><stop offset=".65"/><stop offset="1"/></linearGradient>
+    <radialGradient id="${id}halo"><stop stop-color="#fff6d1" stop-opacity=".8"/><stop offset=".24" stop-color="#ffd6a0" stop-opacity=".35"/><stop offset="1" stop-color="#ffc28a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="${id}moon"><stop stop-color="#d0e6ff" stop-opacity=".4"/><stop offset=".3" stop-color="#bad5ff" stop-opacity=".12"/><stop offset="1" stop-color="#aac9ef" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${id}beam" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fffbe4" stop-opacity="0"/><stop offset=".38" stop-color="#fff4d0" stop-opacity=".22"/><stop offset=".68" stop-color="#ffeac1" stop-opacity=".12"/><stop offset="1" stop-color="#ffe6b6" stop-opacity="0"/></linearGradient>
+    <radialGradient id="${id}daylight" gradientUnits="userSpaceOnUse" r="65"><stop stop-color="#fff5d9" stop-opacity=".24"/><stop offset=".4" stop-color="#fff1cf" stop-opacity=".11"/><stop offset="1" stop-color="#ffe6bf" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${id}veil" x2="0" y2="1"><stop stop-color="#071728" stop-opacity="0"/><stop offset="1" stop-color="#061726" stop-opacity=".96"/></linearGradient>
+    <filter id="${id}soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.1"/></filter>
+    <clipPath id="${id}clip"><rect width="100"/></clipPath>
+  </defs>
+  <rect class="sky-backdrop" width="100" fill="url(#${id}sky)"/>
+  <g class="sky-stars"></g>
+  <g clip-path="url(#${id}clip)">
+    <g class="sky-daylight">
+      <rect class="sky-light-wash" width="100" fill="url(#${id}daylight)"/>
+      <g class="sky-ray-direction"><g class="sky-rays" fill="url(#${id}beam)" filter="url(#${id}soft)">${Array.from({ length: 7 }, (_, i) => `<path style="--ray-delay:-${i * 1.1}s"/>`).join('')}</g></g>
+    </g>
+    <path class="sky-orbit" fill="none" stroke="#fff3d5" stroke-opacity=".16" stroke-width=".2" stroke-dasharray=".5 1.6"/>
+    <g class="sky-sun-position"><g class="sky-aura"><circle r="19" fill="url(#${id}halo)"/></g>
+      <circle class="sky-corona" r="4.4" fill="#fff3cf" opacity=".18"/>
+      <circle class="sky-sun-disc" r="3.3" fill="#fff4cf"/>
+    </g>
+    <g class="sky-moon-position"><g class="sky-moon-glow"><circle r="13" fill="url(#${id}moon)"/></g>
+      <path d="M1.2-3.5A3.8 3.8 0 1 0 3.6 1.8A3.4 3.4 0 0 1 1.2-3.5Z" fill="#e8f2ff"/>
+      <path d="M1.2-3.5A3.8 3.8 0 0 0-2.8 2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width=".2"/>
+    </g>
+    <g class="sky-haze" fill="#ffe6cd" opacity=".16"><path d="M-10 0Q9-2 24 0T66 0T112 0L112 1Q80 3 55 1T-10 2Z"/><path d="M-5 6Q20 4 43 6T110 5V6Q70 9 42 7T-5 8Z" opacity=".55"/></g>
+  </g>
+  <path class="sky-ridge-far"/>
+  <path class="sky-ridge-near"/>
+  <rect class="sky-veil" width="100" fill="url(#${id}veil)"/>`;
+  const find = selector => svg.querySelector(selector);
+  const starField = find('.sky-stars');
   for (const star of STARS) {
-    const dot = element('circle', { cx: star.x.toFixed(2), cy: star.y.toFixed(2), r: star.r, fill: '#ffffff' });
-    dot.style.setProperty('--twinkle-delay', `${star.delay}s`);
+    const dot = element('circle', { cx: star.x, cy: star.y, r: star.r * .25, fill: '#f4f3e7' });
+    dot.style.setProperty('--twinkle-delay', `-${star.delay}s`);
     starField.append(dot);
   }
-
-  const glow = element('circle', { r: 22, fill: 'url(#skyHalo)' });
-  const rays = element('g', { class: 'sky-rays' });
-  for (let index = 0; index < 12; index += 1) {
-    rays.append(element('rect', {
-      x: -0.32, y: -9.4, width: 0.64, height: 4.4, rx: 0.32,
-      transform: `rotate(${index * 30})`,
-    }));
-  }
-  const body = element('circle', { r: 4 });
-  const moonShadow = element('path', { fill: 'rgba(8,16,30,0.92)' });
-  const bodyGroup = element('g', { class: 'sky-body' });
-  bodyGroup.append(rays, body, moonShadow);
-
-  // A soft band rather than a drawn line: a hard horizon in a card this small reads as a seam.
-  const horizon = element('rect', { x: 0, y: HORIZON_Y, width: WIDTH, height: HEIGHT - HORIZON_Y, fill: 'rgba(3,10,20,0.34)' });
-
-  svg.append(defs, background, starField, glow, horizon, bodyGroup);
   container.prepend(svg);
-  return { svg, stopTop, stopBottom, haloInner, haloOuter, starField, glow, bodyGroup, body, rays, moonShadow };
+  return { svg, stops: [...find('linearGradient').children], background: find('.sky-backdrop'),
+    starField, clip: find('clipPath rect'), orbit: find('.sky-orbit'), sun: find('.sky-sun-position'),
+    moon: find('.sky-moon-position'), haze: find('.sky-haze'), far: find('.sky-ridge-far'),
+    near: find('.sky-ridge-near'), veil: find('.sky-veil'), daylight: find('.sky-daylight'),
+    lightWash: find('.sky-light-wash'), lightGradient: find(`#${id}daylight`),
+    rayDirection: find('.sky-ray-direction'), rays: [...svg.querySelectorAll('.sky-rays path')] };
 }
 
-/**
- * Draws the sky for a place and a moment. Safe to call as often as the countdown ticks: it only
- * writes attributes, and the values change slowly enough that most ticks change nothing visible.
- */
 export function renderSky(container, { latitude, longitude, now = new Date() } = {}) {
-  if (!container) return null;
+  if (!container || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
   if (!root || !container.contains(root)) {
+    resetSky();
     parts = build(container);
     root = parts.svg;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => { if (lastInput) renderSky(container, lastInput); });
+      observer.observe(container);
+    }
   }
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-
-  const { altitude, hourAngle } = solarPosition(latitude, longitude, now);
-  const palette = skyPalette(altitude);
-  const { x, y } = bodyPosition(altitude, hourAngle);
-
-  parts.stopTop.setAttribute('stop-color', palette.top);
-  parts.stopBottom.setAttribute('stop-color', palette.bottom);
-  parts.haloInner.setAttribute('stop-color', palette.glow);
-  parts.haloOuter.setAttribute('stop-color', palette.glow);
-
-  // Night is the sun below civil twilight; the stars arrive across that boundary rather than at it.
-  const night = clamp((-altitude - 2) / 10, 0, 1);
-  parts.starField.style.opacity = night.toFixed(3);
-
-  const isNight = altitude < -2;
-  if (isNight) {
-    // The moon is opposite the sun, roughly: this puts it on the other side of the sky, which is
-    // where it is for most of the month and always is at full. A real lunar ephemeris would be
-    // several hundred lines to move it by a few degrees on a card this size.
-    const moonHourAngle = hourAngle > 0 ? hourAngle - 180 : hourAngle + 180;
-    const moon = moonIllumination(now);
-    const at = bodyPosition(Math.max(8, 46 - Math.abs(moonHourAngle) / 2.4), moonHourAngle);
-    parts.glow.setAttribute('cx', at.x);
-    parts.glow.setAttribute('cy', at.y);
-    parts.glow.setAttribute('r', 13);
-    parts.bodyGroup.setAttribute('transform', `translate(${at.x} ${at.y})`);
-    parts.body.setAttribute('r', 3.2);
-    parts.body.setAttribute('fill', '#eef3fb');
-    parts.rays.style.display = 'none';
-    parts.moonShadow.style.display = '';
-    parts.moonShadow.setAttribute('d', moonShadowPath(0, 0, 3.2, moon.phase, moon.waxing));
-  } else {
-    parts.glow.setAttribute('cx', x);
-    parts.glow.setAttribute('cy', y);
-    parts.glow.setAttribute('r', 22);
-    parts.bodyGroup.setAttribute('transform', `translate(${x} ${y})`);
-    parts.body.setAttribute('r', 4);
-    parts.body.setAttribute('fill', altitude < 6 ? '#ffd39a' : '#fff6d8');
-    parts.rays.style.display = '';
-    parts.moonShadow.style.display = 'none';
-  }
-
-  // The reader's motion preference decides whether anything moves at all. Still means a sky that is
-  // correct and completely static, which is the right answer for someone who asked for that.
-  const motion = document.documentElement.classList.contains('reduce-motion')
-    ? 'still'
-    : getArtMotionPreference();
+  lastInput = { latitude, longitude, now };
+  const state = skyState(latitude, longitude, now);
+  const palette = skyPalette(state.altitude);
+  const width = container.clientWidth || 360;
+  const height = (container.clientHeight || 300) / width * 100;
+  const labelTop = container.querySelector('.prayer-next-label')?.offsetTop;
+  const horizon = Math.max(12, labelTop > 0 ? (labelTop - 14) / width * 100 : height - 90 / width * 100);
+  const peak = 30 / width * 100;
+  const radiusScale = clamp(400 / width, .5, 1);
+  root.setAttribute('viewBox', `0 0 100 ${height}`);
+  parts.background.setAttribute('height', height);
+  parts.stops.forEach((stop, i) => stop.setAttribute('stop-color', [palette.top, palette.bottom, palette.glow][i]));
+  parts.clip.setAttribute('height', horizon);
+  parts.orbit.setAttribute('d', `M8 ${horizon}A42 ${horizon - peak} 0 0 1 92 ${horizon}`);
+  parts.orbit.style.opacity = state.polar ? '0' : '.8';
+  parts.starField.style.opacity = clamp((-state.altitude - 1) / 13, 0, 1);
+  [...parts.starField.children].forEach((dot, i) => dot.setAttribute('cy', STARS[i].y / 26 * horizon));
+  const place = (node, point) => node.setAttribute('transform',
+    `translate(${point.x * 100} ${horizon - point.height * (horizon - peak)}) scale(${radiusScale})`);
+  const sunHeight = state.polar ? state.sun.height
+    : Math.sin(Math.PI * clamp(state.sunProgress, -.1, 1.1));
+  place(parts.sun, { ...state.sun, height: sunHeight });
+  place(parts.moon, state.moon);
+  // Sunlight lives in the sky behind the disc. Broad, off-frame shafts never converge into a
+  // spotlight at its centre; their angle and wash follow the clock while intensity gently varies.
+  parts.lightWash.setAttribute('height', horizon);
+  parts.lightGradient.setAttribute('cx', state.sun.x * 100);
+  parts.lightGradient.setAttribute('cy', horizon - sunHeight * (horizon - peak));
+  parts.rayDirection.setAttribute('transform', `rotate(${(state.sun.x - .5) * 60} 50 ${horizon / 2})`);
+  const offsets = [-45, -20, 4, 32, 63, 94, 122];
+  parts.rays.forEach((ray, i) => {
+    const x = offsets[i], spread = 12 + (i % 3) * 4;
+    ray.setAttribute('d', `M${x} -35Q${x-4} ${horizon*.4} ${x-8} ${horizon+35}H${x+spread}Q${x+spread-3} ${horizon*.4} ${x+spread-5} -35Z`);
+  });
+  parts.daylight.style.opacity = clamp((state.altitude + 3) / 14, 0, 1);
+  // Independent bodies: each goes below the clipped horizon instead of turning into the other.
+  parts.sun.style.opacity = state.polar ? (state.day ? '1' : '0')
+    : clamp(Math.min(1 + state.sunProgress / .04, 1 + (1 - state.sunProgress) / .04), 0, 1);
+  parts.moon.style.opacity = state.day ? '0'
+    : state.polar ? '1' : clamp(Math.min(state.moonProgress, 1 - state.moonProgress) / .035, 0, 1);
+  parts.haze.setAttribute('transform', `translate(0 ${horizon * .68})`);
+  parts.far.setAttribute('d', `M0 ${horizon+1}Q12 ${horizon-3} 27 ${horizon+1}T58 ${horizon}T100 ${horizon-1}V${height}H0Z`);
+  parts.near.setAttribute('d', `M0 ${horizon+4}Q20 ${horizon+1} 40 ${horizon+5}T75 ${horizon+3}T100 ${horizon+4}V${height}H0Z`);
+  parts.far.setAttribute('fill', mixHex(palette.bottom, '#10283b', .7));
+  parts.near.setAttribute('fill', mixHex(palette.top, '#061621', .84));
+  parts.veil.setAttribute('y', horizon - 5);
+  parts.veil.setAttribute('height', height - horizon + 5);
+  parts.svg.querySelector('.sky-sun-disc').setAttribute('fill', state.altitude < 8 ? '#ffda9b' : '#fff7dd');
+  const motion = document.documentElement.classList.contains('reduce-motion') ? 'still' : getArtMotionPreference();
   root.classList.toggle('sky-static', motion === 'still');
   root.classList.toggle('sky-full', motion === 'full');
-  root.dataset.phase = isNight ? 'night' : altitude < 6 ? 'golden' : 'day';
-
-  return { altitude, hourAngle, isNight, palette };
+  root.dataset.phase = !state.day ? 'night' : state.altitude < 8 ? 'golden' : 'day';
+  return { ...state, isNight: !state.day, palette };
 }
 
-/** Drops the built SVG, so a card that is rebuilt does not leave an orphan behind. */
 export function resetSky() {
+  observer?.disconnect();
+  observer = null;
+  lastInput = null;
   root?.remove();
   root = null;
   parts = null;
