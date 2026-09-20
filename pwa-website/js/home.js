@@ -1,4 +1,5 @@
 import { state } from './state.js';
+import { setScreen } from './seo.js';
 import { els } from './dom.js';
 import { escapeHtml } from './utils.js';
 import { applyFilters, shouldUseFavouriteFilter } from './filters.js';
@@ -159,14 +160,12 @@ export function showAdvancedDashboard() {
   els.searchInput.value = '';
   applySettings();
   filterList();
-  els.screenTitle.textContent = 'Fortress of Muslim';
-  els.screenSubtitle.textContent = 'Supplications and remembrances';
+  setScreen('Fortress of Muslim', 'Supplications and remembrances');
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 export function applyAdvancedTitle() {
-  els.screenTitle.textContent = groupLabel(state.advancedFilter);
-  els.screenSubtitle.textContent = subtitleForFilter(state.advancedFilter);
+  setScreen(groupLabel(state.advancedFilter), subtitleForFilter(state.advancedFilter));
   updateAdvancedNavActive();
 }
 

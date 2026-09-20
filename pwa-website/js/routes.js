@@ -3,6 +3,7 @@ import { openEntry } from './reader.js';
 import { activateHadith, openCanonicalHadith } from './hadith.js';
 import { setContentMode } from './modes.js';
 import { openSurah } from './quran.js';
+import { setCanonical } from './seo.js';
 
 /**
  * Opens a canonical Fortress path in the app. Called on load for the current URL, and by a citation
@@ -11,6 +12,9 @@ import { openSurah } from './quran.js';
  */
 export async function openCanonicalRoute(pathname = location.pathname) {
   const path = decodeURI(pathname).replace(/\/+$/, '') || '/';
+  // Every route is served the same HTML by a catch-all rewrite, so without this each one claims to
+  // be the homepage and a crawler is told they are all the same page.
+  setCanonical(path);
   const hadith = path.match(/^\/([a-z0-9-]+)\/book([^/]+)\/([^/]+)$/i);
   if (hadith) {
     setContentMode('hadith');

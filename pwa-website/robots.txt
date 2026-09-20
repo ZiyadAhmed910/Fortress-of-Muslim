@@ -1,0 +1,21 @@
+# Fortress of Muslim -- https://fortressofmuslim.org
+#
+# The whole public app is open to crawlers. What is excluded below is not secret; it is
+# machinery that would waste crawl budget or produce duplicate, contentless results.
+
+User-agent: *
+Allow: /
+
+# The service worker, the offline data files and the app's own modules are fetched by the app,
+# never read by a person. Indexing them produces results that are pure JSON or JavaScript.
+Disallow: /sw.js
+Disallow: /js/
+Disallow: /css/
+Disallow: /data/
+Disallow: /assets/
+
+# Deployment leftovers. The server denies these outright; saying so here stops crawlers asking.
+Disallow: /test/
+Disallow: /tools/
+
+Sitemap: https://fortressofmuslim.org/sitemap.xml
