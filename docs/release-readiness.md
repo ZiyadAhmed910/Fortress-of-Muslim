@@ -70,14 +70,18 @@ migration to an empty database, applies the bundle on top with foreign keys **on
 transaction, and compares every table against the source environment. A bundle that passes has been
 applied in full under the conditions production will apply it in. Run it before every provisioning.
 
-### Automating it
+### Why this stays manual
 
-Applying the bundle is currently a manual step run from a machine that has the corpus, which means
-production content provisioning does not survive that machine. The intended end state is the bundle
-in private object storage that the production workflow fetches with the credentials it already has,
-keeping the corpus out of the public repository while making the deploy reproducible. **R2 is not
-enabled on the account** -- `wrangler r2 bucket list` returns "Please enable R2 through the
-Cloudflare Dashboard" -- so that is a one-time dashboard step before this can be wired up.
+Migrations run on every deploy; the bundle is applied once, when an environment is first stood up,
+and again only when the corpus itself changes. That is not a per-deploy step, so it does not need
+per-deploy machinery, and wiring private object storage into the production workflow to automate a
+once-in-a-long-while action would add a service dependency the platform does not otherwise have.
+
+The real risk is not that applying it is manual -- it is that the corpus lives in one place. Keep
+`sunnah-data-fast-do-not-deploy/` backed up somewhere durable, the way `.fortress-backups/` already
+holds database snapshots. A generated bundle can always be rebuilt from an environment that has the
+corpus, and `build-content-bundle.mjs --from=fortress-platform-production` will do exactly that once
+production is populated -- so after the first provisioning, production is itself a second copy.
 
 ## Required Checks
 
