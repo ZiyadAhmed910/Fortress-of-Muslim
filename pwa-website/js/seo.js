@@ -19,6 +19,21 @@ const DEFAULT_DESCRIPTION = els.app
 const descriptionTag = () => document.querySelector('meta[name="description"]');
 
 /**
+ * Keeps every environment that is not production out of the index.
+ *
+ * test.fortressofmuslim.org serves the same files from the same public host, which makes it a
+ * complete copy of the site competing with the site. The canonical link already points at
+ * production, but canonical is a hint; noindex is not. Applied at runtime because both
+ * environments are the same build -- there is no deploy-time switch to hang it on.
+ */
+function markNonProductionNoindex() {
+  if (location.hostname === 'fortressofmuslim.org' || location.hostname === 'localhost') return;
+  const robots = document.querySelector('meta[name="robots"]');
+  if (robots) robots.content = 'noindex, nofollow';
+}
+markNonProductionNoindex();
+
+/**
  * Sets the on-screen heading and, with it, the document title and description.
  *
  * `subtitle` does double duty deliberately: on screen it is the line under the heading, and in the
