@@ -21,9 +21,13 @@ const STAGE_LABELS = {
 };
 // What the server accepts, and about two turns further back than a follow-up usually reaches.
 const HISTORY_TURNS = 4;
+/** How near the bottom still counts as reading the newest turn, in pixels. */
+const STICK_TOLERANCE = 80;
 
 /** Every turn asked in this conversation. Cleared by "New conversation", never persisted. */
 let conversation = [];
+/** The markup each turn was last drawn with, so a re-render can touch only what changed. */
+let rendered = [];
 /** Whether the thread should keep scrolling to the newest turn -- false once the reader scrolls up. */
 let followingLatest = true;
 
@@ -59,9 +63,13 @@ export function initAssistant() {
   els.assistantReset.addEventListener('click', resetConversation);
   els.assistantResult.addEventListener('scroll', () => {
     const thread = els.assistantResult;
-    // A small tolerance: "at the bottom" has to survive sub-pixel heights and a growing answer.
-    followingLatest = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 48;
+    followingLatest = shouldStickToBottom(thread.scrollTop, thread.scrollHeight, thread.clientHeight);
   }, { passive: true });
+  // Sending must not take the caret out of the box. Tapping the button blurs the textarea, which on
+  // a phone closes the soft keyboard, and closing it resizes the visual viewport under the answer --
+  // then something refocuses and it all happens again in reverse. Preventing the default on
+  // pointerdown leaves focus where it is; the click still fires and still submits.
+  els.assistantSubmit.addEventListener('pointerdown', (event) => event.preventDefault());
   els.assistantForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const question = els.assistantQuestion.value.trim();
@@ -99,12 +107,20 @@ export function initAssistant() {
     } finally {
       els.assistantSubmit.disabled = false;
       updatePlaceholder();
-      els.assistantQuestion.focus();
     }
+    // Deliberately no focus() here. It used to run when the answer finished, seconds after the
+    // question was sent -- which on a phone reopened a keyboard the reader had watched close, and
+    // shoved the layout up as the answer landed. Focus never leaves the box now, so there is
+    // nothing to restore.
   });
   updatePlaceholder();
   fitAssistantHeight();
   window.addEventListener('resize', fitAssistantHeight);
+  // The soft keyboard is not a window resize: on a phone `innerHeight` does not change when it
+  // opens, and only the visual viewport reports it. Without this the composer sits behind the
+  // keyboard on iOS.
+  window.visualViewport?.addEventListener('resize', fitAssistantKeyboard);
+  window.visualViewport?.addEventListener('scroll', fitAssistantKeyboard);
 }
 
 function insertNewline() {
@@ -134,6 +150,52 @@ export function fitAssistantHeight() {
   const top = Math.round(home.getBoundingClientRect().top);
   home.style.position = '';
   document.documentElement.style.setProperty('--ask-top', `${top}px`);
+  fitAssistantKeyboard();
+}
+
+/**
+ * How much of the layout viewport something is covering from the bottom -- in practice, the soft
+ * keyboard. Pure so the arithmetic can be checked without a phone: `window.innerHeight` is the
+ * layout viewport, which a keyboard does not change on iOS, and the visual viewport is the part
+ * still visible above it.
+ */
+export function keyboardInset(innerHeight, viewport) {
+  if (!viewport) return 0;
+  return Math.max(0, Math.round(innerHeight - viewport.height - viewport.offsetTop));
+}
+
+/**
+ * Keeps the bottom of the chat column above the keyboard, and the newest turn in view while it
+ * appears. Separate from fitAssistantHeight because this runs on every visual-viewport event and
+ * must not force the reflow that measuring --ask-top does.
+ */
+function fitAssistantKeyboard() {
+  const home = els.assistantHome;
+  if (!home || home.hidden) return;
+  document.documentElement.style.setProperty('--ask-bottom', `${keyboardInset(window.innerHeight, window.visualViewport)}px`);
+  if (followingLatest) pinToLatest();
+}
+
+/**
+ * Whether the thread should follow what is being written. A chat pins itself to the newest message,
+ * but only for a reader who is already there -- yanking the view down while someone is scrolled up
+ * reading an earlier answer is worse than not following at all. The tolerance is what "at the
+ * bottom" has to survive: sub-pixel heights, and another word of the answer arriving between the
+ * scroll and the measurement.
+ */
+export function shouldStickToBottom(scrollTop, scrollHeight, clientHeight, tolerance = STICK_TOLERANCE) {
+  return scrollHeight - scrollTop - clientHeight <= tolerance;
+}
+
+/**
+ * Scrolls the thread to the newest turn. Instantly, on purpose: a smooth scroll here is an
+ * animation, and an animation reports every frame of itself back through the scroll listener as
+ * though the reader had scrolled away -- which switched following off mid-answer and left the
+ * thread wherever the next re-render had dropped it.
+ */
+function pinToLatest() {
+  const thread = els.assistantResult;
+  thread.scrollTo({ top: thread.scrollHeight, behavior: 'instant' });
 }
 
 /** Grows the composer to fit what is typed, up to the max-height the stylesheet sets. */
@@ -147,6 +209,7 @@ const currentSources = () => conversation.flatMap((turn) => turn.sources || []);
 
 function resetConversation() {
   conversation = [];
+  rendered = [];
   followingLatest = true;
   els.assistantResult.innerHTML = '';
   updatePlaceholder();
@@ -220,22 +283,42 @@ async function streamAnswer(question, filters, history, turn) {
   render();
 }
 
+/**
+ * Draws the conversation, rewriting only the turns whose markup actually changed -- which during an
+ * answer means the last one and nothing else.
+ *
+ * It used to replace the whole thread on every stream event. An answer arrives in dozens of those,
+ * and each one reset the thread's scroll position to the top, threw away any source a reader had
+ * opened on an earlier turn, and made the browser re-parse the entire conversation for one more
+ * word. The longer the conversation, the worse all three got -- which is exactly when a reader is
+ * most likely to have scrolled somewhere they wanted to stay.
+ */
 function render() {
-  els.assistantResult.innerHTML = conversation.map(renderTurn).join('');
+  const thread = els.assistantResult;
+  while (thread.children.length > conversation.length) thread.lastElementChild.remove();
+  rendered.length = conversation.length;
+  conversation.forEach((turn, index) => {
+    const html = renderTurn(turn);
+    if (rendered[index] === html) return;
+    rendered[index] = html;
+    let section = thread.children[index];
+    if (!section) {
+      section = document.createElement('section');
+      section.className = 'assistant-turn';
+      section.setAttribute('aria-label', `Question ${index + 1}`);
+      thread.append(section);
+    }
+    section.innerHTML = html;
+  });
   // Offered as soon as one question has been answered -- it used to wait for a second, by which
   // point a reader wanting to start over had already scrolled looking for it.
   els.assistantReset.hidden = !conversation.some((turn) => !turn.stage);
-  // Keep the newest turn in view as it streams, the way a chat does -- but only while the reader is
-  // already at the bottom. Yanking the view back while someone is scrolled up reading an earlier
-  // answer is worse than not following at all.
-  const thread = els.assistantResult;
-  if (followingLatest) thread.scrollTop = thread.scrollHeight;
+  if (followingLatest) pinToLatest();
 }
 
-function renderTurn(turn, index) {
+function renderTurn(turn) {
   const streaming = turn.stage === 'writing' && turn.answer;
   return `
-    <section class="assistant-turn" aria-label="Question ${index + 1}">
       <p class="assistant-question">${escapeHtml(turn.question)}${turn.scope === 'quran' ? ' <span class="assistant-scope">Quran</span>' : ''}</p>
       ${turn.error ? `<div class="empty-state">${escapeHtml(turn.error)}</div>` : ''}
       ${turn.stage && !turn.answer ? `
@@ -248,7 +331,6 @@ function renderTurn(turn, index) {
       ${unverifiedNote(turn.meta)}
       ${!turn.stage && typeof turn.meta.remainingToday === 'number'
         ? `<p class="assistant-remaining">${turn.meta.remainingToday} questions remaining today on this connection.</p>` : ''}
-    </section>
   `;
 }
 
