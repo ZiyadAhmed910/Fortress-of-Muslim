@@ -1,7 +1,31 @@
 RewriteEngine On
+
+# The app owns three URL shapes, and only these are handed to it:
+#
+#   /quran/<surah>/<ayah>      a verse
+#   /hisn/chapter<n>           a dua
+#   /<collection>/book<b>/<n>  a hadith
+#
+# Anything else that is not a real file now 404s instead of being answered with the app shell.
+# A catch-all rewrite returns 200 and a page for every URL ever guessed at, which is a soft 404:
+# a crawler is told a page exists, indexes a shell with no content, and does it again for every
+# variation it invents. Saying "no" is what stops that.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.html [L]
+RewriteRule ^quran/[0-9]{1,3}/[0-9]{1,3}/?$ index.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^hisn/chapter[0-9]{1,4}/?$ index.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^[a-z0-9-]+/book[^/]+/[^/]+/?$ index.html [L]
+
+# The root itself, and nothing beyond it.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^$ index.html [L]
 
 # Development files must never be served from the public origin. Excluding them from the deploy
 # stops new uploads but cannot remove copies already on disk: once a path is excluded the FTP action

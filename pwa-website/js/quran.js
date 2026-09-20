@@ -1,4 +1,5 @@
 import { els } from './dom.js';
+import { setScreen } from './seo.js';
 import { searchVerses, versePrompt } from './quran-verse-search.js';
 import { state } from './state.js';
 import { escapeHtml, toast } from './utils.js';
@@ -402,8 +403,7 @@ export function showSurahList() {
   els.app.classList.remove('is-surah');
   els.quranReader.hidden = true;
   els.quranBrowse.hidden = false;
-  els.screenTitle.textContent = 'Quran';
-  els.screenSubtitle.textContent = 'Arabic with English translation - works offline';
+  setScreen('Quran', 'Arabic with English translation - works offline');
   renderQuranList();
 }
 
@@ -587,8 +587,7 @@ export async function openSurah(number, scrollToAyah = null) {
   els.app.classList.add('is-surah');
   els.quranBrowse.hidden = true;
   els.quranReader.hidden = false;
-  els.screenTitle.textContent = meta.nameSimple;
-  els.screenSubtitle.textContent = `${meta.nameEnglish} · ${meta.ayahCount} ayahs`;
+  setScreen(meta.nameSimple, `${meta.nameEnglish} · ${meta.ayahCount} ayahs`);
   els.quranReader.innerHTML = `<div class="empty-state">Loading ${escapeHtml(meta.nameSimple)}...</div>`;
   window.scrollTo({ top: 0, behavior: 'instant' });
 

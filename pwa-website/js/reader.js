@@ -1,4 +1,5 @@
 import { state } from './state.js';
+import { setScreen } from './seo.js';
 import { els } from './dom.js';
 import { escapeHtml, toast } from './utils.js';
 import { applyAdvancedTitle, filterList, showAdvancedDashboard } from './home.js';
@@ -17,8 +18,7 @@ export function showHome() {
     if (state.advancedListMode) {
       applyAdvancedTitle();
     } else {
-      els.screenTitle.textContent = 'Fortress of Muslim';
-      els.screenSubtitle.textContent = 'Supplications and remembrances';
+      setScreen('Fortress of Muslim', 'Supplications and remembrances');
     }
     return;
   }
@@ -29,15 +29,13 @@ export function showHome() {
     return;
   }
 
-  els.screenTitle.textContent = 'Fortress of Muslim';
-  els.screenSubtitle.textContent = 'Supplications and remembrances';
+  setScreen('Fortress of Muslim', 'Supplications and remembrances');
 }
 
 export function renderReader() {
   const entry = currentEntry();
   const part = entry.parts[state.currentPart];
-  els.screenTitle.textContent = `${entry.id}. ${entry.title}`;
-  els.screenSubtitle.textContent = `${state.currentPart + 1} of ${entry.parts.length}`;
+  setScreen(`${entry.id}. ${entry.title}`, `${state.currentPart + 1} of ${entry.parts.length}`, { inTitle: false });
   els.duaTitle.textContent = `${entry.id}. ${entry.title}`;
   els.partCount.textContent = `${state.currentPart + 1}/${entry.parts.length}`;
   els.readerFavouriteButton.textContent = state.favourites.has(entry.uid) ? '★' : '☆';
