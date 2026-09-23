@@ -69,7 +69,7 @@ Content is served from the canonical model:
 
 The original four tables (`dataset_versions`, `content_records`, `content_parts`, `content_segments`, migration 0001) are still present as the identity backbone the canonical tables reference, but they are no longer read to serve content; see `docs/project-overview.md` -> "Legacy tables still present".
 
-Canonical IDs are stable and readable, for example `dua.hisn.001`. A dua record is one of Hisn al-Muslim's 268 readings; the app's `/hisn/chapter<n>` pages are its 132 chapters, so a dua's link names the chapter that holds the reading (`apps/api/src/lib/hisn-chapters.ts`), not its reading number. Legacy IDs remain queryable for backward compatibility.
+Canonical IDs are stable and readable, for example `dua.hisn.001`. The app's `/hisn/chapter<n>` pages are Hisn al-Muslim's 132 chapters, and a dua's link is built from its record's number -- which is only right where the record is numbered by chapter. The environments differ here: test holds 268 reading-level records numbered by reading, production holds 135 chapter-level records numbered by chapter plus 133 reading-level ones (see README 0.49.2 and 0.49.4). Legacy IDs remain queryable for backward compatibility.
 
 The current JSON is a publishing input, not a runtime API database. The migration generator hashes the complete source and produces repeatable SQL. Database migrations run before each Worker deployment, so a Worker is never released against a missing schema.
 

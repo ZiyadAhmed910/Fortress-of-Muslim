@@ -181,6 +181,19 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.49.4
+
+_2026-09-24_
+
+- **Reverted 0.49.2's dua-link change.** It was right for test and wrong for production, whose
+  Hisn records are not numbered the same way. Test holds 268 reading-level records numbered by
+  reading; production holds 135 chapter-level records from the original dataset, numbered by chapter
+  (`dua.hisn.026` is the Istikharah chapter there), alongside 133 reading-level ones numbered 75-268.
+  The 0.49.2 table mapped every number as a reading, which moved production's chapter-level links to
+  the wrong chapter -- Istikharah went from `/hisn/chapter26` (right) to `/hisn/chapter15`. Found by
+  checking production after the deploy. Links are back to the 0.49.1 behaviour until a fix that
+  tells the two kinds of record apart.
+
 ### 0.49.3
 
 _2026-09-24_
@@ -1681,6 +1694,10 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — Ask links rolled back
+
+- The previous release's change to Ask's dua links is undone while it is reworked.
 
 ### Unreleased — documentation
 
