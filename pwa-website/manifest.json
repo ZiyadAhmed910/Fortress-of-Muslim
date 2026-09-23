@@ -41,5 +41,79 @@
     "books",
     "education",
     "lifestyle"
+  ],
+  "shortcuts": [
+    {
+      "name": "Prayer Times",
+      "short_name": "Prayer",
+      "description": "Today's prayer times and the next one",
+      "url": "./?screen=prayerTimes",
+      "icons": [
+        {
+          "src": "icons/shortcuts/prayer-times-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        },
+        {
+          "src": "icons/shortcuts/prayer-times-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Qibla",
+      "short_name": "Qibla",
+      "description": "The direction of the Kaaba from where you are",
+      "url": "./?screen=qibla",
+      "icons": [
+        {
+          "src": "icons/shortcuts/qibla-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        },
+        {
+          "src": "icons/shortcuts/qibla-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Tasbih",
+      "short_name": "Tasbih",
+      "description": "Open the dhikr counter",
+      "url": "./?screen=tasbih",
+      "icons": [
+        {
+          "src": "icons/shortcuts/tasbih-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        },
+        {
+          "src": "icons/shortcuts/tasbih-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Quran",
+      "short_name": "Quran",
+      "description": "Continue reading the Quran",
+      "url": "./?screen=quran",
+      "icons": [
+        {
+          "src": "icons/shortcuts/quran-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        },
+        {
+          "src": "icons/shortcuts/quran-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }

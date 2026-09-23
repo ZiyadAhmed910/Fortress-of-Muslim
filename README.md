@@ -174,6 +174,29 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.45.0
+
+_2026-09-23_
+
+- **Install shortcuts.** Long-pressing the installed app's icon (or right-clicking it on desktop,
+  where supported) now offers Prayer Times, Qibla, Tasbih and Quran directly, without landing on
+  the home screen first. Four rather than a menu of everything: the launcher gives shortcuts very
+  little room, and a long list is worse than a short one. Duas is deliberately not among them --
+  it is the screen the app already opens to, so a shortcut to it would be a shortcut to nothing.
+  - Each opens `./?screen=<name>`, handled at boot the same way the adhkar notification link
+    already is: acted on once, then stripped, so a reload is the plain app. Only screens listed in
+    `SHORTCUT_SCREENS` act -- the URL is handed over by the OS, and the app should respond only to
+    shortcuts it declared. Kept apart from `openCanonicalRoute`, which resolves content pages with
+    real canonical addresses; a tool is not a page.
+  - Each shortcut has its own icon, drawn from the same glyph the app's navigation uses for that
+    screen, in the brand's gold on teal (`tools/build-shortcut-icons.mjs`). Four copies of the logo
+    in a four-item menu would carry no information.
+  - Offline works: the service worker answers every navigation with the cached shell regardless of
+    query string.
+  - What cannot be verified here: whether shortcuts appear, how many are shown and how their icons
+    are cropped are decided per OS and browser. `test/shortcuts.test.js` covers everything on this
+    side of the launcher -- each URL opens a real screen, stays in scope, and has icons that exist.
+
 ### 0.44.0
 
 _2026-09-23_
@@ -1404,6 +1427,14 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — shortcuts from the app icon
+
+- Long-press the installed app's icon (or right-click on desktop, where supported) to jump
+  straight to Prayer Times, Qibla, Tasbih or the Quran.
+- Each shortcut has its own icon, matching the button for that screen inside the app.
+- Shortcuts work offline, like the rest of the app.
+- Whether the menu appears, and how it looks, depends on the phone or browser.
 
 ### Unreleased — see and clear what is saved offline
 

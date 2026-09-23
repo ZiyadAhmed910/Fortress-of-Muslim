@@ -10,6 +10,24 @@ import { setCanonical } from './seo.js';
  * that wants to open the record it points at -- the paths are identical, so a source is navigable
  * without a second implementation of what /bukhari/book1/1 means.
  */
+/**
+ * The screens an install shortcut may open, keyed by the value manifest.json puts in `?screen=`.
+ *
+ * Separate from openCanonicalRoute on purpose. That function resolves content URLs -- a verse, a
+ * dua, a hadith -- which are real pages with canonical addresses a search engine indexes. A shortcut
+ * is not a page; it is a way of arriving at a tool. Folding the two together would give Qibla and
+ * Tasbih canonical URLs that mean nothing to anyone but the launcher that asked for them.
+ *
+ * An allow-list rather than passing the value straight to setContentMode: a shortcut URL is
+ * something an OS hands the app, and the app should only act on the ones it declared.
+ */
+export const SHORTCUT_SCREENS = ['prayerTimes', 'qibla', 'tasbih', 'quran'];
+
+export function shortcutScreen(search = location.search) {
+  const screen = new URLSearchParams(search).get('screen');
+  return SHORTCUT_SCREENS.includes(screen) ? screen : null;
+}
+
 export async function openCanonicalRoute(pathname = location.pathname) {
   const path = decodeURI(pathname).replace(/\/+$/, '') || '/';
   // Every route is served the same HTML by a catch-all rewrite, so without this each one claims to
