@@ -67,8 +67,8 @@
     <meta name="twitter:image" content="https://fortressofmuslim.org/icons/social-card.png">
 
     <!-- Told once, here, rather than left for a crawler to infer: what this site is, that it is an
-         application rather than an article, and that it costs nothing. The SearchAction is what lets
-         a result carry its own search box. -->
+         application rather than an article, and that it costs nothing. (There was a SearchAction
+         here until 0.49.1; the app never handled /?q=, and Google retired the search box it was for.) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -79,12 +79,7 @@
           "url": "https://fortressofmuslim.org/",
           "name": "Fortress of Muslim",
           "description": "The Quran, authentic duas, hadith, prayer times and qibla. Free, ad-free, and works offline.",
-          "inLanguage": "en",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": { "@type": "EntryPoint", "urlTemplate": "https://fortressofmuslim.org/?q={search_term_string}" },
-            "query-input": "required name=search_term_string"
-          }
+          "inLanguage": "en"
         },
         {
           "@type": "WebApplication",

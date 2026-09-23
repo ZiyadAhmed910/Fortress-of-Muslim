@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T17:42:06.716Z",
+  "generatedAt": "2026-09-23T17:56:40.186Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -863,7 +863,7 @@
     },
     {
       "path": "pwa-website/edge/pages.js",
-      "lines": 113,
+      "lines": 117,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -871,7 +871,7 @@
     },
     {
       "path": "pwa-website/edge/worker.js",
-      "lines": 119,
+      "lines": 143,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1215,7 +1215,7 @@
     },
     {
       "path": "pwa-website/test/edge-pages.test.js",
-      "lines": 103,
+      "lines": 106,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1223,7 +1223,7 @@
     },
     {
       "path": "pwa-website/test/edge-worker.test.js",
-      "lines": 137,
+      "lines": 174,
       "language": "js",
       "exports": [],
       "imports": [],

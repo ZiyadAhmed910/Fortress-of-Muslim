@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-23T17:42:06.716Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-23T17:56:40.186Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -142,8 +142,8 @@ Not all of these are bugs; verify before assuming.
 | `apps/status/public/app.js` | js | 131 |  |  |
 | `packages/contracts/src/index.ts` | ts | 165 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +31 more |
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
-| `pwa-website/edge/pages.js` | js | 113 |  |  |
-| `pwa-website/edge/worker.js` | js | 119 |  |  |
+| `pwa-website/edge/pages.js` | js | 117 |  |  |
+| `pwa-website/edge/worker.js` | js | 143 |  |  |
 | `pwa-website/js/app.js` | js | 228 |  |  |
 | `pwa-website/js/art-motion.js` | js | 93 |  |  |
 | `pwa-website/js/assistant.js` | js | 393 |  |  |
@@ -186,8 +186,8 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
 | `pwa-website/test/deep-links.test.js` | js | 55 |  |  |
 | `pwa-website/test/dua-audio.test.js` | js | 134 |  |  |
-| `pwa-website/test/edge-pages.test.js` | js | 103 |  |  |
-| `pwa-website/test/edge-worker.test.js` | js | 137 |  |  |
+| `pwa-website/test/edge-pages.test.js` | js | 106 |  |  |
+| `pwa-website/test/edge-worker.test.js` | js | 174 |  |  |
 | `pwa-website/test/guide-and-tasbih.test.js` | js | 61 |  |  |
 | `pwa-website/test/hijri.test.js` | js | 120 |  |  |
 | `pwa-website/test/install-affordance.test.js` | js | 70 |  |  |

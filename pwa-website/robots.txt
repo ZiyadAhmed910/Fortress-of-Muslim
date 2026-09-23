@@ -1,21 +1,15 @@
 # Fortress of Muslim -- https://fortressofmuslim.org
 #
-# The whole public app is open to crawlers. What is excluded below is not secret; it is
-# machinery that would waste crawl budget or produce duplicate, contentless results.
+# Everything is open to crawlers, including the app's scripts, styles and data files. Search
+# engines render pages the way a browser does, and a page whose JavaScript and CSS they are not
+# allowed to fetch cannot be rendered: until 0.49.1 this file disallowed /js/, /css/, /data/ and
+# /assets/, which is the opposite of Google's guidance. The files themselves do not end up in
+# results -- they are not linked as pages and are not in the sitemap.
+#
+# Only production is indexed. The test site and the Cloudflare preview addresses answer with
+# X-Robots-Tag: noindex (pwa-website/edge/worker.js), so this file does not need to say so.
 
 User-agent: *
 Allow: /
-
-# The service worker, the offline data files and the app's own modules are fetched by the app,
-# never read by a person. Indexing them produces results that are pure JSON or JavaScript.
-Disallow: /sw.js
-Disallow: /js/
-Disallow: /css/
-Disallow: /data/
-Disallow: /assets/
-
-# Deployment leftovers. The server denies these outright; saying so here stops crawlers asking.
-Disallow: /test/
-Disallow: /tools/
 
 Sitemap: https://fortressofmuslim.org/sitemap.xml

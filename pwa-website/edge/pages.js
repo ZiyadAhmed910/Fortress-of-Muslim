@@ -45,7 +45,7 @@ async function duaPage(sequence, load) {
     title: `${entry.id}. ${entry.title}`,
     description: summary(translation ? `${entry.title}: ${translation}` : `${entry.title}, from Hisn al-Muslim.`),
     path: `/hisn/chapter${sequence}`,
-    body: `<h1>${escapeHtml(`${entry.id}. ${entry.title}`)}</h1>${entry.titleArabic ? arabic(entry.titleArabic) : ''}${body}`,
+    body: `<h2>${escapeHtml(`${entry.id}. ${entry.title}`)}</h2>${entry.titleArabic ? arabic(entry.titleArabic) : ''}${body}`,
   };
 }
 
@@ -63,7 +63,7 @@ async function versePage(surahNumber, ayahNumber, load) {
       title: name,
       description: summary(`${name}, ${surah.ayahCount} ayahs, revealed in ${place}. Arabic with English translation, tajweed and recitation. ${surah.ayahs[0].en}`),
       path: `/quran/${surahNumber}/1`,
-      body: `<h1>${escapeHtml(name)}</h1>${arabic(surah.nameArabic)}${surah.ayahs.map(ayah).join('')}`,
+      body: `<h2>${escapeHtml(name)}</h2>${arabic(surah.nameArabic)}${surah.ayahs.map(ayah).join('')}`,
     };
   }
   const item = surah.ayahs[ayahNumber - 1];
@@ -71,7 +71,7 @@ async function versePage(surahNumber, ayahNumber, load) {
     title: `Surah ${surah.nameSimple}, Ayah ${ayahNumber}`,
     description: summary(`${surah.nameSimple} ${surahNumber}:${ayahNumber} — ${item.en}`),
     path: `/quran/${surahNumber}/${ayahNumber}`,
-    body: `<h1>${escapeHtml(`Surah ${surah.nameSimple}, Ayah ${ayahNumber}`)}</h1>${ayah(item)}`,
+    body: `<h2>${escapeHtml(`Surah ${surah.nameSimple}, Ayah ${ayahNumber}`)}</h2>${ayah(item)}`,
   };
 }
 
@@ -107,6 +107,10 @@ export function applyPage(html, page) {
   out = replaceTag(out, /<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${url}">`);
   out = replaceTag(out, /<meta name="twitter:title" content="[^"]*">/, `<meta name="twitter:title" content="${title}">`);
   out = replaceTag(out, /<meta name="twitter:description" content="[^"]*">/, `<meta name="twitter:description" content="${description}">`);
+  // The page has one main heading, and it should name the page: the app header's <h1> said "Fortress
+  // of Muslim" on every URL, so it carries the page's title here (the app sets the same on start)
+  // and the text below uses <h2>.
+  out = replaceTag(out, /<h1 id="screenTitle">[^<]*<\/h1>/, `<h1 id="screenTitle">${escapeHtml(page.title)}</h1>`);
   out = replaceTag(out, /<main>/, `<main>\n        <article id="prerender" class="prerender">${page.body}</article>`);
   return out;
 }
