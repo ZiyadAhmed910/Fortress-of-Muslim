@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-23T12:59:34.161Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-23T13:38:08.348Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -119,7 +119,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/migrations/0009_operational_alerts.sql` | sql | 21 |  |  |
 | `apps/auth/migrations/0010_rate_limits.sql` | sql | 26 |  |  |
 | `apps/auth/migrations/0011_webhooks.sql` | sql | 32 |  |  |
-| `apps/auth/src/admin-plane.ts` | ts | 1112 | 26 | function requiresMfaEnrollment, function handleAdminPlane, function mediaStats |
+| `apps/auth/src/admin-plane.ts` | ts | 1112 | 27 | function requiresMfaEnrollment, function handleAdminPlane, function mediaStats |
 | `apps/auth/src/auth.ts` | ts | 117 |  | const FORTRESS_SCOPES, function createAuth |
 | `apps/auth/src/editorial-plane.ts` | ts | 2340 | 34 | type EditorialRole, function handleEditorialPlane, class EditorialForbiddenError |
 | `apps/auth/src/index.ts` | ts | 895 | 30 | class AuthWorker |
@@ -150,7 +150,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
 | `pwa-website/js/dom.js` | js | 178 |  |  |
-| `pwa-website/js/dua-audio.js` | js | 287 |  |  |
+| `pwa-website/js/dua-audio.js` | js | 292 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 160 |  |  |
 | `pwa-website/js/hijri.js` | js | 123 |  |  |
@@ -183,7 +183,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/card-labels.test.js` | js | 47 |  |  |
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
 | `pwa-website/test/deep-links.test.js` | js | 55 |  |  |
-| `pwa-website/test/dua-audio.test.js` | js | 129 |  |  |
+| `pwa-website/test/dua-audio.test.js` | js | 134 |  |  |
 | `pwa-website/test/guide-and-tasbih.test.js` | js | 61 |  |  |
 | `pwa-website/test/hijri.test.js` | js | 120 |  |  |
 | `pwa-website/test/install-affordance.test.js` | js | 70 |  |  |
@@ -206,6 +206,7 @@ Not all of these are bugs; verify before assuming.
 
 | Method | Path | Style | File:Line |
 | --- | --- | --- | --- |
+| (any) | `` | manual (pattern) | `apps/auth/src/admin-plane.ts:171` |
 | (any) | `` | manual (pattern) | `apps/auth/src/editorial-plane.ts:180` |
 | USE | `*` | hono | `apps/api/src/app.ts:35` |
 | USE | `*` | hono | `apps/api/src/app.ts:41` |

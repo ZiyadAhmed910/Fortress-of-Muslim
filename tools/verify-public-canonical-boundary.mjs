@@ -41,13 +41,13 @@ for (const path of tracked) {
 // would publish exactly what it exists to keep out of this public repository. Each tracked public
 // file is tokenised into words, and every run of one to three consecutive words is hashed and
 // compared. Adding a term: hash its lowercased, space-separated form and add the digest -- never the
-// term itself, not even in a comment or a commit message.
+// term itself, not even in a comment or a commit message. The dua reciter was on this list and was
+// removed when the owner approved crediting him by name (0.47.1); the provider is still here.
 const CONFIDENTIAL_TERM_HASHES = new Set([
   '742dcb49e852f3472f2d18da6f27acbfaeb963827fef7f601baacc03ee630999',
   '9a6637c8b69d94c1656807b030765eedc3742ed43501fa03e1a1def211b68ce1',
   '5732e92e70207a829445faac4427c76283c8940673d5850758cc01f4c0f12f96',
   'd5770819739940316d06f06fb4ecf7d868d93471a5c31bdd4c3f06536973b39e',
-  '9379283a6c3b3a4861485c2d78c969b9e4c3c12b0ae203fc2352b93b8c473a3a',
   '2ec8a707034df888ab5975b2c1d7337d967bbaa23948dd6c83f01603c440ab3b',
 ]);
 const CONFIDENTIAL_TERM_LENGTHS = new Set([6, 7, 9, 10, 14, 22]);

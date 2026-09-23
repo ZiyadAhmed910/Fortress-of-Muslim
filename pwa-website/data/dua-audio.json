@@ -1,6 +1,7 @@
 {
  "version": 1,
  "base": "https://media.fortressofmuslim.org",
+  "reciter": "Muhammad Jumah",
  "readings": {
   "dua-001": {
    "1": [

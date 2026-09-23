@@ -36,6 +36,11 @@ describe('the recording map', () => {
     }
   });
 
+  it('names the reciter, and only the reciter', () => {
+    expect(MAP.reciter).toBe('Muhammad Jumah');
+    expect(Object.keys(MAP).sort()).toEqual(['base', 'readings', 'reciter', 'version']);
+  });
+
   it('points every track at a versioned path on our own host', () => {
     expect(MAP.base).toBe('https://media.fortressofmuslim.org');
     for (const track of allTracks(MAP)) {
