@@ -25,7 +25,7 @@ import { initContentModes, setContentMode } from './modes.js';
 import { initPrayer } from './prayer.js';
 import { initReminders, openAdhkarFromNotification } from './reminders.js';
 import { initTasbih } from './tasbih.js';
-import { openCanonicalRoute } from './routes.js';
+import { openCanonicalRoute, shortcutScreen } from './routes.js';
 
 init();
 
@@ -73,6 +73,7 @@ async function init() {
     filterList();
     await openCanonicalRoute();
     openAdhkarFromNotificationUrl();
+    openScreenFromShortcutUrl();
   } catch (error) {
     els.resultCount.textContent = 'Content did not load';
     els.duaList.innerHTML = `
@@ -102,6 +103,16 @@ function openAdhkarFromNotificationUrl() {
   const category = new URLSearchParams(location.search).get('adhkar');
   if (!category) return;
   openAdhkarFromNotification(category);
+  history.replaceState(null, '', location.pathname);
+}
+
+// An install shortcut lands on ./?screen=qibla and friends (manifest.json). Handled exactly like
+// the notification link above: act on it once, then strip it, so a reload or a copied link is the
+// plain app rather than the shortcut being replayed.
+function openScreenFromShortcutUrl() {
+  const screen = shortcutScreen();
+  if (!screen) return;
+  setContentMode(screen);
   history.replaceState(null, '', location.pathname);
 }
 

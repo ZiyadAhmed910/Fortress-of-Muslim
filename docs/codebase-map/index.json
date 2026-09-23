@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T11:50:18.590Z",
+  "generatedAt": "2026-09-23T11:55:19.665Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -821,7 +821,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 205,
+      "lines": 216,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1005,7 +1005,7 @@
     },
     {
       "path": "pwa-website/js/routes.js",
-      "lines": 45,
+      "lines": 63,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1206,6 +1206,14 @@
     {
       "path": "pwa-website/test/reciters.test.js",
       "lines": 39,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/shortcuts.test.js",
+      "lines": 69,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3665,6 +3673,14 @@
         "apps/api/src/rag.ts",
         "apps/api/test/ask-quran-sources.test.ts",
         "pwa-website/js/pwa.js"
+      ]
+    },
+    {
+      "name": "openCanonicalRoute",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/routes.js"
       ]
     },
     {

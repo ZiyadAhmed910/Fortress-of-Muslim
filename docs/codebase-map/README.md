@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-23T11:50:18.590Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-23T11:55:19.665Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -138,7 +138,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/status/public/app.js` | js | 131 |  |  |
 | `packages/contracts/src/index.ts` | ts | 165 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +31 more |
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
-| `pwa-website/js/app.js` | js | 205 |  |  |
+| `pwa-website/js/app.js` | js | 216 |  |  |
 | `pwa-website/js/art-motion.js` | js | 93 |  |  |
 | `pwa-website/js/assistant.js` | js | 393 |  |  |
 | `pwa-website/js/categories.js` | js | 150 |  |  |
@@ -161,7 +161,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/quran.js` | js | 999 |  |  |
 | `pwa-website/js/reader.js` | js | 145 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
-| `pwa-website/js/routes.js` | js | 45 |  |  |
+| `pwa-website/js/routes.js` | js | 63 |  |  |
 | `pwa-website/js/seo.js` | js | 70 |  |  |
 | `pwa-website/js/settings.js` | js | 180 |  |  |
 | `pwa-website/js/sky.js` | js | 259 |  |  |
@@ -187,6 +187,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/quran-words.test.js` | js | 133 |  |  |
 | `pwa-website/test/reading-roles.test.js` | js | 101 |  |  |
 | `pwa-website/test/reciters.test.js` | js | 39 |  |  |
+| `pwa-website/test/shortcuts.test.js` | js | 69 |  |  |
 | `pwa-website/test/sky.test.js` | js | 232 |  |  |
 | `pwa-website/test/storage.test.js` | js | 163 |  |  |
 | `pwa-website/test/worship-nav.test.js` | js | 62 |  |  |
@@ -435,6 +436,7 @@ Not all of these are bugs; verify before assuming.
 | oauthRefreshToken | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/index.ts` |
 | oauthResource | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | one | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/api/test/ask-quran-sources.test.ts`, `pwa-website/js/pwa.js` |
+| openCanonicalRoute | unknown | `(not defined in scanned files)` | `pwa-website/js/routes.js` |
 | opening | unknown | `(not defined in scanned files)` | `pwa-website/js/quran.js` |
 | operational_alerts | table | `apps/auth/migrations/0009_operational_alerts.sql` | `apps/auth/src/admin-plane.ts` |
 | or | unknown | `(not defined in scanned files)` | `pwa-website/js/onboarding.js` |
