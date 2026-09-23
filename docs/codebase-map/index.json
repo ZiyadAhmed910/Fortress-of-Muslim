@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T17:56:40.186Z",
+  "generatedAt": "2026-09-23T18:58:36.806Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -49,6 +49,17 @@
         "type TitleCandidate",
         "type RankedTitle",
         "function rankDuaTitles"
+      ],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/src/lib/hisn-chapters.ts",
+      "lines": 25,
+      "language": "ts",
+      "exports": [
+        "const HISN_CHAPTER_BY_READING",
+        "function hisnChapterForReading"
       ],
       "imports": [],
       "routeCount": 0
@@ -189,7 +200,7 @@
     },
     {
       "path": "apps/api/src/repositories/d1-content-repository.ts",
-      "lines": 742,
+      "lines": 760,
       "language": "ts",
       "exports": [
         "class D1ContentRepository"
@@ -197,6 +208,7 @@
       "imports": [
         "@fortress/contracts",
         "../lib/fuzzy-title",
+        "../lib/hisn-chapters",
         "./content-repository"
       ],
       "routeCount": 0
@@ -341,6 +353,21 @@
         "node:fs",
         "node:path",
         "vitest"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/dua-canonical-url.test.ts",
+      "lines": 106,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/lib/hisn-chapters",
+        "../src/repositories/d1-content-repository"
       ],
       "routeCount": 0
     },
@@ -2709,6 +2736,7 @@
         "apps/api/src/rag.ts",
         "apps/api/test/ask-follow-up.test.ts",
         "apps/api/test/ask-policy.test.ts",
+        "apps/api/test/dua-canonical-url.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
         "apps/auth/src/admin-plane.ts",
@@ -2919,6 +2947,7 @@
       "referencedBy": [
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/dua-canonical-url.test.ts",
         "apps/api/test/publish-hadith-migration.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/api/test/record-query.test.ts",
@@ -3027,6 +3056,7 @@
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
+        "apps/api/test/dua-canonical-url.test.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/publish-hadith-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
@@ -3106,6 +3136,7 @@
       "referencedBy": [
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/dua-canonical-url.test.ts",
         "apps/api/test/reading-roles-migration.test.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/test/editorial-pilot.test.ts"
@@ -3138,6 +3169,7 @@
         "apps/api/src/lib/record-query.ts",
         "apps/api/src/rag.ts",
         "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/dua-canonical-url.test.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/publish-hadith-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
@@ -3202,6 +3234,7 @@
         "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/arabic-search.test.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/dua-canonical-url.test.ts",
         "apps/api/test/hadith-reference.test.ts",
         "apps/api/test/publish-hadith-migration.test.ts",
         "apps/api/test/rag-filters.test.ts",
@@ -4089,6 +4122,15 @@
       "referencedBy": []
     },
     {
+      "name": "pwa",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/api/src/lib/hisn-chapters.ts",
+        "apps/api/src/repositories/d1-content-repository.ts"
+      ]
+    },
+    {
       "name": "quran",
       "kind": "unknown",
       "definedIn": [],
@@ -4197,6 +4239,8 @@
         "apps/api/migrations/0003_canonical_knowledge.sql"
       ],
       "referencedBy": [
+        "apps/api/src/repositories/d1-content-repository.ts",
+        "apps/api/test/dua-canonical-url.test.ts",
         "apps/auth/src/editorial-plane.ts"
       ]
     },
@@ -4346,6 +4390,7 @@
       "definedIn": [],
       "referencedBy": [
         "apps/api/src/rag.ts",
+        "apps/api/test/dua-canonical-url.test.ts",
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/editorial-plane.ts",
         "apps/auth/src/index.ts",
@@ -4501,11 +4546,13 @@
         "apps/api/src/quran-search.ts",
         "apps/api/src/rag-intent.ts",
         "apps/api/src/rag.ts",
+        "apps/api/src/repositories/d1-content-repository.ts",
         "apps/api/test/ask-citations.test.ts",
         "apps/api/test/ask-policy.test.ts",
         "apps/api/test/ask-quran-sources.test.ts",
         "apps/api/test/ask-scope.test.ts",
         "apps/api/test/canonical-withdrawal.test.ts",
+        "apps/api/test/dua-canonical-url.test.ts",
         "apps/api/test/publish-hadith-migration.test.ts",
         "apps/api/test/quran-search.test.ts",
         "apps/api/test/search-aliases.test.ts",
