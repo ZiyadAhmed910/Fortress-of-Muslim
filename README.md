@@ -174,6 +174,29 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.44.0
+
+_2026-09-23_
+
+- **You can see what the app has saved, and free it one piece at a time.** Settings > Data now
+  lists each thing stored on the device -- Quran recitation, Quran text, and the app's own files --
+  with its size, and a Clear for each one that can safely go. Before this the three caches the
+  service worker fills were invisible, and the only way to free a few hundred megabytes of
+  downloaded recitation was to clear all site data from the browser, which also wiped favourites,
+  settings and reading position. There is deliberately no "clear everything": each action says
+  what it will remove and nothing else. The app files are listed but not clearable -- without them
+  the app does not open offline, and they are replaced on every update anyway.
+  - `js/storage.js` measures from `Content-Length` rather than reading every body, because the
+    audio cache can hold thousands of ayahs; it uses `caches.has()` before looking so that measuring
+    never creates an empty cache; and `clearCache()` refuses any name it does not list as clearable,
+    so the app shell cannot be deleted by passing the wrong string.
+  - The total comes from `navigator.storage.estimate()` and is hidden where that does not exist
+    (older Safari) rather than shown as a guess. The per-cache lines do not depend on it.
+  - `sw.js` is a classic worker and cannot import the module, so the cache names are written in
+    both. `test/storage.test.js` reads `sw.js` and fails if they drift -- which matters, because
+    the worker deletes every cache it does not recognise on activate, and a drifted name would
+    make downloads silently vanish on the next deploy.
+
 ### 0.43.0
 
 _2026-09-20_
@@ -1381,6 +1404,16 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — see and clear what is saved offline
+
+- Settings > Data shows how much space the app uses, with each saved thing on its own line:
+  Quran recitation, Quran text, and the app's own files.
+- Recitation and Quran text each have their own Clear. Clearing recitation only removes downloads
+  (it still streams online); clearing text means a surah needs a connection next time it opens.
+- The app's own files are shown but cannot be cleared, since without them it would not open
+  offline.
+- The overall total is shown only where the browser can estimate it.
 
 ### Unreleased — prayer-card sky progression
 

@@ -49,6 +49,7 @@ const ASSETS = [
   `./js/routes.js?v=${APP_VERSION}`,
   `./js/settings.js?v=${APP_VERSION}`,
   `./js/state.js?v=${APP_VERSION}`,
+  `./js/storage.js?v=${APP_VERSION}`,
   `./js/tasbih.js?v=${APP_VERSION}`,
   `./js/userData.js?v=${APP_VERSION}`,
   `./js/utils.js?v=${APP_VERSION}`,

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T10:26:23.947Z",
+  "generatedAt": "2026-09-23T11:50:18.590Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -869,7 +869,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 160,
+      "lines": 163,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1021,7 +1021,7 @@
     },
     {
       "path": "pwa-website/js/settings.js",
-      "lines": 100,
+      "lines": 180,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1038,6 +1038,14 @@
     {
       "path": "pwa-website/js/state.js",
       "lines": 48,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/storage.js",
+      "lines": 126,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1069,7 +1077,7 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 200,
+      "lines": 201,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1206,6 +1214,14 @@
     {
       "path": "pwa-website/test/sky.test.js",
       "lines": 232,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/storage.test.js",
+      "lines": 163,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2589,6 +2605,14 @@
       "definedIn": [],
       "referencedBy": [
         "apps/admin/public/app.js"
+      ]
+    },
+    {
+      "name": "anyway",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/storage.js"
       ]
     },
     {
@@ -4200,6 +4224,7 @@
         "pwa-website/js/seo.js",
         "pwa-website/js/sky.js",
         "pwa-website/js/state.js",
+        "pwa-website/js/storage.js",
         "pwa-website/test/boot-theme.test.js",
         "pwa-website/test/categories.test.js",
         "pwa-website/test/guide-and-tasbih.test.js",
@@ -4209,6 +4234,7 @@
         "pwa-website/test/quran-words.test.js",
         "pwa-website/test/reading-roles.test.js",
         "pwa-website/test/sky.test.js",
+        "pwa-website/test/storage.test.js",
         "pwa-website/test/worship-nav.test.js"
       ]
     },
