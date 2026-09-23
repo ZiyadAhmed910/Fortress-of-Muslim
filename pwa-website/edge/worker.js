@@ -73,6 +73,33 @@ export function isAppRoute(pathname) {
   return pathname === '/' || APP_ROUTES.some((route) => route.test(pathname));
 }
 
+/**
+ * Where a request should be sent instead, so each page exists at exactly one address -- or null.
+ * Every one of these was a second copy of a page to a search engine:
+ *   http://...                       -> https://
+ *   www.fortressofmuslim.org         -> fortressofmuslim.org (attached to the production Worker for this)
+ *   /hisn/chapter27/ (an app route)  -> /hisn/chapter27
+ *
+ * /index.html is deliberately NOT redirected, though it is the home page under a second name: the
+ * service worker precaches it as the offline shell (sw.js), and a redirected response stored there
+ * is one Chrome refuses to serve for a navigation -- the installed app would fail to open. Its
+ * canonical link already names /, and nothing links to it.
+ */
+export function canonicalRedirect(url) {
+  const target = new URL(url);
+  if (target.protocol === 'http:') target.protocol = 'https:';
+  if (target.hostname.startsWith('www.')) target.hostname = target.hostname.slice(4);
+  if (target.pathname.length > 1 && target.pathname.endsWith('/') && isAppRoute(target.pathname)) {
+    target.pathname = target.pathname.replace(/\/+$/, '');
+  }
+  return target.href === url.href ? null : target.href;
+}
+
+// Only the production site belongs in search results. The test site and the workers.dev preview
+// addresses serve the same pages; js/seo.js marked them noindex, but only once the app had run, so
+// the HTML a crawler first read said "index". A header is read before anything else.
+export const INDEXED_HOST = 'fortressofmuslim.org';
+
 export function cacheControlFor(url) {
   const { pathname } = url;
   if (pathname === '/sw.js') return 'no-store, no-cache, must-revalidate';
@@ -89,12 +116,8 @@ export default {
       return new Response('Method not allowed', { status: 405, headers: { allow: 'GET, HEAD' } });
     }
     const url = new URL(request.url);
-    // www.fortressofmuslim.org is attached to the production Worker only so it can send people to
-    // the one real address. Serving the site under both would be a duplicate copy of it.
-    if (url.hostname.startsWith('www.')) {
-      url.hostname = url.hostname.slice(4);
-      return Response.redirect(url.href, 301);
-    }
+    const canonical = canonicalRedirect(url);
+    if (canonical) return Response.redirect(canonical, 301);
     let response = await env.ASSETS.fetch(request);
     let body = response.body;
     if (response.status === 404 && isAppRoute(url.pathname)) {
@@ -107,6 +130,7 @@ export default {
     const headers = new Headers(response.headers);
     headers.set('cache-control', cacheControlFor(url));
     headers.set('x-content-type-options', 'nosniff');
+    if (url.hostname !== INDEXED_HOST) headers.set('x-robots-tag', 'noindex, nofollow');
     // The rewritten page is a different length from the file it came from.
     if (typeof body === 'string') {
       headers.delete('content-length');

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import worker, { cacheControlFor, isAppRoute } from '../edge/worker.js';
 import { isPublished } from '../tools/build-dist.mjs';
@@ -41,7 +43,8 @@ const get = async (path, method = 'GET') => {
 
 describe('app routes', () => {
   it('open the app at the root and at every deep-link shape', async () => {
-    for (const path of ['/', '/quran/2/255', '/quran/114/6/', '/hisn/chapter27', '/bukhari/book1/1']) {
+    // (With a trailing slash these redirect to the address without one -- see "exactly one address".)
+    for (const path of ['/', '/quran/2/255', '/quran/114/6', '/hisn/chapter27', '/bukhari/book1/1']) {
       const response = await get(path);
       expect(response.status, path).toBe(200);
       expect(response.body, path).toContain('app shell');
@@ -70,6 +73,40 @@ describe('app routes', () => {
     const response = await worker.fetch(new Request('https://www.fortressofmuslim.org/hisn/chapter27?x=1'), { ASSETS: assets() });
     expect(response.status).toBe(301);
     expect(response.headers.get('location')).toBe('https://fortressofmuslim.org/hisn/chapter27?x=1');
+  });
+
+  it('give every page exactly one address', async () => {
+    const redirect = async (from) => {
+      const response = await worker.fetch(new Request(from), { ASSETS: assets() });
+      return [response.status, response.headers.get('location')];
+    };
+    expect(await redirect('http://fortressofmuslim.org/hisn/chapter27')).toEqual([301, 'https://fortressofmuslim.org/hisn/chapter27']);
+    expect(await redirect('http://www.fortressofmuslim.org/')).toEqual([301, 'https://fortressofmuslim.org/']);
+    // Never /index.html: the service worker precaches it, and a redirected copy would stop the
+    // installed app opening.
+    expect((await redirect('https://fortressofmuslim.org/index.html'))[0]).toBe(200);
+    for (const path of ["'./'", "'./index.html'"]) {
+      expect(readFileSync(resolve(process.cwd(), 'sw.js'), 'utf8')).toContain(path);
+    }
+    expect(await redirect('https://fortressofmuslim.org/hisn/chapter27/')).toEqual([301, 'https://fortressofmuslim.org/hisn/chapter27']);
+    expect(await redirect('https://fortressofmuslim.org/quran/2/255/')).toEqual([301, 'https://fortressofmuslim.org/quran/2/255']);
+    // The canonical address itself, and real files, are served as they are.
+    expect((await redirect('https://fortressofmuslim.org/hisn/chapter27'))[0]).toBe(200);
+    expect((await redirect('https://fortressofmuslim.org/reset.html'))[0]).toBe(200);
+  });
+
+  it('keep every host but production out of search results', async () => {
+    const robots = async (host) => (await worker.fetch(new Request(`https://${host}/hisn/chapter27`), { ASSETS: assets() })).headers.get('x-robots-tag');
+    expect(await robots('fortressofmuslim.org')).toBeNull();
+    expect(await robots('test.fortressofmuslim.org')).toBe('noindex, nofollow');
+    expect(await robots('fortress-pwa-production.example.workers.dev')).toBe('noindex, nofollow');
+  });
+
+  it('let crawlers fetch the scripts, styles and data they need to render the app', () => {
+    // Google renders pages; a disallowed /js/ or /css/ means it cannot.
+    const robotsTxt = readFileSync(resolve(process.cwd(), 'robots.txt'), 'utf8');
+    expect(robotsTxt).not.toMatch(/^Disallow:/m);
+    expect(robotsTxt).toContain('Sitemap: https://fortressofmuslim.org/sitemap.xml');
   });
 
   it('refuse anything but reads', async () => {

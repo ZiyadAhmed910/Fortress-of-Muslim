@@ -39,7 +39,10 @@ describe('a dua page', () => {
     expect(description).toMatch(/^In the morning and evening: /);
     expect(description.length).toBeLessThanOrEqual(160);
     const article = tag(html, /<article id="prerender" class="prerender">([\s\S]*?)<\/article>/);
-    expect(article).toContain('<h1>27. In the morning and evening</h1>');
+    expect(article).toContain('<h2>27. In the morning and evening</h2>');
+    // One main heading, and it names the page -- not "Fortress of Muslim" as on every URL before.
+    expect(html.match(/<h1[\s>]/g)).toHaveLength(1);
+    expect(tag(html, /<h1 id="screenTitle">([^<]*)<\/h1>/)).toBe('27. In the morning and evening');
     expect(article).toContain('lang="ar" dir="rtl"');
   });
 
