@@ -174,6 +174,28 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.49.1
+
+_2026-09-23_
+
+- **SEO audit fixes** (every sitemap URL checked on production: 247 x 200, unique titles and
+  descriptions, correct canonicals):
+  - **`robots.txt` no longer blocks `/js/`, `/css/`, `/data/` and `/assets/`.** Search engines render
+    pages the way a browser does, and a page whose scripts and styles they may not fetch cannot be
+    rendered -- the opposite of Google's guidance.
+  - **One address per page.** `http://` now redirects to `https://` (it was served as a second copy),
+    and an app route with a trailing slash (`/hisn/chapter27/`) to the one without, alongside the
+    existing `www` redirect (`canonicalRedirect()` in `edge/worker.js`). `/index.html` is deliberately
+    not redirected: the service worker precaches it, and a redirected copy would stop the installed
+    app opening.
+  - **Only production is indexable.** The test site and the `workers.dev` preview addresses now send
+    `X-Robots-Tag: noindex, nofollow`. `js/seo.js` already marked them noindex, but only after the app
+    ran, so the HTML a crawler first read said "index".
+  - **One `<h1>` per page, naming it.** The app header's `<h1>` read "Fortress of Muslim" on every URL;
+    dua and surah pages now carry their own title there, and the server-rendered text uses `<h2>`.
+  - Removed the `SearchAction` from the structured data: the app never handled `/?q=`, and Google
+    retired the sitelinks search box it was for.
+
 ### 0.49.0
 
 _2026-09-23_
@@ -1612,6 +1634,10 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — search engine fixes
+
+- Search engines can now fully load the app when they visit, and each page has one address.
 
 ### Unreleased — easier to find on Google
 
