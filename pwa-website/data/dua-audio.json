@@ -1,0 +1,1847 @@
+{
+ "version": 1,
+ "base": "https://media.fortressofmuslim.org",
+ "readings": {
+  "dua-001": {
+   "1": [
+    {
+     "path": "duas/v1/dua-001/1.mp3",
+     "seconds": 16,
+     "bytes": 160952
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-001/2.mp3",
+     "seconds": 49,
+     "bytes": 494312
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-001/3.mp3",
+     "seconds": 13,
+     "bytes": 130472
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-001/4.mp3",
+     "seconds": 316,
+     "bytes": 3159272
+    }
+   ]
+  },
+  "dua-002": {
+   "1": [
+    {
+     "path": "duas/v1/dua-002/1.mp3",
+     "seconds": 14,
+     "bytes": 137912
+    }
+   ]
+  },
+  "dua-003": {
+   "1": [
+    {
+     "path": "duas/v1/dua-003/1.mp3",
+     "seconds": 19,
+     "bytes": 185912
+    }
+   ]
+  },
+  "dua-004": {
+   "1": [
+    {
+     "path": "duas/v1/dua-004/1.mp3",
+     "seconds": 5,
+     "bytes": 48872
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-004/2.mp3",
+     "seconds": 10,
+     "bytes": 96392
+    }
+   ]
+  },
+  "dua-005": {
+   "1": [
+    {
+     "path": "duas/v1/dua-005/1.mp3",
+     "seconds": 2,
+     "bytes": 23432
+    }
+   ]
+  },
+  "dua-006": {
+   "1": [
+    {
+     "path": "duas/v1/dua-006/1.mp3",
+     "seconds": 10,
+     "bytes": 99752
+    }
+   ]
+  },
+  "dua-007": {
+   "1": [
+    {
+     "path": "duas/v1/dua-007/1.mp3",
+     "seconds": 2,
+     "bytes": 17432
+    }
+   ]
+  },
+  "dua-008": {
+   "1": [
+    {
+     "path": "duas/v1/dua-008/1.mp3",
+     "seconds": 2,
+     "bytes": 21512
+    }
+   ]
+  },
+  "dua-009": {
+   "1": [
+    {
+     "path": "duas/v1/dua-009/1.mp3",
+     "seconds": 19,
+     "bytes": 192392
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-009/2.mp3",
+     "seconds": 13,
+     "bytes": 129032
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-009/3.mp3",
+     "seconds": 17,
+     "bytes": 169112
+    }
+   ]
+  },
+  "dua-010": {
+   "1": [
+    {
+     "path": "duas/v1/dua-010/1.mp3",
+     "seconds": 14,
+     "bytes": 136952
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-010/2.mp3",
+     "seconds": 18,
+     "bytes": 182792
+    }
+   ]
+  },
+  "dua-011": {
+   "1": [
+    {
+     "path": "duas/v1/dua-011/1.mp3",
+     "seconds": 14,
+     "bytes": 145112
+    }
+   ]
+  },
+  "dua-012": {
+   "1": [
+    {
+     "path": "duas/v1/dua-012/1.mp3",
+     "seconds": 134,
+     "bytes": 1338392
+    }
+   ]
+  },
+  "dua-013": {
+   "1": [
+    {
+     "path": "duas/v1/dua-013/1.mp3",
+     "seconds": 31,
+     "bytes": 315272
+    }
+   ]
+  },
+  "dua-014": {
+   "1": [
+    {
+     "path": "duas/v1/dua-014/1.mp3",
+     "seconds": 23,
+     "bytes": 227192
+    }
+   ]
+  },
+  "dua-015": {
+   "1": [
+    {
+     "path": "duas/v1/dua-015/1.mp3",
+     "seconds": 6,
+     "bytes": 59192
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-015/2.mp3",
+     "seconds": 35,
+     "bytes": 347672
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-015/4.mp3",
+     "seconds": 29,
+     "bytes": 286952
+    }
+   ]
+  },
+  "dua-016": {
+   "1": [
+    {
+     "path": "duas/v1/dua-016/1.mp3",
+     "seconds": 25,
+     "bytes": 250472
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-016/2.mp3",
+     "seconds": 16,
+     "bytes": 161192
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-016/3.mp3",
+     "seconds": 130,
+     "bytes": 1305032
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-016/4.mp3",
+     "seconds": 50,
+     "bytes": 502472
+    }
+   ],
+   "5": [
+    {
+     "path": "duas/v1/dua-016/5.mp3",
+     "seconds": 47,
+     "bytes": 466472
+    }
+   ],
+   "6": [
+    {
+     "path": "duas/v1/dua-016/6.mp3",
+     "seconds": 131,
+     "bytes": 1306952
+    }
+   ]
+  },
+  "dua-017": {
+   "1": [
+    {
+     "path": "duas/v1/dua-017/1.mp3",
+     "seconds": 4,
+     "bytes": 39032
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-017/2.mp3",
+     "seconds": 10,
+     "bytes": 104072
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-017/3.mp3",
+     "seconds": 7,
+     "bytes": 75512
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-017/4.mp3",
+     "seconds": 22,
+     "bytes": 220712
+    }
+   ],
+   "5": [
+    {
+     "path": "duas/v1/dua-017/5.mp3",
+     "seconds": 14,
+     "bytes": 141272
+    }
+   ]
+  },
+  "dua-018": {
+   "1": [
+    {
+     "path": "duas/v1/dua-018/1.mp3",
+     "seconds": 4,
+     "bytes": 41672
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-018/2.mp3",
+     "seconds": 11,
+     "bytes": 114152
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-018/3.mp3",
+     "seconds": 43,
+     "bytes": 430952
+    }
+   ]
+  },
+  "dua-019": {
+   "1": [
+    {
+     "path": "duas/v1/dua-019/1.mp3",
+     "seconds": 4,
+     "bytes": 37352
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-019/2.mp3",
+     "seconds": 10,
+     "bytes": 104072
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-019/3.mp3",
+     "seconds": 7,
+     "bytes": 75512
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-019/4.mp3",
+     "seconds": 29,
+     "bytes": 292952
+    }
+   ],
+   "5": [
+    {
+     "path": "duas/v1/dua-019/5.mp3",
+     "seconds": 14,
+     "bytes": 140552
+    }
+   ],
+   "6": [
+    {
+     "path": "duas/v1/dua-019/6.mp3",
+     "seconds": 14,
+     "bytes": 138872
+    }
+   ],
+   "7": [
+    {
+     "path": "duas/v1/dua-019/7.mp3",
+     "seconds": 23,
+     "bytes": 233672
+    }
+   ]
+  },
+  "dua-020": {
+   "1": [
+    {
+     "path": "duas/v1/dua-020/1.mp3",
+     "seconds": 4,
+     "bytes": 37832
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-020/2.mp3",
+     "seconds": 14,
+     "bytes": 140072
+    }
+   ]
+  },
+  "dua-021": {
+   "1": [
+    {
+     "path": "duas/v1/dua-021/1.mp3",
+     "seconds": 25,
+     "bytes": 253352
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-021/2.mp3",
+     "seconds": 23,
+     "bytes": 229112
+    }
+   ]
+  },
+  "dua-022": {
+   "1": [
+    {
+     "path": "duas/v1/dua-022/1.mp3",
+     "seconds": 43,
+     "bytes": 431912
+    }
+   ]
+  },
+  "dua-023": {
+   "1": [
+    {
+     "path": "duas/v1/dua-023/1.mp3",
+     "seconds": 64,
+     "bytes": 645752
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-023/2.mp3",
+     "seconds": 38,
+     "bytes": 385832
+    }
+   ]
+  },
+  "dua-024": {
+   "1": [
+    {
+     "path": "duas/v1/dua-024/1.mp3",
+     "seconds": 27,
+     "bytes": 272312
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-024/2.mp3",
+     "seconds": 26,
+     "bytes": 256712
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-024/3.mp3",
+     "seconds": 23,
+     "bytes": 234632
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-024/4.mp3",
+     "seconds": 29,
+     "bytes": 287432
+    }
+   ],
+   "5": [
+    {
+     "path": "duas/v1/dua-024/5.mp3",
+     "seconds": 10,
+     "bytes": 97112
+    }
+   ],
+   "6": [
+    {
+     "path": "duas/v1/dua-024/6.mp3",
+     "seconds": 23,
+     "bytes": 235592
+    }
+   ],
+   "7": [
+    {
+     "path": "duas/v1/dua-024/7.mp3",
+     "seconds": 12,
+     "bytes": 120632
+    }
+   ],
+   "8": [
+    {
+     "path": "duas/v1/dua-024/8.mp3",
+     "seconds": 90,
+     "bytes": 899672
+    }
+   ],
+   "9": [
+    {
+     "path": "duas/v1/dua-024/9.mp3",
+     "seconds": 34,
+     "bytes": 339032
+    }
+   ],
+   "10": [
+    {
+     "path": "duas/v1/dua-024/10.mp3",
+     "seconds": 47,
+     "bytes": 468872
+    }
+   ],
+   "11": [
+    {
+     "path": "duas/v1/dua-024/11.mp3",
+     "seconds": 25,
+     "bytes": 248792
+    }
+   ]
+  },
+  "dua-025": {
+   "1": [
+    {
+     "path": "duas/v1/dua-025/1.mp3",
+     "seconds": 23,
+     "bytes": 228152
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-025/2.mp3",
+     "seconds": 33,
+     "bytes": 328232
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-025/3.mp3",
+     "seconds": 57,
+     "bytes": 574712
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-025/4.mp3",
+     "seconds": 28,
+     "bytes": 277112
+    }
+   ],
+   "5": [
+    {
+     "path": "duas/v1/dua-025/5.mp3",
+     "seconds": 89,
+     "bytes": 891992
+    }
+   ],
+   "6": [
+    {
+     "path": "duas/v1/dua-025/6.mp3",
+     "seconds": 65,
+     "bytes": 647912
+    }
+   ],
+   "7": [
+    {
+     "path": "duas/v1/dua-025/7.mp3",
+     "seconds": 23,
+     "bytes": 233192
+    }
+   ],
+   "8": [
+    {
+     "path": "duas/v1/dua-025/8.mp3",
+     "seconds": 18,
+     "bytes": 183992
+    }
+   ]
+  },
+  "dua-027": {
+   "2": [
+    {
+     "path": "duas/v1/dua-027/2.mp3",
+     "seconds": 84,
+     "bytes": 838232
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-027/3.mp3",
+     "seconds": 92,
+     "bytes": 921752
+    }
+   ],
+   "5": [
+    {
+     "path": "duas/v1/dua-027/5-1.mp3",
+     "seconds": 19,
+     "bytes": 190714,
+     "label": "Morning"
+    },
+    {
+     "path": "duas/v1/dua-027/5-2.mp3",
+     "seconds": 21,
+     "bytes": 215194,
+     "label": "Evening"
+    }
+   ],
+   "6": [
+    {
+     "path": "duas/v1/dua-027/6.mp3",
+     "seconds": 50,
+     "bytes": 497432
+    }
+   ],
+   "9": [
+    {
+     "path": "duas/v1/dua-027/9.mp3",
+     "seconds": 53,
+     "bytes": 532232
+    }
+   ],
+   "10": [
+    {
+     "path": "duas/v1/dua-027/10.mp3",
+     "seconds": 14,
+     "bytes": 140072
+    }
+   ],
+   "11": [
+    {
+     "path": "duas/v1/dua-027/11.mp3",
+     "seconds": 72,
+     "bytes": 721112
+    }
+   ],
+   "12": [
+    {
+     "path": "duas/v1/dua-027/12.mp3",
+     "seconds": 36,
+     "bytes": 365432
+    }
+   ],
+   "13": [
+    {
+     "path": "duas/v1/dua-027/13.mp3",
+     "seconds": 16,
+     "bytes": 162872
+    }
+   ],
+   "15": [
+    {
+     "path": "duas/v1/dua-027/15.mp3",
+     "seconds": 24,
+     "bytes": 242552
+    }
+   ],
+   "16": [
+    {
+     "path": "duas/v1/dua-027/16-1.mp3",
+     "seconds": 38,
+     "bytes": 377194,
+     "label": "Morning"
+    },
+    {
+     "path": "duas/v1/dua-027/16-2.mp3",
+     "seconds": 36,
+     "bytes": 361834,
+     "label": "Evening"
+    }
+   ],
+   "18": [
+    {
+     "path": "duas/v1/dua-027/18.mp3",
+     "seconds": 4,
+     "bytes": 35912
+    }
+   ],
+   "19": [
+    {
+     "path": "duas/v1/dua-027/19.mp3",
+     "seconds": 18,
+     "bytes": 182072
+    }
+   ],
+   "20": [
+    {
+     "path": "duas/v1/dua-027/20.mp3",
+     "seconds": 18,
+     "bytes": 182072
+    }
+   ],
+   "21": [
+    {
+     "path": "duas/v1/dua-027/21.mp3",
+     "seconds": 18,
+     "bytes": 179432
+    }
+   ],
+   "22": [
+    {
+     "path": "duas/v1/dua-027/22.mp3",
+     "seconds": 18,
+     "bytes": 183992
+    }
+   ],
+   "23": [
+    {
+     "path": "duas/v1/dua-027/23.mp3",
+     "seconds": 6,
+     "bytes": 65192
+    }
+   ],
+   "24": [
+    {
+     "path": "duas/v1/dua-027/24.mp3",
+     "seconds": 9,
+     "bytes": 87992
+    }
+   ],
+   "25": [
+    {
+     "path": "duas/v1/dua-027/25.mp3",
+     "seconds": 9,
+     "bytes": 92792
+    }
+   ]
+  },
+  "dua-028": {
+   "1": [
+    {
+     "path": "duas/v1/dua-028/1.mp3",
+     "seconds": 92,
+     "bytes": 921752
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-028/2.mp3",
+     "seconds": 71,
+     "bytes": 710792
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-028/3.mp3",
+     "seconds": 119,
+     "bytes": 1189592
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-028/4.mp3",
+     "seconds": 26,
+     "bytes": 263192
+    }
+   ],
+   "5": [
+    {
+     "path": "duas/v1/dua-028/5.mp3",
+     "seconds": 35,
+     "bytes": 346952
+    }
+   ],
+   "6": [
+    {
+     "path": "duas/v1/dua-028/6.mp3",
+     "seconds": 6,
+     "bytes": 64472
+    }
+   ],
+   "7": [
+    {
+     "path": "duas/v1/dua-028/7.mp3",
+     "seconds": 6,
+     "bytes": 57992
+    }
+   ],
+   "9": [
+    {
+     "path": "duas/v1/dua-028/9.mp3",
+     "seconds": 62,
+     "bytes": 625832
+    }
+   ],
+   "10": [
+    {
+     "path": "duas/v1/dua-028/10.mp3",
+     "seconds": 18,
+     "bytes": 178952
+    }
+   ],
+   "11": [
+    {
+     "path": "duas/v1/dua-028/11.mp3",
+     "seconds": 36,
+     "bytes": 365432
+    }
+   ],
+   "13": [
+    {
+     "path": "duas/v1/dua-028/13.mp3",
+     "seconds": 38,
+     "bytes": 381032
+    }
+   ]
+  },
+  "dua-029": {
+   "1": [
+    {
+     "path": "duas/v1/dua-029/1.mp3",
+     "seconds": 20,
+     "bytes": 204872
+    }
+   ]
+  },
+  "dua-030": {
+   "1": [
+    {
+     "path": "duas/v1/dua-030/1.mp3",
+     "seconds": 22,
+     "bytes": 217832
+    }
+   ]
+  },
+  "dua-032": {
+   "1": [
+    {
+     "path": "duas/v1/dua-032/1.mp3",
+     "seconds": 48,
+     "bytes": 477032
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-032/2.mp3",
+     "seconds": 24,
+     "bytes": 242552
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-032/3.mp3",
+     "seconds": 47,
+     "bytes": 475592
+    }
+   ]
+  },
+  "dua-033": {
+   "1": [
+    {
+     "path": "duas/v1/dua-033/1.mp3",
+     "seconds": 10,
+     "bytes": 97592
+    }
+   ]
+  },
+  "dua-034": {
+   "1": [
+    {
+     "path": "duas/v1/dua-034/1.mp3",
+     "seconds": 62,
+     "bytes": 623192
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-034/2.mp3",
+     "seconds": 20,
+     "bytes": 204152
+    }
+   ]
+  },
+  "dua-035": {
+   "1": [
+    {
+     "path": "duas/v1/dua-035/1.mp3",
+     "seconds": 34,
+     "bytes": 345272
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-035/2.mp3",
+     "seconds": 20,
+     "bytes": 199352
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-035/3.mp3",
+     "seconds": 14,
+     "bytes": 140072
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-035/4.mp3",
+     "seconds": 9,
+     "bytes": 93752
+    }
+   ]
+  },
+  "dua-036": {
+   "1": [
+    {
+     "path": "duas/v1/dua-036/1.mp3",
+     "seconds": 13,
+     "bytes": 133592
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-036/2.mp3",
+     "seconds": 14,
+     "bytes": 139832
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-036/3.mp3",
+     "seconds": 4,
+     "bytes": 41672
+    }
+   ]
+  },
+  "dua-037": {
+   "1": [
+    {
+     "path": "duas/v1/dua-037/1.mp3",
+     "seconds": 47,
+     "bytes": 465992
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-037/2.mp3",
+     "seconds": 61,
+     "bytes": 610472
+    }
+   ]
+  },
+  "dua-038": {
+   "1": [
+    {
+     "path": "duas/v1/dua-038/1.mp3",
+     "seconds": 22,
+     "bytes": 224072
+    }
+   ]
+  },
+  "dua-039": {
+   "1": [
+    {
+     "path": "duas/v1/dua-039/1.mp3",
+     "seconds": 6,
+     "bytes": 59912
+    }
+   ]
+  },
+  "dua-040": {
+   "2": [
+    {
+     "path": "duas/v1/dua-040/2.mp3",
+     "seconds": 5,
+     "bytes": 45992
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-040/3.mp3",
+     "seconds": 10,
+     "bytes": 96632
+    }
+   ]
+  },
+  "dua-041": {
+   "1": [
+    {
+     "path": "duas/v1/dua-041/1.mp3",
+     "seconds": 14,
+     "bytes": 145112
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-041/2.mp3",
+     "seconds": 21,
+     "bytes": 208952
+    }
+   ]
+  },
+  "dua-042": {
+   "1": [
+    {
+     "path": "duas/v1/dua-042/1.mp3",
+     "seconds": 5,
+     "bytes": 55592
+    }
+   ]
+  },
+  "dua-043": {
+   "1": [
+    {
+     "path": "duas/v1/dua-043/1.mp3",
+     "seconds": 13,
+     "bytes": 135512
+    }
+   ]
+  },
+  "dua-046": {
+   "1": [
+    {
+     "path": "duas/v1/dua-046/1.mp3",
+     "seconds": 4,
+     "bytes": 45512
+    }
+   ]
+  },
+  "dua-047": {
+   "1": [
+    {
+     "path": "duas/v1/dua-047/1-1.mp3",
+     "seconds": 14,
+     "bytes": 142271,
+     "label": "Congratulation"
+    },
+    {
+     "path": "duas/v1/dua-047/1-2.mp3",
+     "seconds": 18,
+     "bytes": 178511,
+     "label": "Reply"
+    }
+   ]
+  },
+  "dua-048": {
+   "1": [
+    {
+     "path": "duas/v1/dua-048/1.mp3",
+     "seconds": 20,
+     "bytes": 198392
+    }
+   ]
+  },
+  "dua-049": {
+   "1": [
+    {
+     "path": "duas/v1/dua-049/1.mp3",
+     "seconds": 7,
+     "bytes": 67592
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-049/2.mp3",
+     "seconds": 5,
+     "bytes": 55085
+    }
+   ]
+  },
+  "dua-051": {
+   "1": [
+    {
+     "path": "duas/v1/dua-051/1.mp3",
+     "seconds": 11,
+     "bytes": 106232
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-051/2.mp3",
+     "seconds": 11,
+     "bytes": 115592
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-051/3.mp3",
+     "seconds": 40,
+     "bytes": 403112
+    }
+   ]
+  },
+  "dua-052": {
+   "1": [
+    {
+     "path": "duas/v1/dua-052/1.mp3",
+     "seconds": 6,
+     "bytes": 56072
+    }
+   ]
+  },
+  "dua-053": {
+   "1": [
+    {
+     "path": "duas/v1/dua-053/1.mp3",
+     "seconds": 20,
+     "bytes": 199832
+    }
+   ]
+  },
+  "dua-055": {
+   "1": [
+    {
+     "path": "duas/v1/dua-055/1.mp3",
+     "seconds": 58,
+     "bytes": 584552
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-055/2.mp3",
+     "seconds": 50,
+     "bytes": 501512
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-055/3.mp3",
+     "seconds": 30,
+     "bytes": 298472
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-055/4.mp3",
+     "seconds": 27,
+     "bytes": 268952
+    }
+   ]
+  },
+  "dua-056": {
+   "1": [
+    {
+     "path": "duas/v1/dua-056/1-1.mp3",
+     "seconds": 5,
+     "bytes": 48634,
+     "label": "Primary supplication"
+    },
+    {
+     "path": "duas/v1/dua-056/1-2.mp3",
+     "seconds": 52,
+     "bytes": 525034,
+     "label": "Alternative supplication"
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-056/2.mp3",
+     "seconds": 8,
+     "bytes": 80312
+    }
+   ]
+  },
+  "dua-057": {
+   "1": [
+    {
+     "path": "duas/v1/dua-057/1-1.mp3",
+     "seconds": 22,
+     "bytes": 225487,
+     "label": "Primary condolence"
+    },
+    {
+     "path": "duas/v1/dua-057/1-2.mp3",
+     "seconds": 10,
+     "bytes": 96607,
+     "label": "Alternative condolence"
+    }
+   ]
+  },
+  "dua-058": {
+   "1": [
+    {
+     "path": "duas/v1/dua-058/1.mp3",
+     "seconds": 5,
+     "bytes": 54392
+    }
+   ]
+  },
+  "dua-059": {
+   "1": [
+    {
+     "path": "duas/v1/dua-059/1.mp3",
+     "seconds": 6,
+     "bytes": 59672
+    }
+   ]
+  },
+  "dua-061": {
+   "1": [
+    {
+     "path": "duas/v1/dua-061/1.mp3",
+     "seconds": 13,
+     "bytes": 129272
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-061/2.mp3",
+     "seconds": 21,
+     "bytes": 210872
+    }
+   ]
+  },
+  "dua-062": {
+   "1": [
+    {
+     "path": "duas/v1/dua-062/1.mp3",
+     "seconds": 11,
+     "bytes": 106232
+    }
+   ]
+  },
+  "dua-063": {
+   "1": [
+    {
+     "path": "duas/v1/dua-063/1.mp3",
+     "seconds": 21,
+     "bytes": 207512
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-063/2.mp3",
+     "seconds": 11,
+     "bytes": 109832
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-063/3.mp3",
+     "seconds": 12,
+     "bytes": 124232
+    }
+   ]
+  },
+  "dua-064": {
+   "1": [
+    {
+     "path": "duas/v1/dua-064/1.mp3",
+     "seconds": 5,
+     "bytes": 52232
+    }
+   ]
+  },
+  "dua-065": {
+   "1": [
+    {
+     "path": "duas/v1/dua-065/1.mp3",
+     "seconds": 5,
+     "bytes": 49112
+    }
+   ]
+  },
+  "dua-066": {
+   "1": [
+    {
+     "path": "duas/v1/dua-066/1.mp3",
+     "seconds": 23,
+     "bytes": 227192
+    }
+   ]
+  },
+  "dua-067": {
+   "1": [
+    {
+     "path": "duas/v1/dua-067/1.mp3",
+     "seconds": 27,
+     "bytes": 270152
+    }
+   ]
+  },
+  "dua-068": {
+   "1": [
+    {
+     "path": "duas/v1/dua-068/1.mp3",
+     "seconds": 14,
+     "bytes": 138632
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-068/2.mp3",
+     "seconds": 12,
+     "bytes": 116552
+    }
+   ]
+  },
+  "dua-069": {
+   "1": [
+    {
+     "path": "duas/v1/dua-069/1-1.mp3",
+     "seconds": 2,
+     "bytes": 20047,
+     "label": "Before eating"
+    },
+    {
+     "path": "duas/v1/dua-069/1-2.mp3",
+     "seconds": 4,
+     "bytes": 43327,
+     "label": "If you forgot"
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-069/2-1.mp3",
+     "seconds": 10,
+     "bytes": 104074,
+     "label": "When given food"
+    },
+    {
+     "path": "duas/v1/dua-069/2-2.mp3",
+     "seconds": 8,
+     "bytes": 83674,
+     "label": "When given milk"
+    }
+   ]
+  },
+  "dua-070": {
+   "1": [
+    {
+     "path": "duas/v1/dua-070/1.mp3",
+     "seconds": 15,
+     "bytes": 149432
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-070/2.mp3",
+     "seconds": 22,
+     "bytes": 218072
+    }
+   ]
+  },
+  "dua-071": {
+   "1": [
+    {
+     "path": "duas/v1/dua-071/1.mp3",
+     "seconds": 10,
+     "bytes": 97832
+    }
+   ]
+  },
+  "dua-072": {
+   "1": [
+    {
+     "path": "duas/v1/dua-072/1.mp3",
+     "seconds": 11,
+     "bytes": 106712
+    }
+   ]
+  },
+  "dua-073": {
+   "1": [
+    {
+     "path": "duas/v1/dua-073/1.mp3",
+     "seconds": 19,
+     "bytes": 186392
+    }
+   ]
+  },
+  "dua-075": {
+   "1": [
+    {
+     "path": "duas/v1/dua-075/1.mp3",
+     "seconds": 5,
+     "bytes": 50312
+    }
+   ]
+  },
+  "dua-076": {
+   "1": [
+    {
+     "path": "duas/v1/dua-076/1.mp3",
+     "seconds": 21,
+     "bytes": 208952
+    }
+   ]
+  },
+  "dua-077": {
+   "1": [
+    {
+     "path": "duas/v1/dua-077/1-1.mp3",
+     "seconds": 2,
+     "bytes": 24847,
+     "label": "What the sneezer says"
+    },
+    {
+     "path": "duas/v1/dua-077/1-2.mp3",
+     "seconds": 3,
+     "bytes": 29887,
+     "label": "Response to the sneezer"
+    },
+    {
+     "path": "duas/v1/dua-077/1-3.mp3",
+     "seconds": 5,
+     "bytes": 49807,
+     "label": "The sneezer’s reply"
+    }
+   ]
+  },
+  "dua-078": {
+   "1": [
+    {
+     "path": "duas/v1/dua-078/1.mp3",
+     "seconds": 5,
+     "bytes": 49832
+    }
+   ]
+  },
+  "dua-079": {
+   "1": [
+    {
+     "path": "duas/v1/dua-079/1.mp3",
+     "seconds": 11,
+     "bytes": 106712
+    }
+   ]
+  },
+  "dua-080": {
+   "1": [
+    {
+     "path": "duas/v1/dua-080/1.mp3",
+     "seconds": 15,
+     "bytes": 155432
+    }
+   ]
+  },
+  "dua-081": {
+   "1": [
+    {
+     "path": "duas/v1/dua-081/1.mp3",
+     "seconds": 16,
+     "bytes": 159512
+    }
+   ]
+  },
+  "dua-082": {
+   "1": [
+    {
+     "path": "duas/v1/dua-082/1.mp3",
+     "seconds": 6,
+     "bytes": 56792
+    }
+   ]
+  },
+  "dua-083": {
+   "1": [
+    {
+     "path": "duas/v1/dua-083/1.mp3",
+     "seconds": 17,
+     "bytes": 168152
+    }
+   ]
+  },
+  "dua-084": {
+   "1": [
+    {
+     "path": "duas/v1/dua-084/1.mp3",
+     "seconds": 12,
+     "bytes": 116792
+    }
+   ]
+  },
+  "dua-085": {
+   "1": [
+    {
+     "path": "duas/v1/dua-085/1.mp3",
+     "seconds": 18,
+     "bytes": 179192
+    }
+   ]
+  },
+  "dua-086": {
+   "1": [
+    {
+     "path": "duas/v1/dua-086/1.mp3",
+     "seconds": 1,
+     "bytes": 10472
+    }
+   ]
+  },
+  "dua-087": {
+   "1": [
+    {
+     "path": "duas/v1/dua-087/1.mp3",
+     "seconds": 3,
+     "bytes": 32792
+    }
+   ]
+  },
+  "dua-089": {
+   "1": [
+    {
+     "path": "duas/v1/dua-089/1.mp3",
+     "seconds": 4,
+     "bytes": 42392
+    }
+   ]
+  },
+  "dua-090": {
+   "1": [
+    {
+     "path": "duas/v1/dua-090/1.mp3",
+     "seconds": 5,
+     "bytes": 54632
+    }
+   ]
+  },
+  "dua-091": {
+   "1": [
+    {
+     "path": "duas/v1/dua-091/1.mp3",
+     "seconds": 12,
+     "bytes": 118952
+    }
+   ]
+  },
+  "dua-092": {
+   "1": [
+    {
+     "path": "duas/v1/dua-092/1.mp3",
+     "seconds": 15,
+     "bytes": 153512
+    }
+   ]
+  },
+  "dua-093": {
+   "1": [
+    {
+     "path": "duas/v1/dua-093/1.mp3",
+     "seconds": 3,
+     "bytes": 34952
+    }
+   ]
+  },
+  "dua-094": {
+   "1": [
+    {
+     "path": "duas/v1/dua-094/1.mp3",
+     "seconds": 13,
+     "bytes": 133832
+    }
+   ]
+  },
+  "dua-095": {
+   "1": [
+    {
+     "path": "duas/v1/dua-095/1.mp3",
+     "seconds": 57,
+     "bytes": 573752
+    }
+   ]
+  },
+  "dua-097": {
+   "1": [
+    {
+     "path": "duas/v1/dua-097/1.mp3",
+     "seconds": 46,
+     "bytes": 461672
+    }
+   ]
+  },
+  "dua-098": {
+   "1": [
+    {
+     "path": "duas/v1/dua-098/1.mp3",
+     "seconds": 30,
+     "bytes": 301832
+    }
+   ]
+  },
+  "dua-099": {
+   "1": [
+    {
+     "path": "duas/v1/dua-099/1.mp3",
+     "seconds": 2,
+     "bytes": 18392
+    }
+   ]
+  },
+  "dua-100": {
+   "1": [
+    {
+     "path": "duas/v1/dua-100/1.mp3",
+     "seconds": 7,
+     "bytes": 67592
+    }
+   ]
+  },
+  "dua-101": {
+   "1": [
+    {
+     "path": "duas/v1/dua-101/1.mp3",
+     "seconds": 9,
+     "bytes": 87512
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-101/2.mp3",
+     "seconds": 12,
+     "bytes": 123032
+    }
+   ]
+  },
+  "dua-103": {
+   "1": [
+    {
+     "path": "duas/v1/dua-103/1.mp3",
+     "seconds": 23,
+     "bytes": 235112
+    }
+   ]
+  },
+  "dua-104": {
+   "1": [
+    {
+     "path": "duas/v1/dua-104/1.mp3",
+     "seconds": 9,
+     "bytes": 87992
+    }
+   ]
+  },
+  "dua-105": {
+   "1": [
+    {
+     "path": "duas/v1/dua-105/1.mp3",
+     "seconds": 46,
+     "bytes": 464072
+    }
+   ]
+  },
+  "dua-106": {
+   "1": [
+    {
+     "path": "duas/v1/dua-106/1-1.mp3",
+     "seconds": 8,
+     "bytes": 81994,
+     "label": "When something pleasing happens"
+    },
+    {
+     "path": "duas/v1/dua-106/1-2.mp3",
+     "seconds": 5,
+     "bytes": 49114,
+     "label": "When something displeasing happens"
+    }
+   ]
+  },
+  "dua-112": {
+   "1": [
+    {
+     "path": "duas/v1/dua-112/1.mp3",
+     "seconds": 14,
+     "bytes": 138392
+    }
+   ]
+  },
+  "dua-113": {
+   "1": [
+    {
+     "path": "duas/v1/dua-113/1.mp3",
+     "seconds": 9,
+     "bytes": 88952
+    }
+   ]
+  },
+  "dua-114": {
+   "1": [
+    {
+     "path": "duas/v1/dua-114/1.mp3",
+     "seconds": 20,
+     "bytes": 197192
+    }
+   ]
+  },
+  "dua-115": {
+   "1": [
+    {
+     "path": "duas/v1/dua-115/1.mp3",
+     "seconds": 21,
+     "bytes": 206312
+    }
+   ]
+  },
+  "dua-117": {
+   "1": [
+    {
+     "path": "duas/v1/dua-117/1.mp3",
+     "seconds": 14,
+     "bytes": 144392
+    }
+   ]
+  },
+  "dua-118": {
+   "1": [
+    {
+     "path": "duas/v1/dua-118/1-1.mp3",
+     "seconds": 13,
+     "bytes": 133354,
+     "label": "On approaching Ṣafā"
+    },
+    {
+     "path": "duas/v1/dua-118/1-2.mp3",
+     "seconds": 10,
+     "bytes": 99274,
+     "label": "Facing the qiblah"
+    }
+   ]
+  },
+  "dua-119": {
+   "1": [
+    {
+     "path": "duas/v1/dua-119/1.mp3",
+     "seconds": 17,
+     "bytes": 166232
+    }
+   ]
+  },
+  "dua-122": {
+   "1": [
+    {
+     "path": "duas/v1/dua-122/1.mp3",
+     "seconds": 2,
+     "bytes": 25352
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-122/2.mp3",
+     "seconds": 2,
+     "bytes": 19352
+    }
+   ]
+  },
+  "dua-124": {
+   "1": [
+    {
+     "path": "duas/v1/dua-124/1.mp3",
+     "seconds": 11,
+     "bytes": 110552
+    }
+   ]
+  },
+  "dua-126": {
+   "1": [
+    {
+     "path": "duas/v1/dua-126/1.mp3",
+     "seconds": 5,
+     "bytes": 46472
+    }
+   ]
+  },
+  "dua-127": {
+   "1": [
+    {
+     "path": "duas/v1/dua-127/1.mp3",
+     "seconds": 12,
+     "bytes": 121112
+    }
+   ]
+  },
+  "dua-128": {
+   "1": [
+    {
+     "path": "duas/v1/dua-128/1.mp3",
+     "seconds": 68,
+     "bytes": 683672
+    }
+   ]
+  },
+  "dua-129": {
+   "3": [
+    {
+     "path": "duas/v1/dua-129/3.mp3",
+     "seconds": 15,
+     "bytes": 153272
+    }
+   ]
+  },
+  "dua-130": {
+   "1": [
+    {
+     "path": "duas/v1/dua-130/1.mp3",
+     "seconds": 4,
+     "bytes": 35912
+    }
+   ],
+   "2": [
+    {
+     "path": "duas/v1/dua-130/2.mp3",
+     "seconds": 18,
+     "bytes": 182072
+    }
+   ],
+   "3": [
+    {
+     "path": "duas/v1/dua-130/3.mp3",
+     "seconds": 7,
+     "bytes": 75512
+    }
+   ],
+   "4": [
+    {
+     "path": "duas/v1/dua-130/4.mp3",
+     "seconds": 15,
+     "bytes": 146072
+    }
+   ],
+   "6": [
+    {
+     "path": "duas/v1/dua-130/6.mp3",
+     "seconds": 5,
+     "bytes": 52712
+    }
+   ],
+   "7": [
+    {
+     "path": "duas/v1/dua-130/7.mp3",
+     "seconds": 6,
+     "bytes": 56312
+    }
+   ],
+   "8": [
+    {
+     "path": "duas/v1/dua-130/8.mp3",
+     "seconds": 13,
+     "bytes": 131432
+    }
+   ],
+   "9": [
+    {
+     "path": "duas/v1/dua-130/9-1.mp3",
+     "seconds": 31,
+     "bytes": 314554,
+     "label": "Remembrance of Allah"
+    },
+    {
+     "path": "duas/v1/dua-130/9-2.mp3",
+     "seconds": 8,
+     "bytes": 84634,
+     "label": "Personal supplication"
+    }
+   ],
+   "10": [
+    {
+     "path": "duas/v1/dua-130/10.mp3",
+     "seconds": 9,
+     "bytes": 92312
+    }
+   ],
+   "11": [
+    {
+     "path": "duas/v1/dua-130/11-1.mp3",
+     "seconds": 3,
+     "bytes": 28714,
+     "label": "Best supplication"
+    },
+    {
+     "path": "duas/v1/dua-130/11-2.mp3",
+     "seconds": 6,
+     "bytes": 56074,
+     "label": "Best remembrance"
+    }
+   ],
+   "12": [
+    {
+     "path": "duas/v1/dua-130/12.mp3",
+     "seconds": 20,
+     "bytes": 203912
+    }
+   ]
+  }
+ }
+}

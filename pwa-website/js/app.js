@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { els } from './dom.js';
 import { loadDuas } from './data.js';
-import { applySettings, initSettingsNav, setFontScale, showSettingsCategoryList } from './settings.js';
+import { applySettings, initSettingsNav, refreshStorage, setFontScale, showSettingsCategoryList } from './settings.js';
 import { filterList, openAdvancedFilter, setOpenEntryHandler, showAdvancedDashboard, showMoreResults, toggleFavourite } from './home.js';
 import {
   bindSwipe,
@@ -20,6 +20,7 @@ import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
 import { initQuran, initQuranDownload, initQuranSettings, isSurahOpen, showSurahList, rerenderOpenSurah } from './quran.js';
 import { initQuranAudioSettings } from './quran-audio.js';
+import { initDuaAudio, initDuaAudioDownload } from './dua-audio.js';
 import { initOnboarding, maybeShowOnboarding, replayOnboarding } from './onboarding.js';
 import { initContentModes, setContentMode } from './modes.js';
 import { initPrayer } from './prayer.js';
@@ -40,6 +41,8 @@ async function init() {
   initQuranDownload();
   initQuranSettings();
   initQuranAudioSettings({ onWordModeChange: rerenderOpenSurah });
+  initDuaAudio();
+  initDuaAudioDownload({ onChange: refreshStorage });
   initAssistant();
   initPrayer();
   initReminders();

@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-23T12:05:46.865Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-23T12:59:34.161Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -41,7 +41,7 @@ Not all of these are bugs; verify before assuming.
 
 | File | Lang | Lines | Routes | Exports |
 | --- | --- | --- | --- | --- |
-| `apps/admin/public/app.js` | js | 1526 |  |  |
+| `apps/admin/public/app.js` | js | 1558 |  |  |
 | `apps/api/migrations/0001_content_schema.sql` | sql | 62 |  |  |
 | `apps/api/migrations/0002_import_legacy_dataset.sql` | sql | 1566 |  |  |
 | `apps/api/migrations/0003_canonical_knowledge.sql` | sql | 305 |  |  |
@@ -70,6 +70,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/migrations/0026_quran_arabic.sql` | sql | 6590 |  |  |
 | `apps/api/migrations/0027_ask_query_log.sql` | sql | 42 |  |  |
 | `apps/api/migrations/0028_ask_log_rejected.sql` | sql | 15 |  |  |
+| `apps/api/migrations/0029_media_daily_stats.sql` | sql | 30 |  |  |
 | `apps/api/src/app.ts` | ts | 686 | 29 | function createApp, const app |
 | `apps/api/src/index.ts` | ts | 58 |  | class ApiWorker |
 | `apps/api/src/lib/fuzzy-title.ts` | ts | 75 |  | type TitleCandidate, type RankedTitle, function rankDuaTitles |
@@ -95,6 +96,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/api/test/canonical-withdrawal.test.ts` | ts | 111 |  |  |
 | `apps/api/test/fuzzy-title.test.ts` | ts | 30 |  |  |
 | `apps/api/test/hadith-reference.test.ts` | ts | 127 |  |  |
+| `apps/api/test/media-stats.test.ts` | ts | 81 |  |  |
 | `apps/api/test/publish-hadith-migration.test.ts` | ts | 235 |  |  |
 | `apps/api/test/quran-search.test.ts` | ts | 180 |  |  |
 | `apps/api/test/rag-filters.test.ts` | ts | 208 |  |  |
@@ -117,7 +119,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/migrations/0009_operational_alerts.sql` | sql | 21 |  |  |
 | `apps/auth/migrations/0010_rate_limits.sql` | sql | 26 |  |  |
 | `apps/auth/migrations/0011_webhooks.sql` | sql | 32 |  |  |
-| `apps/auth/src/admin-plane.ts` | ts | 1060 | 26 | function requiresMfaEnrollment, function handleAdminPlane |
+| `apps/auth/src/admin-plane.ts` | ts | 1112 | 26 | function requiresMfaEnrollment, function handleAdminPlane, function mediaStats |
 | `apps/auth/src/auth.ts` | ts | 117 |  | const FORTRESS_SCOPES, function createAuth |
 | `apps/auth/src/editorial-plane.ts` | ts | 2340 | 34 | type EditorialRole, function handleEditorialPlane, class EditorialForbiddenError |
 | `apps/auth/src/index.ts` | ts | 895 | 30 | class AuthWorker |
@@ -135,17 +137,20 @@ Not all of these are bugs; verify before assuming.
 | `apps/developers/public/device.js` | js | 6 |  |  |
 | `apps/developers/public/oauth.js` | js | 112 |  |  |
 | `apps/mcp/src/index.ts` | ts | 74 | 2 | default export |
+| `apps/media/src/index.ts` | ts | 128 | 1 | interface Env, type Kind, function countAs, function keyFor, function tally, default export |
+| `apps/media/test/media.test.ts` | ts | 137 |  |  |
 | `apps/status/public/app.js` | js | 131 |  |  |
 | `packages/contracts/src/index.ts` | ts | 165 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +31 more |
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
-| `pwa-website/js/app.js` | js | 222 |  |  |
+| `pwa-website/js/app.js` | js | 225 |  |  |
 | `pwa-website/js/art-motion.js` | js | 93 |  |  |
 | `pwa-website/js/assistant.js` | js | 393 |  |  |
 | `pwa-website/js/calendar.js` | js | 75 |  |  |
 | `pwa-website/js/categories.js` | js | 150 |  |  |
 | `pwa-website/js/constants.js` | js | 3 |  |  |
 | `pwa-website/js/data.js` | js | 13 |  |  |
-| `pwa-website/js/dom.js` | js | 174 |  |  |
+| `pwa-website/js/dom.js` | js | 178 |  |  |
+| `pwa-website/js/dua-audio.js` | js | 287 |  |  |
 | `pwa-website/js/filters.js` | js | 25 |  |  |
 | `pwa-website/js/hadith.js` | js | 160 |  |  |
 | `pwa-website/js/hijri.js` | js | 123 |  |  |
@@ -157,27 +162,28 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/prayer-times.js` | js | 344 |  |  |
 | `pwa-website/js/prayer.js` | js | 610 |  |  |
 | `pwa-website/js/pwa.js` | js | 146 |  |  |
-| `pwa-website/js/quran-audio.js` | js | 623 |  |  |
+| `pwa-website/js/quran-audio.js` | js | 633 |  |  |
 | `pwa-website/js/quran-juz.js` | js | 72 |  |  |
 | `pwa-website/js/quran-verse-search.js` | js | 91 |  |  |
 | `pwa-website/js/quran.js` | js | 999 |  |  |
-| `pwa-website/js/reader.js` | js | 145 |  |  |
+| `pwa-website/js/reader.js` | js | 148 |  |  |
 | `pwa-website/js/reminders.js` | js | 221 |  |  |
 | `pwa-website/js/routes.js` | js | 63 |  |  |
 | `pwa-website/js/seo.js` | js | 70 |  |  |
-| `pwa-website/js/settings.js` | js | 180 |  |  |
+| `pwa-website/js/settings.js` | js | 183 |  |  |
 | `pwa-website/js/sky.js` | js | 259 |  |  |
 | `pwa-website/js/state.js` | js | 48 |  |  |
-| `pwa-website/js/storage.js` | js | 126 |  |  |
+| `pwa-website/js/storage.js` | js | 133 |  |  |
 | `pwa-website/js/tasbih.js` | js | 205 |  |  |
 | `pwa-website/js/userData.js` | js | 160 |  |  |
 | `pwa-website/js/utils.js` | js | 23 |  |  |
-| `pwa-website/sw.js` | js | 204 |  |  |
+| `pwa-website/sw.js` | js | 247 |  |  |
 | `pwa-website/test/ask-scroll.test.js` | js | 92 |  |  |
 | `pwa-website/test/boot-theme.test.js` | js | 103 |  |  |
 | `pwa-website/test/card-labels.test.js` | js | 47 |  |  |
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
 | `pwa-website/test/deep-links.test.js` | js | 55 |  |  |
+| `pwa-website/test/dua-audio.test.js` | js | 129 |  |  |
 | `pwa-website/test/guide-and-tasbih.test.js` | js | 61 |  |  |
 | `pwa-website/test/hijri.test.js` | js | 120 |  |  |
 | `pwa-website/test/install-affordance.test.js` | js | 70 |  |  |
@@ -200,14 +206,13 @@ Not all of these are bugs; verify before assuming.
 
 | Method | Path | Style | File:Line |
 | --- | --- | --- | --- |
-| (any) | `` | manual (pattern) | `apps/auth/src/admin-plane.ts:170` |
 | (any) | `` | manual (pattern) | `apps/auth/src/editorial-plane.ts:180` |
 | USE | `*` | hono | `apps/api/src/app.ts:35` |
 | USE | `*` | hono | `apps/api/src/app.ts:41` |
 | GET | `/` | hono | `apps/api/src/app.ts:142` |
 | (any) | `/.well-known/oauth-protected-resource` | manual (exact) | `apps/mcp/src/index.ts:38` |
-| (any) | `/^\/v1\/admin\/access-requests\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:184` |
-| (any) | `/^\/v1\/admin\/alerts\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:178` |
+| (any) | `/^\/v1\/admin\/access-requests\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:185` |
+| (any) | `/^\/v1\/admin\/alerts\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:179` |
 | (any) | `/^\/v1\/admin\/editorial\/assignments\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:91` |
 | (any) | `/^\/v1\/admin\/editorial\/batches\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:193` |
 | (any) | `/^\/v1\/admin\/editorial\/batches\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:202` |
@@ -223,10 +228,10 @@ Not all of these are bugs; verify before assuming.
 | (any) | `/^\/v1\/admin\/editorial\/records\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:163` |
 | (any) | `/^\/v1\/admin\/editorial\/records\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:171` |
 | (any) | `/^\/v1\/admin\/editorial\/records\/([^/]+` | manual (pattern) | `apps/auth/src/editorial-plane.ts:175` |
-| (any) | `/^\/v1\/admin\/rate-limits\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:164` |
-| (any) | `/^\/v1\/admin\/services\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:158` |
-| (any) | `/^\/v1\/admin\/sessions\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:153` |
-| (any) | `/^\/v1\/admin\/users\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:146` |
+| (any) | `/^\/v1\/admin\/rate-limits\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:165` |
+| (any) | `/^\/v1\/admin\/services\/([a-z-]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:159` |
+| (any) | `/^\/v1\/admin\/sessions\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:154` |
+| (any) | `/^\/v1\/admin\/users\/([^/]+` | manual (pattern) | `apps/auth/src/admin-plane.ts:147` |
 | (any) | `/^\/v1\/control\/devices\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:277` |
 | (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:374` |
 | (any) | `/^\/v1\/control\/mcp\/toolsets\/([^/]+` | manual (pattern) | `apps/auth/src/index.ts:388` |
@@ -239,6 +244,7 @@ Not all of these are bugs; verify before assuming.
 | GET | `/health` | hono | `apps/api/src/app.ts:151` |
 | (any) | `/health` | manual (exact) | `apps/auth/src/index.ts:52` |
 | (any) | `/health` | manual (exact) | `apps/mcp/src/index.ts:37` |
+| (any) | `/health` | manual (exact) | `apps/media/src/index.ts:88` |
 | GET | `/health/database` | hono | `apps/api/src/app.ts:159` |
 | GET | `/v1` | hono | `apps/api/src/app.ts:197` |
 | USE | `/v1/*` | hono | `apps/api/src/app.ts:140` |
@@ -246,7 +252,7 @@ Not all of these are bugs; verify before assuming.
 | (any) | `/v1/admin/` | manual (prefix) | `apps/auth/src/index.ts:82` |
 | (any) | `/v1/admin/` | manual (prefix) | `apps/auth/src/index.ts:93` |
 | (any) | `/v1/admin/` | manual (prefix) | `apps/auth/src/index.ts:96` |
-| GET | `/v1/admin/access-requests` | manual (exact) | `apps/auth/src/admin-plane.ts:144` |
+| GET | `/v1/admin/access-requests` | manual (exact) | `apps/auth/src/admin-plane.ts:145` |
 | GET | `/v1/admin/alerts` | manual (exact) | `apps/auth/src/admin-plane.ts:142` |
 | GET | `/v1/admin/ask-controls` | manual (exact) | `apps/auth/src/admin-plane.ts:136` |
 | PATCH | `/v1/admin/ask-controls` | manual (exact) | `apps/auth/src/admin-plane.ts:137` |
@@ -270,6 +276,7 @@ Not all of these are bugs; verify before assuming.
 | GET | `/v1/admin/editorial/roles` | manual (exact) | `apps/auth/src/editorial-plane.ts:106` |
 | PATCH | `/v1/admin/editorial/roles` | manual (exact) | `apps/auth/src/editorial-plane.ts:110` |
 | GET | `/v1/admin/editorial/workload` | manual (exact) | `apps/auth/src/editorial-plane.ts:64` |
+| GET | `/v1/admin/media-stats` | manual (exact) | `apps/auth/src/admin-plane.ts:144` |
 | GET | `/v1/admin/operations` | manual (exact) | `apps/auth/src/admin-plane.ts:125` |
 | GET | `/v1/admin/overview` | manual (exact) | `apps/auth/src/admin-plane.ts:124` |
 | GET | `/v1/admin/rate-limits` | manual (exact) | `apps/auth/src/admin-plane.ts:143` |
@@ -330,7 +337,7 @@ Not all of these are bugs; verify before assuming.
 | _m0018_record_plan | table | `apps/api/migrations/0018_hisn_reading_roles.sql` | (none) |
 | _m0018_role_plan | table | `apps/api/migrations/0018_hisn_reading_roles.sql` | (none) |
 | _m0018_segment_plan | table | `apps/api/migrations/0018_hisn_reading_roles.sql` | (none) |
-| a | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/api/test/ask-follow-up.test.ts`, `apps/api/test/ask-policy.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts`, `pwa-website/js/layout.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/reminders.js`, `pwa-website/js/sky.js`, `pwa-website/js/userData.js`, `pwa-website/sw.js`, `pwa-website/test/deep-links.test.js`, `pwa-website/test/sky.test.js` |
+| a | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/rag.ts`, `apps/api/test/ask-follow-up.test.ts`, `apps/api/test/ask-policy.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/api/test/record-query.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts`, `apps/media/src/index.ts`, `apps/media/test/media.test.ts`, `pwa-website/js/dua-audio.js`, `pwa-website/js/layout.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/reminders.js`, `pwa-website/js/sky.js`, `pwa-website/js/userData.js`, `pwa-website/sw.js`, `pwa-website/test/deep-links.test.js`, `pwa-website/test/sky.test.js` |
 | access_requests | table | `apps/auth/migrations/0002_control_plane.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | account | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | admin | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
@@ -375,6 +382,7 @@ Not all of these are bugs; verify before assuming.
 | correction_history | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | cross_references | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | curated | unknown | `(not defined in scanned files)` | `pwa-website/test/categories.test.js` |
+| D1 | unknown | `(not defined in scanned files)` | `apps/media/src/index.ts` |
 | dataset_sources | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | dataset_versions | table | `apps/api/migrations/0001_content_schema.sql` | `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/editorial-plane.ts` |
 | date | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
@@ -409,8 +417,8 @@ Not all of these are bugs; verify before assuming.
 | index | unknown | `(not defined in scanned files)` | `pwa-website/test/boot-theme.test.js` |
 | invitation | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | is | unknown | `(not defined in scanned files)` | `apps/api/test/ask-policy.test.ts` |
-| it | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js` |
-| its | unknown | `(not defined in scanned files)` | `apps/auth/src/admin-plane.ts`, `pwa-website/js/assistant.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/quran-bismillah.test.js` |
+| it | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js`, `pwa-website/sw.js` |
+| its | unknown | `(not defined in scanned files)` | `apps/auth/src/admin-plane.ts`, `apps/media/src/index.ts`, `pwa-website/js/assistant.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/quran-bismillah.test.js` |
 | json_each | unknown | `(not defined in scanned files)` | `apps/auth/src/webhooks.ts` |
 | jwks | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | keyword | unknown | `(not defined in scanned files)` | `apps/auth/src/taxonomy.ts` |
@@ -422,6 +430,7 @@ Not all of these are bugs; verify before assuming.
 | mcp_tool_definitions | table | `apps/auth/migrations/0002_control_plane.sql` | (none) |
 | mcp_toolset_tools | table | `apps/auth/migrations/0005_query_and_mcp_toolsets.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | mcp_toolsets | table | `apps/auth/migrations/0005_query_and_mcp_toolsets.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
+| media_daily_stats | table | `apps/api/migrations/0029_media_daily_stats.sql` | `apps/api/test/media-stats.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/media/src/index.ts` |
 | member | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | memory | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | metal | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer.js` |
@@ -445,7 +454,7 @@ Not all of these are bugs; verify before assuming.
 | operational_alerts | table | `apps/auth/migrations/0009_operational_alerts.sql` | `apps/auth/src/admin-plane.ts` |
 | or | unknown | `(not defined in scanned files)` | `pwa-website/js/onboarding.js` |
 | organization | table | `apps/auth/migrations/0001_identity.sql` | (none) |
-| our | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-juz.js` |
+| our | unknown | `(not defined in scanned files)` | `pwa-website/js/dua-audio.js`, `pwa-website/js/quran-juz.js`, `pwa-website/sw.js` |
 | passkey | table | `apps/auth/migrations/0008_account_security.sql` | (none) |
 | paths | unknown | `(not defined in scanned files)` | `pwa-website/test/deep-links.test.js` |
 | plan_limits | table | `apps/auth/migrations/0010_rate_limits.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
@@ -454,6 +463,7 @@ Not all of these are bugs; verify before assuming.
 | platform_role_grants | table | `apps/auth/test/editorial-pilot.test.ts`, `apps/auth/migrations/0007_platform_roles.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
 | platform_services | table | `apps/auth/migrations/0004_admin_console.sql` | `apps/auth/src/admin-plane.ts`, `apps/auth/src/index.ts` |
 | pretending | unknown | `(not defined in scanned files)` | `pwa-website/js/hijri.js` |
+| production | unknown | `(not defined in scanned files)` | `pwa-website/js/dua-audio.js`, `pwa-website/test/dua-audio.test.js` |
 | publication_batch_items | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts` |
 | publication_batches | table | `apps/api/migrations/0006_canonical_editorial.sql` | `apps/auth/src/editorial-plane.ts` |
 | publication_history | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
@@ -461,9 +471,11 @@ Not all of these are bugs; verify before assuming.
 | quran_ayahs | table | `apps/api/migrations/0024_quran_search.sql` | `apps/api/src/quran-search.ts`, `apps/api/test/quran-search.test.ts` |
 | quran_index_state | table | `apps/api/migrations/0024_quran_search.sql` | `apps/api/src/quran-search.ts`, `apps/api/test/quran-search.test.ts` |
 | quran_search_fts | virtual_table | `apps/api/migrations/0024_quran_search.sql` | `apps/api/src/quran-search.ts` |
+| R2 | unknown | `(not defined in scanned files)` | `apps/media/src/index.ts` |
 | rag_daily_usage | table | `apps/api/migrations/0005_rag_usage.sql` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts` |
 | rag_index_state | table | `apps/api/test/search-aliases.test.ts`, `apps/api/migrations/0007_rag_index_state.sql` | `apps/api/src/rag.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/reading-roles-migration.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts` |
 | rate_limit_counters | table | `apps/auth/migrations/0010_rate_limits.sql` | `apps/auth/src/index.ts` |
+| reading | unknown | `(not defined in scanned files)` | `pwa-website/test/dua-audio.test.js` |
 | record_numberings | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | record_placements | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/auth/src/editorial-plane.ts` |
 | record_search_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
@@ -478,7 +490,7 @@ Not all of these are bugs; verify before assuming.
 | segment_translations | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
 | service | unknown | `(not defined in scanned files)` | `apps/api/test/publish-hadith-migration.test.ts` |
 | session | table | `apps/auth/migrations/0001_identity.sql` | `apps/auth/src/admin-plane.ts` |
-| SET | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts` |
+| SET | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/src/index.ts`, `apps/media/src/index.ts` |
 | Settings | unknown | `(not defined in scanned files)` | `pwa-website/js/onboarding.js`, `pwa-website/js/quran.js` |
 | several | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
 | six | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts` |
@@ -495,7 +507,7 @@ Not all of these are bugs; verify before assuming.
 | taxonomy_terms | table | `apps/api/migrations/0003_canonical_knowledge.sql` | `apps/api/src/repositories/d1-content-repository.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts` |
 | text | unknown | `(not defined in scanned files)` | `apps/api/test/search-aliases.test.ts` |
 | that | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js`, `pwa-website/test/guide-and-tasbih.test.js`, `pwa-website/test/worship-nav.test.js` |
-| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/app.ts`, `apps/api/src/quran-search.ts`, `apps/api/src/rag-intent.ts`, `apps/api/src/rag.ts`, `apps/api/test/ask-citations.test.ts`, `apps/api/test/ask-policy.test.ts`, `apps/api/test/ask-quran-sources.test.ts`, `apps/api/test/ask-scope.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/quran-search.test.ts`, `apps/api/test/search-aliases.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/assistant.js`, `pwa-website/js/categories.js`, `pwa-website/js/hijri.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran-verse-search.js`, `pwa-website/js/quran.js`, `pwa-website/js/seo.js`, `pwa-website/js/sky.js`, `pwa-website/js/state.js`, `pwa-website/js/storage.js`, `pwa-website/test/boot-theme.test.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/guide-and-tasbih.test.js`, `pwa-website/test/hijri.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/qibla-compass.test.js`, `pwa-website/test/quran-juz.test.js`, `pwa-website/test/quran-words.test.js`, `pwa-website/test/reading-roles.test.js`, `pwa-website/test/sky.test.js`, `pwa-website/test/storage.test.js`, `pwa-website/test/worship-nav.test.js` |
+| the | unknown | `(not defined in scanned files)` | `apps/admin/public/app.js`, `apps/api/src/app.ts`, `apps/api/src/quran-search.ts`, `apps/api/src/rag-intent.ts`, `apps/api/src/rag.ts`, `apps/api/test/ask-citations.test.ts`, `apps/api/test/ask-policy.test.ts`, `apps/api/test/ask-quran-sources.test.ts`, `apps/api/test/ask-scope.test.ts`, `apps/api/test/canonical-withdrawal.test.ts`, `apps/api/test/publish-hadith-migration.test.ts`, `apps/api/test/quran-search.test.ts`, `apps/api/test/search-aliases.test.ts`, `apps/auth/src/admin-plane.ts`, `apps/auth/src/editorial-plane.ts`, `apps/auth/test/editorial-pilot.test.ts`, `apps/developers/public/console.js`, `apps/status/public/app.js`, `pwa-website/js/app.js`, `pwa-website/js/assistant.js`, `pwa-website/js/categories.js`, `pwa-website/js/dua-audio.js`, `pwa-website/js/hijri.js`, `pwa-website/js/onboarding.js`, `pwa-website/js/prayer-times.js`, `pwa-website/js/prayer.js`, `pwa-website/js/quran-audio.js`, `pwa-website/js/quran-verse-search.js`, `pwa-website/js/quran.js`, `pwa-website/js/seo.js`, `pwa-website/js/sky.js`, `pwa-website/js/state.js`, `pwa-website/js/storage.js`, `pwa-website/sw.js`, `pwa-website/test/boot-theme.test.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/dua-audio.test.js`, `pwa-website/test/guide-and-tasbih.test.js`, `pwa-website/test/hijri.test.js`, `pwa-website/test/prayer-times.test.js`, `pwa-website/test/qibla-compass.test.js`, `pwa-website/test/quran-juz.test.js`, `pwa-website/test/quran-words.test.js`, `pwa-website/test/reading-roles.test.js`, `pwa-website/test/sky.test.js`, `pwa-website/test/storage.test.js`, `pwa-website/test/worship-nav.test.js` |
 | there | unknown | `(not defined in scanned files)` | `pwa-website/js/assistant.js`, `pwa-website/js/quran.js`, `pwa-website/test/quran-bismillah.test.js` |
 | this | unknown | `(not defined in scanned files)` | `apps/auth/src/editorial-plane.ts`, `apps/status/public/app.js`, `pwa-website/js/quran-verse-search.js`, `pwa-website/js/quran.js` |
 | those | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
