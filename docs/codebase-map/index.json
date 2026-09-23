@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T11:55:19.665Z",
+  "generatedAt": "2026-09-23T12:05:46.865Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -821,7 +821,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 216,
+      "lines": 222,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -838,6 +838,14 @@
     {
       "path": "pwa-website/js/assistant.js",
       "lines": 393,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/js/calendar.js",
+      "lines": 75,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -869,7 +877,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 163,
+      "lines": 174,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -892,6 +900,14 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/js/hijri.js",
+      "lines": 123,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/js/home.js",
       "lines": 218,
       "language": "js",
@@ -901,7 +917,7 @@
     },
     {
       "path": "pwa-website/js/layout.js",
-      "lines": 13,
+      "lines": 15,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -909,7 +925,7 @@
     },
     {
       "path": "pwa-website/js/modes.js",
-      "lines": 81,
+      "lines": 85,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1077,7 +1093,7 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 201,
+      "lines": 204,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1126,6 +1142,14 @@
     {
       "path": "pwa-website/test/guide-and-tasbih.test.js",
       "lines": 61,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/hijri.test.js",
+      "lines": 120,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1237,7 +1261,7 @@
     },
     {
       "path": "pwa-website/test/worship-nav.test.js",
-      "lines": 62,
+      "lines": 77,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2612,7 +2636,8 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "apps/admin/public/app.js"
+        "apps/admin/public/app.js",
+        "pwa-website/test/hijri.test.js"
       ]
     },
     {
@@ -3666,6 +3691,14 @@
       "referencedBy": []
     },
     {
+      "name": "of",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/hijri.test.js"
+      ]
+    },
+    {
       "name": "one",
       "kind": "unknown",
       "definedIn": [],
@@ -3791,6 +3824,14 @@
       "referencedBy": [
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "pretending",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/hijri.js"
       ]
     },
     {
@@ -4202,7 +4243,8 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/prayer-times.js",
-        "pwa-website/test/guide-and-tasbih.test.js"
+        "pwa-website/test/guide-and-tasbih.test.js",
+        "pwa-website/test/worship-nav.test.js"
       ]
     },
     {
@@ -4231,6 +4273,7 @@
         "pwa-website/js/app.js",
         "pwa-website/js/assistant.js",
         "pwa-website/js/categories.js",
+        "pwa-website/js/hijri.js",
         "pwa-website/js/onboarding.js",
         "pwa-website/js/prayer-times.js",
         "pwa-website/js/prayer.js",
@@ -4244,6 +4287,7 @@
         "pwa-website/test/boot-theme.test.js",
         "pwa-website/test/categories.test.js",
         "pwa-website/test/guide-and-tasbih.test.js",
+        "pwa-website/test/hijri.test.js",
         "pwa-website/test/prayer-times.test.js",
         "pwa-website/test/qibla-compass.test.js",
         "pwa-website/test/quran-juz.test.js",

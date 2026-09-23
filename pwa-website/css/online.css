@@ -65,7 +65,11 @@
 .mode-tasbih .advanced-home,
 .mode-tasbih .simple-home,
 .mode-tasbih .advanced-bottom-nav,
-.mode-tasbih .favourites-fab { display: none; }
+.mode-tasbih .favourites-fab,
+.mode-calendar .advanced-home,
+.mode-calendar .simple-home,
+.mode-calendar .advanced-bottom-nav,
+.mode-calendar .favourites-fab { display: none; }
 
 .advanced-home[hidden],
 .simple-home[hidden] { display: none !important; }
@@ -871,7 +875,8 @@
 /* Content clears the floating bar in the modes that show it. */
 .mode-prayerTimes main,
 .mode-qibla main,
-.mode-tasbih main {
+.mode-tasbih main,
+.mode-calendar main {
   padding-bottom: 5rem;
 }
 
@@ -1180,3 +1185,51 @@ body.has-player .reader-controls {
    of its own padding -- is pure overflow: it is what leaves the page scrollable and lets the
    composer scroll out of reach. Only this mode opts out; every other view still wants it. */
 .app-shell.mode-ask { min-height: 0; }
+
+/* Islamic calendar: today, the next date that matters, and the year ahead. */
+.calendar-home { display: grid; gap: 0.75rem; padding-bottom: 5.5rem; }
+.calendar-home[hidden] { display: none; }
+.calendar-today {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: center;
+  padding: 1.4rem 1rem;
+  border-radius: 0.9rem;
+  color: white;
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+  text-align: center;
+}
+.calendar-today strong { font-size: 1.55rem; line-height: 1.2; }
+.calendar-today span:last-child { font-size: 0.85rem; opacity: 0.9; }
+.calendar-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+.calendar-next {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.calendar-next .calendar-label { color: var(--muted); opacity: 1; }
+.calendar-next strong { font-size: 1.1rem; color: var(--accent-strong); }
+.calendar-next span:last-child { color: var(--muted); font-size: 0.85rem; }
+.calendar-next[hidden], .calendar-today[hidden], .calendar-list[hidden],
+.calendar-heading[hidden], .calendar-caveat[hidden] { display: none; }
+.calendar-heading { margin: 0.4rem 0 0; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.calendar-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border-radius: 0.85rem;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.calendar-row { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.75rem 1rem; }
+.calendar-row + .calendar-row { box-shadow: inset 0 1px 0 var(--line); }
+.calendar-row.is-today { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.calendar-row span { display: grid; gap: 0.1rem; min-width: 0; }
+.calendar-row small { color: var(--muted); font-size: 0.78rem; }
+.calendar-row-when { text-align: right; flex: none; }
+.calendar-caveat { margin: 0; color: var(--muted); font-size: 0.75rem; line-height: 1.4; }

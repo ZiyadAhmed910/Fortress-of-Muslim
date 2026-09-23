@@ -33,6 +33,8 @@ const ASSETS = [
   `./js/dom.js?v=${APP_VERSION}`,
   `./js/filters.js?v=${APP_VERSION}`,
   `./js/home.js?v=${APP_VERSION}`,
+  `./js/hijri.js?v=${APP_VERSION}`,
+  `./js/calendar.js?v=${APP_VERSION}`,
   `./js/hadith.js?v=${APP_VERSION}`,
   `./js/layout.js?v=${APP_VERSION}`,
   `./js/modes.js?v=${APP_VERSION}`,
@@ -58,6 +60,7 @@ const ASSETS = [
   './data/duas.json?v=2026-09-11-hisn-roles',
   './data/quran/index.json',
   './data/quran/juz.json',
+  './data/hijri-events.json',
   // Only the icons the running app shows: the header mark, the tab icon, and the 192/512 art that
   // notifications and the lock-screen player use -- those must work offline. The maskable icons
   // and the Apple touch icon are read once, by the OS, when the app is installed, which needs a

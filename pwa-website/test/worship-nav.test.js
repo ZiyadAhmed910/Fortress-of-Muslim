@@ -8,8 +8,9 @@ import { WORSHIP_TABS } from '../js/layout.js';
 // a test for behaviour that no longer exists is worse than no test, because it still looks like a
 // specification.
 //
-// What survived the removal is the part that was never configuration: Prayer Times, Qibla and Tasbih
-// are three screens behind one "Prayer" button, with a sub-bar to move between them. That is the
+// What survived the removal is the part that was never configuration: Prayer Times, Qibla, Tasbih
+// and the Islamic calendar are four screens behind one "Prayer" button, with a sub-bar to move
+// between them (the calendar joined in 0.46.0). That is the
 // shape of the nav, and it is what this covers. The risk after a removal like this is a leftover --
 // markup for a tab nothing renders, or a screen the nav can no longer reach -- so these check the
 // three lists that have to agree: the tabs, the nav buttons, and the screens.
@@ -19,15 +20,15 @@ const MODES_JS = readFileSync(resolve(process.cwd(), 'js/modes.js'), 'utf8');
 const navButtons = [...HTML.matchAll(/data-content-mode="([a-zA-Z]+)"/g)].map((match) => match[1]);
 
 describe('the worship group', () => {
-  it('is the three screens behind the Prayer button', () => {
-    expect(WORSHIP_TABS).toEqual(['prayerTimes', 'qibla', 'tasbih']);
+  it('is the four screens behind the Prayer button', () => {
+    expect(WORSHIP_TABS).toEqual(['prayerTimes', 'qibla', 'tasbih', 'calendar']);
   });
 
   it('gives every one of them a way in from the nav', () => {
     for (const tab of WORSHIP_TABS) expect(navButtons, tab).toContain(tab);
   });
 
-  it('has a sub-bar holding exactly those three', () => {
+  it('has a sub-bar holding exactly those', () => {
     const start = HTML.indexOf('id="worshipSubnav"');
     expect(start).toBeGreaterThan(-1);
     const bar = HTML.slice(start, HTML.indexOf('</nav>', start));
@@ -49,6 +50,20 @@ describe('after Customize Layout was removed', () => {
     const modes = new Set(MODES_JS.match(/const MODES = \[([^\]]+)\]/)[1]
       .split(',').map((entry) => entry.trim().replace(/'/g, '')).filter(Boolean));
     for (const button of navButtons) expect(modes, button).toContain(button);
+  });
+
+  it('hides the Duas home and its bar in every other mode', () => {
+    // Each mode hides the Duas home's grid, list, bottom bar and favourites button by name. A new
+    // mode missing from that list shows the Duas bottom bar on top of its own -- which is exactly
+    // what the calendar did when it was added, sitting over the Prayer sub-bar.
+    const css = readFileSync(resolve(process.cwd(), 'css/online.css'), 'utf8');
+    const modes = MODES_JS.match(/const MODES = \[([^\]]+)\]/)[1]
+      .split(',').map((entry) => entry.trim().replace(/'/g, '')).filter((mode) => mode && mode !== 'duas');
+    for (const mode of modes) {
+      for (const part of ['advanced-home', 'simple-home', 'advanced-bottom-nav', 'favourites-fab']) {
+        expect(css, `.mode-${mode} .${part} is never hidden`).toContain(`.mode-${mode} .${part}`);
+      }
+    }
   });
 
   it('keeps no way to switch a tab off', () => {
