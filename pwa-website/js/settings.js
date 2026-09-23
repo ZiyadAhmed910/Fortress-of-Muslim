@@ -14,6 +14,7 @@ import {
   storageSupported,
 } from './storage.js';
 import { escapeHtml, toast } from './utils.js';
+import { syncDownloadRow } from './dua-audio.js';
 
 export function applySettings() {
   els.appVersion.textContent = `Version ${APP_VERSION}`;
@@ -93,7 +94,9 @@ export function initSettingsNav() {
  * Run when the Data panel is opened rather than at startup: walking a cache that holds thousands
  * of ayahs is not free, and nobody needs the number until they are looking at it.
  */
-async function refreshStorage() {
+export async function refreshStorage() {
+  // The dua download row says how much is saved, which a Clear below can change.
+  syncDownloadRow();
   if (!els.storageList) return;
   if (!storageSupported()) {
     els.storageSection.hidden = true;

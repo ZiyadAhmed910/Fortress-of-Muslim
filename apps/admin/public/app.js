@@ -15,7 +15,7 @@ const state = {
   resources: {},
 };
 const roleViews = {
-  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'plan-requests', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'rate-limits', 'security', 'audit']),
+  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'plan-requests', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'rate-limits', 'media-stats', 'security', 'audit']),
   editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'workload', 'users', 'rag']),
   reviewer: new Set(['overview', 'queue', 'books', 'assignments', 'workload', 'rag']),
 };
@@ -273,6 +273,7 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'taxonomy') await loadTaxonomy(params);
     else if (id === 'services') await loadServices();
     else if (id === 'rate-limits') await loadRateLimits();
+    else if (id === 'media-stats') await loadMediaStats(params);
     else if (id === 'alerts') await loadAlerts();
     else if (id === 'operations') await loadOperations();
     else if (id === 'security') await loadSecurity();
@@ -1189,6 +1190,37 @@ async function loadRateLimits() {
   $('#rate-limits-table').innerHTML = tableHead(['Plan', 'Requests / minute', 'Requests / day', 'Developers', 'Last updated', ''])
     + rows.map((row) => `<div class="row"><strong>${esc(human(row.planCode))}</strong><input type="number" min="1" max="100000" value="${row.requestsPerMinute}" data-limit-minute="${esc(row.planCode)}"><input type="number" min="1" max="50000000" value="${row.requestsPerDay}" data-limit-day="${esc(row.planCode)}"><span>${row.developerCount}</span><span>${date(row.updatedAt)}${row.updatedByName ? ` &middot; ${esc(row.updatedByName)}` : ''}</span><button data-save-limit="${esc(row.planCode)}">Save</button></div>`).join('');
 }
+// The last report shown, so the export buttons write exactly what is on screen.
+let mediaStatsReport = null;
+
+async function loadMediaStats(params = {}) {
+  const query = Object.fromEntries(Object.entries(params).filter(([, value]) => value));
+  mediaStatsReport = await api(`/v1/admin/media-stats?${new URLSearchParams(query)}`);
+  const { data, meta } = mediaStatsReport;
+  $('[data-filter="media-stats"] [name="from"]').value = meta.from;
+  $('[data-filter="media-stats"] [name="to"]').value = meta.to;
+  $('#media-stats-metrics').innerHTML = [
+    ['Plays', meta.plays], ['Downloads', meta.downloads], ['Recordings heard', meta.files], ['Period', `${meta.from} – ${meta.to}`],
+  ].map(([label, value]) => `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
+  $('#media-stats-days').innerHTML = data.byDay.length
+    ? tableHead(['Day', 'Plays', 'Downloads']) + data.byDay.map((row) => `<div class="row"><span>${esc(row.day)}</span><span>${row.plays}</span><span>${row.downloads}</span></div>`).join('')
+    : empty('Nothing was played or downloaded in this period.');
+  $('#media-stats-files').innerHTML = data.byFile.length
+    ? tableHead(['Recording', 'Plays', 'Downloads']) + data.byFile.map((row) => `<div class="row"><code>${esc(row.path)}</code><span>${row.plays}</span><span>${row.downloads}</span></div>`).join('')
+    : empty('Nothing was played or downloaded in this period.');
+}
+
+$('[data-export-media-files]').addEventListener('click', () => {
+  if (!mediaStatsReport) return;
+  const { data, meta } = mediaStatsReport;
+  downloadCsv(`audio-usage-by-recording-${meta.from}-to-${meta.to}.csv`, data.byFile, [['path', 'Recording'], ['plays', 'Plays'], ['downloads', 'Downloads']]);
+});
+$('[data-export-media-days]').addEventListener('click', () => {
+  if (!mediaStatsReport) return;
+  const { data, meta } = mediaStatsReport;
+  downloadCsv(`audio-usage-by-day-${meta.from}-to-${meta.to}.csv`, data.byDay, [['day', 'Day'], ['plays', 'Plays'], ['downloads', 'Downloads']]);
+});
+
 $('#rate-limits-table').addEventListener('click', async (event) => {
   const button = event.target.closest('[data-save-limit]');
   if (!button) return;

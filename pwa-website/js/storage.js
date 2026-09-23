@@ -15,6 +15,13 @@
 
 export const CACHES = [
   {
+    key: 'duaAudio',
+    name: 'fortress-dua-audio-v1',
+    label: 'Dua recitation',
+    detail: 'Recordings saved for offline listening. Clearing it only removes downloads; recitation still plays when you are online.',
+    clearable: true,
+  },
+  {
     key: 'quranAudio',
     name: 'fortress-quran-audio-v1',
     label: 'Quran recitation',

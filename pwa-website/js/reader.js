@@ -3,6 +3,7 @@ import { setScreen } from './seo.js';
 import { els } from './dom.js';
 import { escapeHtml, toast } from './utils.js';
 import { applyAdvancedTitle, filterList, showAdvancedDashboard } from './home.js';
+import { renderDuaAudio, stopDuaAudio } from './dua-audio.js';
 
 export function openEntry(index) {
   state.currentIndex = index;
@@ -15,6 +16,7 @@ export function openEntry(index) {
 export function showHome() {
   if (els.app.classList.contains('is-reader')) {
     els.app.classList.remove('is-reader');
+    stopDuaAudio();
     if (state.advancedListMode) {
       applyAdvancedTitle();
     } else {
@@ -44,6 +46,7 @@ export function renderReader() {
   els.nextButton.disabled = state.currentIndex === state.filtered.length - 1 && state.currentPart === entry.parts.length - 1;
   const role = entry.partRoles?.[state.currentPart] || 'supplication';
   const note = ROLE_NOTES[role];
+  renderDuaAudio(entry, state.currentPart);
   els.duaContent.dataset.role = role;
   els.duaContent.innerHTML = (note
     ? `<p class="reading-role reading-role-${role}"><span class="reading-role-label">${note.label}</span>${note.detail ? `<span class="reading-role-detail">${note.detail}</span>` : ''}</p>`

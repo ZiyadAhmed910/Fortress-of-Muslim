@@ -174,6 +174,43 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.47.0
+
+_2026-09-23_
+
+- **Recorded recitation for the duas, self-hosted on Cloudflare R2.** 232 recordings across 109
+  readings, used under a written agreement with their provider, stored in the `fortress-media` R2
+  bucket under versioned keys (`duas/v1/<reading>/<part>.mp3`) and served from our own domain. The
+  provider is deliberately not named anywhere in this repository or in the app's network traffic.
+  - **A new Worker, `apps/media`**, in front of the bucket: `media.fortressofmuslim.org` in
+    production, `media-test.fortressofmuslim.org` on test. Read-only (GET, HEAD, OPTIONS), serves
+    only prefixes listed in `PUBLIC_PREFIXES`, honours byte ranges (an iPhone will not play audio
+    from a server that refuses them) and conditional requests, CORS-open, cached immutably. One
+    bucket serves both environments; the counts go to each environment's own D1.
+  - **Usage counting for the provider's report.** Each play and each offline download is tallied
+    into the new `media_daily_stats` table (migration `0029`) by day, file and kind. A play counts
+    once per listen: only a request for the start of the file counts, so seeking does not inflate
+    it. A download is marked by the app (`?intent=download`). A failed tally is logged and dropped,
+    never costing anyone the audio. Plays from a copy saved on the phone never reach the server and
+    are not counted -- the report says so rather than estimating them.
+  - **Admin console: Audio usage** (`GET /v1/admin/media-stats`, admin role). Totals, by day and by
+    recording for any range up to a year, with CSV export of each for the partner report.
+    `apps/api/test/media-stats.test.ts` runs the Worker's upsert and the admin query against the
+    real migrated schema.
+  - **Which part a recording belongs to was checked against the text**, not assumed from file
+    order: every recording was matched to its part by comparing its source text with ours after the
+    same Arabic normalisation the API uses. Recordings that could not be matched confidently were
+    left out rather than guessed; those parts simply have no play button.
+  - **Confidentiality guard.** `tools/verify-public-canonical-boundary.mjs` now fails the check if
+    any tracked file names the provider. It compares hashes of short phrases rather than the names
+    themselves, so the guard does not disclose what it protects.
+- **Deploys:** the test and production platform workflows deploy the media Worker with
+  `wrangler.ci.jsonc` (no route permissions needed, same pattern as the portals); the custom domain
+  is provisioned once with `wrangler.jsonc` from an authenticated session.
+- Removed a dangling, bodiless selector list at the end of `pwa-website/css/reader.css` that had
+  been there since the first commit. It did nothing at the end of the file, but swallowed the first
+  rule appended after it.
+
 ### 0.46.0
 
 _2026-09-23_
@@ -1458,6 +1495,15 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — listen to the duas
+
+- Many duas now have a Listen button in the reader. Where the book gives a morning and an evening
+  wording, there is one button for each.
+- Plays on the lock screen like the Quran recitation. Starting one player pauses the other.
+- Settings → Data → Dua recitation saves every recording for offline listening (about 53 MB), and
+  it can be cleared on its own under Storage.
+- Parts that are guidance rather than words to recite have no recording, by design.
 
 ### Unreleased — an Islamic calendar
 

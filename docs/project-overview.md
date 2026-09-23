@@ -23,7 +23,7 @@ Two commitments shape every other decision in this codebase:
 
 ## Current version
 
-`0.26.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
+`0.47.0` (`packages/contracts/src/index.ts` → `PLATFORM_VERSION`, mirrored in every workspace
 `package.json`). See `README.md` → `## Platform Releases` for the full version history — it is
 the closest thing this repo has to a changelog and should be treated as one.
 
@@ -31,7 +31,7 @@ the closest thing this repo has to a changelog and should be treated as one.
 
 | Branch | Deploys to | Databases |
 | --- | --- | --- |
-| `dev` (push) | `test.fortressofmuslim.org`, `api-test`, `auth-test`, `admin-test`, `developers-test`, `mcp-test`, `status-test` | `fortress-identity-test`, `fortress-platform-test` (Cloudflare D1) |
+| `dev` (push) | `test.fortressofmuslim.org`, `api-test`, `auth-test`, `admin-test`, `developers-test`, `mcp-test`, `status-test`, `media-test` | `fortress-identity-test`, `fortress-platform-test` (Cloudflare D1) |
 | `main` (push) | production equivalents of the above | `fortress-identity-production`, `fortress-platform-production` |
 
 Both run on a real Cloudflare account and real Bluehost hosting (the PWA's static origin).
@@ -50,6 +50,7 @@ apps/
   admin/        Static Admin Console frontend (talks to auth Worker's /v1/admin/*)
   developers/   Static Developer Portal frontend (API docs, keys, OAuth apps, named queries, MCP toolsets)
   mcp/          MCP (Model Context Protocol) gateway Worker — OAuth-protected agent tool execution
+  media/        Media Worker — serves self-hosted audio from R2 (bucket fortress-media) and counts plays
   status/       Static status dashboard — client-side probes of every service
 packages/
   contracts/    Shared Zod schemas, TypeScript types, PLATFORM_VERSION
@@ -126,6 +127,18 @@ response size at 1MB, and time out at 10s — note this is a string-based host c
 resolution check, so it doesn't fully close a DNS-rebinding SSRF path; the mitigating control is
 that external tools require review/approval before they're callable.
 
+### `apps/media` — Media Worker
+Serves the app's large on-demand audio from the R2 bucket `fortress-media` (one bucket for both
+environments) at `media.fortressofmuslim.org` / `media-test.fortressofmuslim.org`. Read-only, byte
+ranges honoured, and only prefixes in `PUBLIC_PREFIXES` are served (today `duas/`). It exists
+mainly for counting: each play (a request for the start of a file) and each offline download
+(`?intent=download`) is tallied into `media_daily_stats` in that environment's content D1, which the
+Admin console's Audio usage page reports on (`GET /v1/admin/media-stats`, CSV export). Plays from a
+copy saved on the phone are not counted. The dua recordings are used under a written agreement
+whose provider must not be named in this repo; `tools/verify-public-canonical-boundary.mjs` fails
+the check if any tracked file does. The private tooling that matched and uploaded them lives outside
+git.
+
 ### `apps/status` — Status Portal
 Client-side, on-page-load probes of every service (API, D1, Ask readiness, Auth, MCP, PWA,
 Developer Portal, Admin Console). This is a passive dashboard, not an alerting system — nothing
@@ -192,6 +205,12 @@ What it actually contains today:
   `islamic-umalqura`), labelled as such with a moon-sighting caveat, and hidden rather than
   approximated where unsupported. Logic in `js/hijri.js`, the screen in `js/calendar.js`, fixed
   event dates in `data/hijri-events.json`.
+- **Dua recitation** — a Listen button in the reader for parts with a recording (232 recordings
+  over 109 readings; Morning/Evening pairs get one button each), from our media host. Recordings
+  were matched to parts by comparing text, and unmatched ones were left out, so a missing button is
+  expected. Settings → Data saves them all for offline listening into `fortress-dua-audio-v1`, which
+  the service worker answers with proper 206 ranges. Map in `data/dua-audio.json`, player in
+  `js/dua-audio.js`. Only one of the Quran and dua players sounds at a time.
 - **Reminders** — opt-in local notifications for the five prayers and morning/evening adhkar.
 - **Shell** — two home screens (cards with artwork, or a plain list), dark mode, first-run
   walkthrough, and backup export/import covering favourites, settings, tasbih and Quran preferences.

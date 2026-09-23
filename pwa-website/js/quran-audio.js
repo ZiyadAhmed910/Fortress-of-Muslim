@@ -117,6 +117,16 @@ export function initQuranAudio({ ensureAyahVisible, onAyahChange, onSurahEnd }) 
   audio.addEventListener('play', renderPlayerBar);
   audio.addEventListener('pause', renderPlayerBar);
   audio.addEventListener('playing', preloadNextAyah);
+  // The dua reader has its own player (dua-audio.js). Only one should sound at a time, and the lock
+  // screen's controls belong to whichever started last, so each announces when it starts and
+  // re-registers the media session as its own.
+  audio.addEventListener('play', () => {
+    document.dispatchEvent(new CustomEvent('fortress:audio-start', { detail: 'quran' }));
+    bindMediaSession();
+  });
+  document.addEventListener('fortress:audio-start', (event) => {
+    if (event.detail !== 'quran' && !audio.paused) audio.pause();
+  });
   bindMediaSession();
   // Visual sync is skipped while the screen is off (see step), so catch the page up to wherever the
   // recitation has got to the moment it is looked at again, and put the wake lock back -- the

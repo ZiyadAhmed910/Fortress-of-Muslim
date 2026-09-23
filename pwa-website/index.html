@@ -605,6 +605,7 @@
               <button class="star-button" id="readerFavouriteButton" aria-label="Toggle favourite">☆</button>
             </div>
             <div class="part-count" id="partCount"></div>
+            <div class="dua-audio" id="duaAudio" hidden></div>
             <article class="dua-content" id="duaContent"></article>
           </div>
 
@@ -836,6 +837,13 @@
                 <button class="small-action-button secondary" id="importDataButton" type="button">Import</button>
                 <input id="importDataInput" type="file" accept="application/json,.json" hidden>
               </span>
+            </div>
+            <div class="setting-row" id="duaAudioDownloadRow" hidden>
+              <span>
+                <strong>Dua recitation</strong>
+                <small id="duaAudioDownloadStatus">Save the recordings to listen without a connection.</small>
+              </span>
+              <button class="small-action-button" id="duaAudioDownloadButton" type="button">Download</button>
             </div>
             <div class="setting-row setting-row-stack storage-section" id="storageSection">
               <span>

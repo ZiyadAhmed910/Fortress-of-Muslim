@@ -1,0 +1,7 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json", "name": "fortress-media", "main": "src/index.ts", "compatibility_date": "2026-07-18", "workers_dev": true, "observability": { "enabled": true },
+  "env": {
+    "test": { "name": "fortress-media-test", "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "fortress-media" }], "d1_databases": [{ "binding": "CONTENT_DB", "database_name": "fortress-platform-test", "database_id": "a5f4b33f-5c6e-4a0c-b506-3e04d263ffb7" }] },
+    "production": { "name": "fortress-media-production", "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "fortress-media" }], "d1_databases": [{ "binding": "CONTENT_DB", "database_name": "fortress-platform-production", "database_id": "36233189-9e08-47de-b862-1530dcda24a3" }] }
+  }
+}
