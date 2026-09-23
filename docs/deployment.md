@@ -67,7 +67,7 @@ Excluded from deploy:
 | Environment | Served from | Cloudflare Worker | Bluehost copy |
 | --- | --- | --- | --- |
 | test (`test.fortressofmuslim.org`) | **Cloudflare** since 2026-09-23 | `fortress-pwa-test` | kept up to date on every push |
-| production (`fortressofmuslim.org`) | Bluehost | `fortress-pwa-production` | kept up to date on every push |
+| production (`fortressofmuslim.org`, `www` redirects to it) | **Cloudflare** since 2026-09-23 | `fortress-pwa-production` | kept up to date on every push |
 
 Why: Bluehost answered small files in 0.3-10 s on 2026-09-23, and every first visit after a release
 waited on it file by file. Cloudflare serves the files from its own storage at the edge, with no
@@ -93,8 +93,12 @@ Test first; production only after test has been used on real devices.
 1. In Cloudflare -> the `fortressofmuslim.org` zone -> DNS -> Records, note the existing record for
    the host (`test` for test, `fortressofmuslim.org` for production): its type, content and proxy
    status. This is the rollback. Do not touch MX, TXT/SPF/DKIM, `mail`, `ftp`, `cpanel` or `webmail`.
-   Test, for the record, was `A  test  162.214.80.52  DNS only` (Bluehost). `www.test` was left on
-   Bluehost; nothing links to it.
+   For the record, before the move: test was `A  test  162.214.80.52  DNS only`; production was
+   `A  fortressofmuslim.org  162.214.80.52  Proxied` and `CNAME  www  fortressofmuslim.org  Proxied`
+   (all Bluehost). `www.test` was left on Bluehost; nothing links to it. On production, attach both
+   the apex (subdomain left empty) and `www` to `fortress-pwa-production`; the Worker redirects `www`.
+   Attach the domain before anything else in the release checks the site: the production move
+   briefly failed the Bluehost smoke test in `deploy-main.yml` because the records were already gone.
 2. Delete that one record. The site is unreachable from here until step 3 completes.
 3. Attach the domain to the Worker. Either in the dashboard -- Workers & Pages -> `fortress-pwa-test`
    -> Settings -> Domains & Routes -> Add -> Custom domain -> `test`, enabled for "Production"

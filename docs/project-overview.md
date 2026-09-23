@@ -36,8 +36,8 @@ the closest thing this repo has to a changelog and should be treated as one.
 
 Both run on a real Cloudflare account. The PWA is moving from Bluehost to Cloudflare Workers static
 assets (`pwa-website/wrangler.jsonc`, `edge/worker.js`); every push deploys to both, with Bluehost
-kept as a standby. Test (`test.fortressofmuslim.org`) is served from Cloudflare since 2026-09-23;
-production is still on Bluehost. Details in `docs/deployment.md` -> "PWA hosting".
+kept as a standby. Both test and production (`fortressofmuslim.org`, with `www`
+redirecting) are served from Cloudflare since 2026-09-23. Details in `docs/deployment.md` -> "PWA hosting".
 Bluehost also hosts email, FTP and cPanel, and keeps doing so.
 See `CLAUDE.md` section 1 before pushing or running anything against Cloudflare.
 
