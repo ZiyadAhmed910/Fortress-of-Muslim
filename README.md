@@ -174,6 +174,21 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.47.2
+
+_2026-09-23_
+
+- **The app opens from its cached shell instead of waiting on the network.** Navigations were
+  network-first with no timeout and fell back to the cache only when the request failed outright,
+  so every launch waited on Bluehost -- measured at 2-7 s per small file on 2026-09-23 -- and a
+  weak signal held the launch splash until the request gave up. After each deploy it was worse:
+  the network's `index.html` named the new build's files, none of them cached yet, so the first
+  launch after a release re-downloaded the whole app before painting. Navigations to app routes
+  (every one of them `index.html` on the server, per `.htaccess`) are now answered from the
+  shell this service worker cached at install; updates still arrive through the background
+  install and the update banner. Real pages (`reset.html`, `art-preview.html`) still go to the
+  network. `test/sw-navigation.test.js` runs the real `sw.js` fetch handler to pin this.
+
 ### 0.47.1
 
 _2026-09-23_
@@ -1504,6 +1519,11 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — faster launch
+
+- The app now opens straight away from what is saved on your phone, instead of waiting for the
+  server first. Updates still arrive in the background and are offered with the update banner.
 
 ### Unreleased — the dua reciter is named
 
