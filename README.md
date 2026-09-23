@@ -174,6 +174,15 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.47.1
+
+_2026-09-23_
+
+- **The dua reciter is credited by name.** `data/dua-audio.json` carries `reciter`, shown once
+  above the Listen buttons ("Recited by Muhammad Jumah") and as the artist on the lock screen. His
+  name was on the confidentiality guard's list and has been taken off it now that crediting him is
+  approved; the audio provider stays on the list and stays unnamed.
+
 ### 0.47.0
 
 _2026-09-23_
@@ -1495,6 +1504,10 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — the dua reciter is named
+
+- The reader now shows who recites the duas, and the lock screen shows his name while one plays.
 
 ### Unreleased — listen to the duas
 

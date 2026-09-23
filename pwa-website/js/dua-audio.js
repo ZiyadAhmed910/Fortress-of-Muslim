@@ -116,7 +116,7 @@ export function renderDuaAudio(entry, partIndex) {
   current = { entry, partIndex };
   const tracks = tracksFor(entry.uid, partIndex);
   els.duaAudio.hidden = tracks.length === 0;
-  els.duaAudio.innerHTML = tracks.map((track, index) => `
+  els.duaAudio.innerHTML = reciterLine() + tracks.map((track, index) => `
     <button class="dua-audio-button" type="button" data-dua-track="${index}" aria-pressed="false">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path class="icon-play" d="M8 5.5v13l10.5-6.5z"/><path class="icon-pause" d="M7.5 5.5h3v13h-3zM13.5 5.5h3v13h-3z"/></svg>
       <span>${escapeHtml(track.label || 'Listen')}</span>
@@ -124,6 +124,11 @@ export function renderDuaAudio(entry, partIndex) {
     </button>
   `).join('');
   renderButtons();
+}
+
+// Named once, above the buttons, rather than on each: the same voice reads every dua.
+function reciterLine() {
+  return map?.reciter ? `<p class="dua-audio-reciter">Recited by ${escapeHtml(map.reciter)}</p>` : '';
 }
 
 function toggleTrack(index) {
@@ -190,7 +195,7 @@ function updateMediaSession() {
   if (typeof MediaMetadata === 'function') {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: playing.label ? `${playing.title} · ${playing.label}` : playing.title,
-      artist: 'Fortress of Muslim',
+      artist: map?.reciter || 'Fortress of Muslim',
       album: 'Supplications',
       artwork: [
         { src: 'icons/icon-192.png?v=build-dev', sizes: '192x192', type: 'image/png' },

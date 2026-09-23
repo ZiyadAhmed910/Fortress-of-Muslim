@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T12:59:34.161Z",
+  "generatedAt": "2026-09-23T13:38:08.348Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -538,7 +538,7 @@
         "./types",
         "./editorial-plane"
       ],
-      "routeCount": 26
+      "routeCount": 27
     },
     {
       "path": "apps/auth/src/auth.ts",
@@ -927,7 +927,7 @@
     },
     {
       "path": "pwa-website/js/dua-audio.js",
-      "lines": 287,
+      "lines": 292,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1191,7 +1191,7 @@
     },
     {
       "path": "pwa-website/test/dua-audio.test.js",
-      "lines": 129,
+      "lines": 134,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -2049,6 +2049,14 @@
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
       "line": 165
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "\r",
+      "matchKind": "pattern",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 171
     },
     {
       "style": "manual",
