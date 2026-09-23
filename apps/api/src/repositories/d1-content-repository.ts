@@ -1,5 +1,6 @@
 import type { CollectionSummary, ContentSegment, Dua, DuaSummary, Hadith, HadithSummary } from '@fortress/contracts';
 import { rankDuaTitles } from '../lib/fuzzy-title';
+import { hisnChapterForReading } from '../lib/hisn-chapters';
 import type { ContentRepository, DatasetSummary, DuaTitleMatch, RagFilters, RagRecordMatch, RecordEvidence } from './content-repository';
 
 type DatasetRow = {
@@ -15,6 +16,7 @@ type SummaryRow = {
   id: string;
   legacy_id: string;
   sequence: number;
+  chapter_position: number | null;
   title: string;
   reading_role: DuaSummary['readingRole'];
   part_count: number;
@@ -307,6 +309,7 @@ export class D1ContentRepository implements ContentRepository {
              publication.verified_by_external_id AS verifiedBy,
              publication.verified_at AS verifiedAt,
              publication.record_id AS recordId, revision.sequence,
+             (SELECT chapter.position FROM record_placements placement JOIN chapters chapter ON chapter.id = placement.chapter_id WHERE placement.record_id = revision.record_id) AS chapterPosition,
              collection.id AS collectionId, collection.title AS collectionTitle
       FROM api_current_content publication
       JOIN canonical_records canonical ON canonical.canonical_id = publication.canonical_id
@@ -327,6 +330,7 @@ export class D1ContentRepository implements ContentRepository {
       verifiedAt: string | null;
       recordId: string;
       sequence: number;
+      chapterPosition: number | null;
       collectionId: string | null;
       collectionTitle: string | null;
     }>();
@@ -361,7 +365,7 @@ export class D1ContentRepository implements ContentRepository {
     ]);
     return {
       recordId: record.id,
-      canonicalUrl: canonicalDuaUrl(record.sequence),
+      canonicalUrl: canonicalDuaUrl(record.chapterPosition, record.sequence),
       revisionNumber: record.revisionNumber,
       verificationStatus: record.verificationStatus,
       workflowState: record.workflowState,
@@ -584,6 +588,7 @@ type ContentSource = 'api_current_content' | 'api_published_content' | 'api_ask_
 function duaSummarySql(source = 'api_current_content') {
   return `
     SELECT publication.canonical_id AS id, revision.legacy_id, revision.sequence, revision.title,
+           (SELECT chapter.position FROM record_placements placement JOIN chapters chapter ON chapter.id = placement.chapter_id WHERE placement.record_id = revision.record_id) AS chapter_position,
            COALESCE(role.reading_role, 'supplication') AS reading_role,
            publication.revision_number, publication.published_at,
            publication.workflow_state, publication.verification_status,
@@ -630,7 +635,7 @@ function toDuaSummary(row: SummaryRow): DuaSummary {
     verifiedAt: row.verified_at,
     revisionNumber: row.revision_number,
     publishedAt: row.published_at,
-    canonicalUrl: canonicalDuaUrl(row.sequence),
+    canonicalUrl: canonicalDuaUrl(row.chapter_position, row.sequence),
   };
 }
 
@@ -655,8 +660,21 @@ function toHadithSummary(row: HadithRow): HadithSummary {
   };
 }
 
-function canonicalDuaUrl(sequence: number) {
-  return `https://fortressofmuslim.org/hisn/chapter${sequence}`;
+/**
+ * The app page for a dua: /hisn/chapter<n> is the book's chapter, one of 132, which the app and
+ * sitemap.xml number by chapter. A dua record is one reading, one of 268 -- chapter 27, "In the
+ * morning and evening", holds 25 of them -- and its sequence counts readings. This used the reading
+ * number as the chapter number, so nearly every citation Ask gave linked to a different dua: the
+ * Istikharah reading (074) sent people to /hisn/chapter74, a dua for someone fasting who is offered
+ * food, instead of chapter 26.
+ *
+ * The chapter comes from record_placements where the record has one, and otherwise from the app's
+ * own chapter table (lib/hisn-chapters.ts, generated from pwa-website/data/duas.json) -- which is
+ * what production relies on, since its database has no placements for these records. On test, where
+ * both exist, they agree for all 268. Only a record outside both keeps its own number.
+ */
+function canonicalDuaUrl(chapterPosition: number | null | undefined, sequence: number) {
+  return `https://fortressofmuslim.org/hisn/chapter${chapterPosition ?? hisnChapterForReading(sequence) ?? sequence}`;
 }
 
 function canonicalHadithUrl(row: HadithRow) {

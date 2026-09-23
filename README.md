@@ -174,6 +174,24 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.49.2
+
+_2026-09-24_
+
+- **Fixed: Ask's dua citations linked to the wrong dua.** A dua record is one of Hisn al-Muslim's
+  268 readings; the app's `/hisn/chapter<n>` pages are its 132 chapters. `canonicalDuaUrl()` put the
+  reading number in the chapter slot, so almost every dua link -- in Ask's citations, the public
+  `/v1/duas` API and the MCP tools -- opened a different dua, or a chapter that does not exist.
+  Reported from a real answer: Istikharah (reading 074, chapter 26) linked to `/hisn/chapter74`, a
+  dua for someone fasting who is offered food. The answer text was always right.
+  - The chapter now comes from `record_placements` where a record has one, and otherwise from
+    `apps/api/src/lib/hisn-chapters.ts`, generated from the app's own chapters
+    (`apps/api/tools/build-hisn-chapters.mjs`): each chapter's parts, in order, are its readings.
+    Production has no placements for these records, so it relies on the table; on test, where both
+    exist, they agree for all 268.
+  - `apps/api/test/dua-canonical-url.test.ts` runs against the real migrated schema and fails if the
+    table and `duas.json` drift apart, or if any dua links to a chapter the app does not have.
+
 ### 0.49.1
 
 _2026-09-23_
@@ -1634,6 +1652,10 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — Ask links to the right dua
+
+- When Ask cites a dua, its link now opens that dua. Before, it often opened a different one.
 
 ### Unreleased — search engine fixes
 
