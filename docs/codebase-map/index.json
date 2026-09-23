@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T17:19:36.879Z",
+  "generatedAt": "2026-09-23T17:42:06.716Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -862,8 +862,16 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/edge/pages.js",
+      "lines": 113,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/edge/worker.js",
-      "lines": 69,
+      "lines": 119,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -871,7 +879,7 @@
     },
     {
       "path": "pwa-website/js/app.js",
-      "lines": 225,
+      "lines": 228,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1206,8 +1214,16 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/test/edge-pages.test.js",
+      "lines": 103,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/test/edge-worker.test.js",
-      "lines": 130,
+      "lines": 137,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3561,6 +3577,14 @@
       ]
     },
     {
+      "name": "Hisn",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/edge/pages.js"
+      ]
+    },
+    {
       "name": "index",
       "kind": "unknown",
       "definedIn": [],
@@ -4490,6 +4514,8 @@
         "apps/auth/test/editorial-pilot.test.ts",
         "apps/developers/public/console.js",
         "apps/status/public/app.js",
+        "pwa-website/edge/pages.js",
+        "pwa-website/edge/worker.js",
         "pwa-website/js/app.js",
         "pwa-website/js/assistant.js",
         "pwa-website/js/categories.js",
@@ -4509,6 +4535,7 @@
         "pwa-website/test/boot-theme.test.js",
         "pwa-website/test/categories.test.js",
         "pwa-website/test/dua-audio.test.js",
+        "pwa-website/test/edge-pages.test.js",
         "pwa-website/test/guide-and-tasbih.test.js",
         "pwa-website/test/hijri.test.js",
         "pwa-website/test/prayer-times.test.js",
@@ -4529,6 +4556,14 @@
         "pwa-website/js/assistant.js",
         "pwa-website/js/quran.js",
         "pwa-website/test/quran-bismillah.test.js"
+      ]
+    },
+    {
+      "name": "these",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/edge/pages.js"
       ]
     },
     {

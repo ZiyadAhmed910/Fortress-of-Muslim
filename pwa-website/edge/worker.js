@@ -12,6 +12,9 @@
 //    every URL ever guessed at with 200 and a page -- a soft 404 that search engines index as
 //    empty duplicates of the site.
 //
+//    A dua or verse URL also gets its own title, description, canonical and text in the HTML
+//    itself (edge/pages.js), and is a 404 when it names one that does not exist.
+//
 // 2. Cache headers, which the app's update model depends on:
 //      sw.js                      never cached, so a new build is seen on the next launch
 //      ?v=build-<sha> files       kept for a year: a new build is a new URL (tools/stamp_version.py)
@@ -21,6 +24,42 @@
 // html_handling is "none" in wrangler.jsonc so paths are served exactly as asked: the default
 // would redirect /reset.html to /reset, and the service worker recognises the reset page -- the
 // escape hatch for a broken install -- by its .html name.
+
+import { applyPage, pageFor } from './pages.js';
+
+// Parsed data files, kept for the life of the isolate: duas.json is read on every dua page, and
+// these files only change with a deploy, which starts new isolates.
+const jsonCache = new Map();
+function loadJson(env, url, path) {
+  if (!jsonCache.has(path)) {
+    jsonCache.set(path, env.ASSETS.fetch(new Request(new URL(path, url)))
+      .then((response) => (response.ok ? response.json() : null))
+      .catch(() => null)
+      // A failed read is not remembered: the next request tries again.
+      .then((data) => {
+        if (!data) jsonCache.delete(path);
+        return data;
+      }));
+  }
+  return jsonCache.get(path);
+}
+
+// A page whose tags cannot be filled in is still served -- as the plain shell, which is what every
+// route was before -- rather than failing the request. edge-pages.test.js holds index.html to having
+// every tag, so this is for the day someone edits one without running the tests.
+function withPage(html, page, url) {
+  try {
+    return applyPage(html, page);
+  } catch (error) {
+    console.error(JSON.stringify({ event: 'page_render_failed', path: url.pathname, message: String(error) }));
+    return html;
+  }
+}
+
+const notFound = () => new Response('Not found', {
+  status: 404,
+  headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff' },
+});
 
 const APP_ROUTES = [
   /^\/quran\/[0-9]{1,3}\/[0-9]{1,3}\/?$/,
@@ -57,12 +96,23 @@ export default {
       return Response.redirect(url.href, 301);
     }
     let response = await env.ASSETS.fetch(request);
+    let body = response.body;
     if (response.status === 404 && isAppRoute(url.pathname)) {
-      response = await env.ASSETS.fetch(new Request(new URL('/index.html', url), request));
+      const shell = await env.ASSETS.fetch(new Request(new URL('/index.html', url), { method: 'GET' }));
+      const page = await pageFor(url.pathname, (path) => loadJson(env, url, path));
+      if (page === null) return notFound();
+      response = shell;
+      body = page ? withPage(await shell.text(), page, url) : shell.body;
     }
     const headers = new Headers(response.headers);
     headers.set('cache-control', cacheControlFor(url));
     headers.set('x-content-type-options', 'nosniff');
-    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+    // The rewritten page is a different length from the file it came from.
+    if (typeof body === 'string') {
+      headers.delete('content-length');
+      headers.delete('etag');
+    }
+    if (request.method === 'HEAD') body = null;
+    return new Response(body, { status: response.status, statusText: response.statusText, headers });
   },
 };
