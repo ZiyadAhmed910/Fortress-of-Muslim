@@ -497,3 +497,19 @@
 .quran-controls .tool-button:disabled {
   opacity: 0.35;
 }
+
+/* Storage on this device: one line per cache, each with its own size and its own Clear. */
+.storage-list { display: grid; gap: 0.1rem; width: 100%; }
+.storage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.65rem 0;
+}
+.storage-row + .storage-row { box-shadow: inset 0 1px 0 var(--line); }
+.storage-row > span { display: grid; gap: 0.12rem; min-width: 0; }
+.storage-row small { color: var(--muted); font-size: 0.78rem; }
+.storage-row .storage-detail { font-size: 0.72rem; line-height: 1.35; }
+.storage-row button { flex: none; }
+.storage-note { margin: 0.4rem 0; color: var(--muted); font-size: 0.8rem; }

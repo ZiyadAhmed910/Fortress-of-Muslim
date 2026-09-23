@@ -141,6 +141,7 @@ export async function handleAdminPlane(
   if (url.pathname === '/v1/admin/audit' && request.method === 'GET') return listAudit(context, url);
   if (url.pathname === '/v1/admin/alerts' && request.method === 'GET') return alerts(context);
   if (url.pathname === '/v1/admin/rate-limits' && request.method === 'GET') return listRateLimits(context);
+  if (url.pathname === '/v1/admin/media-stats' && request.method === 'GET') return mediaStats(context, url);
   if (url.pathname === '/v1/admin/access-requests' && request.method === 'GET') return listAccessRequests(context, url);
 
   const userMatch = url.pathname.match(/^\/v1\/admin\/users\/([^/]+)$/);
@@ -471,6 +472,57 @@ async function listRateLimits({ env }: AdminContext) {
     ORDER BY limitRow.requests_per_day
   `).all();
   return json({ data: rows.results });
+}
+
+const MEDIA_STATS_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const MEDIA_STATS_MAX_DAYS = 366;
+
+/**
+ * Plays and downloads of the self-hosted audio, as tallied by the media Worker (apps/media) into
+ * media_daily_stats. This is what a usage report for the audio's provider is built from, so it
+ * reports exactly what was counted and nothing inferred: plays from a copy saved on the phone never
+ * reach the media host and are not in here. Days are UTC.
+ */
+export async function mediaStats({ env }: Pick<AdminContext, 'env'>, url: URL) {
+  const today = new Date().toISOString().slice(0, 10);
+  const to = url.searchParams.get('to') || today;
+  const from = url.searchParams.get('from')
+    || new Date(Date.parse(`${to}T00:00:00Z`) - 29 * 86_400_000).toISOString().slice(0, 10);
+  if (!MEDIA_STATS_DAY.test(from) || !MEDIA_STATS_DAY.test(to) || Number.isNaN(Date.parse(from)) || Number.isNaN(Date.parse(to))) {
+    return invalid('Dates must be written YYYY-MM-DD.');
+  }
+  if (from > to) return invalid('The start date must be on or before the end date.');
+  if ((Date.parse(to) - Date.parse(from)) / 86_400_000 >= MEDIA_STATS_MAX_DAYS) {
+    return invalid(`A report can cover at most ${MEDIA_STATS_MAX_DAYS} days.`);
+  }
+  const [byDay, byFile] = await env.CONTENT_DB.batch([
+    env.CONTENT_DB.prepare(`
+      SELECT day,
+             SUM(CASE WHEN kind = 'play' THEN count ELSE 0 END) AS plays,
+             SUM(CASE WHEN kind = 'download' THEN count ELSE 0 END) AS downloads
+      FROM media_daily_stats WHERE day BETWEEN ? AND ?
+      GROUP BY day ORDER BY day
+    `).bind(from, to),
+    env.CONTENT_DB.prepare(`
+      SELECT path,
+             SUM(CASE WHEN kind = 'play' THEN count ELSE 0 END) AS plays,
+             SUM(CASE WHEN kind = 'download' THEN count ELSE 0 END) AS downloads
+      FROM media_daily_stats WHERE day BETWEEN ? AND ?
+      GROUP BY path ORDER BY plays + downloads DESC, path
+    `).bind(from, to),
+  ]);
+  const days = (byDay?.results ?? []) as Array<{ day: string; plays: number; downloads: number }>;
+  const files = (byFile?.results ?? []) as Array<{ path: string; plays: number; downloads: number }>;
+  return json({
+    data: { byDay: days, byFile: files },
+    meta: {
+      from,
+      to,
+      plays: days.reduce((sum, row) => sum + Number(row.plays), 0),
+      downloads: days.reduce((sum, row) => sum + Number(row.downloads), 0),
+      files: files.length,
+    },
+  });
 }
 
 async function updateRateLimit(context: AdminContext, planCode: string, body: Record<string, unknown>) {

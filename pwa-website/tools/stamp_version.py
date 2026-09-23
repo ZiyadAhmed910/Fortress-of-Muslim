@@ -91,10 +91,13 @@ def main() -> None:
         r"styles\.css\?v=[^\"']+",
         f"styles.css?v={build_version}",
     )
+    # The entry script, and every stylesheet and module index.html preloads (see its head). The
+    # preload URLs must be exactly the ones styles.css and the imports ask for, or the browser
+    # fetches each file twice.
     replace(
         ROOT / "index.html",
-        r"js/app\.js\?v=[^\"']+",
-        f"js/app.js?v={build_version}",
+        r"((?:js|css)/[A-Za-z0-9._\-]+\.(?:js|css))\?v=[^\"']+",
+        rf"\1?v={build_version}",
     )
     replace(
         ROOT / "index.html",

@@ -1,0 +1,38 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  // The PWA on Cloudflare (Workers static assets). edge/worker.js runs in front of the files for app
+  // routes and cache headers; see it for why. dist/ is built by tools/build-dist.mjs after
+  // tools/stamp_version.py.
+  //
+  // This file claims the custom domains, so it is run once per environment from an authenticated
+  // session when the domain moves over (docs/deployment.md). Routine GitHub deploys use
+  // wrangler.ci.jsonc, which uploads a new version without asking for zone-route permissions --
+  // the same split as the portals and the media Worker.
+  "name": "fortress-pwa",
+  "main": "edge/worker.js",
+  "compatibility_date": "2026-07-18",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "env": {
+    "test": {
+      "name": "fortress-pwa-test",
+      "workers_dev": true,
+      "routes": [{ "pattern": "test.fortressofmuslim.org", "custom_domain": true }]
+    },
+    "production": {
+      "name": "fortress-pwa-production",
+      "workers_dev": true,
+      "routes": [
+        { "pattern": "fortressofmuslim.org", "custom_domain": true },
+        // Redirected to the apex by edge/worker.js.
+        { "pattern": "www.fortressofmuslim.org", "custom_domain": true }
+      ]
+    }
+  }
+}

@@ -115,6 +115,52 @@
     <link rel="icon" href="icons/favicon.svg?v=build-dev" type="image/svg+xml" sizes="any">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=build-dev" sizes="180x180">
     <link rel="manifest" href="manifest.json">
+    <!-- Everything the first screen needs, asked for at once. Without these the browser finds the
+         stylesheets only after styles.css arrives and the modules only as each import is read, three
+         round trips deep -- seconds each on a slow origin. test/preload.test.js keeps both lists equal
+         to what styles.css and js/app.js actually import. -->
+    <link rel="preload" as="style" href="css/base.css?v=build-dev">
+    <link rel="preload" as="style" href="css/layout.css?v=build-dev">
+    <link rel="preload" as="style" href="css/home.css?v=build-dev">
+    <link rel="preload" as="style" href="css/reader.css?v=build-dev">
+    <link rel="preload" as="style" href="css/settings.css?v=build-dev">
+    <link rel="preload" as="style" href="css/feedback.css?v=build-dev">
+    <link rel="preload" as="style" href="css/online.css?v=build-dev">
+    <link rel="preload" as="style" href="css/responsive.css?v=build-dev">
+    <link rel="modulepreload" href="js/art-motion.js?v=build-dev">
+    <link rel="modulepreload" href="js/assistant.js?v=build-dev">
+    <link rel="modulepreload" href="js/calendar.js?v=build-dev">
+    <link rel="modulepreload" href="js/categories.js?v=build-dev">
+    <link rel="modulepreload" href="js/constants.js?v=build-dev">
+    <link rel="modulepreload" href="js/data.js?v=build-dev">
+    <link rel="modulepreload" href="js/dom.js?v=build-dev">
+    <link rel="modulepreload" href="js/dua-audio.js?v=build-dev">
+    <link rel="modulepreload" href="js/filters.js?v=build-dev">
+    <link rel="modulepreload" href="js/hadith.js?v=build-dev">
+    <link rel="modulepreload" href="js/hijri.js?v=build-dev">
+    <link rel="modulepreload" href="js/home.js?v=build-dev">
+    <link rel="modulepreload" href="js/layout.js?v=build-dev">
+    <link rel="modulepreload" href="js/modes.js?v=build-dev">
+    <link rel="modulepreload" href="js/onboarding.js?v=build-dev">
+    <link rel="modulepreload" href="js/online.js?v=build-dev">
+    <link rel="modulepreload" href="js/prayer-times.js?v=build-dev">
+    <link rel="modulepreload" href="js/prayer.js?v=build-dev">
+    <link rel="modulepreload" href="js/pwa.js?v=build-dev">
+    <link rel="modulepreload" href="js/quran-audio.js?v=build-dev">
+    <link rel="modulepreload" href="js/quran-juz.js?v=build-dev">
+    <link rel="modulepreload" href="js/quran-verse-search.js?v=build-dev">
+    <link rel="modulepreload" href="js/quran.js?v=build-dev">
+    <link rel="modulepreload" href="js/reader.js?v=build-dev">
+    <link rel="modulepreload" href="js/reminders.js?v=build-dev">
+    <link rel="modulepreload" href="js/routes.js?v=build-dev">
+    <link rel="modulepreload" href="js/seo.js?v=build-dev">
+    <link rel="modulepreload" href="js/settings.js?v=build-dev">
+    <link rel="modulepreload" href="js/sky.js?v=build-dev">
+    <link rel="modulepreload" href="js/state.js?v=build-dev">
+    <link rel="modulepreload" href="js/storage.js?v=build-dev">
+    <link rel="modulepreload" href="js/tasbih.js?v=build-dev">
+    <link rel="modulepreload" href="js/userData.js?v=build-dev">
+    <link rel="modulepreload" href="js/utils.js?v=build-dev">
     <link rel="stylesheet" href="styles.css?v=build-dev">
   </head>
   <body>
@@ -440,6 +486,23 @@
             </div>
           </section>
 
+          <section class="online-home calendar-home" id="calendarHome" hidden>
+            <div class="calendar-today" id="calendarToday">
+              <span class="calendar-label">Today</span>
+              <strong id="calendarHijri">&ndash;</strong>
+              <span id="calendarGregorian"></span>
+            </div>
+            <div class="calendar-next" id="calendarNext" hidden>
+              <span class="calendar-label">Next</span>
+              <strong id="calendarNextName"></strong>
+              <span id="calendarNextWhen"></span>
+            </div>
+            <h3 class="calendar-heading">The year ahead</h3>
+            <ol class="calendar-list" id="calendarList"></ol>
+            <p class="calendar-caveat">Dates follow the Umm al-Qura calendar. Your local moon sighting may differ by a day.</p>
+            <div class="empty-state" id="calendarUnsupported" hidden>This browser has no Islamic calendar built in, so no date is shown rather than a guessed one.</div>
+          </section>
+
           <section class="online-home tasbih-home" id="tasbihHome" hidden>
             <div class="tasbih-preset-tabs" id="tasbihPresetTabs" aria-label="Dhikr phrase"></div>
 
@@ -575,6 +638,10 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6"/><circle cx="20" cy="12" r="1.6"/><circle cx="12" cy="20" r="1.6"/><circle cx="4" cy="12" r="1.6"/></svg>
               <span>Tasbih</span>
             </button>
+            <button data-content-mode="calendar" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+              <span>Calendar</span>
+            </button>
           </nav>
 
         <section class="reader-view" id="readerView" aria-live="polite">
@@ -584,6 +651,7 @@
               <button class="star-button" id="readerFavouriteButton" aria-label="Toggle favourite">☆</button>
             </div>
             <div class="part-count" id="partCount"></div>
+            <div class="dua-audio" id="duaAudio" hidden></div>
             <article class="dua-content" id="duaContent"></article>
           </div>
 
@@ -794,7 +862,7 @@
             </div>
             <div class="settings-group">
               <button type="button" class="settings-category-row" data-settings-toggle="data" aria-expanded="false" aria-controls="settings-panel-data">
-                <span><strong>Data</strong><small>Install app, backup &amp; restore</small></span>
+                <span><strong>Data</strong><small>Install app, backup, storage</small></span>
                 <span class="settings-category-chevron" aria-hidden="true">›</span>
               </button>
               <section class="settings-panel" id="settings-panel-data" data-settings-panel="data" hidden>
@@ -815,6 +883,20 @@
                 <button class="small-action-button secondary" id="importDataButton" type="button">Import</button>
                 <input id="importDataInput" type="file" accept="application/json,.json" hidden>
               </span>
+            </div>
+            <div class="setting-row" id="duaAudioDownloadRow" hidden>
+              <span>
+                <strong>Dua recitation</strong>
+                <small id="duaAudioDownloadStatus">Save the recordings to listen without a connection.</small>
+              </span>
+              <button class="small-action-button" id="duaAudioDownloadButton" type="button">Download</button>
+            </div>
+            <div class="setting-row setting-row-stack storage-section" id="storageSection">
+              <span>
+                <strong>Storage on this device</strong>
+                <small id="storageTotal">Measuring&hellip;</small>
+              </span>
+              <div class="storage-list" id="storageList" aria-live="polite"></div>
             </div>
               </section>
             </div>

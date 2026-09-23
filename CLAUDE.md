@@ -11,7 +11,9 @@ work here, and follow it every session.
   plus two live Cloudflare D1 databases (`fortress-identity-test`, `fortress-platform-test`).
 - `main` branch -> auto-deploys to **production** the same way.
 - Both environments run on the user's real Cloudflare account (wrangler is authenticated to it) and
-  real Bluehost hosting. A push is a real deployment, not a dry run. D1 Time Travel restores, service
+  real Bluehost hosting. The PWA deploys to Cloudflare (`fortress-pwa-test` / `-production`) and to
+  Bluehost as a standby on every push; which one each domain points at is in `docs/deployment.md`
+  -> "PWA hosting". Bluehost also hosts the domain's email. A push is a real deployment, not a dry run. D1 Time Travel restores, service
   maintenance toggles, and session/key revocation act on real data.
 - Never push to `dev` or `main` without explicit confirmation in chat first, even though local commits
   and merges are fine. Pushing is what triggers the live deployment.

@@ -66,6 +66,10 @@ After restoration (and, if applicable, the FTS rebuild), run `npm run soak:test`
 3. Revert the faulty Git commit on `dev`, run `npm run check`, deploy test, and complete the soak.
 4. Promote the verified repair through the normal production workflow.
 5. Restore D1 only when the incident changed persistent data and an application rollback cannot repair it.
+6. For the PWA on Cloudflare: `npx wrangler rollback --env <test|production>` from `pwa-website/`
+   returns to the previous version. If Cloudflare hosting itself is the problem, point the domain
+   back at Bluehost, which receives every build as a standby (`docs/deployment.md` -> "Moving back
+   to Bluehost").
 
 ## Traffic and Credential Incidents
 

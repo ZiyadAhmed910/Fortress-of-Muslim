@@ -9,6 +9,11 @@ const QURAN_CACHE = 'fortress-quran-v1';
 // megabytes -- so it gets its own cache that survives deploys for exactly the same reason.
 const AUDIO_CACHE = 'fortress-quran-audio-v1';
 const AUDIO_HOSTS = ['everyayah.com', 'audio.qurancdn.com', 'verses.quran.com'];
+// Dua recitation comes from our own media host (apps/media, backed by R2). Same reasoning as the
+// Quran audio: downloads must survive deploys, so the cache is not keyed by build.
+const DUA_AUDIO_CACHE = 'fortress-dua-audio-v1';
+const DUA_AUDIO_HOSTS = ['media.fortressofmuslim.org', 'media-test.fortressofmuslim.org'];
+const isDuaRecitation = (url) => DUA_AUDIO_HOSTS.includes(url.hostname);
 const isQuranBody = (url) => url.pathname.includes('/data/quran/surah-')
   || url.pathname.includes('/data/quran/words-');
 const isRecitation = (url) => AUDIO_HOSTS.includes(url.hostname);
@@ -31,8 +36,11 @@ const ASSETS = [
   `./js/constants.js?v=${APP_VERSION}`,
   `./js/data.js?v=${APP_VERSION}`,
   `./js/dom.js?v=${APP_VERSION}`,
+  `./js/dua-audio.js?v=${APP_VERSION}`,
   `./js/filters.js?v=${APP_VERSION}`,
   `./js/home.js?v=${APP_VERSION}`,
+  `./js/hijri.js?v=${APP_VERSION}`,
+  `./js/calendar.js?v=${APP_VERSION}`,
   `./js/hadith.js?v=${APP_VERSION}`,
   `./js/layout.js?v=${APP_VERSION}`,
   `./js/modes.js?v=${APP_VERSION}`,
@@ -49,6 +57,7 @@ const ASSETS = [
   `./js/routes.js?v=${APP_VERSION}`,
   `./js/settings.js?v=${APP_VERSION}`,
   `./js/state.js?v=${APP_VERSION}`,
+  `./js/storage.js?v=${APP_VERSION}`,
   `./js/tasbih.js?v=${APP_VERSION}`,
   `./js/userData.js?v=${APP_VERSION}`,
   `./js/utils.js?v=${APP_VERSION}`,
@@ -57,6 +66,8 @@ const ASSETS = [
   './data/duas.json?v=2026-09-11-hisn-roles',
   './data/quran/index.json',
   './data/quran/juz.json',
+  './data/hijri-events.json',
+  './data/dua-audio.json',
   // Only the icons the running app shows: the header mark, the tab icon, and the 192/512 art that
   // notifications and the lock-screen player use -- those must work offline. The maskable icons
   // and the Apple touch icon are read once, by the OS, when the app is installed, which needs a
@@ -85,6 +96,30 @@ const OPTIONAL_ASSETS = [
 ].flatMap((asset) => [asset, asset.replace('/living/', '/living/full/'), asset.replace('/living/', '/living/still/')]);
 const LIVING_ART_PATHS = new Set(OPTIONAL_ASSETS.map((asset) => new URL(asset, self.location.href).pathname));
 
+// Audio elements ask for byte ranges, and Safari will not play a file answered with a plain 200 to a
+// ranged request. A cached copy is always the whole file, so the range is cut from it here.
+async function rangedResponse(cached, request) {
+  const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('range') || '');
+  if (!range) return cached;
+  const body = await cached.arrayBuffer();
+  const size = body.byteLength;
+  let start = range[1] === '' ? size - Number(range[2]) : Number(range[1]);
+  const end = range[1] === '' || range[2] === '' ? size - 1 : Math.min(Number(range[2]), size - 1);
+  start = Math.max(0, start);
+  if (start > end || start >= size) {
+    return new Response(null, { status: 416, headers: { 'content-range': `bytes */${size}` } });
+  }
+  return new Response(body.slice(start, end + 1), {
+    status: 206,
+    headers: {
+      'content-type': cached.headers.get('content-type') || 'audio/mpeg',
+      'content-range': `bytes ${start}-${end}/${size}`,
+      'content-length': String(end - start + 1),
+      'accept-ranges': 'bytes',
+    },
+  });
+}
+
 self.addEventListener('install', (event) => {
   // cache: 'reload' forces every install fetch past the browser HTTP cache. cache.addAll() goes
   // through it by default, so a stale HTTP-cached module could otherwise be baked into a brand new
@@ -107,7 +142,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(
-      keys.filter((key) => key !== CACHE_NAME && key !== QURAN_CACHE && key !== AUDIO_CACHE)
+      keys.filter((key) => key !== CACHE_NAME && key !== QURAN_CACHE && key !== AUDIO_CACHE && key !== DUA_AUDIO_CACHE)
         .map((key) => caches.delete(key))
     ))
   );
@@ -129,6 +164,18 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+  // A downloaded dua plays from the cache. Only downloaded copies are answered here; a play that is
+  // not saved goes to the network untouched, so the media host still sees -- and counts -- it. The
+  // download itself (?intent=download) is never intercepted.
+  if (isDuaRecitation(url) && !url.search) {
+    event.respondWith(
+      caches.open(DUA_AUDIO_CACHE)
+        .then((cache) => cache.match(url.href))
+        .then((cached) => (cached ? rangedResponse(cached, event.request) : fetch(event.request)))
+        .catch(() => fetch(event.request))
+    );
+    return;
+  }
   if (url.origin !== self.location.origin) return;
   // Keep each render mode cached independently, including modes not yet selected by the user.
   // Direct SVG navigation must never replace the cached HTML app shell.
@@ -143,6 +190,28 @@ self.addEventListener('fetch', (event) => {
       if (response.ok) await cache.put(key.href, response.clone());
       return response;
     }));
+    return;
+  }
+  // Opening the app is served from this build's own cached shell, without waiting on the network.
+  // It used to go to the network first and fall back only when that failed outright, so every
+  // launch waited on Bluehost (seconds per file on a bad day) and a slow connection held the splash
+  // screen until it gave up. Worse, after a deploy the network's index.html named the new build's
+  // files, none of them cached yet, so the first launch after every release fetched the whole app
+  // again before painting. The shell cached at install is the one whose files this worker holds;
+  // updates still arrive the normal way -- the browser checks sw.js on each launch, installs the new
+  // build in the background, and the update banner offers it.
+  //
+  // Every app route (/, /hisn/chapter27, /quran/2/255, ...) is index.html on the server too (see
+  // .htaccess). Real pages -- reset.html above all, the escape hatch for a broken worker -- are not
+  // the shell and still go to the network.
+  const isRealPage = /\.html$/.test(url.pathname) && !url.pathname.endsWith('/index.html');
+  if (event.request.mode === 'navigate' && !isRealPage) {
+    event.respondWith(
+      caches.open(CACHE_NAME)
+        .then((cache) => cache.match('./index.html'))
+        .then((shell) => shell || fetch(event.request))
+        .catch(() => fetch(event.request))
+    );
     return;
   }
   if (event.request.mode === 'navigate') {

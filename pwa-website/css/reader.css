@@ -150,8 +150,64 @@
   touch-action: pan-y;
 }
 
-:root.dark .search-wrap,
-:root.dark .dua-row,
-:root.dark .reader-card,
-:root.dark .reader-controls,
-:root.dark
+/* Dua recitation: one button per recording, two where the book has a Morning and an Evening wording.
+   Absent entirely for a part with no recording, so nothing here needs an empty state. */
+.dua-audio {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0 14px;
+}
+
+.dua-audio-reciter {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.dua-audio[hidden] {
+  display: none;
+}
+
+.dua-audio-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 6px 14px 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dua-audio-button svg {
+  width: 20px;
+  height: 20px;
+  fill: var(--accent);
+}
+
+.dua-audio-button small {
+  color: var(--muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.dua-audio-button .icon-pause,
+.dua-audio-button.is-playing .icon-play {
+  display: none;
+}
+
+.dua-audio-button.is-playing .icon-pause {
+  display: inline;
+}
+
+.dua-audio-button.is-playing {
+  border-color: var(--accent);
+}

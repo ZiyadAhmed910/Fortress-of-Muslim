@@ -4,6 +4,17 @@ import { APP_VERSION } from './constants.js';
 import { syncPrayerSettingsControls } from './prayer.js';
 import { syncReminderControls } from './reminders.js';
 import { applyArtMotion, initArtMotion } from './art-motion.js';
+import {
+  CACHES,
+  clearCache,
+  estimateTotal,
+  formatBytes,
+  measureCache,
+  shellCacheName,
+  storageSupported,
+} from './storage.js';
+import { escapeHtml, toast } from './utils.js';
+import { syncDownloadRow } from './dua-audio.js';
 
 export function applySettings() {
   els.appVersion.textContent = `Version ${APP_VERSION}`;
@@ -71,6 +82,77 @@ export function initSettingsNav() {
     const button = event.target.closest('[data-settings-toggle]');
     if (button) toggleSettingsCategory(button);
   });
+  els.storageList?.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-clear-cache]');
+    if (button) clearStoredCache(button.dataset.clearCache);
+  });
+}
+
+/**
+ * Measures what is stored and lists it, each cache on its own line.
+ *
+ * Run when the Data panel is opened rather than at startup: walking a cache that holds thousands
+ * of ayahs is not free, and nobody needs the number until they are looking at it.
+ */
+export async function refreshStorage() {
+  // The dua download row says how much is saved, which a Clear below can change.
+  syncDownloadRow();
+  if (!els.storageList) return;
+  if (!storageSupported()) {
+    els.storageSection.hidden = true;
+    return;
+  }
+  els.storageList.innerHTML = '<p class="storage-note">Measuring&hellip;</p>';
+
+  const [total, shellName, ...measured] = await Promise.all([
+    estimateTotal(),
+    shellCacheName(),
+    ...CACHES.map((cache) => measureCache(cache.name)),
+  ]);
+  const shell = shellName ? await measureCache(shellName) : { entries: 0, bytes: 0 };
+
+  // Shown only when the browser can say it. An absent figure is better than one that might be wrong,
+  // and the per-cache lines below do not depend on it.
+  els.storageTotal.textContent = total
+    ? `${formatBytes(total.usage)} used${total.quota ? ` of ${formatBytes(total.quota)} available` : ''}`
+    : 'Space used by what this app has saved.';
+
+  const rows = CACHES.map((cache, index) => {
+    const { entries, bytes } = measured[index];
+    const empty = entries === 0;
+    return `
+      <div class="storage-row">
+        <span>
+          <strong>${escapeHtml(cache.label)}</strong>
+          <small>${empty ? 'Nothing saved' : `${formatBytes(bytes)} &middot; ${entries} file${entries === 1 ? '' : 's'}`}</small>
+          <small class="storage-detail">${escapeHtml(cache.detail)}</small>
+        </span>
+        <button class="small-action-button secondary" type="button" data-clear-cache="${escapeHtml(cache.name)}"
+          ${empty ? 'disabled' : ''} aria-label="Clear ${escapeHtml(cache.label.toLowerCase())}">Clear</button>
+      </div>`;
+  });
+  rows.push(`
+      <div class="storage-row">
+        <span>
+          <strong>App files</strong>
+          <small>${formatBytes(shell.bytes)} &middot; ${shell.entries} file${shell.entries === 1 ? '' : 's'}</small>
+          <small class="storage-detail">What the app needs to open without a connection. Replaced automatically on each update, so it cannot be cleared here.</small>
+        </span>
+      </div>`);
+  els.storageList.innerHTML = rows.join('');
+}
+
+async function clearStoredCache(name) {
+  const cache = CACHES.find((entry) => entry.name === name);
+  if (!cache) return;
+  if (!window.confirm(`Clear ${cache.label.toLowerCase()}? ${cache.detail}`)) return;
+  try {
+    await clearCache(name);
+    toast(`${cache.label} cleared.`);
+  } catch {
+    toast(`Could not clear ${cache.label.toLowerCase()}.`);
+  }
+  refreshStorage();
 }
 
 function toggleSettingsCategory(button) {
@@ -83,6 +165,7 @@ function toggleSettingsCategory(button) {
   button.setAttribute('aria-expanded', String(!open));
   group.classList.toggle('is-open', !open);
   panel.hidden = open;
+  if (!open && button.dataset.settingsToggle === 'data') refreshStorage();
 }
 
 function collapseAllSettings() {

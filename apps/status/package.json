@@ -1,6 +1,6 @@
 {
   "name": "@fortress/status",
-  "version": "0.43.0",
+  "version": "0.48.2",
   "private": true,
   "scripts": {
     "build": "node ../../packages/portal-ui/tools/build-portals.mjs status",

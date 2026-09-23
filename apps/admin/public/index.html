@@ -95,6 +95,7 @@
         <a href="#rag" data-nav><span>RAG monitor</span></a>
         <a href="#services" data-nav><span>Service control</span></a>
         <a href="#rate-limits" data-nav><span>Rate limits</span></a>
+        <a href="#media-stats" data-nav><span>Audio usage</span></a>
         <a href="#security" data-nav><span>Account security</span></a>
         <a href="#audit" data-nav><span>Audit log</span></a>
       </nav>
@@ -243,6 +244,13 @@
       <section id="rate-limits" class="view" hidden>
         <header><div><span class="kicker">OPERATIONS</span><h1>Rate limits</h1><p>Per-plan request limits enforced on every credentialed API request. Anonymous public reads are never limited.</p></div></header>
         <div id="rate-limits-table" class="table"></div>
+      </section>
+
+      <section id="media-stats" class="view" hidden>
+        <header><div><span class="kicker">OPERATIONS</span><h1>Audio usage</h1><p>Plays and offline downloads of the self-hosted dua recitation, counted by the media Worker. A play is counted once per listen, however often the player seeks. Plays from a copy saved on the phone never reach the server and are not included. Days are UTC.</p></div><button data-export-media-files>Export CSV by file</button><button data-export-media-days>Export CSV by day</button></header>
+        <form class="filter" data-filter="media-stats"><label>From <input name="from" type="date"></label><label>To <input name="to" type="date"></label><button>Apply</button></form>
+        <div id="media-stats-metrics" class="metrics"></div>
+        <div class="split"><section><h2>By day</h2><div id="media-stats-days" class="table"></div></section><section><h2>By recording</h2><div id="media-stats-files" class="table"></div></section></div>
       </section>
 
       <section id="alerts" class="view" hidden>

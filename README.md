@@ -174,6 +174,212 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.48.2
+
+_2026-09-23_
+
+- **Ready for production.** `www.fortressofmuslim.org` is redirected (301) to the apex by
+  `pwa-website/edge/worker.js`, so the production move attaches both hosts to one Worker and the
+  site exists at one address only.
+- **`npm run pwa:visual-check` works again.** It had not passed since the first-run walkthrough
+  shipped: the walkthrough's modal covered the page and every click timed out. It now marks the
+  walkthrough seen, as a returning user's device has it. Its size budget also still said 250 KB,
+  not the 500 KB `docs/release-readiness.md` records, and counted every performance entry -- so a
+  preloaded file was counted twice. It now counts each file once: 376 KB.
+- `docs/release-readiness.md`: production is live (0.43.0 before this release, Ask ready); the
+  "never stood up" section is kept as the record of the first build-out.
+
+### 0.48.1
+
+_2026-09-23_
+
+- **Fixed: 0.47.3's build stamp emptied every link it stamped, so the test site loaded no code.**
+  The new rule in `tools/stamp_version.py` that stamps `index.html`'s preloads and entry script had
+  lost its back-reference (a control character had replaced `\1`), so each link became
+  `src="?v=build-<sha>"`. Only the test environment received it; the first deploy to Cloudflare
+  caught it in its smoke test, which also kept that build off Bluehost. `test/stamp.test.js` now runs
+  the real stamp script on a copy of the app and checks every stamped link still names a real file
+  -- the check every earlier test missed by reading only the unstamped source.
+
+### 0.48.0
+
+_2026-09-23_
+
+- **The PWA can be served from Cloudflare, with Bluehost as a standby.** Bluehost answered small
+  files in 0.3-10 s on 2026-09-23; Cloudflare's static assets have no origin behind them. Every
+  push now deploys the PWA to the `fortress-pwa-test` / `fortress-pwa-production` Worker as well as
+  to Bluehost, and smoke-tests the Cloudflare copy at its `workers.dev` address. Nothing moves until
+  a domain is pointed at it -- the steps and the rollback are in `docs/deployment.md` -> "PWA
+  hosting". Bluehost keeps the email, FTP and cPanel.
+  - `pwa-website/edge/worker.js` does what `.htaccess` did: the three app URL shapes and `/` answer
+    with `index.html`, unknown URLs are real 404s, and it sets the cache headers the update model
+    depends on (`sw.js` never cached, build-stamped files immutable, the rest revalidated).
+    `html_handling: none` keeps `/reset.html` at its own name, which the service worker relies on.
+  - `pwa-website/tools/build-dist.mjs` copies only what the site publishes into `dist/`, so
+    development files are not denied but absent.
+  - `isTestHost()` in `js/utils.js` replaces two copies of the "is this the test site" check, and
+    also recognises the Cloudflare test preview, so it talks to the test API and test media host.
+  - `pwa-website/test/edge-worker.test.js` pins routes, 404s, headers, the publish list and the
+    environment check.
+- Documentation: `docs/deployment.md` (new "PWA hosting" section with the move and the rollback),
+  `docs/cloudflare-setup.md`, `docs/incident-response.md`, `docs/project-overview.md`, `CLAUDE.md`.
+
+### 0.47.3
+
+_2026-09-23_
+
+- **First visits and first launches after a deploy no longer wait on Bluehost file by file.** A
+  first launch measured 20 seconds on 2026-09-23. Two causes, both fixed in the PWA:
+  - **Cloudflare re-asked Bluehost about every file.** Build-stamped files went out as "re-check
+    every time" (the host's own `mod_expires` and our `.htaccess` combined into
+    `max-age=14400, must-revalidate`), so the edge answered each one only after a round trip to
+    Bluehost (`cf-cache-status: REVALIDATED`, 0.3-4.7 s each). `.htaccess` now marks any
+    `?v=build-<sha>` file as `public, max-age=31536000, immutable`, which is true -- a new build is
+    a new URL -- so both the edge and the browser keep it.
+  - **Files were discovered three round trips deep.** `styles.css` `@import`s eight stylesheets
+    and the 35 modules are found import by import. `index.html` now preloads all of them, so the
+    browser asks for everything in one go. `tools/stamp_version.py` stamps the preload URLs to
+    match the imports exactly, and `test/preload.test.js` keeps the lists equal to what is
+    actually imported.
+
+### 0.47.2
+
+_2026-09-23_
+
+- **The app opens from its cached shell instead of waiting on the network.** Navigations were
+  network-first with no timeout and fell back to the cache only when the request failed outright,
+  so every launch waited on Bluehost -- measured at 2-7 s per small file on 2026-09-23 -- and a
+  weak signal held the launch splash until the request gave up. After each deploy it was worse:
+  the network's `index.html` named the new build's files, none of them cached yet, so the first
+  launch after a release re-downloaded the whole app before painting. Navigations to app routes
+  (every one of them `index.html` on the server, per `.htaccess`) are now answered from the
+  shell this service worker cached at install; updates still arrive through the background
+  install and the update banner. Real pages (`reset.html`, `art-preview.html`) still go to the
+  network. `test/sw-navigation.test.js` runs the real `sw.js` fetch handler to pin this.
+
+### 0.47.1
+
+_2026-09-23_
+
+- **The dua reciter is credited by name.** `data/dua-audio.json` carries `reciter`, shown once
+  above the Listen buttons ("Recited by Muhammad Jumah") and as the artist on the lock screen. His
+  name was on the confidentiality guard's list and has been taken off it now that crediting him is
+  approved; the audio provider stays on the list and stays unnamed.
+
+### 0.47.0
+
+_2026-09-23_
+
+- **Recorded recitation for the duas, self-hosted on Cloudflare R2.** 232 recordings across 109
+  readings, used under a written agreement with their provider, stored in the `fortress-media` R2
+  bucket under versioned keys (`duas/v1/<reading>/<part>.mp3`) and served from our own domain. The
+  provider is deliberately not named anywhere in this repository or in the app's network traffic.
+  - **A new Worker, `apps/media`**, in front of the bucket: `media.fortressofmuslim.org` in
+    production, `media-test.fortressofmuslim.org` on test. Read-only (GET, HEAD, OPTIONS), serves
+    only prefixes listed in `PUBLIC_PREFIXES`, honours byte ranges (an iPhone will not play audio
+    from a server that refuses them) and conditional requests, CORS-open, cached immutably. One
+    bucket serves both environments; the counts go to each environment's own D1.
+  - **Usage counting for the provider's report.** Each play and each offline download is tallied
+    into the new `media_daily_stats` table (migration `0029`) by day, file and kind. A play counts
+    once per listen: only a request for the start of the file counts, so seeking does not inflate
+    it. A download is marked by the app (`?intent=download`). A failed tally is logged and dropped,
+    never costing anyone the audio. Plays from a copy saved on the phone never reach the server and
+    are not counted -- the report says so rather than estimating them.
+  - **Admin console: Audio usage** (`GET /v1/admin/media-stats`, admin role). Totals, by day and by
+    recording for any range up to a year, with CSV export of each for the partner report.
+    `apps/api/test/media-stats.test.ts` runs the Worker's upsert and the admin query against the
+    real migrated schema.
+  - **Which part a recording belongs to was checked against the text**, not assumed from file
+    order: every recording was matched to its part by comparing its source text with ours after the
+    same Arabic normalisation the API uses. Recordings that could not be matched confidently were
+    left out rather than guessed; those parts simply have no play button.
+  - **Confidentiality guard.** `tools/verify-public-canonical-boundary.mjs` now fails the check if
+    any tracked file names the provider. It compares hashes of short phrases rather than the names
+    themselves, so the guard does not disclose what it protects.
+- **Deploys:** the test and production platform workflows deploy the media Worker with
+  `wrangler.ci.jsonc` (no route permissions needed, same pattern as the portals); the custom domain
+  is provisioned once with `wrangler.jsonc` from an authenticated session.
+- Removed a dangling, bodiless selector list at the end of `pwa-website/css/reader.css` that had
+  been there since the first commit. It did nothing at the end of the file, but swallowed the first
+  rule appended after it.
+
+### 0.46.0
+
+_2026-09-23_
+
+- **An Islamic calendar, as a fourth tool behind the Prayer button.** Today's Hijri date, the next
+  date that matters with a countdown, and the year ahead -- Ramadan, Eid al-Fitr, the Day of Arafah,
+  Eid al-Adha, the Islamic New Year and Ashura. Works offline: nothing is fetched but a six-line
+  table of fixed Hijri dates the app ships with.
+  - **Where the date comes from, stated plainly on the screen.** The Hijri calendar is not settled
+    by astronomy the way prayer times are: a month begins when the crescent is sighted, and that is
+    decided locally, so the same day can be the 29th in one country and the 1st in another. This
+    uses the browser's own Umm al-Qura calendar -- the pre-calculated Saudi civil calendar, the most
+    widely used convention -- and says so, with the caveat that local sighting may differ by a day.
+    The same honesty the prayer times use for an estimated high-latitude time.
+  - **Hidden rather than guessed where unsupported.** An unknown calendar does not make `Intl`
+    throw; it silently resolves to Gregorian. So support is detected by checking what the calendar
+    actually resolved to, and where it is not Umm al-Qura the screen says so instead of showing a
+    Gregorian date labelled as Hijri. It deliberately does not fall back to a second calculation:
+    two quietly different Hijri dates depending on the browser would be worse than none.
+  - `Intl` only converts Gregorian to Hijri, so events are found by walking forward a day at a
+    time. Nothing then needs to know how long a Hijri month is -- the thing that varies -- and the
+    year boundary is handled for free. Month names are formatted only for matching days, which took
+    a year's search from about 52 ms to 4 ms.
+  - Pinned in `test/hijri.test.js` against five dates of record (1 Ramadan 1445 is 11 March 2024,
+    and so on), plus the logic that is this app's own: the soonest event, Arafah falling the day
+    before Eid al-Adha, crossing into the next Hijri year, and returning nothing when unsupported.
+- **The Prayer group is now four.** `layout.js` treats that grouping as structural, so the calendar
+  joining it was a deliberate choice and its comment says so. `test/worship-nav.test.js` also now
+  checks that every non-Duas mode hides the Duas home's bottom bar -- the calendar's first version
+  showed that bar over the Prayer sub-bar, because the rule hiding it names each mode individually.
+
+### 0.45.0
+
+_2026-09-23_
+
+- **Install shortcuts.** Long-pressing the installed app's icon (or right-clicking it on desktop,
+  where supported) now offers Prayer Times, Qibla, Tasbih and Quran directly, without landing on
+  the home screen first. Four rather than a menu of everything: the launcher gives shortcuts very
+  little room, and a long list is worse than a short one. Duas is deliberately not among them --
+  it is the screen the app already opens to, so a shortcut to it would be a shortcut to nothing.
+  - Each opens `./?screen=<name>`, handled at boot the same way the adhkar notification link
+    already is: acted on once, then stripped, so a reload is the plain app. Only screens listed in
+    `SHORTCUT_SCREENS` act -- the URL is handed over by the OS, and the app should respond only to
+    shortcuts it declared. Kept apart from `openCanonicalRoute`, which resolves content pages with
+    real canonical addresses; a tool is not a page.
+  - Each shortcut has its own icon, drawn from the same glyph the app's navigation uses for that
+    screen, in the brand's gold on teal (`tools/build-shortcut-icons.mjs`). Four copies of the logo
+    in a four-item menu would carry no information.
+  - Offline works: the service worker answers every navigation with the cached shell regardless of
+    query string.
+  - What cannot be verified here: whether shortcuts appear, how many are shown and how their icons
+    are cropped are decided per OS and browser. `test/shortcuts.test.js` covers everything on this
+    side of the launcher -- each URL opens a real screen, stays in scope, and has icons that exist.
+
+### 0.44.0
+
+_2026-09-23_
+
+- **You can see what the app has saved, and free it one piece at a time.** Settings > Data now
+  lists each thing stored on the device -- Quran recitation, Quran text, and the app's own files --
+  with its size, and a Clear for each one that can safely go. Before this the three caches the
+  service worker fills were invisible, and the only way to free a few hundred megabytes of
+  downloaded recitation was to clear all site data from the browser, which also wiped favourites,
+  settings and reading position. There is deliberately no "clear everything": each action says
+  what it will remove and nothing else. The app files are listed but not clearable -- without them
+  the app does not open offline, and they are replaced on every update anyway.
+  - `js/storage.js` measures from `Content-Length` rather than reading every body, because the
+    audio cache can hold thousands of ayahs; it uses `caches.has()` before looking so that measuring
+    never creates an empty cache; and `clearCache()` refuses any name it does not list as clearable,
+    so the app shell cannot be deleted by passing the wrong string.
+  - The total comes from `navigator.storage.estimate()` and is hidden where that does not exist
+    (older Safari) rather than shown as a guess. The per-cache lines do not depend on it.
+  - `sw.js` is a classic worker and cannot import the module, so the cache names are written in
+    both. `test/storage.test.js` reads `sw.js` and fails if they drift -- which matters, because
+    the worker deletes every cache it does not recognise on activate, and a drifted name would
+    make downloads silently vanish on the next deploy.
+
 ### 0.43.0
 
 _2026-09-20_
@@ -1310,8 +1516,11 @@ Future data should support:
 
 The repository uses two main branches:
 
-- `dev` deploys to the Bluehost test site.
-- `main` deploys to production.
+- `dev` deploys to test: the PWA to Cloudflare (`fortress-pwa-test`) and, as a standby, to Bluehost.
+- `main` deploys to production the same way.
+
+Where each domain is served from, and how to move it or move it back, is in `docs/deployment.md` ->
+"PWA hosting".
 
 Feature branches should use:
 
@@ -1378,9 +1587,74 @@ Current approach:
 - the sequence is derived from the Git commit count.
 - major redesign or breaking data changes: `2.0`
 
-The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
+The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before publishing to Cloudflare and
+uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — one address
+
+- www.fortressofmuslim.org now takes you to fortressofmuslim.org.
+
+### Unreleased — fix for the test build that would not start
+
+- The previous test build could not start. If the app shows its "could not start" message or stays
+  blank, close it fully and open it again, twice if needed, to pick up this fix.
+
+### Unreleased — Cloudflare hosting, prepared
+
+- Every update is now also published on Cloudflare, ready for the site to move there from Bluehost.
+  Nothing changes for anyone until it does.
+
+### Unreleased — faster first visit
+
+- A first visit, and the first launch after an update, asks for everything at once and lets
+  Cloudflare answer from its own cache, instead of waiting on the server file by file.
+
+### Unreleased — faster launch
+
+- The app now opens straight away from what is saved on your phone, instead of waiting for the
+  server first. Updates still arrive in the background and are offered with the update banner.
+
+### Unreleased — the dua reciter is named
+
+- The reader now shows who recites the duas, and the lock screen shows his name while one plays.
+
+### Unreleased — listen to the duas
+
+- Many duas now have a Listen button in the reader. Where the book gives a morning and an evening
+  wording, there is one button for each.
+- Plays on the lock screen like the Quran recitation. Starting one player pauses the other.
+- Settings → Data → Dua recitation saves every recording for offline listening (about 53 MB), and
+  it can be cleared on its own under Storage.
+- Parts that are guidance rather than words to recite have no recording, by design.
+
+### Unreleased — an Islamic calendar
+
+- Prayer now has a Calendar tab beside Times, Qibla and Tasbih.
+- It shows today's Hijri date, the next important date with a countdown, and the year ahead:
+  Ramadan, both Eids, the Day of Arafah, the Islamic New Year and Ashura.
+- Dates follow the Umm al-Qura calendar, and the screen says your local moon sighting may differ
+  by a day.
+- Works offline. On a browser without an Islamic calendar it says so rather than guessing.
+
+### Unreleased — shortcuts from the app icon
+
+- Long-press the installed app's icon (or right-click on desktop, where supported) to jump
+  straight to Prayer Times, Qibla, Tasbih or the Quran.
+- Each shortcut has its own icon, matching the button for that screen inside the app.
+- Shortcuts work offline, like the rest of the app.
+- Whether the menu appears, and how it looks, depends on the phone or browser.
+
+### Unreleased — see and clear what is saved offline
+
+- Settings > Data shows how much space the app uses, with each saved thing on its own line:
+  Quran recitation, Quran text, and the app's own files.
+- Recitation and Quran text each have their own Clear. Clearing recitation only removes downloads
+  (it still streams online); clearing text means a surah needs a connection next time it opens.
+- The app's own files are shown but cannot be cleared, since without them it would not open
+  offline.
+- The overall total is shown only where the browser can estimate it.
 
 ### Unreleased — prayer-card sky progression
 

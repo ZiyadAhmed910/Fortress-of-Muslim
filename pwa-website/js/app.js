@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { els } from './dom.js';
 import { loadDuas } from './data.js';
-import { applySettings, initSettingsNav, setFontScale, showSettingsCategoryList } from './settings.js';
+import { applySettings, initSettingsNav, refreshStorage, setFontScale, showSettingsCategoryList } from './settings.js';
 import { filterList, openAdvancedFilter, setOpenEntryHandler, showAdvancedDashboard, showMoreResults, toggleFavourite } from './home.js';
 import {
   bindSwipe,
@@ -20,12 +20,14 @@ import { initAssistant } from './assistant.js';
 import { initHadith } from './hadith.js';
 import { initQuran, initQuranDownload, initQuranSettings, isSurahOpen, showSurahList, rerenderOpenSurah } from './quran.js';
 import { initQuranAudioSettings } from './quran-audio.js';
+import { initDuaAudio, initDuaAudioDownload } from './dua-audio.js';
 import { initOnboarding, maybeShowOnboarding, replayOnboarding } from './onboarding.js';
 import { initContentModes, setContentMode } from './modes.js';
 import { initPrayer } from './prayer.js';
 import { initReminders, openAdhkarFromNotification } from './reminders.js';
 import { initTasbih } from './tasbih.js';
-import { openCanonicalRoute } from './routes.js';
+import { openCanonicalRoute, shortcutScreen } from './routes.js';
+import { activateCalendar } from './calendar.js';
 
 init();
 
@@ -39,6 +41,8 @@ async function init() {
   initQuranDownload();
   initQuranSettings();
   initQuranAudioSettings({ onWordModeChange: rerenderOpenSurah });
+  initDuaAudio();
+  initDuaAudioDownload({ onChange: refreshStorage });
   initAssistant();
   initPrayer();
   initReminders();
@@ -73,6 +77,12 @@ async function init() {
     filterList();
     await openCanonicalRoute();
     openAdhkarFromNotificationUrl();
+    openScreenFromShortcutUrl();
+    // A phone app is left open across midnight far more often than it is reloaded, so the calendar
+    // rechecks its date on every return to it. activateCalendar() does nothing if the day is the same.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && state.contentMode === 'calendar') activateCalendar();
+    });
   } catch (error) {
     els.resultCount.textContent = 'Content did not load';
     els.duaList.innerHTML = `
@@ -102,6 +112,16 @@ function openAdhkarFromNotificationUrl() {
   const category = new URLSearchParams(location.search).get('adhkar');
   if (!category) return;
   openAdhkarFromNotification(category);
+  history.replaceState(null, '', location.pathname);
+}
+
+// An install shortcut lands on ./?screen=qibla and friends (manifest.json). Handled exactly like
+// the notification link above: act on it once, then strip it, so a reload or a copied link is the
+// plain app rather than the shortcut being replayed.
+function openScreenFromShortcutUrl() {
+  const screen = shortcutScreen();
+  if (!screen) return;
+  setContentMode(screen);
   history.replaceState(null, '', location.pathname);
 }
 

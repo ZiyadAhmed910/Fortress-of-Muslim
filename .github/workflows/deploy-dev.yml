@@ -25,6 +25,50 @@ jobs:
       - name: Stamp PWA version
         run: python pwa-website/tools/stamp_version.py
 
+      # The PWA is served from Cloudflare (pwa-website/wrangler.jsonc, edge/worker.js). The Bluehost
+      # upload below continues as a warm standby, so pointing DNS back at Bluehost is an instant
+      # rollback with the same build -- see docs/deployment.md.
+      - name: Set up Node.js
+        if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' }}
+        run: npm ci
+
+      - name: Build the published site
+        if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' }}
+        run: node pwa-website/tools/build-dist.mjs
+
+      - name: Deploy PWA to Cloudflare test
+        id: cloudflare
+        if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' }}
+        working-directory: pwa-website
+        run: |
+          npx wrangler deploy --config wrangler.ci.jsonc --env test | tee "$RUNNER_TEMP/wrangler.txt"
+          echo "url=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' "$RUNNER_TEMP/wrangler.txt" | head -1)" >> "$GITHUB_OUTPUT"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Smoke test the Cloudflare deployment
+        if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && steps.cloudflare.outputs.url != '' }}
+        env:
+          SITE: ${{ steps.cloudflare.outputs.url }}
+        run: |
+          # Saved to a file, then searched: piping curl into grep -q fails the step under pipefail,
+          # because grep stops reading at the first match and curl reports the closed pipe.
+          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "$SITE/" -o "$RUNNER_TEMP/home.html"
+          grep -q 'src="js/app.js?v=build-' "$RUNNER_TEMP/home.html"
+          curl --fail --silent --show-error "$SITE/hisn/chapter1" -o "$RUNNER_TEMP/deep.html"
+          grep -q 'src="js/app.js?v=build-' "$RUNNER_TEMP/deep.html"
+          curl --fail --silent --show-error "$SITE/sw.js" > /dev/null
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$SITE/no-such-page")" = 404
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$SITE/package.json")" = 404
+
       - name: Deploy pwa-website to Bluehost test folder
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -46,6 +90,10 @@ jobs:
             **/package-lock.json
             **/vitest.config.js
             **/test/**
+            **/edge/**
+            **/dist/**
+            **/wrangler.jsonc
+            **/wrangler.ci.jsonc
 
       - name: Smoke test test PWA
         run: curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 https://test.fortressofmuslim.org/ > /dev/null

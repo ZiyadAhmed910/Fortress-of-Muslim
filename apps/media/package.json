@@ -1,0 +1,20 @@
+{
+  "name": "@fortress/media",
+  "version": "0.48.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "deploy:test": "wrangler deploy --env test",
+    "deploy:test:ci": "wrangler deploy --config wrangler.ci.jsonc --env test",
+    "deploy:production": "wrangler deploy --env production",
+    "deploy:production:ci": "wrangler deploy --config wrangler.ci.jsonc --env production"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250711.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.24.0"
+  }
+}
