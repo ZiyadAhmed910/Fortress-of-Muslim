@@ -113,6 +113,11 @@ The custom domains are declared in `apps/api/wrangler.jsonc`, allowing GitHub de
 
 Static portal domains are provisioned once with an authenticated Wrangler session using each portal's `wrangler.jsonc`. Routine GitHub deployments use `wrangler.ci.jsonc`, which updates assets without requesting zone-route permissions. This keeps the repository deployment token limited to Worker uploads after bootstrap.
 
+The PWA itself moves the same way -- `pwa-website/wrangler.jsonc` claims `test.fortressofmuslim.org`
+(and later the apex), and GitHub keeps it current with `pwa-website/wrangler.ci.jsonc`. Because those
+hosts already have DNS records pointing at Bluehost, the record must be removed first; the steps,
+and the rollback, are in `docs/deployment.md` -> "PWA hosting".
+
 ## 9. Scheduled Encrypted Backups (R2)
 
 `tools/backup-d1.ps1` can encrypt its output (AES-256-CBC with a separate HMAC-SHA256 integrity tag, streamed so it handles the 150MB+ content export without loading it into memory) and `.github/workflows/scheduled-backup.yml` runs it daily and uploads the result to Cloudflare R2. Both are inert until this section's setup is done.

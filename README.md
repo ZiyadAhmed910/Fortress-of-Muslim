@@ -174,6 +174,29 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.48.0
+
+_2026-09-23_
+
+- **The PWA can be served from Cloudflare, with Bluehost as a standby.** Bluehost answered small
+  files in 0.3-10 s on 2026-09-23; Cloudflare's static assets have no origin behind them. Every
+  push now deploys the PWA to the `fortress-pwa-test` / `fortress-pwa-production` Worker as well as
+  to Bluehost, and smoke-tests the Cloudflare copy at its `workers.dev` address. Nothing moves until
+  a domain is pointed at it -- the steps and the rollback are in `docs/deployment.md` -> "PWA
+  hosting". Bluehost keeps the email, FTP and cPanel.
+  - `pwa-website/edge/worker.js` does what `.htaccess` did: the three app URL shapes and `/` answer
+    with `index.html`, unknown URLs are real 404s, and it sets the cache headers the update model
+    depends on (`sw.js` never cached, build-stamped files immutable, the rest revalidated).
+    `html_handling: none` keeps `/reset.html` at its own name, which the service worker relies on.
+  - `pwa-website/tools/build-dist.mjs` copies only what the site publishes into `dist/`, so
+    development files are not denied but absent.
+  - `isTestHost()` in `js/utils.js` replaces two copies of the "is this the test site" check, and
+    also recognises the Cloudflare test preview, so it talks to the test API and test media host.
+  - `pwa-website/test/edge-worker.test.js` pins routes, 404s, headers, the publish list and the
+    environment check.
+- Documentation: `docs/deployment.md` (new "PWA hosting" section with the move and the rollback),
+  `docs/cloudflare-setup.md`, `docs/incident-response.md`, `docs/project-overview.md`, `CLAUDE.md`.
+
 ### 0.47.3
 
 _2026-09-23_
@@ -1466,8 +1489,11 @@ Future data should support:
 
 The repository uses two main branches:
 
-- `dev` deploys to the Bluehost test site.
-- `main` deploys to production.
+- `dev` deploys to test: the PWA to Cloudflare (`fortress-pwa-test`) and, as a standby, to Bluehost.
+- `main` deploys to production the same way.
+
+Where each domain is served from, and how to move it or move it back, is in `docs/deployment.md` ->
+"PWA hosting".
 
 Feature branches should use:
 
@@ -1534,9 +1560,15 @@ Current approach:
 - the sequence is derived from the Git commit count.
 - major redesign or breaking data changes: `2.0`
 
-The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
+The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before publishing to Cloudflare and
+uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — Cloudflare hosting, prepared
+
+- Every update is now also published on Cloudflare, ready for the site to move there from Bluehost.
+  Nothing changes for anyone until it does.
 
 ### Unreleased — faster first visit
 

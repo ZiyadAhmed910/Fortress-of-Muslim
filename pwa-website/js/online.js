@@ -1,6 +1,7 @@
+import { isTestHost } from './utils.js';
+
 export function apiBaseUrl() {
-  const host = window.location.hostname;
-  return host === 'localhost' || host === '127.0.0.1' || host.startsWith('test.')
+  return isTestHost()
     ? 'https://api-test.fortressofmuslim.org'
     : 'https://api.fortressofmuslim.org';
 }
