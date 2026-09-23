@@ -7,9 +7,14 @@ the move is made and undone.
 ## Branch model
 
 - `feature/name-of-feature` or `Feature/name-of-feature`
-  - Normal feature work.
-  - A push to this branch creates a pull request into `dev`.
-  - The workflow auto-merges the PR into `dev`.
+  - Normal feature work, one branch per change.
+  - Merged into `dev` locally (`git merge --no-ff`) once `npm run check` passes, then `dev` is
+    pushed. Pushing the feature branch keeps it on GitHub as a revert point.
+  - `.github/workflows/feature-to-dev.yml` also tries, on every feature push, to open a pull request
+    into `dev` and merge it. It has failed on every run since 2026-09-20 (no PR has been created since
+    #3) -- most likely because the repository setting "Allow GitHub Actions to create and approve pull
+    requests" is off -- so a feature push shows a failed run. The local merge is what actually
+    integrates the change.
 
 - `dev`
   - Test branch.

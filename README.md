@@ -59,30 +59,37 @@ covering favourites, settings, tasbih, layout and Quran preferences.
 ```text
 .
 ├── apps/
+│   ├── admin/            Admin Console (static portal over the Auth Worker's /v1/admin/*)
 │   ├── api/              Cloudflare Worker public API
-│   ├── auth/             Identity, credentials, OAuth and control plane
+│   ├── auth/             Identity, credentials, OAuth, control, admin and editorial planes
 │   ├── developers/       Developer documentation and API explorer
+│   ├── mcp/              MCP gateway for agents
+│   ├── media/            Audio from R2 (media.fortressofmuslim.org), with play and download counts
 │   └── status/           Live service status dashboard
 ├── packages/
 │   ├── contracts/        Shared runtime schemas and TypeScript types
 │   └── portal-ui/        Shared portal design system and build tooling
 ├── android-app/
 │   └── README.md
-├── docs/
-│   ├── deployment.md
-│   └── platform-architecture.md
+├── docs/                 deployment, architecture, incident response, release readiness,
+│                         project overview, ADRs, and the generated codebase map
 ├── pwa-website/
 │   ├── assets/
 │   ├── css/
 │   ├── data/
+│   ├── edge/             The Worker in front of the site on Cloudflare (routes, per-page HTML, headers)
 │   ├── icons/
 │   ├── js/
-│   ├── tools/
+│   ├── test/
+│   ├── tools/            Build, stamping and data tools (never published)
 │   ├── index.html
 │   ├── manifest.json
+│   ├── robots.txt
 │   ├── serve.py
+│   ├── sitemap.xml
 │   ├── styles.css
-│   └── sw.js
+│   ├── sw.js
+│   └── wrangler.jsonc    Cloudflare hosting (wrangler.ci.jsonc for GitHub deploys)
 └── Fortress_of_Muslim.docx
 ```
 
@@ -173,6 +180,41 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.49.4
+
+_2026-09-24_
+
+- **Reverted 0.49.2's dua-link change.** It was right for test and wrong for production, whose
+  Hisn records are not numbered the same way. Test holds 268 reading-level records numbered by
+  reading; production holds 135 chapter-level records from the original dataset, numbered by chapter
+  (`dua.hisn.026` is the Istikharah chapter there), alongside 133 reading-level ones numbered 75-268.
+  The 0.49.2 table mapped every number as a reading, which moved production's chapter-level links to
+  the wrong chapter -- Istikharah went from `/hisn/chapter26` (right) to `/hisn/chapter15`. Found by
+  checking production after the deploy. Links are back to the 0.49.1 behaviour until a fix that
+  tells the two kinds of record apart.
+
+### 0.49.3
+
+_2026-09-24_
+
+- **Documentation brought in line with the code**, after a full audit:
+  - `docs/platform-architecture.md`: removed the Help application (never built); added the Media
+    Worker and the PWA's Cloudflare hosting; corrected "content routes require a credential" --
+    published reads are anonymous and never rate limited, and credentials are for developer
+    capabilities such as named queries; replaced the legacy four-table storage description with the
+    canonical model the API reads; described editorial publishing through publication batches
+    rather than "not yet implemented"; and updated the DOCX paragraph now that Hisn al-Muslim is
+    verified and published.
+  - `README.md`: the Project Structure lists every app (admin, mcp and media were missing) and the
+    PWA's hosting files; the Admin Console section describes the owner's break-glass bootstrap for
+    what it is and names the real `platform_role_grants` table instead of `platform_admins`.
+  - `docs/deployment.md`: the feature-branch workflow is described as it actually behaves -- merged
+    locally; the auto-PR workflow has failed on every run since 2026-09-20.
+  - `docs/project-overview.md`: documentation gaps updated, a note that the codebase map cannot see
+    table names passed as strings, and a record of two deliberate decisions an audit may flag: the
+    light install splash, and keeping `ask_query_log` without a retention limit.
+  - `CLAUDE.md`: the stale-doc examples it cites are marked corrected.
 
 ### 0.49.2
 
@@ -1515,15 +1557,15 @@ were found by that verification, not anticipated in advance.
 
 ### Admin Console
 
-The Admin Console is a separate static portal backed by authenticated `/v1/admin/*` control-plane routes on the Auth Worker. Administrator authorization is stored in D1 and is never inferred from an email address or browser state. Its Knowledge workspace manages source provenance, citation status, controlled taxonomy, evidence eligibility, and append-only editorial history.
+The Admin Console is a separate static portal backed by authenticated `/v1/admin/*` control-plane routes on the Auth Worker. Authorization is the `platform_role_grants` table in the identity D1 (`admin`, `editor`, `reviewer` or `developer`), never browser state. Its Knowledge workspace manages source provenance, citation status, controlled taxonomy, evidence eligibility, and append-only editorial history.
 
 ```bash
 npm run dev:admin
 ```
 
-Bootstrap the first administrator only after that person has created a normal developer account. Look up the user's canonical ID, then insert it into `platform_admins` with `super_admin` role using Wrangler. Never hard-code a privileged email or user ID in source. Additional administrators should be granted through an audited admin workflow.
+One administrator is bootstrapped by email, deliberately: `bootstrapDefaultAdmin` in `apps/auth/src/admin-plane.ts` grants the `admin` role to the project owner's account when it signs in, so a single-owner project always has a way back into its own console (a break-glass path, not a general mechanism). Every other role is granted from the Admin Console (`PATCH /v1/admin/editorial/roles` in `apps/auth/src/editorial-plane.ts`), which writes `platform_role_grants` and an audit event, and refuses to remove an administrator's own authority, to demote the owner's account, or to remove the last active administrator. (`platform_admins` with a `super_admin` role, from migration 0004, was folded into `platform_role_grants` by 0007.)
 
-Service Control currently enforces maintenance and disabled states for the Content API. Auth and Admin are recovery services and cannot be disabled from the console. The Bluehost PWA and static portals are displayed as monitoring-only until traffic is moved behind an enforceable Cloudflare Worker gateway.
+Service Control currently enforces maintenance and disabled states for the Content API. Auth and Admin are recovery services and cannot be disabled from the console. The PWA and the static portals are displayed as monitoring-only: the PWA now runs behind its own Worker (`pwa-website/edge/worker.js`), but that Worker does not yet read service state, so maintenance cannot be enforced for it from the console.
 
 Run the PWA from the `pwa-website` folder:
 
@@ -1652,6 +1694,14 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — Ask links rolled back
+
+- The previous release's change to Ask's dua links is undone while it is reworked.
+
+### Unreleased — documentation
+
+- No change to the app. Project documentation updated to match how it works today.
 
 ### Unreleased — Ask links to the right dua
 
