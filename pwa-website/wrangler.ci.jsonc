@@ -1,0 +1,8 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json", "name": "fortress-pwa", "main": "edge/worker.js", "compatibility_date": "2026-07-18", "observability": { "enabled": true },
+  "assets": { "directory": "./dist", "binding": "ASSETS", "run_worker_first": true, "html_handling": "none", "not_found_handling": "none" },
+  "env": {
+    "test": { "name": "fortress-pwa-test", "workers_dev": true },
+    "production": { "name": "fortress-pwa-production", "workers_dev": true }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T14:22:49.295Z",
+  "generatedAt": "2026-09-23T14:46:01.005Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -862,6 +862,14 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/edge/worker.js",
+      "lines": 63,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/js/app.js",
       "lines": 225,
       "language": "js",
@@ -927,7 +935,7 @@
     },
     {
       "path": "pwa-website/js/dua-audio.js",
-      "lines": 292,
+      "lines": 289,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -991,7 +999,7 @@
     },
     {
       "path": "pwa-website/js/online.js",
-      "lines": 21,
+      "lines": 22,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1135,7 +1143,7 @@
     },
     {
       "path": "pwa-website/js/utils.js",
-      "lines": 23,
+      "lines": 33,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1192,6 +1200,14 @@
     {
       "path": "pwa-website/test/dua-audio.test.js",
       "lines": 134,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/edge-worker.test.js",
+      "lines": 124,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3080,6 +3096,14 @@
       ]
     },
     {
+      "name": "Cloudflare",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/edge/worker.js"
+      ]
+    },
+    {
       "name": "collections",
       "kind": "table",
       "definedIn": [
@@ -3273,6 +3297,14 @@
       "referencedBy": [
         "apps/auth/src/admin-plane.ts",
         "apps/auth/src/index.ts"
+      ]
+    },
+    {
+      "name": "development",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/test/edge-worker.test.js"
       ]
     },
     {
@@ -3699,6 +3731,15 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/prayer.js"
+      ]
+    },
+    {
+      "name": "model",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/edge/worker.js",
+        "pwa-website/test/edge-worker.test.js"
       ]
     },
     {

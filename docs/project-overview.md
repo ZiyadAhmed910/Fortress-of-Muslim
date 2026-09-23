@@ -34,7 +34,10 @@ the closest thing this repo has to a changelog and should be treated as one.
 | `dev` (push) | `test.fortressofmuslim.org`, `api-test`, `auth-test`, `admin-test`, `developers-test`, `mcp-test`, `status-test`, `media-test` | `fortress-identity-test`, `fortress-platform-test` (Cloudflare D1) |
 | `main` (push) | production equivalents of the above | `fortress-identity-production`, `fortress-platform-production` |
 
-Both run on a real Cloudflare account and real Bluehost hosting (the PWA's static origin).
+Both run on a real Cloudflare account. The PWA is moving from Bluehost to Cloudflare Workers static
+assets (`pwa-website/wrangler.jsonc`, `edge/worker.js`); every push deploys to both, with Bluehost
+kept as a standby, and which one a domain points at is in `docs/deployment.md` -> "PWA hosting".
+Bluehost also hosts email, FTP and cPanel, and keeps doing so.
 See `CLAUDE.md` section 1 before pushing or running anything against Cloudflare.
 
 ## System map

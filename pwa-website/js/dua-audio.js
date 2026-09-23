@@ -1,5 +1,5 @@
 import { els } from './dom.js';
-import { escapeHtml, toast } from './utils.js';
+import { escapeHtml, isTestHost, toast } from './utils.js';
 
 // Recorded recitation for the duas, served from our own media host (apps/media) out of R2.
 //
@@ -28,10 +28,7 @@ let downloadAbort = null;
 let current = null;
 
 export function mediaBase(hostname = location.hostname, fallback = map?.base) {
-  if (hostname === 'test.fortressofmuslim.org' || hostname === 'localhost' || hostname === '127.0.0.1') {
-    return TEST_MEDIA_BASE;
-  }
-  return fallback;
+  return isTestHost(hostname) ? TEST_MEDIA_BASE : fallback;
 }
 
 export function trackUrl(track, base = mediaBase()) {
