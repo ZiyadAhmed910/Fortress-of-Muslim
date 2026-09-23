@@ -1,5 +1,12 @@
 RewriteEngine On
 
+# Build-stamped files (?v=build-<sha>, see tools/stamp_version.py) never change: a new build is a new
+# URL. Marked here so the headers below can say so. Without it they went out as "re-check every time",
+# and Cloudflare, which already held a copy, asked Bluehost about each one on every request
+# (cf-cache-status: REVALIDATED) -- 0.3 to 4.7 seconds each on 2026-09-23, dozens per first visit.
+RewriteCond %{QUERY_STRING} (^|&)v=build-[0-9a-f]+(&|$)
+RewriteRule \.(js|css|svg|png|ico)$ - [E=FORTRESS_STAMPED:1]
+
 # The app owns three URL shapes, and only these are handed to it:
 #
 #   /quran/<surah>/<ayah>      a verse
@@ -63,5 +70,14 @@ RedirectMatch 404 ^/(test|tools|node_modules)(/|$)
 
   <FilesMatch "\.(?:png|webp|svg)$">
     Header always set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+
+  # Last, so it wins over the blocks above: a stamped file may be kept for a year by the browser and
+  # by Cloudflare's edge. Unset in both header tables first -- the host's own mod_expires writes one
+  # and this file the other, which is how app.js went out as "max-age=14400, must-revalidate".
+  <FilesMatch "\.(?:js|css|svg|png|ico)$">
+    Header unset Cache-Control env=FORTRESS_STAMPED
+    Header unset Expires env=FORTRESS_STAMPED
+    Header always set Cache-Control "public, max-age=31536000, immutable" env=FORTRESS_STAMPED
   </FilesMatch>
 </IfModule>

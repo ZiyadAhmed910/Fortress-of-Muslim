@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-23T14:13:09.049Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-23T14:22:49.295Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -189,6 +189,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/install-affordance.test.js` | js | 70 |  |  |
 | `pwa-website/test/prayer-times.test.js` | js | 167 |  |  |
 | `pwa-website/test/preference-defaults.test.js` | js | 82 |  |  |
+| `pwa-website/test/preload.test.js` | js | 46 |  |  |
 | `pwa-website/test/qibla-compass.test.js` | js | 209 |  |  |
 | `pwa-website/test/quran-bismillah.test.js` | js | 41 |  |  |
 | `pwa-website/test/quran-download.test.js` | js | 119 |  |  |
@@ -419,7 +420,7 @@ Not all of these are bugs; verify before assuming.
 | index | unknown | `(not defined in scanned files)` | `pwa-website/test/boot-theme.test.js` |
 | invitation | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | is | unknown | `(not defined in scanned files)` | `apps/api/test/ask-policy.test.ts` |
-| it | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js`, `pwa-website/sw.js` |
+| it | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js`, `pwa-website/sw.js`, `pwa-website/test/preload.test.js` |
 | its | unknown | `(not defined in scanned files)` | `apps/auth/src/admin-plane.ts`, `apps/media/src/index.ts`, `pwa-website/js/assistant.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/quran-bismillah.test.js` |
 | json_each | unknown | `(not defined in scanned files)` | `apps/auth/src/webhooks.ts` |
 | jwks | table | `apps/auth/migrations/0001_identity.sql` | (none) |
