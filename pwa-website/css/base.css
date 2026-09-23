@@ -96,3 +96,16 @@ button {
 [hidden] {
   display: none !important;
 }
+
+/* The page text the server includes for crawlers and first paint (edge/pages.js). Shown only until
+   js/app.js starts and removes it, so it needs to be readable, not styled. */
+.prerender {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1rem;
+  line-height: 1.6;
+}
+
+.prerender [lang="ar"] {
+  font-size: 1.35rem;
+}

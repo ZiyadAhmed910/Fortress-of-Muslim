@@ -32,6 +32,9 @@ import { activateCalendar } from './calendar.js';
 init();
 
 async function init() {
+  // The text the server put in the page for crawlers and first paint (pwa-website/edge/pages.js).
+  // The app renders the same content itself, so the copy goes as soon as the app is running.
+  document.getElementById('prerender')?.remove();
   setOpenEntryHandler(openEntry);
   applySettings();
   initSettingsNav();

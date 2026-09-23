@@ -174,6 +174,27 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.49.0
+
+_2026-09-23_
+
+- **Every dua and surah page is its own page to a search engine.** Search Console reported 246 of
+  the 247 sitemap URLs as "Discovered - currently not indexed" and one as a duplicate whose canonical
+  Google chose itself. The cause: every route was served the home page's HTML -- same title, same
+  description, and a canonical pointing at the home page -- and only the app's JavaScript corrected
+  it (`js/seo.js`). To a crawler reading the first response they were 246 copies of the home page.
+  - `pwa-website/edge/pages.js`: for `/hisn/chapter<n>` and `/quran/<surah>/<ayah>` the Worker now
+    fills in the page's own title, description, canonical and Open Graph / Twitter tags, and puts
+    the text itself -- the dua's Arabic, transliteration and translation; the surah's ayahs with
+    translation -- in an `<article id="prerender">` that `js/app.js` removes as it starts. It reads
+    the same data files the app does. Hadith routes keep the plain shell (their text is in the API).
+  - A dua or verse that does not exist (`/hisn/chapter999`, `/quran/1/8`) is now a 404 instead of an
+    empty shell.
+  - A page whose tags cannot be filled in is served as the plain shell rather than failing.
+  - `pwa-website/test/edge-pages.test.js` serves every sitemap URL through the real Worker from the
+    real files and checks each has its own canonical and a unique title.
+  - Installed apps are unaffected: the service worker still opens every route from its cached shell.
+
 ### 0.48.2
 
 _2026-09-23_
@@ -1591,6 +1612,11 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — easier to find on Google
+
+- Every dua and surah now has its own title and text in the page the server sends, so search
+  engines can list each one instead of seeing copies of the home page.
 
 ### Unreleased — one address
 
