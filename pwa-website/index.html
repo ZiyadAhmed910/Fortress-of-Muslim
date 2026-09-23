@@ -794,7 +794,7 @@
             </div>
             <div class="settings-group">
               <button type="button" class="settings-category-row" data-settings-toggle="data" aria-expanded="false" aria-controls="settings-panel-data">
-                <span><strong>Data</strong><small>Install app, backup &amp; restore</small></span>
+                <span><strong>Data</strong><small>Install app, backup, storage</small></span>
                 <span class="settings-category-chevron" aria-hidden="true">›</span>
               </button>
               <section class="settings-panel" id="settings-panel-data" data-settings-panel="data" hidden>
@@ -815,6 +815,13 @@
                 <button class="small-action-button secondary" id="importDataButton" type="button">Import</button>
                 <input id="importDataInput" type="file" accept="application/json,.json" hidden>
               </span>
+            </div>
+            <div class="setting-row setting-row-stack storage-section" id="storageSection">
+              <span>
+                <strong>Storage on this device</strong>
+                <small id="storageTotal">Measuring&hellip;</small>
+              </span>
+              <div class="storage-list" id="storageList" aria-live="polite"></div>
             </div>
               </section>
             </div>

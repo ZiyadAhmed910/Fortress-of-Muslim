@@ -195,6 +195,11 @@ What it actually contains today:
   Installing is always offered in Settings: an Install button where the browser supports prompting,
   and otherwise the platform's own route (iOS has no prompt event at all), plus a dismissible
   banner when the browser reports the app installable.
+- **Storage manager** — Settings > Data lists each cache the service worker fills (Quran
+  recitation, Quran text, app files) with its size, and clears the first two individually; the app
+  shell is shown but never clearable. `js/storage.js` holds the cache names, which must match
+  `sw.js` -- `test/storage.test.js` enforces it, since the worker deletes any cache it does not
+  recognise on activate.
 - **PWA identity** — a shared gold crescent/gateway mark with a simplified favicon, separate
   maskable install icons and an Apple touch icon, generated from one vector source
   (`tools/build-brand.mjs`). References are versioned for each deployment. The icons the app
