@@ -16,6 +16,13 @@ function assets() {
     '/sw.js': 'service worker',
     '/js/app.js': 'module',
     '/reset.html': 'reset page',
+    // Just enough data for the deep links below to name a dua and verses that exist (edge/pages.js
+    // answers one that does not with a 404). edge-pages.test.js runs against the real files.
+    '/data/duas.json': JSON.stringify({ entries: [{ sequence: 27, id: 27, title: 'Morning', parts: [[{ kind: 'translation', text: 'Praise' }]] }] }),
+    '/data/quran/surah-2.json': JSON.stringify({ number: 2, nameSimple: 'Al-Baqarah', nameEnglish: 'The Cow', nameArabic: 'البقرة', ayahCount: 286,
+      ayahs: Array.from({ length: 286 }, (_, index) => ({ n: index + 1, ar: 'آية', en: 'ayah' })) }),
+    '/data/quran/surah-114.json': JSON.stringify({ number: 114, nameSimple: 'An-Nas', nameEnglish: 'Mankind', nameArabic: 'الناس', ayahCount: 6,
+      ayahs: Array.from({ length: 6 }, (_, index) => ({ n: index + 1, ar: 'آية', en: 'ayah' })) }),
   };
   return {
     fetch: async (request) => {
