@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T14:13:09.049Z",
+  "generatedAt": "2026-09-23T14:22:49.295Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -1232,6 +1232,14 @@
     {
       "path": "pwa-website/test/preference-defaults.test.js",
       "lines": 82,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/preload.test.js",
+      "lines": 46,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3542,7 +3550,8 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/quran-audio.js",
-        "pwa-website/sw.js"
+        "pwa-website/sw.js",
+        "pwa-website/test/preload.test.js"
       ]
     },
     {

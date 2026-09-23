@@ -115,6 +115,52 @@
     <link rel="icon" href="icons/favicon.svg?v=build-dev" type="image/svg+xml" sizes="any">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=build-dev" sizes="180x180">
     <link rel="manifest" href="manifest.json">
+    <!-- Everything the first screen needs, asked for at once. Without these the browser finds the
+         stylesheets only after styles.css arrives and the modules only as each import is read, three
+         round trips deep -- seconds each on a slow origin. test/preload.test.js keeps both lists equal
+         to what styles.css and js/app.js actually import. -->
+    <link rel="preload" as="style" href="css/base.css?v=build-dev">
+    <link rel="preload" as="style" href="css/layout.css?v=build-dev">
+    <link rel="preload" as="style" href="css/home.css?v=build-dev">
+    <link rel="preload" as="style" href="css/reader.css?v=build-dev">
+    <link rel="preload" as="style" href="css/settings.css?v=build-dev">
+    <link rel="preload" as="style" href="css/feedback.css?v=build-dev">
+    <link rel="preload" as="style" href="css/online.css?v=build-dev">
+    <link rel="preload" as="style" href="css/responsive.css?v=build-dev">
+    <link rel="modulepreload" href="js/art-motion.js?v=build-dev">
+    <link rel="modulepreload" href="js/assistant.js?v=build-dev">
+    <link rel="modulepreload" href="js/calendar.js?v=build-dev">
+    <link rel="modulepreload" href="js/categories.js?v=build-dev">
+    <link rel="modulepreload" href="js/constants.js?v=build-dev">
+    <link rel="modulepreload" href="js/data.js?v=build-dev">
+    <link rel="modulepreload" href="js/dom.js?v=build-dev">
+    <link rel="modulepreload" href="js/dua-audio.js?v=build-dev">
+    <link rel="modulepreload" href="js/filters.js?v=build-dev">
+    <link rel="modulepreload" href="js/hadith.js?v=build-dev">
+    <link rel="modulepreload" href="js/hijri.js?v=build-dev">
+    <link rel="modulepreload" href="js/home.js?v=build-dev">
+    <link rel="modulepreload" href="js/layout.js?v=build-dev">
+    <link rel="modulepreload" href="js/modes.js?v=build-dev">
+    <link rel="modulepreload" href="js/onboarding.js?v=build-dev">
+    <link rel="modulepreload" href="js/online.js?v=build-dev">
+    <link rel="modulepreload" href="js/prayer-times.js?v=build-dev">
+    <link rel="modulepreload" href="js/prayer.js?v=build-dev">
+    <link rel="modulepreload" href="js/pwa.js?v=build-dev">
+    <link rel="modulepreload" href="js/quran-audio.js?v=build-dev">
+    <link rel="modulepreload" href="js/quran-juz.js?v=build-dev">
+    <link rel="modulepreload" href="js/quran-verse-search.js?v=build-dev">
+    <link rel="modulepreload" href="js/quran.js?v=build-dev">
+    <link rel="modulepreload" href="js/reader.js?v=build-dev">
+    <link rel="modulepreload" href="js/reminders.js?v=build-dev">
+    <link rel="modulepreload" href="js/routes.js?v=build-dev">
+    <link rel="modulepreload" href="js/seo.js?v=build-dev">
+    <link rel="modulepreload" href="js/settings.js?v=build-dev">
+    <link rel="modulepreload" href="js/sky.js?v=build-dev">
+    <link rel="modulepreload" href="js/state.js?v=build-dev">
+    <link rel="modulepreload" href="js/storage.js?v=build-dev">
+    <link rel="modulepreload" href="js/tasbih.js?v=build-dev">
+    <link rel="modulepreload" href="js/userData.js?v=build-dev">
+    <link rel="modulepreload" href="js/utils.js?v=build-dev">
     <link rel="stylesheet" href="styles.css?v=build-dev">
   </head>
   <body>

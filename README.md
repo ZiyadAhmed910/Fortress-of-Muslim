@@ -174,6 +174,24 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.47.3
+
+_2026-09-23_
+
+- **First visits and first launches after a deploy no longer wait on Bluehost file by file.** A
+  first launch measured 20 seconds on 2026-09-23. Two causes, both fixed in the PWA:
+  - **Cloudflare re-asked Bluehost about every file.** Build-stamped files went out as "re-check
+    every time" (the host's own `mod_expires` and our `.htaccess` combined into
+    `max-age=14400, must-revalidate`), so the edge answered each one only after a round trip to
+    Bluehost (`cf-cache-status: REVALIDATED`, 0.3-4.7 s each). `.htaccess` now marks any
+    `?v=build-<sha>` file as `public, max-age=31536000, immutable`, which is true -- a new build is
+    a new URL -- so both the edge and the browser keep it.
+  - **Files were discovered three round trips deep.** `styles.css` `@import`s eight stylesheets
+    and the 35 modules are found import by import. `index.html` now preloads all of them, so the
+    browser asks for everything in one go. `tools/stamp_version.py` stamps the preload URLs to
+    match the imports exactly, and `test/preload.test.js` keeps the lists equal to what is
+    actually imported.
+
 ### 0.47.2
 
 _2026-09-23_
@@ -1519,6 +1537,11 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — faster first visit
+
+- A first visit, and the first launch after an update, asks for everything at once and lets
+  Cloudflare answer from its own cache, instead of waiting on the server file by file.
 
 ### Unreleased — faster launch
 
