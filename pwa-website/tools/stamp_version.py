@@ -97,7 +97,7 @@ def main() -> None:
     replace(
         ROOT / "index.html",
         r"((?:js|css)/[A-Za-z0-9._\-]+\.(?:js|css))\?v=[^\"']+",
-        rf"?v={build_version}",
+        rf"\1?v={build_version}",
     )
     replace(
         ROOT / "index.html",

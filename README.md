@@ -174,6 +174,18 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.48.1
+
+_2026-09-23_
+
+- **Fixed: 0.47.3's build stamp emptied every link it stamped, so the test site loaded no code.**
+  The new rule in `tools/stamp_version.py` that stamps `index.html`'s preloads and entry script had
+  lost its back-reference (a control character had replaced `\1`), so each link became
+  `src="?v=build-<sha>"`. Only the test environment received it; the first deploy to Cloudflare
+  caught it in its smoke test, which also kept that build off Bluehost. `test/stamp.test.js` now runs
+  the real stamp script on a copy of the app and checks every stamped link still names a real file
+  -- the check every earlier test missed by reading only the unstamped source.
+
 ### 0.48.0
 
 _2026-09-23_
@@ -1564,6 +1576,11 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — fix for the test build that would not start
+
+- The previous test build could not start. If the app shows its "could not start" message or stays
+  blank, close it fully and open it again, twice if needed, to pick up this fix.
 
 ### Unreleased — Cloudflare hosting, prepared
 
