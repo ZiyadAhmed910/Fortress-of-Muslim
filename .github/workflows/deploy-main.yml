@@ -59,8 +59,12 @@ jobs:
         env:
           SITE: ${{ steps.cloudflare.outputs.url }}
         run: |
-          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "$SITE/" | grep -q 'js/app.js?v=build-'
-          curl --fail --silent --show-error "$SITE/hisn/chapter1" | grep -q 'js/app.js?v=build-'
+          # Saved to a file, then searched: piping curl into grep -q fails the step under pipefail,
+          # because grep stops reading at the first match and curl reports the closed pipe.
+          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "$SITE/" -o "$RUNNER_TEMP/home.html"
+          grep -q 'src="js/app.js?v=build-' "$RUNNER_TEMP/home.html"
+          curl --fail --silent --show-error "$SITE/hisn/chapter1" -o "$RUNNER_TEMP/deep.html"
+          grep -q 'src="js/app.js?v=build-' "$RUNNER_TEMP/deep.html"
           curl --fail --silent --show-error "$SITE/sw.js" > /dev/null
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$SITE/no-such-page")" = 404
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$SITE/package.json")" = 404
