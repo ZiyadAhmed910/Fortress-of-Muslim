@@ -187,6 +187,11 @@ What it actually contains today:
   usable reading arrives within 2.5s, or the browser refuses sensor access, the card says so and
   how to fix it instead of claiming to be live.
 - **Tasbih** — presets, custom phrases, lifetime totals.
+- **Islamic calendar** — the fourth tool behind the Prayer button: today's Hijri date, the next
+  major date with a countdown, and the year ahead. From the browser's Umm al-Qura calendar (`Intl`,
+  `islamic-umalqura`), labelled as such with a moon-sighting caveat, and hidden rather than
+  approximated where unsupported. Logic in `js/hijri.js`, the screen in `js/calendar.js`, fixed
+  event dates in `data/hijri-events.json`.
 - **Reminders** — opt-in local notifications for the five prayers and morning/evening adhkar.
 - **Shell** — two home screens (cards with artwork, or a plain list), dark mode, first-run
   walkthrough, and backup export/import covering favourites, settings, tasbih and Quran preferences.

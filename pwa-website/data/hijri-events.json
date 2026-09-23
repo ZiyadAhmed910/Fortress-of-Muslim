@@ -1,0 +1,11 @@
+{
+  "note": "Fixed dates in the Hijri calendar. These are not derived: 1 Ramadan is 1 Ramadan every year. What varies is which Gregorian day it falls on, and that is worked out at runtime.",
+  "events": [
+    { "key": "new-year", "name": "Islamic New Year", "month": 1, "day": 1 },
+    { "key": "ashura", "name": "Ashura", "month": 1, "day": 10 },
+    { "key": "ramadan", "name": "Ramadan begins", "month": 9, "day": 1 },
+    { "key": "eid-al-fitr", "name": "Eid al-Fitr", "month": 10, "day": 1 },
+    { "key": "arafah", "name": "Day of Arafah", "month": 12, "day": 9 },
+    { "key": "eid-al-adha", "name": "Eid al-Adha", "month": 12, "day": 10 }
+  ]
+}

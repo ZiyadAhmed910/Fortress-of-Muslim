@@ -6,9 +6,10 @@ import { activateHadith } from './hadith.js';
 import { activateQuran } from './quran.js';
 import { activatePrayerTimes, activateQibla, deactivatePrayerTimes, deactivateQibla } from './prayer.js';
 import { activateTasbih } from './tasbih.js';
+import { activateCalendar } from './calendar.js';
 import { WORSHIP_TABS } from './layout.js';
 
-const MODES = ['duas', 'quran', 'hadith', 'ask', 'prayerTimes', 'qibla', 'tasbih'];
+const MODES = ['duas', 'quran', 'hadith', 'ask', 'prayerTimes', 'qibla', 'tasbih', 'calendar'];
 
 export function initContentModes() {
   els.contentModeButtons.forEach((button) => button.addEventListener('click', () => setContentMode(button.dataset.contentMode)));
@@ -26,11 +27,10 @@ export function setContentMode(requestedMode) {
   const previousMode = state.contentMode;
   state.contentMode = mode;
   const showingDuas = mode === 'duas';
-  els.app.classList.remove('is-reader', 'mode-quran', 'mode-hadith', 'mode-ask', 'mode-prayerTimes', 'mode-qibla', 'mode-tasbih');
+  els.app.classList.remove('is-reader', 'mode-quran', 'mode-hadith', 'mode-ask', 'mode-prayerTimes', 'mode-qibla', 'mode-tasbih', 'mode-calendar');
   if (!showingDuas) els.app.classList.add(`mode-${mode}`);
   els.advancedHome.hidden = !showingDuas;
-  els.simpleHome.hidden = !showingDuas;
-  els.quranHome.hidden = mode !== 'quran';
+  els.simpleHome.hidden = !showingDuas;  els.quranHome.hidden = mode !== 'quran';
   els.hadithHome.hidden = mode !== 'hadith';
   els.assistantHome.hidden = mode !== 'ask';
   // Measured once it is on screen: the chat column sizes itself to what is left below the header,
@@ -39,6 +39,7 @@ export function setContentMode(requestedMode) {
   els.prayerTimesHome.hidden = mode !== 'prayerTimes';
   els.qiblaHome.hidden = mode !== 'qibla';
   els.tasbihHome.hidden = mode !== 'tasbih';
+  els.calendarHome.hidden = mode !== 'calendar';
   els.contentModeButtons.forEach((button) => button.classList.toggle('active', button.dataset.contentMode === mode));
   applyWorshipNav(mode);
   if (previousMode === 'prayerTimes' && mode !== 'prayerTimes') deactivatePrayerTimes();
@@ -60,6 +61,9 @@ export function setContentMode(requestedMode) {
   } else if (mode === 'tasbih') {
     setScreen('Tasbih Counter', 'Offline dhikr counter');
     activateTasbih();
+  } else if (mode === 'calendar') {
+    setScreen('Islamic Calendar', 'Today in the Hijri calendar - works offline');
+    activateCalendar();
   } else {
     setScreen('Ask Fortress', 'Answers with the sources to check them - online');
   }

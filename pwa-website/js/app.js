@@ -26,6 +26,7 @@ import { initPrayer } from './prayer.js';
 import { initReminders, openAdhkarFromNotification } from './reminders.js';
 import { initTasbih } from './tasbih.js';
 import { openCanonicalRoute, shortcutScreen } from './routes.js';
+import { activateCalendar } from './calendar.js';
 
 init();
 
@@ -74,6 +75,11 @@ async function init() {
     await openCanonicalRoute();
     openAdhkarFromNotificationUrl();
     openScreenFromShortcutUrl();
+    // A phone app is left open across midnight far more often than it is reloaded, so the calendar
+    // rechecks its date on every return to it. activateCalendar() does nothing if the day is the same.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && state.contentMode === 'calendar') activateCalendar();
+    });
   } catch (error) {
     els.resultCount.textContent = 'Content did not load';
     els.duaList.innerHTML = `

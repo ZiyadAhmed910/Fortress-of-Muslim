@@ -174,6 +174,37 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.46.0
+
+_2026-09-23_
+
+- **An Islamic calendar, as a fourth tool behind the Prayer button.** Today's Hijri date, the next
+  date that matters with a countdown, and the year ahead -- Ramadan, Eid al-Fitr, the Day of Arafah,
+  Eid al-Adha, the Islamic New Year and Ashura. Works offline: nothing is fetched but a six-line
+  table of fixed Hijri dates the app ships with.
+  - **Where the date comes from, stated plainly on the screen.** The Hijri calendar is not settled
+    by astronomy the way prayer times are: a month begins when the crescent is sighted, and that is
+    decided locally, so the same day can be the 29th in one country and the 1st in another. This
+    uses the browser's own Umm al-Qura calendar -- the pre-calculated Saudi civil calendar, the most
+    widely used convention -- and says so, with the caveat that local sighting may differ by a day.
+    The same honesty the prayer times use for an estimated high-latitude time.
+  - **Hidden rather than guessed where unsupported.** An unknown calendar does not make `Intl`
+    throw; it silently resolves to Gregorian. So support is detected by checking what the calendar
+    actually resolved to, and where it is not Umm al-Qura the screen says so instead of showing a
+    Gregorian date labelled as Hijri. It deliberately does not fall back to a second calculation:
+    two quietly different Hijri dates depending on the browser would be worse than none.
+  - `Intl` only converts Gregorian to Hijri, so events are found by walking forward a day at a
+    time. Nothing then needs to know how long a Hijri month is -- the thing that varies -- and the
+    year boundary is handled for free. Month names are formatted only for matching days, which took
+    a year's search from about 52 ms to 4 ms.
+  - Pinned in `test/hijri.test.js` against five dates of record (1 Ramadan 1445 is 11 March 2024,
+    and so on), plus the logic that is this app's own: the soonest event, Arafah falling the day
+    before Eid al-Adha, crossing into the next Hijri year, and returning nothing when unsupported.
+- **The Prayer group is now four.** `layout.js` treats that grouping as structural, so the calendar
+  joining it was a deliberate choice and its comment says so. `test/worship-nav.test.js` also now
+  checks that every non-Duas mode hides the Duas home's bottom bar -- the calendar's first version
+  showed that bar over the Prayer sub-bar, because the rule hiding it names each mode individually.
+
 ### 0.45.0
 
 _2026-09-23_
@@ -1427,6 +1458,15 @@ Current approach:
 The service worker build/cache version is stamped from the current commit SHA. The deploy workflows run the stamping script automatically before uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — an Islamic calendar
+
+- Prayer now has a Calendar tab beside Times, Qibla and Tasbih.
+- It shows today's Hijri date, the next important date with a countdown, and the year ahead:
+  Ramadan, both Eids, the Day of Arafah, the Islamic New Year and Ashura.
+- Dates follow the Umm al-Qura calendar, and the screen says your local moon sighting may differ
+  by a day.
+- Works offline. On a browser without an Islamic calendar it says so rather than guessing.
 
 ### Unreleased — shortcuts from the app icon
 
