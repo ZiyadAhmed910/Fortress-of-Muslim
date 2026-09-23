@@ -1,6 +1,6 @@
 {
   "name": "@fortress/pwa",
-  "version": "0.47.1",
+  "version": "0.47.2",
   "private": true,
   "description": "Fortress of Muslim offline-first PWA",
   "type": "module",

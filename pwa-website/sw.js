@@ -192,6 +192,28 @@ self.addEventListener('fetch', (event) => {
     }));
     return;
   }
+  // Opening the app is served from this build's own cached shell, without waiting on the network.
+  // It used to go to the network first and fall back only when that failed outright, so every
+  // launch waited on Bluehost (seconds per file on a bad day) and a slow connection held the splash
+  // screen until it gave up. Worse, after a deploy the network's index.html named the new build's
+  // files, none of them cached yet, so the first launch after every release fetched the whole app
+  // again before painting. The shell cached at install is the one whose files this worker holds;
+  // updates still arrive the normal way -- the browser checks sw.js on each launch, installs the new
+  // build in the background, and the update banner offers it.
+  //
+  // Every app route (/, /hisn/chapter27, /quran/2/255, ...) is index.html on the server too (see
+  // .htaccess). Real pages -- reset.html above all, the escape hatch for a broken worker -- are not
+  // the shell and still go to the network.
+  const isRealPage = /\.html$/.test(url.pathname) && !url.pathname.endsWith('/index.html');
+  if (event.request.mode === 'navigate' && !isRealPage) {
+    event.respondWith(
+      caches.open(CACHE_NAME)
+        .then((cache) => cache.match('./index.html'))
+        .then((shell) => shell || fetch(event.request))
+        .catch(() => fetch(event.request))
+    );
+    return;
+  }
   if (event.request.mode === 'navigate') {
     const navigationKey = url.pathname.endsWith('/art-preview.html') ? './art-preview.html' : './index.html';
     event.respondWith(
