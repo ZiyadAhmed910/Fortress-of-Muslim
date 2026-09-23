@@ -6,8 +6,8 @@ Fortress Platform promotes `dev` to `main` only after the test environment prove
 
 Production is live: api, auth and mcp report `environment: production` at 0.43.0, `/v1/ask/status`
 is `ready` over 14,357 hadith and 268 duas, and the admin, developers and status portals answer.
-The PWA at the apex is served from Bluehost; its move to Cloudflare is in `docs/deployment.md` ->
-"PWA hosting". `media.fortressofmuslim.org` (dua recitation) is provisioned once, from an
+Since 0.48.2 (2026-09-23) production runs 0.48.2 and the PWA at the apex is served from
+Cloudflare (`docs/deployment.md` -> "PWA hosting"), with Bluehost as a standby. `media.fortressofmuslim.org` (dua recitation) is provisioned once, from an
 authenticated session, before the first release that ships it (`npx wrangler deploy --env production`
 in `apps/media`).
 
