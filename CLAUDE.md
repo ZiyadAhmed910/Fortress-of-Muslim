@@ -53,9 +53,8 @@ Before touching an area, read what already governs it. This repo documents its o
 and decisions; don't guess when a doc answers the question.
 
 - Always: `README.md` (features, project structure, release history, deployment workflow).
-- Architecture / boundaries: `docs/platform-architecture.md` (note: as of 0.19.0 this doc is stale —
-  it still lists Admin, Help, and MCP as "Future" even though Admin and MCP are live; verify against
-  code, not just this doc).
+- Architecture / boundaries: `docs/platform-architecture.md` (brought up to date in 0.49.3: every
+  application, the canonical storage model, anonymous public reads; still verify against code).
 - Editorial / content workflow: `docs/canonical-editorial-architecture.md`, `docs/canonical-data-roadmap.md`.
 - Operations / incidents / backup / restore: `docs/incident-response.md`, `docs/release-readiness.md`.
 - Cloudflare account setup: `docs/cloudflare-setup.md`.
@@ -65,9 +64,10 @@ and decisions; don't guess when a doc answers the question.
   this if it doesn't reflect current reality — see section 6).
 
 If a doc contradicts what the code actually does, trust the code, but flag the doc as stale rather
-than silently ignoring the conflict (e.g. `docs/platform-architecture.md`'s "Future" labels, or the
-README's "never hard-code a privileged email" line under Admin Console, which the actual bootstrap
-in `apps/auth/src/admin-plane.ts` does not follow).
+than silently ignoring the conflict. (Past examples, both since corrected: `platform-architecture.md`
+listing live apps as "Future" and a Help app that was never built; the README's Admin Console section
+saying no privileged email is hard-coded, when `bootstrapDefaultAdmin` in `apps/auth/src/admin-plane.ts`
+deliberately does exactly that as a break-glass path.)
 
 ## 4. Git workflow
 

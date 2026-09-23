@@ -289,15 +289,29 @@ unverified 2026-07-18 DOCX import, 135 records) — this caused a real bug (name
 stale data, fixed in `0.19.1`; see README). If you touch anything referencing these table names
 directly, check whether it should be reading `api_current_content` / `canonical_*` instead.
 
-## Known documentation gaps (as of 0.19.1)
+## Documentation gaps
 
-- ~~`docs/platform-architecture.md` labels Admin/Help/MCP as "Future"~~ — corrected in 0.24.0.
-  (There is no `apps/help`; that entry described an app that was never created.)
-- `README.md`'s Admin Console dev section says "Never hard-code a privileged email or user ID in
-  source" — `apps/auth/src/admin-plane.ts`'s `bootstrapDefaultAdmin` does exactly that (hardcodes
-  the repo owner's email as a break-glass admin bootstrap). This is a deliberate, working mechanism
-  for a single-owner project, not an oversight, but the README line is stale/contradictory and
-  should eventually be reconciled with reality.
+- ~~`docs/platform-architecture.md` labels Admin/Help/MCP as "Future"~~ — the labels were corrected
+  in 0.24.0; the Help row (an app that was never built), the missing Media Worker, the claim that
+  content routes need a credential, and the legacy-table storage description were corrected in
+  0.49.3 after a documentation audit.
+- ~~`README.md`'s Admin Console section says "Never hard-code a privileged email"~~ — reconciled in
+  0.49.3: it now describes `bootstrapDefaultAdmin` for what it is, a deliberate break-glass grant for
+  the owner's account, and names the real `platform_role_grants` table (it still named
+  `platform_admins`, which migration 0007 replaced).
+- `docs/codebase-map`'s "referenced by exactly one file" list cannot see a table or view whose name
+  is passed as a string -- `api_ask_content` is used through `getDuaFromSource(id, 'api_ask_content')`
+  and is flagged as test-only for that reason. Verify before assuming a flagged table is unused.
+
+## Deliberate decisions an audit may flag
+
+Recorded so they are not "fixed" by the next read-through:
+
+- **The install splash screen is light.** `manifest.json`'s `theme_color` and `background_color`
+  are `#f3f3f0` although the app defaults to dark: the logo is a gradient and did not sit well on a dark
+  splash, so the splash stays light (the owner's call, 2026-09-24).
+- **`ask_query_log` has no retention limit.** Questions are kept in full on purpose (no IP or account
+  is stored with them); unlike `usage_events` (30 days) it is not pruned by the cron job.
 - `docs/canonical-data-roadmap.md`'s "Platform Increments" list is effectively the source the 0.20
   Operations plan below was validated against — the two should be read together.
 
