@@ -2,7 +2,18 @@
 
 Fortress Platform promotes `dev` to `main` only after the test environment proves the same release is healthy across the PWA, Workers, and portals.
 
-## Production has never been stood up (as of 0.39.0)
+## Production status (checked 2026-09-23)
+
+Production is live: api, auth and mcp report `environment: production` at 0.43.0, `/v1/ask/status`
+is `ready` over 14,357 hadith and 268 duas, and the admin, developers and status portals answer.
+The PWA at the apex is served from Bluehost; its move to Cloudflare is in `docs/deployment.md` ->
+"PWA hosting". `media.fortressofmuslim.org` (dua recitation) is provisioned once, from an
+authenticated session, before the first release that ships it (`npx wrangler deploy --env production`
+in `apps/media`).
+
+The section below is kept as the record of how production was first built out.
+
+## First build-out (as of 0.39.0)
 
 The first promotion to `main` is not a promotion. It is a first-time build-out, and the checklist
 below assumes an environment that already exists. What is actually true of production today:
@@ -87,7 +98,8 @@ production is populated -- so after the first provisioning, production is itself
 
 1. Run `npm run check`.
 2. Run `npm run pwa:visual-check` on Windows with Microsoft Edge installed.
-3. Push to `dev` and wait for CI, API/Auth/MCP deployment, portal deployment, and Bluehost PWA deployment.
+3. Push to `dev` and wait for CI, API/Auth/Media/MCP deployment, portal deployment, and the PWA
+   deployment (Cloudflare, plus the Bluehost standby).
 4. Run `npm run soak:test`.
 5. Confirm `/v1/ask/status` is ready or explicitly document why indexing is still in progress.
 6. Review Admin audit history, verification workload, and service state.

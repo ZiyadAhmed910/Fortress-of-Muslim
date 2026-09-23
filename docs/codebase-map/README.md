@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-23T14:46:01.005Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-09-23T17:19:36.879Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -142,7 +142,7 @@ Not all of these are bugs; verify before assuming.
 | `apps/status/public/app.js` | js | 131 |  |  |
 | `packages/contracts/src/index.ts` | ts | 165 |  | const API_VERSION, const PLATFORM_NAME, const PLATFORM_VERSION, const CURRENT_DATASET_ID, const contentSegmentSchema, const editorialWorkflowStateSchema, +31 more |
 | `packages/portal-ui/assets/portal.js` | js | 42 |  |  |
-| `pwa-website/edge/worker.js` | js | 63 |  |  |
+| `pwa-website/edge/worker.js` | js | 69 |  |  |
 | `pwa-website/js/app.js` | js | 225 |  |  |
 | `pwa-website/js/art-motion.js` | js | 93 |  |  |
 | `pwa-website/js/assistant.js` | js | 393 |  |  |
@@ -185,7 +185,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/categories.test.js` | js | 121 |  |  |
 | `pwa-website/test/deep-links.test.js` | js | 55 |  |  |
 | `pwa-website/test/dua-audio.test.js` | js | 134 |  |  |
-| `pwa-website/test/edge-worker.test.js` | js | 124 |  |  |
+| `pwa-website/test/edge-worker.test.js` | js | 130 |  |  |
 | `pwa-website/test/guide-and-tasbih.test.js` | js | 61 |  |  |
 | `pwa-website/test/hijri.test.js` | js | 120 |  |  |
 | `pwa-website/test/install-affordance.test.js` | js | 70 |  |  |
@@ -201,6 +201,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/reciters.test.js` | js | 39 |  |  |
 | `pwa-website/test/shortcuts.test.js` | js | 69 |  |  |
 | `pwa-website/test/sky.test.js` | js | 232 |  |  |
+| `pwa-website/test/stamp.test.js` | js | 58 |  |  |
 | `pwa-website/test/storage.test.js` | js | 163 |  |  |
 | `pwa-website/test/sw-navigation.test.js` | js | 70 |  |  |
 | `pwa-website/test/worship-nav.test.js` | js | 77 |  |  |
@@ -426,6 +427,7 @@ Not all of these are bugs; verify before assuming.
 | is | unknown | `(not defined in scanned files)` | `apps/api/test/ask-policy.test.ts` |
 | it | unknown | `(not defined in scanned files)` | `pwa-website/js/quran-audio.js`, `pwa-website/sw.js`, `pwa-website/test/preload.test.js` |
 | its | unknown | `(not defined in scanned files)` | `apps/auth/src/admin-plane.ts`, `apps/media/src/index.ts`, `pwa-website/js/assistant.js`, `pwa-website/test/categories.test.js`, `pwa-website/test/quran-bismillah.test.js` |
+| js | unknown | `(not defined in scanned files)` | `pwa-website/test/stamp.test.js` |
 | json_each | unknown | `(not defined in scanned files)` | `apps/auth/src/webhooks.ts` |
 | jwks | table | `apps/auth/migrations/0001_identity.sql` | (none) |
 | keyword | unknown | `(not defined in scanned files)` | `apps/auth/src/taxonomy.ts` |

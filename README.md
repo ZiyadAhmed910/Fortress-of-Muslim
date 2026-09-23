@@ -174,6 +174,21 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.48.2
+
+_2026-09-23_
+
+- **Ready for production.** `www.fortressofmuslim.org` is redirected (301) to the apex by
+  `pwa-website/edge/worker.js`, so the production move attaches both hosts to one Worker and the
+  site exists at one address only.
+- **`npm run pwa:visual-check` works again.** It had not passed since the first-run walkthrough
+  shipped: the walkthrough's modal covered the page and every click timed out. It now marks the
+  walkthrough seen, as a returning user's device has it. Its size budget also still said 250 KB,
+  not the 500 KB `docs/release-readiness.md` records, and counted every performance entry -- so a
+  preloaded file was counted twice. It now counts each file once: 376 KB.
+- `docs/release-readiness.md`: production is live (0.43.0 before this release, Ask ready); the
+  "never stood up" section is kept as the record of the first build-out.
+
 ### 0.48.1
 
 _2026-09-23_
@@ -1576,6 +1591,10 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — one address
+
+- www.fortressofmuslim.org now takes you to fortressofmuslim.org.
 
 ### Unreleased — fix for the test build that would not start
 

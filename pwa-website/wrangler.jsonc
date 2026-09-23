@@ -28,7 +28,11 @@
     "production": {
       "name": "fortress-pwa-production",
       "workers_dev": true,
-      "routes": [{ "pattern": "fortressofmuslim.org", "custom_domain": true }]
+      "routes": [
+        { "pattern": "fortressofmuslim.org", "custom_domain": true },
+        // Redirected to the apex by edge/worker.js.
+        { "pattern": "www.fortressofmuslim.org", "custom_domain": true }
+      ]
     }
   }
 }

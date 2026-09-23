@@ -50,6 +50,12 @@ export default {
       return new Response('Method not allowed', { status: 405, headers: { allow: 'GET, HEAD' } });
     }
     const url = new URL(request.url);
+    // www.fortressofmuslim.org is attached to the production Worker only so it can send people to
+    // the one real address. Serving the site under both would be a duplicate copy of it.
+    if (url.hostname.startsWith('www.')) {
+      url.hostname = url.hostname.slice(4);
+      return Response.redirect(url.href, 301);
+    }
     let response = await env.ASSETS.fetch(request);
     if (response.status === 404 && isAppRoute(url.pathname)) {
       response = await env.ASSETS.fetch(new Request(new URL('/index.html', url), request));

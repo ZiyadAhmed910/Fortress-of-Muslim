@@ -34,7 +34,13 @@ try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   await page.goto(origin, { waitUntil: 'networkidle' });
-  await page.evaluate(() => localStorage.setItem('advancedUi', 'true'));
+  await page.evaluate(() => {
+    localStorage.setItem('advancedUi', 'true');
+    // Mark the first-run walkthrough as seen, as a returning user's device has it. Without this its
+    // modal covers the page and every click below times out -- which is what this check did from
+    // the day the walkthrough shipped.
+    localStorage.setItem('fortress_onboarding_seen', '999');
+  });
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('[data-advanced-filter="all"]').click();
   await page.locator('.dua-row').first().waitFor();
@@ -114,10 +120,24 @@ async function assertMobileAccessibility(page) {
 }
 
 async function assertPerformanceBudget(page) {
-  const resources = await page.evaluate(() => performance.getEntriesByType('resource')
-    .filter((entry) => /\.(?:js|css)(?:\?|$)/.test(entry.name))
-    .reduce((total, entry) => total + (entry.decodedBodySize || entry.transferSize || 0), 0));
-  if (resources > 250_000) throw new Error(`Initial JavaScript and CSS exceeded 250 KB (${resources} bytes).`);
+  // Once per file. This serves the unstamped tree, where index.html preloads js/x.js?v=build-dev but
+  // the modules import ./x.js -- two URLs for one file, fetched twice here though never in a stamped
+  // build (test/stamp.test.js). And since 0.47.3 index.html preloads every module and stylesheet, and the browser lists
+  // a preloaded file twice -- the preload, then its use -- though it is fetched once (verified with a
+  // request count against the live test site). Summing every entry reported 720 KB for 376 KB.
+  // The limit is the 500 KB docs/release-readiness.md records (raised from 300 KB in 0.28.0); this
+  // script had not been updated with it.
+  const resources = await page.evaluate(() => {
+    const sizes = new Map();
+    for (const entry of performance.getEntriesByType('resource')) {
+      if (/\.(?:js|css)(?:\?|$)/.test(entry.name)) {
+        const file = new URL(entry.name).pathname;
+        sizes.set(file, Math.max(sizes.get(file) || 0, entry.decodedBodySize || entry.transferSize || 0));
+      }
+    }
+    return [...sizes.values()].reduce((total, size) => total + size, 0);
+  });
+  if (resources > 500_000) throw new Error(`Initial JavaScript and CSS exceeded 500 KB (${resources} bytes).`);
 }
 
 function contentType(file) {

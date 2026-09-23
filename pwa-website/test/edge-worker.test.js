@@ -59,6 +59,12 @@ describe('app routes', () => {
     expect((await get('/reset.html')).body).toBe('reset page');
   });
 
+  it('send www to the one real address, keeping the path', async () => {
+    const response = await worker.fetch(new Request('https://www.fortressofmuslim.org/hisn/chapter27?x=1'), { ASSETS: assets() });
+    expect(response.status).toBe(301);
+    expect(response.headers.get('location')).toBe('https://fortressofmuslim.org/hisn/chapter27?x=1');
+  });
+
   it('refuse anything but reads', async () => {
     expect((await get('/', 'POST')).status).toBe(405);
   });
