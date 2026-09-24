@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T19:07:15.352Z",
+  "generatedAt": "2026-09-24T14:10:54.796Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -903,7 +903,7 @@
     },
     {
       "path": "pwa-website/js/calendar.js",
-      "lines": 75,
+      "lines": 158,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -935,7 +935,7 @@
     },
     {
       "path": "pwa-website/js/dom.js",
-      "lines": 178,
+      "lines": 180,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -967,7 +967,7 @@
     },
     {
       "path": "pwa-website/js/hijri.js",
-      "lines": 123,
+      "lines": 266,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1182,6 +1182,14 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/test/calendar.test.js",
+      "lines": 43,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/test/card-labels.test.js",
       "lines": 47,
       "language": "js",
@@ -1239,7 +1247,7 @@
     },
     {
       "path": "pwa-website/test/hijri.test.js",
-      "lines": 120,
+      "lines": 261,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3577,6 +3585,14 @@
       ]
     },
     {
+      "name": "HIJRI_MONTHS",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/hijri.js"
+      ]
+    },
+    {
       "name": "Hisn",
       "kind": "unknown",
       "definedIn": [],
@@ -3590,6 +3606,14 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/test/boot-theme.test.js"
+      ]
+    },
+    {
+      "name": "Intl",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/hijri.js"
       ]
     },
     {
@@ -4518,6 +4542,7 @@
         "pwa-website/edge/worker.js",
         "pwa-website/js/app.js",
         "pwa-website/js/assistant.js",
+        "pwa-website/js/calendar.js",
         "pwa-website/js/categories.js",
         "pwa-website/js/dua-audio.js",
         "pwa-website/js/hijri.js",
@@ -4533,6 +4558,7 @@
         "pwa-website/js/storage.js",
         "pwa-website/sw.js",
         "pwa-website/test/boot-theme.test.js",
+        "pwa-website/test/calendar.test.js",
         "pwa-website/test/categories.test.js",
         "pwa-website/test/dua-audio.test.js",
         "pwa-website/test/edge-pages.test.js",
@@ -4573,9 +4599,11 @@
       "referencedBy": [
         "apps/auth/src/editorial-plane.ts",
         "apps/status/public/app.js",
+        "pwa-website/js/calendar.js",
         "pwa-website/js/quran-verse-search.js",
         "pwa-website/js/quran.js",
-        "pwa-website/sw.js"
+        "pwa-website/sw.js",
+        "pwa-website/test/calendar.test.js"
       ]
     },
     {
@@ -4611,6 +4639,14 @@
         "apps/auth/migrations/0008_account_security.sql"
       ],
       "referencedBy": []
+    },
+    {
+      "name": "Umm",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/hijri.js"
+      ]
     },
     {
       "name": "unverified",
@@ -4740,6 +4776,15 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/test/qibla-compass.test.js"
+      ]
+    },
+    {
+      "name": "your",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/js/calendar.js",
+        "pwa-website/test/calendar.test.js"
       ]
     }
   ]

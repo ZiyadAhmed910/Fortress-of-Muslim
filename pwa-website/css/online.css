@@ -1233,3 +1233,7 @@ body.has-player .reader-controls {
 .calendar-row small { color: var(--muted); font-size: 0.78rem; }
 .calendar-row-when { text-align: right; flex: none; }
 .calendar-caveat { margin: 0; color: var(--muted); font-size: 0.75rem; line-height: 1.4; }
+/* Which convention the dates follow -- chosen from the prayer location, or set by hand. */
+.calendar-settings { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; margin: 0; font-size: 0.82rem; color: var(--muted); }
+.calendar-settings[hidden] { display: none; }
+.calendar-settings select { min-height: 2.4rem; max-width: 100%; padding: 0.35rem 0.6rem; border: 1px solid var(--line); border-radius: 0.6rem; background: var(--paper-strong); color: var(--ink); font: inherit; }
