@@ -181,6 +181,27 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.50.0
+
+_2026-09-24_
+
+- **The Islamic calendar follows where you are.** Umm al-Qura is shifted by a whole number of
+  days for the region: Saudi Arabia and the Gulf follow it unchanged; South Asia (India, Pakistan,
+  Bangladesh, Sri Lanka, Nepal) and Morocco usually begin each month a day later, with a local moon
+  sighting, and default to a day behind. The region comes from the prayer-times location when there
+  is one -- the same `manualLatitude` / `lastKnownLatitude` keys `js/prayer.js` writes, read offline
+  and with no new permission -- and from the device's time zone when there is not. A "Date
+  convention" menu under the calendar sets the shift by hand (-2 to +2 days, or automatic), because
+  the local announcement is the final word, and the screen says which rule its dates follow and why.
+  - Regions are coarse outlines tested at their edges: coastal cities (Dubai, Jeddah, Aden, Gwadar,
+    Casablanca all fell outside a first draft) and neighbours with a different practice (Afghanistan,
+    Myanmar, Iran, Oman, the Maldives stay outside). A location outside every region stays on Umm
+    al-Qura; a location always wins over the time zone, so someone travelling is where they are.
+- **Fixed: the month could be named after the Gregorian month of the same number.** Chrome on Android
+  ships trimmed calendar data with no Hijri month names, and Intl silently lent it Gregorian ones:
+  13 Rabi' al-Thani 1448 read "13 April 1448 AH". Month names now come from the app's own list; the
+  month number Intl gives was always right.
+
 ### 0.49.4
 
 _2026-09-24_
@@ -1694,6 +1715,15 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — a calendar for where you are
+
+- The Islamic calendar now follows your location: in India, Pakistan, Bangladesh, Sri Lanka, Nepal
+  and Morocco it runs a day after Saudi Arabia, as the month usually begins there with a local moon
+  sighting. It uses your prayer-times location, and says which rule it is following.
+- A "Date convention" menu under the calendar lets you move it by a day or two to match your local
+  announcement.
+- Fixed the month name: it could show a Gregorian month such as "April" instead of Rabi' al-Thani.
 
 ### Unreleased — Ask links rolled back
 
