@@ -181,6 +181,28 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.50.1
+
+_2026-09-24_
+
+- **Production's dua content now matches test, and dua links name the right chapter on both.**
+  - Production still pointed 135 of its 268 dua records at older chapter-level revisions: the
+    content bundle is applied with `INSERT OR IGNORE`, which kept every row a migration had created.
+    Every newer revision, part and segment was already in production, identical to test's, so the
+    sync (run 2026-09-24, generated from test's rows, proven by running it against test first and
+    changing nothing) moved the pointers -- `canonical_records`, `canonical_publications`,
+    `editorial_record_state`, `canonical_dataset_items` -- and added what production had never had:
+    chapter placements for all 268 readings, search rows for 133 duas that had none (and the new
+    text for the other 135), field reviews and publication history. Ask's index was reset so the cron
+    re-embeds the new text. Production's own earlier history is kept.
+  - Not synced, on purpose: 131 review decisions. Production has decisions with the same ids attached
+    to the old revisions, and `review_decisions` is append-only by trigger, so they cannot be rewritten.
+    Those duas are still verified (that comes from the publication record); only their evidence
+    history points at the older revision.
+  - With the content identical, 0.49.2's link fix is re-applied: a dua's link comes from its chapter
+    placement, else the app's own chapter table, never its reading number. Istikharah now links to
+    `/hisn/chapter26` in both environments.
+
 ### 0.50.0
 
 _2026-09-24_
@@ -1715,6 +1737,10 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — Ask links to the right dua
+
+- When Ask cites a dua, its link opens that dua.
 
 ### Unreleased — a calendar for where you are
 
