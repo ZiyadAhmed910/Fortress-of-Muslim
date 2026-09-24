@@ -206,9 +206,12 @@ What it actually contains today:
 - **Tasbih** — presets, custom phrases, lifetime totals.
 - **Islamic calendar** — the fourth tool behind the Prayer button: today's Hijri date, the next
   major date with a countdown, and the year ahead. From the browser's Umm al-Qura calendar (`Intl`,
-  `islamic-umalqura`), labelled as such with a moon-sighting caveat, and hidden rather than
-  approximated where unsupported. Logic in `js/hijri.js`, the screen in `js/calendar.js`, fixed
-  event dates in `data/hijri-events.json`.
+  `islamic-umalqura`), shifted by whole days for where you are: South Asia and Morocco default to a
+  day behind (local moon sighting), the Gulf and everywhere else to Umm al-Qura unchanged. The region
+  comes from the prayer-times location (else the time zone), and a "Date convention" menu overrides
+  it. Month names come from the app's own list, never from `Intl`, which on Android Chrome lends
+  Gregorian names. Hidden rather than approximated where unsupported. Logic in `js/hijri.js`, the
+  screen in `js/calendar.js`, fixed event dates in `data/hijri-events.json`.
 - **Dua recitation** — a Listen button in the reader for parts with a recording (232 recordings
   over 109 readings; Morning/Evening pairs get one button each), from our media host. Recordings
   were matched to parts by comparing text, and unmatched ones were left out, so a missing button is

@@ -44,6 +44,8 @@ export const els = {
   calendarList: document.getElementById('calendarList'),
   calendarCaveat: document.querySelector('#calendarHome .calendar-caveat'),
   calendarUnsupported: document.getElementById('calendarUnsupported'),
+  calendarSettings: document.getElementById('calendarSettings'),
+  calendarAdjust: document.getElementById('calendarAdjust'),
   simpleHome: document.getElementById('simpleHome'),
   searchInput: document.getElementById('searchInput'),
   clearSearchButton: document.getElementById('clearSearchButton'),
