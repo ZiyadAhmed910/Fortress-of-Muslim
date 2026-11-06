@@ -1,8 +1,9 @@
 import { els } from './dom.js';
 
-// Shown once, on first run, and skippable from every step. It exists because the app's two most
-// useful properties are invisible on arrival: everything works offline, and several features stay
-// switched off until someone finds Settings.
+// Shown once, on first run, and skippable from every step. It exists because the app's most useful
+// properties are invisible on arrival: nearly everything works offline, the duas can be heard as
+// well as read, and the things worth setting up -- a reciter, reminders, offline downloads -- are
+// behind Settings, where nobody looks first.
 //
 // Each step shows the actual control it is describing -- the same icons, at the same weight, that
 // the app uses -- and offers to take you straight there. A tour that only describes things in prose
@@ -10,7 +11,11 @@ import { els } from './dom.js';
 // was which.
 const STORAGE_KEY = 'fortress_onboarding_seen';
 // A version rather than a boolean, so a step added later can be shown to people who already ran the
-// app once.
+// app once. Deliberately still 2 after the 0.50.2 rewrite: the tour had fallen behind the app (it
+// still offered to hide tabs, a setting removed in 0.39.0, and knew nothing of dua recitation, the
+// calendar or offline downloads), but the owner's call was that people who have already seen a tour
+// need not be shown it again -- new installs get the new one, and anyone can replay it from Settings.
+// test/guide-and-tasbih.test.js holds the tour to what the app actually has.
 const VERSION = 2;
 
 // Traced from the real navigation and control markup so the tour and the app cannot drift apart
@@ -26,6 +31,10 @@ const ICONS = {
   tasbih: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6"/><circle cx="20" cy="12" r="1.6"/><circle cx="12" cy="20" r="1.6"/><circle cx="4" cy="12" r="1.6"/>',
   play: '<path d="M8 5v14l11-7z"/>',
   offline: '<path d="M3 15a4 4 0 0 1 3.6-4 6 6 0 0 1 11.6 1.2A3.5 3.5 0 0 1 17.5 19H7a4 4 0 0 1-4-4Z"/><path d="m9 12 2 2 4-4"/>',
+  // The Calendar tab's own icon (index.html), so the tour shows the button it is talking about.
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  listen: '<path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
+  shortcut: '<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18.5h4"/><path d="M9 8.5h6M9 11.5h6"/>',
 };
 
 const icon = (name, className = '') => `<svg class="onboarding-glyph ${className}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -55,13 +64,19 @@ const settingsControl = () => `
 const STEPS = [
   {
     title: 'Works without a connection',
-    body: 'Duas, the whole Quran, prayer times, qibla and the tasbih counter all run on your device. Only Hadith and Ask need the internet.',
+    body: 'Duas and their recitation, the whole Quran, prayer times, qibla, the tasbih counter and the Islamic calendar all run on your device. Only Hadith and Ask need the internet.',
     visual: () => `<div class="onboarding-hero">${icon('offline', 'is-large')}</div>`,
   },
   {
     title: 'Everything sits on one bar',
-    body: 'These five tabs are the whole app. Prayer holds prayer times, qibla and the tasbih counter.',
-    visual: () => navStrip('quran'),
+    body: 'These five tabs are the whole app. Prayer holds prayer times, qibla, the tasbih counter and the Islamic calendar.',
+    visual: () => navStrip('prayer'),
+  },
+  {
+    title: 'Read and listen to the duas',
+    body: 'Hisn al-Muslim, with Arabic, transliteration and translation. Tap Listen on a dua to hear it recited -- morning and evening wordings each have their own. Star the ones you return to.',
+    visual: () => `<div class="onboarding-hero">${icon('duas', 'is-large')}<span class="onboarding-plus">+</span>${icon('listen', 'is-large')}</div>`,
+    action: { label: 'Open the duas', mode: 'duas' },
   },
   {
     title: 'Read and listen to the Quran',
@@ -70,16 +85,21 @@ const STEPS = [
     action: { label: 'Open the Quran', mode: 'quran' },
   },
   {
-    title: 'Prayer times and qibla',
-    body: 'Both need your location, which never leaves your device. You can type coordinates in by hand instead if you prefer.',
-    visual: () => `<div class="onboarding-hero">${icon('prayer', 'is-large')}<span class="onboarding-plus">+</span>${icon('qibla', 'is-large')}</div>`,
+    title: 'Prayer times, qibla and the calendar',
+    body: 'Worked out from your location, which never leaves your device -- or type coordinates in by hand. The Islamic calendar follows the moon-sighting practice where you are, and you can move it a day to match your local announcement.',
+    visual: () => `<div class="onboarding-hero">${icon('prayer', 'is-large')}<span class="onboarding-plus">+</span>${icon('calendar', 'is-large')}</div>`,
     action: { label: 'Show prayer times', mode: 'prayerTimes' },
   },
   {
     title: 'Make it yours',
-    body: 'Settings is behind this icon, at the top right. Hide anything you do not use, choose a reciter, turn on word-by-word meanings, or set reminders.',
+    body: 'Settings is behind this icon, at the top right. Choose a reciter, turn on word-by-word meanings, set prayer and adhkar reminders, and under Data save the recitation for offline listening and see what is stored on your phone.',
     visual: () => settingsControl(),
     action: { label: 'Open Settings', settings: true },
+  },
+  {
+    title: 'Add it to your home screen',
+    body: 'Install the app from Settings, or your browser menu. On Android, press and hold its icon to jump straight to Prayer Times, Qibla, Tasbih or the Quran.',
+    visual: () => `<div class="onboarding-hero">${icon('shortcut', 'is-large')}</div>`,
   },
 ];
 

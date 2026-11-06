@@ -1,6 +1,6 @@
 # Codebase Map (generated)
 
-Generated 2026-09-24T14:54:24.636Z by `tools/generate-codebase-map.mjs`. Regenerate with:
+Generated 2026-11-06T08:31:05.419Z by `tools/generate-codebase-map.mjs`. Regenerate with:
 
 ```powershell
 npm run map:build
@@ -120,16 +120,18 @@ Not all of these are bugs; verify before assuming.
 | `apps/auth/migrations/0009_operational_alerts.sql` | sql | 21 |  |  |
 | `apps/auth/migrations/0010_rate_limits.sql` | sql | 26 |  |  |
 | `apps/auth/migrations/0011_webhooks.sql` | sql | 32 |  |  |
+| `apps/auth/migrations/0012_better_auth_1_7_18.sql` | sql | 15 |  |  |
 | `apps/auth/src/admin-plane.ts` | ts | 1112 | 27 | function requiresMfaEnrollment, function handleAdminPlane, function mediaStats |
 | `apps/auth/src/auth.ts` | ts | 117 |  | const FORTRESS_SCOPES, function createAuth |
 | `apps/auth/src/editorial-plane.ts` | ts | 2340 | 34 | type EditorialRole, function handleEditorialPlane, class EditorialForbiddenError |
-| `apps/auth/src/index.ts` | ts | 895 | 30 | class AuthWorker |
+| `apps/auth/src/index.ts` | ts | 897 | 30 | class AuthWorker |
 | `apps/auth/src/notifications.ts` | ts | 49 |  | type NotificationType, function notificationStatement, function listNotifications, function markNotificationRead, function markAllNotificationsRead |
 | `apps/auth/src/security.ts` | ts | 33 |  | function isMutation, function isTrustedBrowserMutation, function hasOversizedBody |
 | `apps/auth/src/taxonomy.ts` | ts | 27 |  | const TAXONOMY_KEYWORD_GROUPS, function suggestTaxonomySlugs |
 | `apps/auth/src/types.ts` | ts | 78 |  | type AuthEnvironment, type Bindings, type ServiceState, type McpToolDefinition, type KeyVerification, type TokenVerification, +2 more |
 | `apps/auth/src/webhooks.ts` | ts | 113 |  | type WebhookEventType, const WEBHOOK_EVENT_TYPES, function triggerWebhookEvent, function signPayload, function redeliverWebhook, function parseWebhookRegistration |
 | `apps/auth/test/admin-mfa-gate.test.ts` | ts | 29 |  |  |
+| `apps/auth/test/better-auth-schema.test.ts` | ts | 70 |  |  |
 | `apps/auth/test/editorial-pilot.test.ts` | ts | 641 |  |  |
 | `apps/auth/test/security.test.ts` | ts | 43 |  |  |
 | `apps/auth/test/webhooks.test.ts` | ts | 195 |  |  |
@@ -160,7 +162,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/js/home.js` | js | 218 |  |  |
 | `pwa-website/js/layout.js` | js | 15 |  |  |
 | `pwa-website/js/modes.js` | js | 85 |  |  |
-| `pwa-website/js/onboarding.js` | js | 182 |  |  |
+| `pwa-website/js/onboarding.js` | js | 202 |  |  |
 | `pwa-website/js/online.js` | js | 22 |  |  |
 | `pwa-website/js/prayer-times.js` | js | 344 |  |  |
 | `pwa-website/js/prayer.js` | js | 610 |  |  |
@@ -190,7 +192,7 @@ Not all of these are bugs; verify before assuming.
 | `pwa-website/test/dua-audio.test.js` | js | 134 |  |  |
 | `pwa-website/test/edge-pages.test.js` | js | 106 |  |  |
 | `pwa-website/test/edge-worker.test.js` | js | 174 |  |  |
-| `pwa-website/test/guide-and-tasbih.test.js` | js | 61 |  |  |
+| `pwa-website/test/guide-and-tasbih.test.js` | js | 103 |  |  |
 | `pwa-website/test/hijri.test.js` | js | 261 |  |  |
 | `pwa-website/test/install-affordance.test.js` | js | 70 |  |  |
 | `pwa-website/test/prayer-times.test.js` | js | 167 |  |  |
@@ -424,6 +426,7 @@ Not all of these are bugs; verify before assuming.
 | for | unknown | `(not defined in scanned files)` | `pwa-website/js/quran.js`, `pwa-website/sw.js` |
 | hadith_grades | table | `apps/api/migrations/0004_corpus_ingestion.sql` | (none) |
 | hadith_metadata | table | `apps/api/migrations/0003_canonical_knowledge.sql` | (none) |
+| hand | unknown | `(not defined in scanned files)` | `apps/auth/test/better-auth-schema.test.ts` |
 | harm | unknown | `(not defined in scanned files)` | `pwa-website/js/categories.js` |
 | here | unknown | `(not defined in scanned files)` | `pwa-website/js/prayer-times.js` |
 | HIJRI_MONTHS | unknown | `(not defined in scanned files)` | `pwa-website/js/hijri.js` |
@@ -548,4 +551,4 @@ Not all of these are bugs; verify before assuming.
 | whatever | unknown | `(not defined in scanned files)` | `apps/api/src/rag.ts`, `apps/api/test/ask-quran-sources.test.ts`, `pwa-website/js/prayer.js` |
 | where | unknown | `(not defined in scanned files)` | `pwa-website/js/modes.js` |
 | wherever | unknown | `(not defined in scanned files)` | `pwa-website/test/qibla-compass.test.js` |
-| your | unknown | `(not defined in scanned files)` | `pwa-website/js/calendar.js`, `pwa-website/test/calendar.test.js` |
+| your | unknown | `(not defined in scanned files)` | `pwa-website/js/calendar.js`, `pwa-website/js/onboarding.js`, `pwa-website/test/calendar.test.js` |

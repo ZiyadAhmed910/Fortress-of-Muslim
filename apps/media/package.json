@@ -1,6 +1,6 @@
 {
   "name": "@fortress/media",
-  "version": "0.50.1",
+  "version": "0.50.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250711.0",
     "typescript": "^5.8.0",
-    "vitest": "^3.2.0",
+    "vitest": "^5.1.0",
     "wrangler": "^4.24.0"
   }
 }

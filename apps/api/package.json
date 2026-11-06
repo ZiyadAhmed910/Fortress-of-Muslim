@@ -1,6 +1,6 @@
 {
   "name": "@fortress/api",
-  "version": "0.50.1",
+  "version": "0.50.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,14 +19,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fortress/contracts": "0.50.1",
+    "@fortress/contracts": "0.50.2",
     "hono": "^4.8.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250711.0",
     "cheerio": "^1.1.2",
     "typescript": "^5.8.0",
-    "vitest": "^3.2.0",
+    "vitest": "^5.1.0",
     "wrangler": "^4.24.0",
     "yaml": "^2.8.0"
   }
