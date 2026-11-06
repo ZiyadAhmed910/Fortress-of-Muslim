@@ -530,6 +530,24 @@ export function createApp(repositoryFactory: RepositoryFactory = defaultReposito
     return context.json({ data, meta: responseMeta(context) });
   });
 
+  // Settings the PWA reads once per launch, set from the Admin Console (migration 0030). Today only
+  // where Quran recitation comes from. Never an error the app has to handle: a missing table or row
+  // answers with the defaults, which is also what the app falls back to offline.
+  app.get('/v1/app-config', async (context) => {
+    let audioSource: 'own' | 'external' = 'own';
+    try {
+      const row = await context.env.CONTENT_DB.prepare('SELECT audio_source AS audioSource FROM app_settings WHERE id = 1')
+        .first<{ audioSource: string }>();
+      if (row?.audioSource === 'external') audioSource = 'external';
+    } catch (error) {
+      console.error(JSON.stringify({ event: 'app_config_read_failed', message: String(error) }));
+    }
+    // Five minutes: a phone reopened within that does not ask again, and a change made in the Admin
+    // Console reaches everyone within that long of their next launch.
+    context.header('Cache-Control', 'public, max-age=300');
+    return context.json({ data: { audioSource }, meta: responseMeta(context) });
+  });
+
   app.post('/v1/internal/vector-index', async (context) => {
     if (!context.env.INDEXING_SECRET || !await secretsMatch(context.req.header('X-Fortress-Index-Key') ?? '', context.env.INDEXING_SECRET)) {
       return context.json({ error: { code: 'not_found', message: 'Route was not found.', requestId: context.get('requestId') } }, 404);

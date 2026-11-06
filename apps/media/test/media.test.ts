@@ -36,8 +36,10 @@ describe('what counts', () => {
 describe('what is served', () => {
   it('serves published prefixes only', () => {
     expect(keyFor('/duas/v1/dua-001/1.mp3')).toBe('duas/v1/dua-001/1.mp3');
-    // A future collection in the bucket is not public until it is listed.
-    expect(keyFor('/quran/alafasy/001001.mp3')).toBeNull();
+    expect(keyFor('/quran/Alafasy_128kbps/001001.mp3')).toBe('quran/Alafasy_128kbps/001001.mp3');
+    expect(keyFor('/quran/wbw/001_001_001.mp3')).toBe('quran/wbw/001_001_001.mp3');
+    // Anything else in the bucket is not public until it is listed.
+    expect(keyFor('/private/backup.zip')).toBeNull();
     expect(keyFor('/')).toBeNull();
   });
 
@@ -47,7 +49,8 @@ describe('what is served', () => {
   });
 });
 
-// A bucket holding one 1000-byte file, and a database that records every tally.
+// A bucket holding a dua recording and a Quran ayah, 1000 bytes each, and a database that records every tally.
+const STORED = new Set(['duas/v1/dua-001/1.mp3', 'quran/Alafasy_128kbps/001001.mp3']);
 function fakeEnv() {
   const body = new Uint8Array(1000).map((_, index) => index % 256);
   const tallies: unknown[][] = [];
@@ -60,9 +63,9 @@ function fakeEnv() {
   });
   const env = {
     MEDIA: {
-      head: async (key: string) => (key === 'duas/v1/dua-001/1.mp3' ? object() : null),
+      head: async (key: string) => (STORED.has(key) ? object() : null),
       get: async (key: string, options: { range?: Headers }) => {
-        if (key !== 'duas/v1/dua-001/1.mp3') return null;
+        if (!STORED.has(key)) return null;
         const header = options.range?.get('range');
         const match = header && /^bytes=(\d+)-(\d*)$/.exec(header);
         if (!match) return object();
@@ -120,6 +123,22 @@ describe('serving a file', () => {
   it('refuses anything but reads', async () => {
     const { env, ctx } = fakeEnv();
     expect((await worker.fetch(get('/duas/v1/dua-001/1.mp3', {}, 'PUT'), env, ctx)).status).toBe(405);
+  });
+});
+
+describe('Quran recitation', () => {
+  it('is served, ranges and all, but never counted', async () => {
+    // The counts are the dua provider's report; a row per ayah per day would only bury it.
+    const { env, ctx, tallies, settle } = fakeEnv();
+    const whole = await worker.fetch(get('/quran/Alafasy_128kbps/001001.mp3'), env, ctx);
+    const part = await worker.fetch(get('/quran/Alafasy_128kbps/001001.mp3', { range: 'bytes=0-99' }), env, ctx);
+    const saved = await worker.fetch(get('/quran/Alafasy_128kbps/001001.mp3?intent=download'), env, ctx);
+    await settle();
+    expect(whole.status).toBe(200);
+    expect(part.status).toBe(206);
+    expect(saved.status).toBe(200);
+    expect(whole.headers.get('access-control-allow-origin')).toBe('*');
+    expect(tallies).toHaveLength(0);
   });
 });
 

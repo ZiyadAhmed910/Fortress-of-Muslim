@@ -138,6 +138,11 @@ export async function handleAdminPlane(
     if (!canWrite(grant.role)) return forbidden();
     return updateAskControls(context, await readJson(request));
   }
+  if (url.pathname === '/v1/admin/app-settings' && request.method === 'GET') return appSettings(context);
+  if (url.pathname === '/v1/admin/app-settings' && request.method === 'PATCH') {
+    if (!canWrite(grant.role)) return forbidden();
+    return updateAppSettings(context, await readJson(request));
+  }
   if (url.pathname === '/v1/admin/audit' && request.method === 'GET') return listAudit(context, url);
   if (url.pathname === '/v1/admin/alerts' && request.method === 'GET') return alerts(context);
   if (url.pathname === '/v1/admin/rate-limits' && request.method === 'GET') return listRateLimits(context);
@@ -896,6 +901,34 @@ const ASK_MODELS = [
   '@cf/meta/llama-3.1-8b-instruct',
   '@cf/meta/llama-3.2-3b-instruct',
 ];
+
+// Settings the PWA reads at launch (GET /v1/app-config on the API; migration 0030). Today only where
+// Quran recitation and word-by-word audio come from: 'own' -- the media host, the default -- or
+// 'external', everyayah.com and audio.qurancdn.com. Dua recitation exists only on the media host and
+// is not switchable.
+export const AUDIO_SOURCES = ['own', 'external'] as const;
+
+export async function appSettings({ env }: Pick<AdminContext, 'env'>) {
+  const settings = await env.CONTENT_DB.prepare(`
+    SELECT audio_source AS audioSource, updated_by_external_id AS updatedBy, updated_at AS updatedAt
+    FROM app_settings WHERE id = 1
+  `).first<{ audioSource: string; updatedBy: string | null; updatedAt: string }>();
+  if (!settings) return json({ error: { code: 'not_found', message: 'App settings have not been provisioned in this environment.' } }, 404);
+  return json({ data: { settings, audioSources: AUDIO_SOURCES } });
+}
+
+export async function updateAppSettings(context: Pick<AdminContext, 'env' | 'user' | 'grant' | 'requestId'>, body: Record<string, unknown>) {
+  const audioSource = String(body.audioSource ?? '');
+  if (!(AUDIO_SOURCES as readonly string[]).includes(audioSource)) {
+    return invalid(`The audio source must be one of: ${AUDIO_SOURCES.join(', ')}.`);
+  }
+  const result = await context.env.CONTENT_DB.prepare(`
+    UPDATE app_settings SET audio_source = ?, updated_by_external_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1
+  `).bind(audioSource, context.user.id).run();
+  if (!result.meta?.changes) return json({ error: { code: 'not_found', message: 'App settings have not been provisioned in this environment.' } }, 404);
+  await audit(context as AdminContext, 'app.settings_changed', 'app', 'settings', { audioSource });
+  return json({ data: { settings: { audioSource } } });
+}
 
 async function askControls({ env }: AdminContext) {
   const today = new Date().toISOString().slice(0, 10);

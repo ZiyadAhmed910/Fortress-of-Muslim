@@ -21,6 +21,7 @@ import { initHadith } from './hadith.js';
 import { initQuran, initQuranDownload, initQuranSettings, isSurahOpen, showSurahList, rerenderOpenSurah } from './quran.js';
 import { initQuranAudioSettings } from './quran-audio.js';
 import { initDuaAudio, initDuaAudioDownload } from './dua-audio.js';
+import { refreshAppConfig } from './app-config.js';
 import { initOnboarding, maybeShowOnboarding, replayOnboarding } from './onboarding.js';
 import { initContentModes, setContentMode } from './modes.js';
 import { initPrayer } from './prayer.js';
@@ -69,6 +70,9 @@ async function init() {
   // than after the data fetch: a slow connection is not a broken app, and a failed fetch has its
   // own error state below. The watchdog is only meant to catch "the app never booted at all".
   window.__fortressAppReady = true;
+  // The owner's settings (where Quran audio plays from), asked for once per launch in the
+  // background. Never awaited: the app runs on the last value it saw until the answer arrives.
+  refreshAppConfig();
   clearRecoveryMarker();
   // After the ready signal, so a first run that stalls on the tour still clears the boot watchdog.
   maybeShowOnboarding();

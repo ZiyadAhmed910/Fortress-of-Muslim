@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-11-06T08:31:05.419Z",
+  "generatedAt": "2026-11-06T09:49:06.020Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
-      "lines": 686,
+      "lines": 704,
       "language": "ts",
       "exports": [
         "function createApp",
@@ -21,7 +21,7 @@
         "./repositories/d1-content-repository",
         "./types"
       ],
-      "routeCount": 29
+      "routeCount": 30
     },
     {
       "path": "apps/api/src/index.ts",
@@ -234,6 +234,34 @@
         "@fortress/contracts",
         "../src/app",
         "../src/repositories/content-repository"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/app-config.test.ts",
+      "lines": 69,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/app"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/api/test/app-settings-admin.test.ts",
+      "lines": 66,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../../auth/src/admin-plane"
       ],
       "routeCount": 0
     },
@@ -554,18 +582,21 @@
     },
     {
       "path": "apps/auth/src/admin-plane.ts",
-      "lines": 1112,
+      "lines": 1145,
       "language": "ts",
       "exports": [
         "function requiresMfaEnrollment",
         "function handleAdminPlane",
-        "function mediaStats"
+        "function mediaStats",
+        "const AUDIO_SOURCES",
+        "function appSettings",
+        "function updateAppSettings"
       ],
       "imports": [
         "./types",
         "./editorial-plane"
       ],
-      "routeCount": 27
+      "routeCount": 29
     },
     {
       "path": "apps/auth/src/auth.ts",
@@ -775,10 +806,11 @@
     },
     {
       "path": "apps/media/src/index.ts",
-      "lines": 128,
+      "lines": 137,
       "language": "ts",
       "exports": [
         "interface Env",
+        "const isCounted",
         "type Kind",
         "function countAs",
         "function keyFor",
@@ -790,7 +822,7 @@
     },
     {
       "path": "apps/media/test/media.test.ts",
-      "lines": 137,
+      "lines": 156,
       "language": "ts",
       "exports": [],
       "imports": [
@@ -849,7 +881,7 @@
     },
     {
       "path": "apps/admin/public/app.js",
-      "lines": 1558,
+      "lines": 1594,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -920,8 +952,16 @@
       "routeCount": 0
     },
     {
+      "path": "pwa-website/js/app-config.js",
+      "lines": 54,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "pwa-website/js/app.js",
-      "lines": 228,
+      "lines": 232,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1081,7 +1121,7 @@
     },
     {
       "path": "pwa-website/js/quran-audio.js",
-      "lines": 633,
+      "lines": 700,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1201,11 +1241,11 @@
     },
     {
       "path": "pwa-website/sw.js",
-      "lines": 269,
+      "lines": 305,
       "language": "js",
       "exports": [],
       "imports": [],
-      "routeCount": 0
+      "routeCount": 2
     },
     {
       "path": "pwa-website/test/ask-scroll.test.js",
@@ -1330,6 +1370,14 @@
     {
       "path": "pwa-website/test/qibla-compass.test.js",
       "lines": 209,
+      "language": "js",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "pwa-website/test/quran-audio-host.test.js",
+      "lines": 186,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1672,6 +1720,14 @@
       "routeCount": 0
     },
     {
+      "path": "apps/api/migrations/0030_app_settings.sql",
+      "lines": 20,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
       "path": "apps/auth/migrations/0001_identity.sql",
       "lines": 81,
       "language": "sql",
@@ -1960,17 +2016,24 @@
     },
     {
       "style": "hono",
+      "method": "GET",
+      "path": "/v1/app-config",
+      "file": "apps/api/src/app.ts",
+      "line": 536
+    },
+    {
+      "style": "hono",
       "method": "POST",
       "path": "/v1/internal/vector-index",
       "file": "apps/api/src/app.ts",
-      "line": 533
+      "line": 551
     },
     {
       "style": "hono",
       "method": "GET",
       "path": "/v1/queries/:id",
       "file": "apps/api/src/app.ts",
-      "line": 544
+      "line": 562
     },
     {
       "style": "manual",
@@ -2095,15 +2158,15 @@
     {
       "style": "manual",
       "method": "GET",
-      "path": "/v1/admin/audit",
+      "path": "/v1/admin/app-settings",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
       "line": 141
     },
     {
       "style": "manual",
-      "method": "GET",
-      "path": "/v1/admin/alerts",
+      "method": "PATCH",
+      "path": "/v1/admin/app-settings",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
       "line": 142
@@ -2111,10 +2174,26 @@
     {
       "style": "manual",
       "method": "GET",
+      "path": "/v1/admin/audit",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 146
+    },
+    {
+      "style": "manual",
+      "method": "GET",
+      "path": "/v1/admin/alerts",
+      "matchKind": "exact",
+      "file": "apps/auth/src/admin-plane.ts",
+      "line": 147
+    },
+    {
+      "style": "manual",
+      "method": "GET",
       "path": "/v1/admin/rate-limits",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 143
+      "line": 148
     },
     {
       "style": "manual",
@@ -2122,7 +2201,7 @@
       "path": "/v1/admin/media-stats",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 144
+      "line": 149
     },
     {
       "style": "manual",
@@ -2130,7 +2209,7 @@
       "path": "/v1/admin/access-requests",
       "matchKind": "exact",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 145
+      "line": 150
     },
     {
       "style": "manual",
@@ -2138,7 +2217,7 @@
       "path": "/^\\/v1\\/admin\\/users\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 147
+      "line": 152
     },
     {
       "style": "manual",
@@ -2146,7 +2225,7 @@
       "path": "/^\\/v1\\/admin\\/sessions\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 154
+      "line": 159
     },
     {
       "style": "manual",
@@ -2154,7 +2233,7 @@
       "path": "/^\\/v1\\/admin\\/services\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 159
+      "line": 164
     },
     {
       "style": "manual",
@@ -2162,7 +2241,7 @@
       "path": "/^\\/v1\\/admin\\/rate-limits\\/([a-z-]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 165
+      "line": 170
     },
     {
       "style": "manual",
@@ -2170,7 +2249,7 @@
       "path": "\r",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 171
+      "line": 176
     },
     {
       "style": "manual",
@@ -2178,7 +2257,7 @@
       "path": "/^\\/v1\\/admin\\/alerts\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 179
+      "line": 184
     },
     {
       "style": "manual",
@@ -2186,7 +2265,7 @@
       "path": "/^\\/v1\\/admin\\/access-requests\\/([^/]+",
       "matchKind": "pattern",
       "file": "apps/auth/src/admin-plane.ts",
-      "line": 185
+      "line": 190
     },
     {
       "style": "manual",
@@ -2722,7 +2801,23 @@
       "path": "/health",
       "matchKind": "exact",
       "file": "apps/media/src/index.ts",
-      "line": 88
+      "line": 97
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/duas/",
+      "matchKind": "prefix",
+      "file": "pwa-website/sw.js",
+      "line": 16
+    },
+    {
+      "style": "manual",
+      "method": "(any)",
+      "path": "/quran/",
+      "matchKind": "prefix",
+      "file": "pwa-website/sw.js",
+      "line": 21
     }
   ],
   "schema": [
@@ -2821,7 +2916,8 @@
       "referencedBy": [
         "apps/api/src/rag.ts",
         "pwa-website/js/prayer-times.js",
-        "pwa-website/js/prayer.js"
+        "pwa-website/js/prayer.js",
+        "pwa-website/test/quran-audio-host.test.js"
       ]
     },
     {
@@ -2898,6 +2994,19 @@
       ]
     },
     {
+      "name": "app_settings",
+      "kind": "table",
+      "definedIn": [
+        "apps/api/migrations/0030_app_settings.sql"
+      ],
+      "referencedBy": [
+        "apps/api/src/app.ts",
+        "apps/api/test/app-config.test.ts",
+        "apps/api/test/app-settings-admin.test.ts",
+        "apps/auth/src/admin-plane.ts"
+      ]
+    },
+    {
       "name": "Arabic",
       "kind": "unknown",
       "definedIn": [],
@@ -2965,7 +3074,9 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "apps/admin/public/app.js",
         "apps/api/src/rag.ts",
+        "pwa-website/js/quran-audio.js",
         "pwa-website/js/userData.js"
       ]
     },
@@ -3499,7 +3610,8 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "pwa-website/js/prayer.js"
+        "pwa-website/js/prayer.js",
+        "pwa-website/js/quran-audio.js"
       ]
     },
     {
@@ -3528,7 +3640,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
-        "pwa-website/js/quran-audio.js"
+        "pwa-website/test/quran-audio-host.test.js"
       ]
     },
     {
@@ -3703,7 +3815,8 @@
       "referencedBy": [
         "pwa-website/js/quran-audio.js",
         "pwa-website/sw.js",
-        "pwa-website/test/preload.test.js"
+        "pwa-website/test/preload.test.js",
+        "pwa-website/test/quran-audio-host.test.js"
       ]
     },
     {
@@ -3715,6 +3828,7 @@
         "apps/media/src/index.ts",
         "pwa-website/js/assistant.js",
         "pwa-website/test/categories.test.js",
+        "pwa-website/test/quran-audio-host.test.js",
         "pwa-website/test/quran-bismillah.test.js"
       ]
     },
@@ -3902,6 +4016,7 @@
       "kind": "unknown",
       "definedIn": [],
       "referencedBy": [
+        "pwa-website/test/quran-audio-host.test.js",
         "pwa-website/test/sw-navigation.test.js"
       ]
     },
@@ -4008,7 +4123,8 @@
       "referencedBy": [
         "apps/api/src/rag.ts",
         "apps/api/test/ask-quran-sources.test.ts",
-        "pwa-website/js/pwa.js"
+        "pwa-website/js/pwa.js",
+        "pwa-website/js/quran-audio.js"
       ]
     },
     {
@@ -4060,7 +4176,8 @@
       "referencedBy": [
         "pwa-website/js/dua-audio.js",
         "pwa-website/js/quran-juz.js",
-        "pwa-website/sw.js"
+        "pwa-website/sw.js",
+        "pwa-website/test/quran-audio-host.test.js"
       ]
     },
     {
@@ -4618,6 +4735,7 @@
         "apps/status/public/app.js",
         "pwa-website/edge/pages.js",
         "pwa-website/edge/worker.js",
+        "pwa-website/js/app-config.js",
         "pwa-website/js/app.js",
         "pwa-website/js/assistant.js",
         "pwa-website/js/calendar.js",
@@ -4644,6 +4762,7 @@
         "pwa-website/test/hijri.test.js",
         "pwa-website/test/prayer-times.test.js",
         "pwa-website/test/qibla-compass.test.js",
+        "pwa-website/test/quran-audio-host.test.js",
         "pwa-website/test/quran-juz.test.js",
         "pwa-website/test/quran-words.test.js",
         "pwa-website/test/reading-roles.test.js",
