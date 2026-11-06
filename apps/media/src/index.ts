@@ -16,7 +16,16 @@ export interface Env {
 
 // Only these prefixes are served. The bucket will hold other things over time; publishing a new
 // collection should be a decision recorded here, not a side effect of uploading it.
-const PUBLIC_PREFIXES = ['duas/'];
+//   duas/   dua recitation (0.47.0)
+//   quran/  ayah-by-ayah recitation for six reciters and word-by-word audio (0.50.3), published on
+//           the owner's decision; laid out as the hosts it replaces were (<reciter>/<SSSAAA>.mp3,
+//           wbw/<SSS_AAA_WWW>.mp3), so the app changes only its base URL.
+const PUBLIC_PREFIXES = ['duas/', 'quran/'];
+
+// Only these are counted. The counts are a usage report for the dua recitation's provider; Quran
+// plays would add a row per ayah per day to the same table and tell that report nothing.
+const COUNTED_PREFIXES = ['duas/'];
+export const isCounted = (key: string) => COUNTED_PREFIXES.some((prefix) => key.startsWith(prefix));
 
 const CORS = {
   // Anyone may read the files -- they are played by the app from its own origin, and the offline
@@ -108,7 +117,7 @@ export default {
     if (!('body' in object)) return new Response(null, { status: 304, headers: headersFor(object) });
 
     const kind = countAs(request);
-    if (kind) ctx.waitUntil(tally(env.CONTENT_DB, key, kind));
+    if (kind && isCounted(key)) ctx.waitUntil(tally(env.CONTENT_DB, key, kind));
 
     const range = object.range as { offset?: number; length?: number; suffix?: number } | undefined;
     if (range && request.headers.has('range')) {

@@ -1,14 +1,23 @@
 import { els } from './dom.js';
-import { escapeHtml, toast } from './utils.js';
+import { escapeHtml, isTestHost, toast } from './utils.js';
 
-// Recitation is streamed one ayah at a time from everyayah.com, which serves CORS-open, byte-range
-// capable MP3s named SSSAAA.mp3. Streaming per ayah rather than per surah is what makes the player
-// usable on a phone connection: Al-Baqarah as a single file is tens of megabytes before the first
-// word sounds, where its first ayah alone is ~150KB.
-const AYAH_AUDIO_BASE = 'https://everyayah.com/data';
+// Recitation is streamed one ayah at a time, as byte-range capable MP3s named SSSAAA.mp3. Streaming
+// per ayah rather than per surah is what makes the player usable on a phone connection: Al-Baqarah
+// as a single file is tens of megabytes before the first word sounds, where its first ayah alone is
+// ~150KB.
+//
+// Since 0.50.3 it comes from our own media host (apps/media, R2) rather than everyayah.com and
+// audio.qurancdn.com. The files are the same, laid out the same way under quran/, so only the base
+// changed. Surahs downloaded before then are cached under the old addresses; the service worker
+// answers the new address from them (sw.js, legacyQuranUrl) and the checks below accept either, so
+// nobody's downloads were lost in the move. The test site plays from the test media host.
+const mediaOrigin = () => (isTestHost() ? 'https://media-test.fortressofmuslim.org' : 'https://media.fortressofmuslim.org');
+const AYAH_AUDIO_BASE = () => `${mediaOrigin()}/quran`;
 // Word audio is numbered by the word's position within its ayah. Those positions come from the
 // stored word data, never from splitting the text -- see tools/build-quran-words.mjs for why.
-const WORD_AUDIO_BASE = 'https://audio.qurancdn.com/wbw';
+const WORD_AUDIO_BASE = () => `${mediaOrigin()}/quran/wbw`;
+// Where the same files used to be fetched from, and so where an earlier download is cached.
+const LEGACY_AYAH_AUDIO_BASE = 'https://everyayah.com/data';
 const wordsUrl = (number) => `./data/quran/words-${number}.json`;
 const STORAGE_KEY = 'fortress_quran_audio';
 const AUDIO_CACHE = 'fortress-quran-audio-v1';
@@ -35,8 +44,14 @@ export const REPEAT_MODES = ['off', 'ayah', 'surah'];
 const REPEAT_LABELS = { off: 'Repeat off', ayah: 'Repeating this ayah', surah: 'Repeating this surah' };
 
 const pad = (value, length) => String(value).padStart(length, '0');
-const ayahAudioUrl = (reciter, surah, ayah) => `${AYAH_AUDIO_BASE}/${reciter}/${pad(surah, 3)}${pad(ayah, 3)}.mp3`;
-const wordAudioUrl = (surah, ayah, position) => `${WORD_AUDIO_BASE}/${pad(surah, 3)}_${pad(ayah, 3)}_${pad(position, 3)}.mp3`;
+export const ayahAudioUrl = (reciter, surah, ayah) => `${AYAH_AUDIO_BASE()}/${reciter}/${pad(surah, 3)}${pad(ayah, 3)}.mp3`;
+export const legacyAyahAudioUrl = (reciter, surah, ayah) => `${LEGACY_AYAH_AUDIO_BASE}/${reciter}/${pad(surah, 3)}${pad(ayah, 3)}.mp3`;
+export const wordAudioUrl = (surah, ayah, position) => `${WORD_AUDIO_BASE()}/${pad(surah, 3)}_${pad(ayah, 3)}_${pad(position, 3)}.mp3`;
+
+// A stored copy of this ayah under either address -- the new one, or the one a download made
+// before the move used.
+const storedAyah = (cache, reciter, surah, ayah) => cache.match(ayahAudioUrl(reciter, surah, ayah))
+  .then((found) => found || cache.match(legacyAyahAudioUrl(reciter, surah, ayah)));
 
 const wordCache = new Map();
 let audio = null;
@@ -570,11 +585,10 @@ export function cancelAudioDownload() {
  * that would be wrong for every surah but the one it was measured on, this reports actual bytes as
  * they arrive and stays cancellable throughout.
  *
- * There is no bulk fetch to be had here. everyayah publishes a zip per surah, but those are served
- * without an Access-Control-Allow-Origin header where the individual mp3s carry one, so a browser
- * cannot read an archive at all; proxying a 116MB zip through our own Worker to add that header
- * would move the whole cost of the download onto us. A surah is therefore always one request per
- * ayah, and the only thing left to tune is how many of them are in flight.
+ * There is no bulk fetch to be had here. A surah is one request per ayah -- the same files the
+ * player streams, so a downloaded surah is exactly what plays online -- and the only thing left to
+ * tune is how many of them are in flight. (everyayah, where these files used to come from, published
+ * a zip per surah but served it without CORS, so a browser could not read it anyway.)
  */
 export async function downloadSurahAudio(surahNumber, ayahCount, onProgress) {
   if (!('caches' in window)) throw new Error('This browser cannot store audio offline.');
@@ -588,7 +602,7 @@ export async function downloadSurahAudio(surahNumber, ayahCount, onProgress) {
   const store = async (ayah) => {
     if (signal.aborted) throw new DOMException('cancelled', 'AbortError');
     const url = ayahAudioUrl(prefs.reciter, surahNumber, ayah);
-    const existing = await cache.match(url);
+    const existing = await storedAyah(cache, prefs.reciter, surahNumber, ayah);
     if (existing) {
       bytes += Number(existing.headers.get('content-length') || 0);
     } else {
@@ -627,6 +641,6 @@ export async function surahAudioDownloaded(surahNumber, ayahCount) {
   const cache = await caches.open(AUDIO_CACHE);
   // Checking the last ayah is enough: the download runs in order, so the final file only exists
   // once every earlier one does.
-  return Boolean(await cache.match(ayahAudioUrl(prefs.reciter, surahNumber, ayahCount)));
+  return Boolean(await storedAyah(cache, prefs.reciter, surahNumber, ayahCount));
 }
 

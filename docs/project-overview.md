@@ -134,8 +134,10 @@ that external tools require review/approval before they're callable.
 ### `apps/media` — Media Worker
 Serves the app's large on-demand audio from the R2 bucket `fortress-media` (one bucket for both
 environments) at `media.fortressofmuslim.org` / `media-test.fortressofmuslim.org`. Read-only, byte
-ranges honoured, and only prefixes in `PUBLIC_PREFIXES` are served (today `duas/`). It exists
-mainly for counting: each play (a request for the start of a file) and each offline download
+ranges honoured, and only prefixes in `PUBLIC_PREFIXES` are served: `duas/`, and since 0.50.3
+`quran/` -- ayah-by-ayah recitation for all six reciters and word-by-word audio, about 15 GB, moved
+here from everyayah.com and audio.qurancdn.com on the owner's decision, laid out as those hosts had
+it. Only `duas/` is counted (`COUNTED_PREFIXES`). It exists mainly for counting: each play (a request for the start of a file) and each offline download
 (`?intent=download`) is tallied into `media_daily_stats` in that environment's content D1, which the
 Admin console's Audio usage page reports on (`GET /v1/admin/media-stats`, CSV export). Plays from a
 copy saved on the phone are not counted. The dua recordings are used under a written agreement
@@ -180,7 +182,10 @@ What it actually contains today:
   only ever disagree and never supply. The offline check runs in `npm run data:safety`, and
   `test/quran-juz.test.js` enforces the same invariant at test time.
 - **Recitation** — ayah-by-ayah playback (six reciters) that advances through the surah, with
-  repeat modes and a cancellable per-surah offline download in `fortress-quran-audio-v1`. It keeps
+  repeat modes and a cancellable per-surah offline download in `fortress-quran-audio-v1`. Served
+  from our own media host since 0.50.3; surahs downloaded before then are cached under the old
+  everyayah / qurancdn addresses, and the service worker answers the new address from them
+  (`legacyQuranUrl` in `sw.js`), so no download was lost in the move. It keeps
   playing with the phone locked: lock-screen controls via the Media Session API, the next ayah
   preloaded, and no page render awaited between ayahs while hidden. The screen is held awake only
   while "Follow the recitation" is on.
