@@ -15,7 +15,7 @@ const state = {
   resources: {},
 };
 const roleViews = {
-  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'plan-requests', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'rate-limits', 'media-stats', 'security', 'audit']),
+  admin: new Set(['overview', 'search', 'content', 'queue', 'books', 'assignments', 'workload', 'taxonomy', 'users', 'plan-requests', 'api-keys', 'oauth-clients', 'devices', 'mcp-servers', 'mcp-tools', 'named-queries', 'rag', 'alerts', 'operations', 'services', 'rate-limits', 'media-stats', 'app-settings', 'security', 'audit']),
   editor: new Set(['overview', 'content', 'queue', 'books', 'assignments', 'workload', 'users', 'rag']),
   reviewer: new Set(['overview', 'queue', 'books', 'assignments', 'workload', 'rag']),
 };
@@ -274,6 +274,7 @@ async function loadView(id, force = false, params = {}) {
     else if (id === 'services') await loadServices();
     else if (id === 'rate-limits') await loadRateLimits();
     else if (id === 'media-stats') await loadMediaStats(params);
+    else if (id === 'app-settings') await loadAppSettings();
     else if (id === 'alerts') await loadAlerts();
     else if (id === 'operations') await loadOperations();
     else if (id === 'security') await loadSecurity();
@@ -1364,6 +1365,41 @@ $('#ask-controls').addEventListener('submit', async (event) => {
     await api('/v1/admin/ask-controls', { method: 'PATCH', body: JSON.stringify(body) });
     status.textContent = 'Saved.';
     await loadAskControls();
+  } catch (error) {
+    status.textContent = error.message || 'Could not save.';
+  }
+});
+
+const AUDIO_SOURCE_LABELS = {
+  own: ['Our media server', 'media.fortressofmuslim.org (Cloudflare R2). The default.'],
+  external: ['External hosts', 'everyayah.com for recitation and audio.qurancdn.com for word-by-word audio, where the same files came from before 0.50.3. The way back if our media server has a problem.'],
+};
+
+async function loadAppSettings() {
+  const { settings, audioSources } = (await api('/v1/admin/app-settings')).data;
+  const form = $('#app-settings-form');
+  form.innerHTML = `
+    <fieldset>
+      <legend><strong>Quran audio source</strong><small>Where ayah recitation and word-by-word audio play from. Dua recitation exists only on our media server and is not affected. If a file fails to load, the app also tries the other source on its own.</small></legend>
+      ${audioSources.map((source) => `
+        <label class="ask-controls-switch"><span><input type="radio" name="audioSource" value="${esc(source)}"${settings.audioSource === source ? ' checked' : ''}> ${esc(AUDIO_SOURCE_LABELS[source]?.[0] || source)}</span><small>${esc(AUDIO_SOURCE_LABELS[source]?.[1] || '')}</small></label>
+      `).join('')}
+    </fieldset>
+    <footer><button type="submit">Save app settings</button><span id="app-settings-status">${settings.updatedAt ? `Last changed ${esc(date(settings.updatedAt))}` : ''}</span></footer>`;
+  form.hidden = false;
+}
+
+$('#app-settings-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const audioSource = new FormData(event.currentTarget).get('audioSource');
+  const label = AUDIO_SOURCE_LABELS[audioSource]?.[0] || audioSource;
+  if (!await confirmChange(`Play Quran audio from: ${label}`, 'Every phone switches on its next launch, within about five minutes.')) return;
+  const status = $('#app-settings-status');
+  status.textContent = 'Saving...';
+  try {
+    await api('/v1/admin/app-settings', { method: 'PATCH', body: JSON.stringify({ audioSource }) });
+    notify('App settings saved.');
+    await loadAppSettings();
   } catch (error) {
     status.textContent = error.message || 'Could not save.';
   }
