@@ -89,3 +89,25 @@ describe('the things that used to move the view', () => {
     expect(assistant).toMatch(/assistantSubmit\.addEventListener\('pointerdown'/);
   });
 });
+
+// Sources arrive before the answer (retrieval finishes before the model writes), and used to be
+// drawn at once: a list of sources under "Writing the answer", pushed down when the answer appeared.
+describe('the order an answer is shown in', () => {
+  const sources = [{ id: 'dua.hisn.074', contentType: 'dua', title: 'Istikharah', canonicalUrl: 'https://fortressofmuslim.org/hisn/chapter26', excerpt: 'O Allah', verificationStatus: 'verified' }];
+  const turn = (stage, answer) => ({ question: 'Dua for istikhara', answer, sources, meta: { includesUnverifiedSource: true }, stage, scope: 'all' });
+
+  it('shows no sources while it is still searching or writing', async () => {
+    const { renderTurn } = await import('../js/assistant.js');
+    for (const html of [renderTurn(turn('retrieving', '')), renderTurn(turn('writing', '')), renderTurn(turn('writing', 'O Allah, I seek'))]) {
+      expect(html).not.toContain('assistant-sources');
+      expect(html).not.toContain('assistant-note');
+    }
+  });
+
+  it('shows the sources once the answer is finished, beneath it', async () => {
+    const { renderTurn } = await import('../js/assistant.js');
+    const html = renderTurn(turn(null, 'O Allah, I seek Your guidance [1]'));
+    expect(html).toContain('assistant-sources');
+    expect(html.indexOf('assistant-answer')).toBeLessThan(html.indexOf('assistant-sources'));
+  });
+});

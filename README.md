@@ -86,7 +86,7 @@ covering favourites, settings, tasbih, layout and Quran preferences.
 │   ├── manifest.json
 │   ├── robots.txt
 │   ├── serve.py
-│   ├── sitemap.xml
+│   ├── sitemap.xml       Index of sitemap-pages.xml and sitemap-hadith-*.xml (tools/build-sitemap.mjs)
 │   ├── styles.css
 │   ├── sw.js
 │   └── wrangler.jsonc    Cloudflare hosting (wrangler.ci.jsonc for GitHub deploys)
@@ -180,6 +180,22 @@ Every platform release must:
 5. Deploy to production from `main` only after test verification.
 
 ## Platform Releases
+
+### 0.50.4
+
+_2026-11-06_
+
+- **Hadith pages and a complete sitemap.** `/<collection>/book<b>/<n>` now gets its own title,
+  description, canonical and text in the HTML from the Worker (`pwa-website/edge/pages.js`
+  `hadithPage`, `edge/worker.js` `fetchHadith`, which reads `/v1/hadith/resolve` from production's
+  API for the production site and caches each answer at the edge for a day). The API's 404 is a 404; an
+  unreachable API falls back to the plain shell.
+  - `sitemap.xml` is now an index of `sitemap-pages.xml` (home, 114 surahs, 132 duas) and one
+    `sitemap-hadith-<collection>.xml` per collection (14,357 hadith, built from the production API by
+    `tools/build-sitemap.mjs`, which checks each count against `/v1/collections`). `lastmod` is the
+    last commit to the data file, or the hadith's publication date, never the build date.
+- **Ask shows its sources after the answer**, not before it: sources and the unverified note render
+  only once the reply has finished (`js/assistant.js` `renderTurn`).
 
 ### 0.50.3
 
@@ -363,7 +379,7 @@ _2026-09-23_
     fills in the page's own title, description, canonical and Open Graph / Twitter tags, and puts
     the text itself -- the dua's Arabic, transliteration and translation; the surah's ayahs with
     translation -- in an `<article id="prerender">` that `js/app.js` removes as it starts. It reads
-    the same data files the app does. Hadith routes keep the plain shell (their text is in the API).
+    the same data files the app does. Hadith routes got the same in 0.50.4, from the API.
   - A dua or verse that does not exist (`/hisn/chapter999`, `/quran/1/8`) is now a 404 instead of an
     empty shell.
   - A page whose tags cannot be filled in is served as the plain shell rather than failing.
@@ -1788,6 +1804,10 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — Sources after the answer in Ask
+
+- In Ask, the sources now appear once the answer has finished writing, instead of showing up first.
 
 ### Unreleased — Quran audio from our own server
 

@@ -1,79 +1,120 @@
-// Builds sitemap.xml from the app's own data, so the list cannot drift from what the app has.
+// Builds the sitemaps from the app's own data and the production API, so the lists cannot drift
+// from what the site serves.
 //
 //   node pwa-website/tools/build-sitemap.mjs
 //
-// What goes in, and what deliberately does not
-// --------------------------------------------
-// This app renders on the client. Every URL below is served the identical HTML shell by the
-// catch-all rewrite in .htaccess, and the thing that makes one different from another only exists
-// after JavaScript runs. Search engines that render JavaScript will see the difference; the rest
-// see one page repeated.
+// sitemap.xml is an index (robots.txt names it) of:
+//   sitemap-pages.xml               the home page, the 114 surahs and the 132 duas
+//   sitemap-hadith-<collection>.xml every hadith in that collection, read from the production API
 //
-// That shapes what is worth listing. A sitemap naming 6,236 ayah URLs would be asking a crawler to
-// fetch 6,236 copies of the same shell, which spends crawl budget to produce near-duplicates and
-// makes the site look thinner rather than larger. So the entry point of each surah is listed --
-// 114 pages, each a real destination a person might search for by name -- and individual ayahs are
-// not. Duas are listed for the same reason: 132 of them, each with its own title.
+// Every one of these URLs is served with its own title, canonical and text before any JavaScript
+// runs (edge/pages.js); until that existed each was the same app shell, which is why this file once
+// listed surahs and duas only and left hadith out. Individual ayahs are still not listed: each
+// surah's page carries the whole surah, and 6,236 ayah pages would mostly repeat it.
 //
-// Hadith is left out entirely. Those records are served from the API rather than shipped with the
-// app, the corpus is deliberately not part of this repository, and 14,357 identical shells is the
-// clearest possible case of the problem above.
+// lastmod is when the content last changed -- the last commit to the data file for a surah or dua,
+// the publication date for a hadith -- never the day this ran. A sitemap that claims everything
+// changed every time it is built teaches a crawler to ignore the field.
 //
-// The real fix for all of this is server-rendered or prerendered pages, at which point this file
-// should grow. Until then it lists what can honestly be called a distinct page.
-import { readFileSync, writeFileSync } from 'node:fs';
+// The hadith corpus is not in this repository, so building needs the network. Run it again after a
+// hadith publication, and commit the result.
+import { execFileSync } from 'node:child_process';
+import { readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const site = 'https://fortressofmuslim.org';
+const api = 'https://api.fortressofmuslim.org';
 const root = new URL('../', import.meta.url);
 const readJson = (path) => JSON.parse(readFileSync(new URL(path, root), 'utf8'));
 
+// The date (YYYY-MM-DD) of the last commit that touched a file, or undefined if git cannot say.
+function committed(path) {
+  try {
+    return execFileSync('git', ['log', '-1', '--format=%cs', '--', path], { cwd: fileURLToPath(root), encoding: 'utf8' }).trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const latest = (dates) => dates.filter(Boolean).sort().at(-1);
+
+function urlset(urls) {
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...urls.map(({ loc, lastmod }) => `  <url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`),
+    '</urlset>',
+    '',
+  ].join('\n');
+}
+
+// The API answers the odd request with a 500 under a burst of 140 pages; a retry gets it.
+async function getJson(url) {
+  for (let attempt = 1; ; attempt += 1) {
+    const response = await fetch(url, { headers: { accept: 'application/json' } });
+    if (response.ok) return response.json();
+    if (attempt === 5) throw new Error(`${url}: HTTP ${response.status}`);
+    await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+  }
+}
+
+// --- Pages shipped with the app ----------------------------------------------------------------
+
 const quran = readJson('data/quran/index.json');
 const duas = readJson('data/duas.json');
+const duasDate = committed('data/duas.json');
 
-// Lastmod is the date the content was generated, not today: claiming a page changed when it did not
-// teaches a crawler to stop believing the field.
-const lastmod = new Date().toISOString().slice(0, 10);
-
-const urls = [
-  { loc: `${site}/`, priority: '1.0', changefreq: 'weekly' },
-];
-
+const pages = [{ loc: `${site}/`, lastmod: committed('index.html') }];
 for (const surah of quran.surahs) {
-  urls.push({
-    loc: `${site}/quran/${surah.number}/1`,
-    priority: '0.8',
-    changefreq: 'yearly',
-  });
+  pages.push({ loc: `${site}/quran/${surah.number}/1`, lastmod: committed(`data/quran/surah-${surah.number}.json`) });
 }
-
 for (const entry of duas.entries) {
   const sequence = Number(entry.sequence);
-  if (!Number.isInteger(sequence)) continue;
-  urls.push({
-    loc: `${site}/hisn/chapter${sequence}`,
-    priority: '0.7',
-    changefreq: 'yearly',
-  });
+  if (Number.isInteger(sequence)) pages.push({ loc: `${site}/hisn/chapter${sequence}`, lastmod: duasDate });
 }
 
-const xml = [
-  '<?xml version="1.0" encoding="UTF-8"?>',
-  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-  ...urls.map(({ loc, priority, changefreq }) => [
-    '  <url>',
-    `    <loc>${loc}</loc>`,
-    `    <lastmod>${lastmod}</lastmod>`,
-    `    <changefreq>${changefreq}</changefreq>`,
-    `    <priority>${priority}</priority>`,
-    '  </url>',
-  ].join('\n')),
-  '</urlset>',
-  '',
-].join('\n');
+const sitemaps = [{ file: 'sitemap-pages.xml', urls: pages }];
 
-const output = new URL('sitemap.xml', root);
-writeFileSync(output, xml);
-console.log(`Wrote ${fileURLToPath(output)}`);
-console.log(`  ${urls.length} URLs: 1 home, ${quran.surahs.length} surahs, ${urls.length - 1 - quran.surahs.length} duas`);
-console.log('  Individual ayahs and hadith are deliberately excluded -- see the comment at the top.');
+// --- Hadith, from the API ----------------------------------------------------------------------
+
+const collections = (await getJson(`${api}/v1/collections`)).data.filter((collection) => collection.contentType === 'hadith');
+for (const collection of collections) {
+  const urls = [];
+  let cursor = '';
+  do {
+    const query = new URLSearchParams({ collection: collection.slug, limit: '100' });
+    if (cursor) query.set('cursor', cursor);
+    const page = await getJson(`${api}/v1/hadith?${query}`);
+    for (const hadith of page.data) {
+      if (!hadith.canonicalUrl?.startsWith(`${site}/`)) continue;
+      urls.push({ loc: hadith.canonicalUrl, lastmod: hadith.publishedAt?.slice(0, 10) });
+    }
+    cursor = page.pagination?.nextCursor ?? '';
+  } while (cursor);
+  if (urls.length !== collection.recordCount) {
+    throw new Error(`${collection.slug}: the API lists ${urls.length} hadith but counts ${collection.recordCount}`);
+  }
+  sitemaps.push({ file: `sitemap-hadith-${collection.slug}.xml`, urls });
+}
+
+// --- Write --------------------------------------------------------------------------------------
+
+// A collection that is gone should not leave its old file behind, still listed nowhere.
+for (const name of readdirSync(root)) {
+  if (/^sitemap-.*\.xml$/.test(name) && !sitemaps.some(({ file }) => file === name)) unlinkSync(new URL(name, root));
+}
+for (const { file, urls } of sitemaps) writeFileSync(new URL(file, root), urlset(urls));
+
+writeFileSync(new URL('sitemap.xml', root), [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  ...sitemaps.map(({ file, urls }) => {
+    const lastmod = latest(urls.map((url) => url.lastmod));
+    return `  <sitemap><loc>${site}/${file}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</sitemap>`;
+  }),
+  '</sitemapindex>',
+  '',
+].join('\n'));
+
+for (const { file, urls } of sitemaps) console.log(`  ${file}: ${urls.length} URLs`);
+console.log(`Wrote sitemap.xml, an index of ${sitemaps.length} sitemaps, ${sitemaps.reduce((sum, { urls }) => sum + urls.length, 0)} URLs`);

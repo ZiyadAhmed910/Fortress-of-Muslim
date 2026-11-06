@@ -150,7 +150,7 @@ describe('what is published', () => {
   });
 
   it('keeps everything the site serves', () => {
-    for (const path of ['index.html', 'sw.js', 'manifest.json', 'reset.html', 'robots.txt', 'sitemap.xml',
+    for (const path of ['index.html', 'sw.js', 'manifest.json', 'reset.html', 'robots.txt', 'sitemap.xml', 'sitemap-pages.xml', 'sitemap-hadith-bukhari.xml',
       'js/app.js', 'css/base.css', 'data/duas.json', 'data/quran/surah-2.json', 'icons/icon-192.png',
       'assets/cards/living/morning.svg']) {
       expect(isPublished(path), path).toBe(true);
