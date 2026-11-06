@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T14:54:24.636Z",
+  "generatedAt": "2026-11-06T08:31:05.419Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -604,7 +604,7 @@
     },
     {
       "path": "apps/auth/src/index.ts",
-      "lines": 895,
+      "lines": 897,
       "language": "ts",
       "exports": [
         "class AuthWorker"
@@ -705,6 +705,21 @@
       "imports": [
         "vitest",
         "../src/admin-plane"
+      ],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/test/better-auth-schema.test.ts",
+      "lines": 70,
+      "language": "ts",
+      "exports": [],
+      "imports": [
+        "better-sqlite3",
+        "better-auth/db",
+        "node:fs",
+        "node:path",
+        "vitest",
+        "../src/auth"
       ],
       "routeCount": 0
     },
@@ -1026,7 +1041,7 @@
     },
     {
       "path": "pwa-website/js/onboarding.js",
-      "lines": 182,
+      "lines": 202,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1266,7 +1281,7 @@
     },
     {
       "path": "pwa-website/test/guide-and-tasbih.test.js",
-      "lines": 61,
+      "lines": 103,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1739,6 +1754,14 @@
     {
       "path": "apps/auth/migrations/0011_webhooks.sql",
       "lines": 32,
+      "language": "sql",
+      "exports": [],
+      "imports": [],
+      "routeCount": 0
+    },
+    {
+      "path": "apps/auth/migrations/0012_better_auth_1_7_18.sql",
+      "lines": 15,
       "language": "sql",
       "exports": [],
       "imports": [],
@@ -3602,6 +3625,14 @@
       "referencedBy": []
     },
     {
+      "name": "hand",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "apps/auth/test/better-auth-schema.test.ts"
+      ]
+    },
+    {
       "name": "harm",
       "kind": "unknown",
       "definedIn": [],
@@ -4831,6 +4862,7 @@
       "definedIn": [],
       "referencedBy": [
         "pwa-website/js/calendar.js",
+        "pwa-website/js/onboarding.js",
         "pwa-website/test/calendar.test.js"
       ]
     }

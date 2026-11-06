@@ -26,6 +26,48 @@ describe('first-run guide', () => {
   });
 });
 
+// The tour fell behind the app once: it kept offering to hide tabs for a year after that setting
+// was removed (0.39.0), and knew nothing of dua recitation, the calendar or offline downloads.
+// These hold its claims to what the app actually has.
+describe('first-run guide, against the app it describes', () => {
+  const steps = onboarding.slice(onboarding.indexOf('const STEPS = ['), onboarding.indexOf('];', onboarding.indexOf('const STEPS = [')));
+  const bodies = [...steps.matchAll(/body: '([^']*)'/g)].map((match) => match[1]).join(' ');
+  const modes = read('js/modes.js').match(/const MODES = \[([^\]]+)\]/)[1];
+  const worship = read('js/layout.js').match(/export const WORSHIP_TABS = \[([^\]]+)\]/)[1];
+
+  it('offers only screens the app has', () => {
+    for (const [, mode] of steps.matchAll(/mode: '([a-zA-Z]+)'/g)) expect(modes, mode).toContain(`'${mode}'`);
+  });
+
+  it('never offers to hide tabs, a setting removed in 0.39.0', () => {
+    expect(bodies).not.toMatch(/\bhide\b/i);
+  });
+
+  it('names every tool behind the Prayer button', () => {
+    // WORSHIP_TABS is what the Prayer button actually holds.
+    for (const [tab, words] of [['prayerTimes', 'prayer times'], ['qibla', 'qibla'], ['tasbih', 'tasbih'], ['calendar', 'calendar']]) {
+      expect(worship, tab).toContain(`'${tab}'`);
+      expect(bodies.toLowerCase(), words).toContain(words);
+    }
+  });
+
+  it('tells people the duas can be heard and the recitation saved offline', () => {
+    expect(bodies).toMatch(/Listen/);
+    expect(bodies).toMatch(/offline listening/);
+  });
+
+  it('promises shortcuts only where they exist', () => {
+    expect(read('manifest.json')).toContain('"shortcuts"');
+    expect(bodies).toMatch(/On Android, press and hold/);
+  });
+
+  it('is not forced again on people who have already seen a tour', () => {
+    // The owner's decision for the 0.50.2 rewrite: new installs see it; anyone else can replay it.
+    expect(Number(onboarding.match(/const VERSION = (\d+);/)[1])).toBe(2);
+    expect(read('index.html')).toContain('id="replayOnboardingButton"');
+  });
+});
+
 describe('tasbih reset', () => {
   const resetHandler = tasbih.match(/tasbihResetButton\.addEventListener\('click',[\s\S]*?\n  \}\);/)[0];
 

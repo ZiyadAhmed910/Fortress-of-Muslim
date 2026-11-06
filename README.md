@@ -181,6 +181,35 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.50.2
+
+_2026-11-06_
+
+- **The first-run walkthrough describes the app as it is now.** It had fallen behind: it still offered
+  to hide tabs in Settings (removed in 0.39.0), said the Prayer button held three tools rather than
+  four, and knew nothing of dua recitation, the Islamic calendar, offline downloads or the home-screen
+  shortcuts. Seven steps now -- what works offline; the tab bar; duas with recitation; the Quran;
+  prayer times, qibla and the location-aware calendar; Settings (reciter, word-by-word, reminders,
+  offline recitation and storage); installing and the Android shortcuts.
+  - Its version stays 2 on purpose: new installs see the new tour, and people who have already seen
+    one are not shown it again (it can be replayed from Settings -> About).
+  - `test/guide-and-tasbih.test.js` holds the tour to the app: it may only offer screens `js/modes.js`
+    has, never mention hiding tabs, must name every tool behind the Prayer button (`WORSHIP_TABS`),
+    and may promise shortcuts only where the manifest declares them. Every step was measured on a
+    375x812 and a 360x640 screen: none overflows.
+- **Security: dependency upgrades.** `npm audit` reported new advisories (2 critical, 4 high) that
+  the platform check fails on. The root of most: `better-auth` was pinned to `1.7.0-rc.1`, a release
+  candidate that pulled `vitest` -- and with it `vite` and `tinypool` -- in as runtime dependencies.
+  Better Auth and its five plugins move to `1.7.18`, `vitest` to `5.1.0` (test-only), and `hono`,
+  `zod`, `vite` and `source-map-js` take their in-range fixes. `npm audit --omit=dev` reports 0.
+  - Better Auth 1.7.18 renamed the access-token verifier's `scopes` option to `requiredScopes`; the
+    meaning is unchanged (every listed scope must be granted), checked against its source.
+  - It also expects three new optional `oauthClient` columns, added by auth migration `0012`. They
+    were found by a new test, `apps/auth/test/better-auth-schema.test.ts`, which asks Better Auth --
+    configured exactly as the platform configures it -- for every table and column it needs and
+    compares them with the schema the migrations build. Without it the upgrade would have passed
+    every other check and failed at sign-in.
+
 ### 0.50.1
 
 _2026-09-24_
@@ -1737,6 +1766,12 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — an up-to-date walkthrough
+
+- The first-run walkthrough now covers dua recitation, the Islamic calendar, saving recitation for
+  offline listening, and home-screen shortcuts, and no longer mentions hiding tabs. Replay it any
+  time from Settings -> About.
 
 ### Unreleased — Ask links to the right dua
 
