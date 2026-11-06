@@ -1,23 +1,37 @@
 import { els } from './dom.js';
 import { escapeHtml, isTestHost, toast } from './utils.js';
+import { appConfig } from './app-config.js';
 
 // Recitation is streamed one ayah at a time, as byte-range capable MP3s named SSSAAA.mp3. Streaming
 // per ayah rather than per surah is what makes the player usable on a phone connection: Al-Baqarah
 // as a single file is tens of megabytes before the first word sounds, where its first ayah alone is
 // ~150KB.
 //
-// Since 0.50.3 it comes from our own media host (apps/media, R2) rather than everyayah.com and
-// audio.qurancdn.com. The files are the same, laid out the same way under quran/, so only the base
-// changed. Surahs downloaded before then are cached under the old addresses; the service worker
-// answers the new address from them (sw.js, legacyQuranUrl) and the checks below accept either, so
-// nobody's downloads were lost in the move. The test site plays from the test media host.
+// Since 0.50.3 it comes from one of two sources holding the same files, laid out the same way:
+//   'own'       our media host (apps/media, R2) -- the default; the test site uses the test host
+//   'external'  everyayah.com and audio.qurancdn.com, where they came from before
+// Which one is the Admin Console's call (app-config.js, read once per launch), so the source can be
+// moved without a release. A file that fails to load is tried once from the other source before
+// the player gives up (onAudioError), so a problem with either is not a broken ayah.
+//
+// A surah may be downloaded under either address -- before the move, or while the switch pointed
+// the other way -- so storedAyah() looks under both, and the service worker answers each address
+// from a copy stored under the other (sw.js).
 const mediaOrigin = () => (isTestHost() ? 'https://media-test.fortressofmuslim.org' : 'https://media.fortressofmuslim.org');
-const AYAH_AUDIO_BASE = () => `${mediaOrigin()}/quran`;
-// Word audio is numbered by the word's position within its ayah. Those positions come from the
-// stored word data, never from splitting the text -- see tools/build-quran-words.mjs for why.
-const WORD_AUDIO_BASE = () => `${mediaOrigin()}/quran/wbw`;
-// Where the same files used to be fetched from, and so where an earlier download is cached.
-const LEGACY_AYAH_AUDIO_BASE = 'https://everyayah.com/data';
+const SOURCES = {
+  own: {
+    // Word audio is numbered by the word's position within its ayah. Those positions come from the
+    // stored word data, never from splitting the text -- see tools/build-quran-words.mjs for why.
+    ayah: () => `${mediaOrigin()}/quran`,
+    word: () => `${mediaOrigin()}/quran/wbw`,
+  },
+  external: {
+    ayah: () => 'https://everyayah.com/data',
+    word: () => 'https://audio.qurancdn.com/wbw',
+  },
+};
+const audioSource = () => appConfig().audioSource;
+const otherSource = (source) => (source === 'own' ? 'external' : 'own');
 const wordsUrl = (number) => `./data/quran/words-${number}.json`;
 const STORAGE_KEY = 'fortress_quran_audio';
 const AUDIO_CACHE = 'fortress-quran-audio-v1';
@@ -44,14 +58,28 @@ export const REPEAT_MODES = ['off', 'ayah', 'surah'];
 const REPEAT_LABELS = { off: 'Repeat off', ayah: 'Repeating this ayah', surah: 'Repeating this surah' };
 
 const pad = (value, length) => String(value).padStart(length, '0');
-export const ayahAudioUrl = (reciter, surah, ayah) => `${AYAH_AUDIO_BASE()}/${reciter}/${pad(surah, 3)}${pad(ayah, 3)}.mp3`;
-export const legacyAyahAudioUrl = (reciter, surah, ayah) => `${LEGACY_AYAH_AUDIO_BASE}/${reciter}/${pad(surah, 3)}${pad(ayah, 3)}.mp3`;
-export const wordAudioUrl = (surah, ayah, position) => `${WORD_AUDIO_BASE()}/${pad(surah, 3)}_${pad(ayah, 3)}_${pad(position, 3)}.mp3`;
+export const ayahAudioUrl = (reciter, surah, ayah, source = audioSource()) => `${SOURCES[source].ayah()}/${reciter}/${pad(surah, 3)}${pad(ayah, 3)}.mp3`;
+export const wordAudioUrl = (surah, ayah, position, source = audioSource()) => `${SOURCES[source].word()}/${pad(surah, 3)}_${pad(ayah, 3)}_${pad(position, 3)}.mp3`;
+// Where a surah downloaded before 0.50.3 was stored.
+export const legacyAyahAudioUrl = (reciter, surah, ayah) => ayahAudioUrl(reciter, surah, ayah, 'external');
 
-// A stored copy of this ayah under either address -- the new one, or the one a download made
-// before the move used.
-const storedAyah = (cache, reciter, surah, ayah) => cache.match(ayahAudioUrl(reciter, surah, ayah))
-  .then((found) => found || cache.match(legacyAyahAudioUrl(reciter, surah, ayah)));
+// A stored copy of this ayah under either source's address, whichever the download used.
+const storedAyah = (cache, reciter, surah, ayah) => cache.match(ayahAudioUrl(reciter, surah, ayah, 'own'))
+  .then((found) => found || cache.match(ayahAudioUrl(reciter, surah, ayah, 'external')));
+
+// The file the player is on, from the other source -- or null if it has already been tried there.
+// `audio.src` is resolved by the browser, so the comparison is on that, not on what was assigned.
+export function otherSourceUrl(currentSrc) {
+  for (const source of Object.keys(SOURCES)) {
+    // Words first: on our host a word's address (…/quran/wbw/…) also begins with the ayah base
+    // (…/quran/), and read as an ayah it would be sent to a folder everyayah does not have.
+    for (const kind of ['word', 'ayah']) {
+      const base = `${SOURCES[source][kind]()}/`;
+      if (currentSrc?.startsWith(base)) return `${SOURCES[otherSource(source)][kind]()}/${currentSrc.slice(base.length)}`;
+    }
+  }
+  return null;
+}
 
 const wordCache = new Map();
 let audio = null;
@@ -310,6 +338,8 @@ function onAyahEnded() {
   // The Bismillah just played; the ayah it opens comes next, not the one after it.
   if (playing.bismillah) {
     playing.bismillah = false;
+    // A new file, so it gets its own retry from the other source if it fails.
+    playing.retried = false;
     audio.src = ayahAudioUrl(prefs.reciter, playing.surah, playing.ayah);
     audio.play().catch(() => {});
     return;
@@ -339,6 +369,17 @@ function onAyahEnded() {
 
 function onAudioError() {
   if (!playing || !audio.getAttribute('src')) return;
+  // First failure for this ayah: the same file from the other source. Only once -- a second failure
+  // means the ayah is not reachable from either, and saying so beats looping between them.
+  if (!playing.retried) {
+    const alternative = otherSourceUrl(audio.currentSrc || audio.src);
+    if (alternative) {
+      playing.retried = true;
+      audio.src = alternative;
+      audio.play().catch(() => {});
+      return;
+    }
+  }
   const failed = playing;
   stopPlayback();
   toast(navigator.onLine
@@ -383,7 +424,19 @@ export async function playWord(surahNumber, ayahNumber, position) {
   try {
     await wordAudio.play();
   } catch (error) {
-    if (error.name !== 'AbortError') toast('Word audio needs a connection.');
+    if (error.name === 'AbortError') return;
+    // The same word from the other source, once, before giving up (see onAudioError).
+    const alternative = otherSourceUrl(wordAudio.currentSrc || wordAudio.src);
+    if (alternative) {
+      wordAudio.src = alternative;
+      try {
+        await wordAudio.play();
+        return;
+      } catch {
+        // falls through to the message
+      }
+    }
+    toast('Word audio needs a connection.');
   }
 }
 

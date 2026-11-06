@@ -19,6 +19,13 @@ const isDuaRecitation = (url) => DUA_AUDIO_HOSTS.includes(url.hostname) && url.p
 // before the move are cached under those old addresses, so a request for the new address is also
 // looked up under the old one -- nobody's downloads were lost.
 const isMediaQuran = (url) => DUA_AUDIO_HOSTS.includes(url.hostname) && url.pathname.startsWith('/quran/');
+// The other direction: an everyayah / qurancdn address -- what the app asks for when the Admin
+// Console points it at the external source -- answered from a copy downloaded from our own host.
+const ownQuranUrls = (url) => {
+  const rest = url.hostname === 'audio.qurancdn.com' ? url.pathname.replace(/^\/wbw\//, 'wbw/')
+    : url.pathname.replace(/^\/data\//, '');
+  return DUA_AUDIO_HOSTS.map((host) => `https://${host}/quran/${rest}`);
+};
 const legacyQuranUrl = (url) => {
   const rest = url.pathname.slice('/quran/'.length);
   return rest.startsWith('wbw/') ? `https://audio.qurancdn.com/${rest}` : `https://everyayah.com/data/${rest}`;
@@ -39,6 +46,7 @@ const ASSETS = [
   `./css/online.css?v=${APP_VERSION}`,
   `./css/responsive.css?v=${APP_VERSION}`,
   `./js/app.js?v=${APP_VERSION}`,
+  `./js/app-config.js?v=${APP_VERSION}`,
   `./js/art-motion.js?v=${APP_VERSION}`,
   `./js/assistant.js?v=${APP_VERSION}`,
   `./js/categories.js?v=${APP_VERSION}`,
@@ -167,7 +175,15 @@ self.addEventListener('fetch', (event) => {
   if (isRecitation(url)) {
     event.respondWith(
       caches.open(AUDIO_CACHE)
-        .then((cache) => cache.match(url.href))
+        .then(async (cache) => {
+          const direct = await cache.match(url.href);
+          if (direct) return direct;
+          for (const own of ownQuranUrls(url)) {
+            const copy = await cache.match(own);
+            if (copy) return rangedResponse(copy, event.request);
+          }
+          return null;
+        })
         .then((cached) => cached || fetch(event.request))
         .catch(() => fetch(event.request))
     );

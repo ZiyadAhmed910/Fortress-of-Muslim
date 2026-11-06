@@ -181,6 +181,28 @@ Every platform release must:
 
 ## Platform Releases
 
+### 0.50.3
+
+_2026-11-06_
+
+- **Quran recitation plays from our own media host**, with a switch back. Ayah-by-ayah recitation
+  for all six reciters and the word-by-word audio -- about 14 GB, 115,000 files -- were uploaded to the
+  `fortress-media` R2 bucket from the owner's backup (each file MD5-checked on upload, samples of every
+  reciter compared byte for byte afterwards) and are served by the media Worker under `quran/`,
+  laid out exactly as everyayah.com and audio.qurancdn.com had them. Quran plays are not counted: the
+  counts are the dua provider's report (`COUNTED_PREFIXES`).
+  - **Admin Console -> App settings -> Quran audio source** chooses our host (the default) or the
+    external hosts, admin only and audited (`GET`/`PATCH /v1/admin/app-settings`, table
+    `app_settings`, migration 0030). The PWA reads it once per launch in the background from
+    `GET /v1/app-config` (`js/app-config.js`), never delaying start-up, and keeps the last value for
+    offline use. A change reaches phones on their next launch, within about five minutes.
+  - **Automatic fallback:** an ayah or word that fails to load is retried once from the other source
+    before the player gives up.
+  - **No download was lost:** surahs saved before the move, or while the switch pointed the other way,
+    play offline whichever way it points -- the service worker answers each address from a copy
+    stored under the other, with proper 206 ranges.
+  - Dua recitation exists only on our host and is not switchable.
+
 ### 0.50.2
 
 _2026-11-06_
@@ -1766,6 +1788,12 @@ The service worker build/cache version is stamped from the current commit SHA. T
 uploading to Bluehost.
 
 ## Release Notes
+
+### Unreleased — Quran audio from our own server
+
+- Quran recitation and word-by-word audio now play from Fortress of Muslim's own server. Surahs you
+  already downloaded keep working offline, and if a recitation ever fails to load the app quietly
+  tries again from a second source.
 
 ### Unreleased — an up-to-date walkthrough
 

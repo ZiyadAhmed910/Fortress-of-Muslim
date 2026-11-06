@@ -96,6 +96,7 @@
         <a href="#services" data-nav><span>Service control</span></a>
         <a href="#rate-limits" data-nav><span>Rate limits</span></a>
         <a href="#media-stats" data-nav><span>Audio usage</span></a>
+        <a href="#app-settings" data-nav><span>App settings</span></a>
         <a href="#security" data-nav><span>Account security</span></a>
         <a href="#audit" data-nav><span>Audit log</span></a>
       </nav>
@@ -281,6 +282,11 @@
         <p class="section-note">Which model answers, how much of each model may be spent in a day, and how many questions one visitor may ask. A limit of 0 means unlimited.</p>
         <div id="ask-usage" class="metrics"></div>
         <form id="ask-controls" class="ask-controls" hidden></form>
+      </section>
+
+      <section id="app-settings" class="view" hidden>
+        <header><div><span class="kicker">OPERATIONS</span><h1>App settings</h1><p>Settings the app reads when it opens, changed here without a release. Phones pick up a change on their next launch, within about five minutes; a phone that is offline keeps using the last value it saw.</p></div></header>
+        <form id="app-settings-form" class="ask-controls" hidden></form>
       </section>
 
       <section id="audit" class="view" hidden>

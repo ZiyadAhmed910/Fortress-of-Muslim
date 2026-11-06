@@ -17,7 +17,7 @@ The repository is a monorepo so applications share contracts and domain logic wh
 | Developer Portal | `developers.fortressofmuslim.org` | Apps, credentials, OAuth, testing, usage and documentation |
 | Authorization | `auth.fortressofmuslim.org` | OAuth and OpenID Connect endpoints |
 | Admin | `admin.fortressofmuslim.org` | Content and platform control plane |
-| Media | `media.fortressofmuslim.org` | Self-hosted audio from R2: dua recitation (with play and download counts) and, since 0.50.3, Quran recitation and word-by-word audio |
+| Media | `media.fortressofmuslim.org` | Self-hosted audio from R2: dua recitation (with play and download counts) and, since 0.50.3, Quran recitation and word-by-word audio (switchable back to the external hosts from Admin -> App settings) |
 | Status | `status.fortressofmuslim.org` | Independent service status |
 
 Every application runs on Cloudflare. The PWA moved from Bluehost to Workers static assets on

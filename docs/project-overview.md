@@ -183,9 +183,13 @@ What it actually contains today:
   `test/quran-juz.test.js` enforces the same invariant at test time.
 - **Recitation** — ayah-by-ayah playback (six reciters) that advances through the surah, with
   repeat modes and a cancellable per-surah offline download in `fortress-quran-audio-v1`. Served
-  from our own media host since 0.50.3; surahs downloaded before then are cached under the old
-  everyayah / qurancdn addresses, and the service worker answers the new address from them
-  (`legacyQuranUrl` in `sw.js`), so no download was lost in the move. It keeps
+  from our own media host since 0.50.3, with a switch: Admin Console -> App settings -> Quran audio
+  source chooses our host (default) or the external hosts it came from (everyayah.com,
+  audio.qurancdn.com). The PWA reads it once per launch in the background (`js/app-config.js`,
+  `GET /v1/app-config`, table `app_settings`, migration 0030) and keeps the last value offline. A file
+  that fails to load is retried once from the other source. Downloads made under either address play
+  offline whichever way the switch points: the service worker answers each address from a copy stored
+  under the other (`legacyQuranUrl` / `ownQuranUrls` in `sw.js`). It keeps
   playing with the phone locked: lock-screen controls via the Media Session API, the next ayah
   preloaded, and no page render awaited between ayahs while hidden. The screen is held awake only
   while "Follow the recitation" is on.
