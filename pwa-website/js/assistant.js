@@ -316,8 +316,13 @@ function render() {
   if (followingLatest) pinToLatest();
 }
 
-function renderTurn(turn) {
+export function renderTurn(turn) {
   const streaming = turn.stage === 'writing' && turn.answer;
+  // The sources arrive before the answer -- retrieval finishes before the model starts writing -- and
+  // they used to be drawn the moment they arrived: a list of sources under "Writing the answer", which
+  // the answer then appeared above and pushed down. They are kept from the start (the citations need
+  // them) but shown once the answer is finished, beneath it, which is the order they are read in.
+  const finished = !turn.stage;
   return `
       <p class="assistant-question">${escapeHtml(turn.question)}${turn.scope === 'quran' ? ' <span class="assistant-scope">Quran</span>' : ''}</p>
       ${turn.error ? `<div class="empty-state">${escapeHtml(turn.error)}</div>` : ''}
@@ -327,8 +332,8 @@ function renderTurn(turn) {
           <span>${escapeHtml(STAGE_LABELS[turn.stage] || 'Thinking')}</span>
         </div>` : ''}
       ${turn.answer ? `<article class="assistant-answer"><p>${formatAnswer(turn.answer)}${streaming ? '<span class="assistant-cursor" aria-hidden="true"></span>' : ''}</p></article>` : ''}
-      ${turn.sources.length ? `<div class="assistant-sources">${renderSources(turn.sources)}</div>` : ''}
-      ${unverifiedNote(turn.meta)}
+      ${finished && turn.sources.length ? `<div class="assistant-sources">${renderSources(turn.sources)}</div>` : ''}
+      ${finished ? unverifiedNote(turn.meta) : ''}
       ${!turn.stage && typeof turn.meta.remainingToday === 'number'
         ? `<p class="assistant-remaining">${turn.meta.remainingToday} questions remaining today on this connection.</p>` : ''}
   `;

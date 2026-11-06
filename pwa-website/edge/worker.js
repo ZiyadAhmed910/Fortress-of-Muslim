@@ -56,6 +56,37 @@ function withPage(html, page, url) {
   }
 }
 
+// The API the hadith pages read: production's for the production site, test's for everything else.
+const apiOrigin = (url) => (url.hostname === INDEXED_HOST ? 'https://api.fortressofmuslim.org' : 'https://api-test.fortressofmuslim.org');
+
+/**
+ * One hadith from the API, cached at the edge for a day: hadith text changes only through an
+ * editorial publication, and a crawler walking 14,000 pages should not become 14,000 API requests
+ * twice over. Returns the hadith, null for a definite "no such hadith", undefined if the API could
+ * not be asked (see edge/pages.js).
+ */
+async function fetchHadith(url, collection, book, number) {
+  const query = new URLSearchParams({ collection, book, number });
+  const api = `${apiOrigin(url)}/v1/hadith/resolve?${query}`;
+  try {
+    const cache = globalThis.caches?.default;
+    let response = cache ? await cache.match(api) : undefined;
+    if (!response) {
+      response = await fetch(api, { headers: { accept: 'application/json' } });
+      if (response.ok || response.status === 404) {
+        const stored = new Response(response.clone().body, response);
+        stored.headers.set('cache-control', response.ok ? 'public, max-age=86400' : 'public, max-age=3600');
+        await cache?.put(api, stored);
+      }
+    }
+    if (response.status === 404) return null;
+    if (!response.ok) return undefined;
+    return (await response.json())?.data ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 const notFound = () => new Response('Not found', {
   status: 404,
   headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff' },
@@ -122,7 +153,7 @@ export default {
     let body = response.body;
     if (response.status === 404 && isAppRoute(url.pathname)) {
       const shell = await env.ASSETS.fetch(new Request(new URL('/index.html', url), { method: 'GET' }));
-      const page = await pageFor(url.pathname, (path) => loadJson(env, url, path));
+      const page = await pageFor(url.pathname, (path) => loadJson(env, url, path), (...parts) => fetchHadith(url, ...parts));
       if (page === null) return notFound();
       response = shell;
       body = page ? withPage(await shell.text(), page, url) : shell.body;
