@@ -547,7 +547,9 @@ export default class AuthWorker extends WorkerEntrypoint<Bindings> {
           audience: audience === 'mcp' ? this.env.MCP_AUDIENCE : this.env.API_AUDIENCE,
         },
         jwksUrl: `${this.env.AUTH_BASE_URL}/api/auth/jwks`,
-        scopes,
+        // Every scope listed must be granted, or the token is refused. Named `scopes` until Better
+        // Auth 1.7.18 renamed it; the meaning is unchanged. An empty list asks for no particular scope.
+        requiredScopes: scopes,
       });
       const subject = typeof payload.sub === 'string' ? payload.sub : undefined;
       if (subject && !await this.isUserActive(subject)) return { valid: false, error: 'The credential owner is not active.' };
