@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-06T09:49:06.020Z",
+  "generatedAt": "2026-11-06T10:46:17.176Z",
   "files": [
     {
       "path": "apps/api/src/app.ts",
@@ -937,7 +937,7 @@
     },
     {
       "path": "pwa-website/edge/pages.js",
-      "lines": 117,
+      "lines": 150,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -945,7 +945,7 @@
     },
     {
       "path": "pwa-website/edge/worker.js",
-      "lines": 143,
+      "lines": 174,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -977,7 +977,7 @@
     },
     {
       "path": "pwa-website/js/assistant.js",
-      "lines": 393,
+      "lines": 398,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1249,7 +1249,7 @@
     },
     {
       "path": "pwa-website/test/ask-scroll.test.js",
-      "lines": 92,
+      "lines": 114,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -1305,7 +1305,7 @@
     },
     {
       "path": "pwa-website/test/edge-pages.test.js",
-      "lines": 106,
+      "lines": 174,
       "language": "js",
       "exports": [],
       "imports": [],
@@ -3688,6 +3688,14 @@
       ]
     },
     {
+      "name": "files",
+      "kind": "unknown",
+      "definedIn": [],
+      "referencedBy": [
+        "pwa-website/edge/pages.js"
+      ]
+    },
+    {
       "name": "filterList",
       "kind": "unknown",
       "definedIn": [],
@@ -4779,14 +4787,6 @@
         "pwa-website/js/assistant.js",
         "pwa-website/js/quran.js",
         "pwa-website/test/quran-bismillah.test.js"
-      ]
-    },
-    {
-      "name": "these",
-      "kind": "unknown",
-      "definedIn": [],
-      "referencedBy": [
-        "pwa-website/edge/pages.js"
       ]
     },
     {

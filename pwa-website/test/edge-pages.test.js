@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import worker from '../edge/worker.js';
 
 // What a crawler receives for a content URL, before any JavaScript runs -- served by the real Worker
@@ -10,7 +10,7 @@ import worker from '../edge/worker.js';
 
 const ROOT = process.cwd();
 const ORIGIN = 'https://fortressofmuslim.org';
-const SITEMAP = readFileSync(resolve(ROOT, 'sitemap.xml'), 'utf8');
+const SITEMAP = readFileSync(resolve(ROOT, 'sitemap-pages.xml'), 'utf8');
 
 // A static-assets binding over the pwa-website directory itself.
 const assets = {
@@ -80,6 +80,32 @@ describe('a surah page', () => {
   });
 });
 
+describe('the sitemap index', () => {
+  const index = readFileSync(resolve(ROOT, 'sitemap.xml'), 'utf8');
+  const files = [...index.matchAll(/<loc>https:\/\/fortressofmuslim\.org\/([^<]*)<\/loc>/g)].map((match) => match[1]);
+
+  it('names the pages and every hadith collection, each a file that is published', () => {
+    expect(index).toContain('<sitemapindex');
+    expect(files).toContain('sitemap-pages.xml');
+    expect(files.filter((file) => file.startsWith('sitemap-hadith-')).length).toBeGreaterThanOrEqual(3);
+    for (const file of files) expect(existsSync(resolve(ROOT, file)), file).toBe(true);
+  });
+
+  it('lists hadith at the URL shape the Worker renders, each with the date it was published', () => {
+    for (const file of files.filter((name) => name.startsWith('sitemap-hadith-'))) {
+      const xml = readFileSync(resolve(ROOT, file), 'utf8');
+      const urls = [...xml.matchAll(/<url><loc>https:\/\/fortressofmuslim\.org(\/[^<]*)<\/loc><lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod><\/url>/g)];
+      expect(urls.length, file).toBe((xml.match(/<url>/g) || []).length);
+      for (const [, path] of urls) expect(path, file).toMatch(/^\/[a-z0-9-]+\/book[^/]+\/[^/]+$/);
+    }
+  });
+
+  it('dates the pages by when their content changed, not by when it was built', () => {
+    const dates = new Set([...SITEMAP.matchAll(/<lastmod>([^<]*)<\/lastmod>/g)].map((match) => match[1]));
+    expect(dates.size).toBeGreaterThan(1);
+  });
+});
+
 describe('every page in the sitemap', () => {
   it('is served with its own canonical, never the home page', async () => {
     const paths = [...SITEMAP.matchAll(/<loc>https:\/\/fortressofmuslim\.org([^<]*)<\/loc>/g)].map((match) => match[1]);
@@ -94,12 +120,54 @@ describe('every page in the sitemap', () => {
     expect(titles.size).toBe(paths.length - 1);
   });
 
-  it('leaves the home page and the hadith routes as the plain shell', async () => {
+  it('leaves the home page as the plain shell', async () => {
     const home = await get('/');
     expect(home.html).not.toContain('id="prerender"');
     expect(tag(home.html, /<link rel="canonical" href="([^"]*)">/)).toBe(`${ORIGIN}/`);
-    const hadith = await get('/bukhari/book1/1');
-    expect(hadith.status).toBe(200);
-    expect(hadith.html).not.toContain('id="prerender"');
+  });
+});
+
+describe('a hadith page', () => {
+  // The API, stubbed: Bukhari 1 exists, Bukhari 99999 does not, and "outage" stands for an API that
+  // cannot be reached at all.
+  const HADITH = {
+    title: 'Sahih al-Bukhari 1', canonicalUrl: 'https://fortressofmuslim.org/bukhari/book1/1',
+    collection: { slug: 'bukhari', title: 'Sahih al-Bukhari' }, book: { number: '1', title: 'Revelation' },
+    chapter: { number: '1', title: 'How the Divine Revelation started' }, narrator: "Narrated 'Umar bin Al-Khattab:",
+    grade: null, segments: [{ kind: 'arabic', text: 'إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ' }, { kind: 'translation', text: 'The reward of deeds depends upon the intentions.' }],
+  };
+  const api = vi.fn(async (url) => {
+    const query = new URL(url).searchParams;
+    if (query.get('collection') === 'outage') throw new Error('unreachable');
+    if (query.get('collection') === 'bukhari' && query.get('number') === '1') return Response.json({ data: HADITH });
+    return Response.json({ error: { code: 'not_found' } }, { status: 404 });
+  });
+  beforeEach(() => vi.stubGlobal('fetch', api));
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('has its own title, canonical, description and text', async () => {
+    const { status, html } = await get('/bukhari/book1/1');
+    expect(status).toBe(200);
+    expect(tag(html, /<title>([^<]*)<\/title>/)).toBe('Sahih al-Bukhari 1 - Revelation - Fortress of Muslim');
+    expect(tag(html, /<link rel="canonical" href="([^"]*)">/)).toBe(`${ORIGIN}/bukhari/book1/1`);
+    expect(tag(html, /<meta name="description" content="([^"]*)">/)).toContain('The reward of deeds depends upon the intentions.');
+    const article = tag(html, /<article id="prerender" class="prerender">([\s\S]*?)<\/article>/);
+    expect(article).toContain('Book 1: Revelation');
+    expect(article).toContain('lang="ar" dir="rtl"');
+  });
+
+  it('asks the production API for the production site', async () => {
+    await get('/bukhari/book1/1');
+    expect(String(api.mock.calls.at(-1)[0])).toMatch(/^https:\/\/api\.fortressofmuslim\.org\/v1\/hadith\/resolve\?collection=bukhari&book=1&number=1$/);
+  });
+
+  it('is a 404 when the API says there is no such hadith', async () => {
+    expect((await get('/bukhari/book1/99999')).status).toBe(404);
+  });
+
+  it('falls back to the plain app, not a 404, when the API cannot be reached', async () => {
+    const { status, html } = await get('/outage/book1/1');
+    expect(status).toBe(200);
+    expect(html).not.toContain('id="prerender"');
   });
 });

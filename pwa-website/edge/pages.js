@@ -10,8 +10,13 @@
 // So for a dua (/hisn/chapter<n>) and a verse (/quran/<surah>/<ayah>) this fills in, from the same
 // data files the app reads: the title, description, canonical and social tags, and the text itself
 // in an <article id="prerender"> the app removes as it starts (js/app.js). A URL naming a dua or
-// verse that does not exist is a 404 rather than an empty shell. Hadith are served by the API, not
-// from these files, and keep the plain shell.
+// verse that does not exist is a 404 rather than an empty shell.
+//
+// Hadith (/<collection>/book<b>/<n>) get the same, from the API rather than from files -- the corpus
+// is not shipped with the app. The Worker passes a fetcher (edge/worker.js) that caches each answer
+// at the edge for a day. A hadith the API says does not exist is a 404; an API that cannot be
+// reached is not, and the page falls back to the plain shell rather than telling a crawler that
+// 14,000 pages vanished during an outage.
 //
 // Plain string replacement, not HTMLRewriter: index.html is ours and its tags are fixed, and this
 // way the whole thing runs -- and is tested -- outside the Workers runtime.
@@ -79,13 +84,41 @@ async function versePage(surahNumber, ayahNumber, load) {
  * The page for a content URL: an object to render, null for a dua or verse that does not exist
  * (a 404), or undefined for any other URL (the plain app shell).
  */
-export async function pageFor(pathname, load) {
+export async function pageFor(pathname, load, fetchHadith) {
   const path = pathname.replace(/\/+$/, '');
   const dua = path.match(/^\/hisn\/chapter([0-9]{1,4})$/);
   if (dua) return duaPage(Number(dua[1]), load);
   const verse = path.match(/^\/quran\/([0-9]{1,3})\/([0-9]{1,3})$/);
   if (verse) return versePage(Number(verse[1]), Number(verse[2]), load);
+  const hadith = path.match(/^\/([a-z0-9-]+)\/book([^/]+)\/([^/]+)$/);
+  if (hadith && fetchHadith) return hadithPage(hadith[1], decodeURIComponent(hadith[2]), decodeURIComponent(hadith[3]), fetchHadith);
   return undefined;
+}
+
+/**
+ * `fetchHadith` answers with the API's hadith, null when the API says there is none, or undefined
+ * when the API could not be asked -- in which case the page is the plain shell, not a 404.
+ */
+async function hadithPage(collection, book, number, fetchHadith) {
+  const hadith = await fetchHadith(collection, book, number);
+  if (hadith === null) return null;
+  if (!hadith) return undefined;
+  const segments = Array.isArray(hadith.segments) ? hadith.segments : [];
+  const translation = segments.find((segment) => segment.kind === 'translation')?.text ?? '';
+  const where = [hadith.collection?.title, hadith.book ? `Book ${hadith.book.number}: ${hadith.book.title}` : '', hadith.chapter?.title]
+    .filter(Boolean).map(escapeHtml).join(' &middot; ');
+  const grade = hadith.grade?.value ? `<p>Grade: ${escapeHtml(hadith.grade.value)}${hadith.grade.authority ? ` (${escapeHtml(hadith.grade.authority)})` : ''}</p>` : '';
+  const text = segments.map((segment) => (
+    /[\u0600-\u06FF]/.test(segment.text) ? arabic(segment.text) : `<p>${escapeHtml(segment.text)}</p>`
+  )).join('');
+  const title = hadith.book?.title ? `${hadith.title} - ${hadith.book.title}` : hadith.title;
+  const path = new URL(hadith.canonicalUrl).pathname;
+  return {
+    title,
+    description: summary(`${hadith.title}${hadith.narrator ? `. ${hadith.narrator}` : ''} ${translation}`),
+    path,
+    body: `<h2>${escapeHtml(hadith.title)}</h2><p>${where}</p>${hadith.narrator ? `<p>${escapeHtml(hadith.narrator)}</p>` : ''}${text}${grade}`,
+  };
 }
 
 function replaceTag(html, pattern, replacement) {
